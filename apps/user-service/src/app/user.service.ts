@@ -1,4 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { RedisService } from '@suggar-daddy/redis';
+import { KafkaProducerService } from '@suggar-daddy/kafka';
 import type {
   UserProfileDto,
   CreateUserDto,
@@ -7,8 +9,8 @@ import type {
 } from '@suggar-daddy/dto';
 
 /**
- * 架構：讀取 Redis，寫入 Kafka。不操作 DB。
- * Phase 1：in-memory mock（將由 Redis + Kafka 取代）
+ * 整合 Redis 和 Kafka
+ * Phase 1：使用 Redis 儲存用戶資料，Kafka 發送事件
  */
 interface UserRecord {
   id: string;
@@ -27,11 +29,16 @@ interface UserRecord {
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
-  private users: Map<string, UserRecord> = new Map();
+  private readonly USER_PREFIX = 'user:';
+
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly kafkaProducer: KafkaProducerService,
+  ) {}
 
   /** 取得用戶完整資料（自己看自己） */
   async getMe(userId: string): Promise<UserProfileDto | null> {
-    const user = this.users.get(userId);
+    const user = await this.getUserFromRedis(userId);
     if (!user) {
       this.logger.warn(`getMe user not found userId=${userId}`);
       return null;
@@ -40,9 +47,9 @@ export class UserService {
     return this.toProfileDto(user);
   }
 
-  /** 取得用戶對外資料（給他人看，可隱藏部分欄位） */
+  /** 取得用戶公開資料（給別人看，可隱藏部分敏感位置） */
   async getProfile(userId: string): Promise<UserProfileDto | null> {
-    const user = this.users.get(userId);
+    const user = await this.getUserFromRedis(userId);
     if (!user) {
       this.logger.warn(`getProfile user not found userId=${userId}`);
       return null;
@@ -53,7 +60,7 @@ export class UserService {
 
   /** 取得用戶卡片（供 matching 推薦用） */
   async getCard(userId: string): Promise<UserCardDto | null> {
-    const user = this.users.get(userId);
+    const user = await this.getUserFromRedis(userId);
     if (!user) return null;
     return {
       id: user.id,
@@ -83,55 +90,87 @@ export class UserService {
       createdAt: now,
       updatedAt: now,
     };
-    this.users.set(id, user);
+    
+    // 儲存到 Redis
+    await this.saveUserToRedis(user);
+    
     this.logger.log(`user created id=${id} role=${dto.role} displayName=${dto.displayName}`);
-    // TODO: 發送 Kafka 事件 user.created
+    
+    // 發送 Kafka 事件
+    await this.kafkaProducer.sendEvent('user.created', {
+      userId: id,
+      role: user.role,
+      displayName: user.displayName,
+      createdAt: user.createdAt.toISOString(),
+    });
+    
     return this.toProfileDto(user);
   }
 
   /** 更新個人資料 */
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserProfileDto> {
-    const user = this.users.get(userId);
+    const user = await this.getUserFromRedis(userId);
     if (!user) {
       this.logger.warn(`updateProfile user not found userId=${userId}`);
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(`User not found: ${userId}`);
     }
+    
     if (dto.displayName !== undefined) user.displayName = dto.displayName;
     if (dto.bio !== undefined) user.bio = dto.bio;
     if (dto.avatarUrl !== undefined) user.avatarUrl = dto.avatarUrl;
     if (dto.birthDate !== undefined) user.birthDate = new Date(dto.birthDate);
-    if (dto.preferences !== undefined) user.preferences = dto.preferences;
-    user.lastActiveAt = new Date();
     user.updatedAt = new Date();
-    this.logger.log(`profile updated userId=${userId} fields=${Object.keys(dto).join(',')}`);
-    // TODO: 發送 Kafka 事件 user.profile_updated
+    
+    // 更新到 Redis
+    await this.saveUserToRedis(user);
+    
+    this.logger.log(`user profile updated userId=${userId}`);
+    
+    // 發送 Kafka 事件
+    await this.kafkaProducer.sendEvent('user.updated', {
+      userId: user.id,
+      displayName: user.displayName,
+      updatedAt: user.updatedAt.toISOString(),
+    });
+    
     return this.toProfileDto(user);
   }
 
-  /** 更新最後活躍時間（可由其他服務呼叫） */
-  async touchLastActive(userId: string): Promise<void> {
-    const user = this.users.get(userId);
-    if (user) {
-      user.lastActiveAt = new Date();
-    }
-  }
-
-  private toProfileDto(u: UserRecord): UserProfileDto {
+  /** 從 Redis 取得用戶 */
+  private async getUserFromRedis(userId: string): Promise<UserRecord | null> {
+    const key = `${this.USER_PREFIX}${userId}`;
+    const data = await this.redisService.get(key);
+    if (!data) return null;
+    
+    const parsed = JSON.parse(data);
     return {
-      id: u.id,
-      role: u.role,
-      displayName: u.displayName,
-      bio: u.bio,
-      avatarUrl: u.avatarUrl,
-      birthDate: u.birthDate,
-      preferences: u.preferences,
-      verificationStatus: u.verificationStatus,
-      createdAt: u.createdAt,
-      updatedAt: u.updatedAt,
+      ...parsed,
+      birthDate: parsed.birthDate ? new Date(parsed.birthDate) : undefined,
+      lastActiveAt: new Date(parsed.lastActiveAt),
+      createdAt: new Date(parsed.createdAt),
+      updatedAt: new Date(parsed.updatedAt),
     };
   }
 
-  getHealth(): { status: string; service: string } {
-    return { status: 'ok', service: 'user-service' };
+  /** 儲存用戶到 Redis */
+  private async saveUserToRedis(user: UserRecord): Promise<void> {
+    const key = `${this.USER_PREFIX}${user.id}`;
+    await this.redisService.set(key, JSON.stringify(user));
+  }
+
+  private toProfileDto(user: UserRecord): UserProfileDto {
+    return {
+      id: user.id,
+      role: user.role,
+      displayName: user.displayName,
+      bio: user.bio,
+      avatarUrl: user.avatarUrl,
+      birthDate: user.birthDate,
+      preferences: user.preferences,
+      verificationStatus: user.verificationStatus,
+      lastActiveAt: user.lastActiveAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 }
