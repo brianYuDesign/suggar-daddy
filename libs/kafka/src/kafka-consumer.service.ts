@@ -24,8 +24,13 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
-    await this.consumer.connect();
-    this.logger.log('Kafka Consumer connected');
+    try {
+      await this.consumer.connect();
+      this.logger.log('Kafka Consumer connected');
+    } catch (error) {
+      this.logger.error('Failed to connect Kafka Consumer (graceful degradation):', error);
+      // Graceful degradation: service continues without Kafka
+    }
   }
 
   async onModuleDestroy() {
