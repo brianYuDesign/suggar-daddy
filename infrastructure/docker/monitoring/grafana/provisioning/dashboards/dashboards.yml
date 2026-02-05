@@ -1,0 +1,15 @@
+# Grafana 儀表板自動載入
+# 將 JSON 放在此目錄下，或至 Grafana UI 匯入下列 Dashboard ID
+apiVersion: 1
+
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: ''
+    folderUid: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json

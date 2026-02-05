@@ -31,7 +31,7 @@
 ## 微服務架構
 
 ```
-suggar-daddy/
+專案根目錄/
 ├── apps/
 │   ├── api-gateway/           # API 網關 (Kong/自建)
 │   ├── user-service/          # 用戶服務
@@ -102,6 +102,55 @@ suggar-daddy/
 | 同步 | 即時查詢、驗證 | gRPC / HTTP |
 | 非同步 | 事件驅動、解耦 | Kafka |
 
+### ⚠️ 資料流架構原則（重要）
+
+**用戶 API 不直接操作 DB。** 讀寫分離 + 異步寫入。
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          用戶 API（User-facing Services）                      │
+│           matching-service, user-service, auth-service, ...                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+        │                                          │
+        │ 讀取                                      │ 寫入
+        ▼                                          ▼
+┌──────────────┐                          ┌──────────────┐
+│    Redis     │                          │    Kafka     │
+│  (快取/讀取)  │                          │  (事件佇列)   │
+└──────────────┘                          └──────┬───────┘
+        │                                          │
+        │ Cache Miss 時                             │ 消費者消費
+        │ (由 DB Writer 預熱)                        ▼
+        │                                   ┌──────────────┐
+        │                                   │  DB Writer   │
+        │                                   │  (背景服務)   │
+        │                                   └──────┬───────┘
+        │                                          │
+        │                                          │ 僅寫入
+        │                                          ▼
+        │                                   ┌──────────────┐
+        │                                   │  PostgreSQL  │
+        │                                   │   Master     │
+        │                                   └──────┬───────┘
+        │                                          │ replication
+        │                                          ▼
+        │                                   ┌──────────────┐
+        └──────────────────────────────────│  Replica(s)  │
+                   (DB Writer 同步到 Redis) │   (唯讀)     │
+                                           └──────────────┘
+```
+
+| 層級 | 讀取 | 寫入 |
+|------|------|------|
+| **用戶 API** | Redis（快取） | Kafka（發送事件） |
+| **DB Writer** | — | PostgreSQL Master（異步消費 Kafka） |
+| **PostgreSQL** | Replica（僅 DB Writer 用於同步/校準） | Master（僅 DB Writer 寫入） |
+
+**要點：**
+- 用戶 API **永不** 連線 DB，僅操作 Redis + Kafka
+- DB 寫入為 **異步**：API → Kafka → DB Writer → DB
+- Redis 為 API 的讀取來源；DB Writer 負責同步 DB → Redis
+
 ---
 
 ## 資料庫設計
@@ -110,7 +159,8 @@ suggar-daddy/
 
 ```
                     ┌─────────────────┐
-                    │   Application   │
+                    │   DB Writer     │  ← 唯一連接 DB 的服務（消費 Kafka 後寫入）
+                    │  (背景消費者)   │
                     └────────┬────────┘
                              │
               ┌──────────────┴──────────────┐
@@ -126,10 +176,11 @@ suggar-daddy/
 
 **實作方式：**
 - PostgreSQL Streaming Replication
-- 使用 pgpool-II 或 Application-level routing
-- NestJS: 使用 TypeORM 的 replication 設定
+- **DB Writer** 服務使用 TypeORM replication 設定
+- 用戶 API 不引用 libs/database
 
 ```typescript
+// 僅 DB Writer 服務使用（非用戶 API）
 // database.config.ts
 TypeOrmModule.forRoot({
   type: 'postgres',
@@ -778,16 +829,106 @@ user.verified               # 用戶驗證完成
 
 ---
 
+## Phase 1 功能完成度檢核
+
+以下依設計文件逐項對照實作，區分為 **✅ 已完成**、**🟡 部分完成**、**❌ 未完成**。
+
+### 1. Nx Monorepo 與 Common Libs
+
+| 項目 | 狀態 | 說明 |
+|------|------|------|
+| Nx Monorepo 專案初始化 | ✅ | 已有 `apps/`、`libs/`、`infrastructure/`、各服務可獨立 build/serve |
+| libs/common | ✅ | 常數、工具、index 匯出 |
+| libs/dto | ✅ | auth / user / matching / notification / messaging DTO |
+| libs/database | ✅ | DatabaseModule、Swipe/Match entity（供日後 DB Writer 使用） |
+| libs/redis | ✅ | RedisModule.forRoot()、RedisService（get/set/setex/del）、Auth 已使用 |
+| libs/kafka | 🟡 | 僅空模組，**無 Producer/Consumer**，尚未被任何服務 import |
+| libs/auth | ✅ | JWT Strategy、JwtAuthGuard、CurrentUser decorator、AuthModule |
+
+### 2. User Service
+
+| 項目 | 狀態 | 說明 |
+|------|------|------|
+| GET /api/v1/users/me | ✅ | 取得當前用戶完整資料（query userId，待改為 JWT） |
+| GET /api/v1/users/profile/:userId | ✅ | 取得指定用戶對外資料 |
+| PUT /api/v1/users/profile | ✅ | 更新當前用戶資料 |
+| POST /api/v1/users | ✅ | 創建用戶（註冊用） |
+| 讀取來源為 Redis | ❌ | 目前 **in-memory Map**，未接 Redis |
+| 寫入經 Kafka | ❌ | 註解 TODO，未發送 `user.created` / `user.updated` |
+
+### 3. Auth Service
+
+| 項目 | 狀態 | 說明 |
+|------|------|------|
+| POST /api/v1/auth/register | ✅ | 註冊、寫入 Redis、回傳 JWT |
+| POST /api/v1/auth/login | ✅ | 登入、Redis 驗證、回傳 JWT |
+| POST /api/v1/auth/refresh | ✅ | 用 refreshToken 換新 accessToken |
+| POST /api/v1/auth/logout | ✅ | 使 refreshToken 失效 |
+| GET /api/v1/auth/me | ✅ | JWT Guard 保護，回傳當前用戶 |
+| JWT + Redis 存用戶/refresh | ✅ | 已實作 |
+| OAuth（如 Google/Apple 登入） | ❌ | 設計列為 Phase 1，**未實作** |
+
+### 4. Matching Service（設計 API 對照）
+
+| 設計 API | 狀態 | 說明 |
+|----------|------|------|
+| POST /api/v1/matching/swipe | ✅ | body: targetUserId, action；response: matched, matchId? |
+| GET /api/v1/matching/cards | ✅ | query: limit, cursor；設計另有 filters?，目前未實作 filters |
+| GET /api/v1/matching/matches | ✅ | query: limit, cursor |
+| DELETE /api/v1/matching/matches/:matchId | ✅ | 取消配對 |
+| 卡片推薦：Redis 快取 + 地理位置/偏好 | ❌ | 目前 **in-memory mock 卡片**，未接 Redis、無地理位置 |
+| 滑動寫入 Kafka、配對發 matching.matched | ❌ | 未使用 Kafka，僅 in-memory 陣列 |
+| userId 來源 | 🟡 | 目前 query `userId` / mock，**未強制從 JWT 取** |
+
+### 5. Notification Service
+
+| 項目 | 狀態 | 說明 |
+|------|------|------|
+| 發送推播介面（供內部/Kafka 消費者呼叫） | ✅ | POST /send，body: userId, type, title, body?, data? |
+| 用戶通知列表、標記已讀 | ✅ | GET /list、POST /read/:id |
+| 消費 matching.matched 並推播雙方 | ❌ | **無 Kafka 消費者**，配對成功不會自動發通知 |
+| 實際裝置推播（FCM/APNs） | ❌ | 僅 in-memory 儲存，未接 Firebase/Apple Push |
+
+### 6. Messaging Service
+
+| 項目 | 狀態 | 說明 |
+|------|------|------|
+| 發送訊息、對話列表、訊息列表 API | ✅ | POST /send；GET /conversations；GET /conversations/:id/messages |
+| 設計列為「WebSocket」即時訊息 | ❌ | 目前僅 **REST**，**無 WebSocket Gateway** |
+| 配對後自動建立對話 | 🟡 | MessagingService 有 ensureConversation()，但 **Matching 配對成功未呼叫** |
+
+### 7. 架構原則（設計：用戶 API 不直連 DB）
+
+| 項目 | 狀態 | 說明 |
+|------|------|------|
+| 用戶 API 讀取來自 Redis | 🟡 | 僅 Auth 使用 Redis；User / Matching 為 in-memory |
+| 用戶 API 寫入經 Kafka | ❌ | 無服務發送 Kafka 事件；Kafka lib 為空模組 |
+| DB Writer 服務 | ❌ | **未建立**，無消費者寫入 PostgreSQL |
+
+---
+
+### Phase 1 總結
+
+| 類別 | 已完成 | 部分完成 | 未完成 |
+|------|--------|----------|--------|
+| 服務骨架與 API 路徑 | 5 服務齊全、API 與設計對齊 | — | — |
+| 資料流（Redis 讀 / Kafka 寫） | Auth 使用 Redis | User/Matching 仍 mock | Kafka 未接、無 DB Writer |
+| 整合與進階功能 | — | Matching/Notification/Messaging 介面已有 | OAuth、WebSocket、matching.matched→推播、cards filters |
+
+**結論：** Phase 1 的 **API 與服務骨架已齊全**，可跑通註冊→登入→滑動→配對→通知列表→發訊。尚未完成的部分：**Kafka 產消、User/Matching 接 Redis、配對後發 matching.matched 並觸發推播與建立對話、OAuth、WebSocket、真實推播**。若以「可演示的 MVP」為 Phase 1 完成標準，目前達標；若以「符合設計文件資料流與非同步事件」為標準，需補齊上述項目。
+
+---
+
 ## 開發順序
 
 ### Phase 1: 配對系統 (4-6 週)
-- [ ] Nx Monorepo 專案初始化
-- [ ] Common libs (database, redis, kafka, auth)
-- [ ] User Service (CRUD, profile)
-- [ ] Auth Service (JWT, OAuth)
-- [ ] Matching Service (swipe, match)
-- [ ] Notification Service (push)
-- [ ] Messaging Service (WebSocket)
+- [x] Nx Monorepo 專案初始化
+- [x] Common libs (database, redis, kafka, auth)
+- [x] User Service (CRUD, profile) — in-memory；待接 Redis/Kafka 即符合架構
+- [x] Auth Service (JWT, Redis 存用戶/refresh)；OAuth 未做
+- [x] Matching Service (swipe, cards, matches, unmatch) — in-memory；待接 Redis/Kafka + JWT
+- [x] Notification Service (push API 與列表/已讀)；未接 Kafka 消費者與真實推播
+- [x] Messaging Service (REST 訊息 API)；WebSocket 未做；配對後未自動建對話
 
 ### Phase 2: 訂閱系統 (4-6 週)
 - [ ] Subscription Service
@@ -803,4 +944,4 @@ user.verified               # 用戶驗證完成
 
 ---
 
-準備好了，告訴我開始！
+**目前進度：** Phase 1 各服務 API 與骨架均已就緒，可端到端演示；與設計文件一致的資料流（Redis 讀、Kafka 寫、DB Writer、配對→推播/對話）及 OAuth、WebSocket 尚未實作。詳見上方 **Phase 1 功能完成度檢核**。Phase 2 可開始。

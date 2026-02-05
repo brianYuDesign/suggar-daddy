@@ -1,0 +1,17 @@
+{
+  "name": "kafka",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/kafka/src",
+  "projectType": "library",
+  "tags": ["scope:shared"],
+  "targets": {
+    "lint": {},
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "libs/kafka/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  }
+}

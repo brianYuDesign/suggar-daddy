@@ -1,0 +1,17 @@
+{
+  "name": "dto",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/dto/src",
+  "projectType": "library",
+  "tags": ["scope:shared"],
+  "targets": {
+    "lint": {},
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "libs/dto/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  }
+}
