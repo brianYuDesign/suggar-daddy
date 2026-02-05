@@ -19,8 +19,13 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
-    await this.producer.connect();
-    this.logger.log('Kafka Producer connected');
+    try {
+      await this.producer.connect();
+      this.logger.log('Kafka Producer connected');
+    } catch (error) {
+      this.logger.error('Failed to connect Kafka Producer (graceful degradation):', error);
+      // Graceful degradation: service continues without Kafka
+    }
   }
 
   async onModuleDestroy() {
@@ -38,7 +43,8 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       return result;
     } catch (error) {
       this.logger.error(`Failed to send message to topic ${topic}:`, error);
-      throw error;
+      // Graceful degradation: log error but don't throw
+      return null;
     }
   }
 
