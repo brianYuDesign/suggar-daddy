@@ -1,18 +1,26 @@
-/**
- * Content Service - 內容服務
- */
-
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const globalPrefix = 'api/v1/content';
+  const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3006;
+
+  // Enable global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  const port = process.env.PORT || 3005;
   await app.listen(port);
-  Logger.log(`📝 Content Service running on: http://localhost:${port}/${globalPrefix}`);
+  Logger.log(
+    `🚀 Content service is running on: http://localhost:${port}/${globalPrefix}`,
+  );
 }
 
 bootstrap();
