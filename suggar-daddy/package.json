@@ -1,0 +1,14 @@
+{
+  "name": "@suggar-daddy/source",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {},
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "@nx/nest": "22.4.5",
+    "@nx/workspace": "22.4.5",
+    "nx": "22.4.5",
+    "typescript": "~5.9.2"
+  }
+}
