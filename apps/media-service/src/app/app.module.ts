@@ -1,16 +1,25 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { getDatabaseConfig } from '@suggar-daddy/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MediaUploadController } from './media-upload.controller';
-import { MediaUploadService } from './media-upload.service';
-import { MediaUpload } from './entities/media-upload.entity';
+import { MediaController } from './media.controller';
+import { MediaService } from './media.service';
+import { MediaFile } from './entities/media-file.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MediaUpload]),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    TypeOrmModule.forRoot(
+      getDatabaseConfig([MediaFile])
+    ),
+    TypeOrmModule.forFeature([MediaFile]),
   ],
-  controllers: [AppController, MediaUploadController],
-  providers: [AppService, MediaUploadService],
+  controllers: [AppController, MediaController],
+  providers: [AppService, MediaService],
 })
 export class AppModule {}
