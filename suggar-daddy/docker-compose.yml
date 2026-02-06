@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Master
+  postgres-master:
+    image: postgres:15-alpine
+    container_name: sugar_postgres_master
+    environment:
+      POSTGRES_USER: sugar_admin
+      POSTGRES_PASSWORD: sugar_password
+      POSTGRES_DB: sugar_daddy
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_master_data:/var/lib/postgresql/data
+    networks:
+      - sugar-network
+    command: postgres -c wal_level=replica -c hot_standby=on -c max_wal_senders=10 -c max_replication_slots=10 -c hot_standby_feedback=on
+
+  # PostgreSQL Replica
+  postgres-replica:
+    image: postgres:15-alpine
+    container_name: sugar_postgres_replica
+    environment:
+      POSTGRES_USER: sugar_admin
+      POSTGRES_PASSWORD: sugar_password
+      POSTGRES_DB: sugar_daddy
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_replica_data:/var/lib/postgresql/data
+    networks:
+      - sugar-network
+    depends_on:
+      - postgres-master
+    # Simple replication setup script would be needed here for real sync
+    # For dev, we often just use one DB or setup script. 
+    # This is a placeholder for architecture.
+
+  # Redis Cluster (Standalone for Dev, Cluster for Prod)
+  redis:
+    image: redis:7-alpine
+    container_name: sugar_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sugar-network
+    command: redis-server --appendonly yes
+
+  # Kafka (Kraft mode - no Zookeeper)
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: sugar_kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft settings
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      # Listeners
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    volumes:
+      - kafka_data:/bitnami/kafka
+    networks:
+      - sugar-network
+
+  # Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: sugar_kafka_ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    networks:
+      - sugar-network
+    depends_on:
+      - kafka
+
+volumes:
+  postgres_master_data:
+  postgres_replica_data:
+  redis_data:
+  kafka_data:
+
+networks:
+  sugar-network:
+    driver: bridge
