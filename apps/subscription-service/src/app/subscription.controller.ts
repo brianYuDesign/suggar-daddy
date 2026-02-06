@@ -1,42 +1,68 @@
-import { Controller, Get, Post, Put, Body, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+} from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  CurrentUser,
+  CurrentUserData,
+  Roles,
+  UserRole,
+  Public,
+} from '@suggar-daddy/common';
 import { SubscriptionService } from './subscription.service';
-import { CreateSubscriptionDto, UpdateSubscriptionDto } from './dto/subscription.dto';
 
+@ApiTags('Subscriptions')
+@ApiBearerAuth()
 @Controller('subscriptions')
 export class SubscriptionController {
-  constructor(private readonly subscriptionService: SubscriptionService) {}
+  constructor(private subscriptionService: SubscriptionService) {}
 
-  @Post()
-  create(@Body() createDto: CreateSubscriptionDto) {
-    return this.subscriptionService.create(createDto);
+  // Public endpoint - anyone can view subscription tiers
+  @Public()
+  @Get('tiers')
+  @ApiOperation({ summary: 'Get all subscription tiers' })
+  async getTiers() {
+    return { message: 'Public: Get all tiers' };
   }
 
-  @Get()
-  findAll(
-    @Query('subscriberId') subscriberId?: string,
-    @Query('creatorId') creatorId?: string,
+  // Protected endpoint - requires authentication
+  @Get('my-subscription')
+  @ApiOperation({ summary: 'Get current user subscription' })
+  async getMySubscription(@CurrentUser() user: CurrentUserData) {
+    return {
+      message: 'Protected: Get my subscription',
+      userId: user.userId,
+      email: user.email,
+    };
+  }
+
+  // Creator-only endpoint
+  @Post('create-tier')
+  @Roles(UserRole.CREATOR, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Create a new subscription tier (Creator only)' })
+  async createTier(
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: any,
   ) {
-    if (subscriberId) {
-      return this.subscriptionService.findBySubscriber(subscriberId);
-    }
-    if (creatorId) {
-      return this.subscriptionService.findByCreator(creatorId);
-    }
-    return this.subscriptionService.findAll();
+    return {
+      message: 'Creator only: Create tier',
+      creatorId: user.userId,
+      body,
+    };
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.subscriptionService.findOne(id);
-  }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateDto: UpdateSubscriptionDto) {
-    return this.subscriptionService.update(id, updateDto);
-  }
-
-  @Post(':id/cancel')
-  cancel(@Param('id') id: string) {
-    return this.subscriptionService.cancel(id);
+  // Admin-only endpoint
+  @Get('admin/all')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Get all subscriptions (Admin only)' })
+  async getAllSubscriptions(@CurrentUser('userId') userId: string) {
+    return {
+      message: 'Admin only: Get all subscriptions',
+      adminId: userId,
+    };
   }
 }
