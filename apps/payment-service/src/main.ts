@@ -1,18 +1,26 @@
-/**
- * Payment Service - 支付服務
- */
-
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const globalPrefix = 'api/v1/payments';
+  const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3007;
+
+  // Enable global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  const port = process.env.PORT || 3006;
   await app.listen(port);
-  Logger.log(`💰 Payment Service running on: http://localhost:${port}/${globalPrefix}`);
+  Logger.log(
+    `🚀 Payment service is running on: http://localhost:${port}/${globalPrefix}`,
+  );
 }
 
 bootstrap();
