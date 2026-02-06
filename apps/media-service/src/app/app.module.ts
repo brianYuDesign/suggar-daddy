@@ -1,12 +1,16 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MediaController } from './media.controller';
-import { MediaService } from './media.service';
+import { MediaUploadController } from './media-upload.controller';
+import { MediaUploadService } from './media-upload.service';
+import { MediaUpload } from './entities/media-upload.entity';
 
 @Module({
-  imports: [],
-  controllers: [AppController, MediaController],
-  providers: [AppService, MediaService],
+  imports: [
+    TypeOrmModule.forFeature([MediaUpload]),
+  ],
+  controllers: [AppController, MediaUploadController],
+  providers: [AppService, MediaUploadService],
 })
 export class AppModule {}
