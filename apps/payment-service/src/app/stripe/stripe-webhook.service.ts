@@ -1,109 +1,65 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { Transaction } from '../entities/transaction.entity';
+import { StripePurchaseService } from './stripe-purchase.service';
+import { StripeTipService } from './stripe-tip.service';
 
 @Injectable()
 export class StripeWebhookService {
-  private readonly logger = new Logger(StripeWebhookService.name);
-
   constructor(
     @InjectRepository(Transaction)
-    private transactionRepo: Repository<Transaction>,
+    private transactionRepository: Repository<Transaction>,
+    private purchaseService: StripePurchaseService,
+    private tipService: StripeTipService,
   ) {}
 
-  async handleEvent(event: Stripe.Event) {
-    this.logger.log(`Received Stripe event: ${event.type}`);
-
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        await this.handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
-        break;
-
-      case 'payment_intent.payment_failed':
-        await this.handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
-        break;
-
-      case 'customer.subscription.created':
-        await this.handleSubscriptionCreated(event.data.object as Stripe.Subscription);
-        break;
-
-      case 'customer.subscription.updated':
-        await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
-        break;
-
-      case 'customer.subscription.deleted':
-        await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
-        break;
-
-      case 'invoice.payment_succeeded':
-        await this.handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
-        break;
-
-      case 'invoice.payment_failed':
-        await this.handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
-        break;
-
-      default:
-        this.logger.warn(`Unhandled event type: ${event.type}`);
-    }
-  }
-
-  private async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
-    const transaction = await this.transactionRepo.findOne({
+  async handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
+    const transaction = await this.transactionRepository.findOne({
       where: { stripePaymentIntentId: paymentIntent.id },
     });
 
-    if (transaction) {
-      transaction.status = 'completed';
-      transaction.completedAt = new Date();
-      await this.transactionRepo.save(transaction);
-      this.logger.log(`Transaction ${transaction.id} completed`);
-
-      // TODO: Emit Kafka event for payment.completed
+    if (!transaction) {
+      console.error(`Transaction not found for payment intent: ${paymentIntent.id}`);
+      return;
     }
+
+    if (transaction.type === 'post_purchase') {
+      await this.purchaseService.confirmPurchase(paymentIntent.id);
+    } else if (transaction.type === 'tip') {
+      await this.tipService.confirmTip(paymentIntent.id);
+    }
+
+    console.log(`Payment succeeded: ${paymentIntent.id}`);
   }
 
-  private async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
-    const transaction = await this.transactionRepo.findOne({
+  async handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
+    const transaction = await this.transactionRepository.findOne({
       where: { stripePaymentIntentId: paymentIntent.id },
     });
 
     if (transaction) {
       transaction.status = 'failed';
-      await this.transactionRepo.save(transaction);
-      this.logger.error(`Transaction ${transaction.id} failed`);
-
-      // TODO: Emit Kafka event for payment.failed
+      await this.transactionRepository.save(transaction);
     }
+
+    console.log(`Payment failed: ${paymentIntent.id}`);
   }
 
-  private async handleSubscriptionCreated(subscription: Stripe.Subscription) {
-    this.logger.log(`Subscription created: ${subscription.id}`);
-    // TODO: Update subscription status in database
-    // TODO: Emit Kafka event for subscription.created
+  async handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+    console.log(`Subscription updated: ${subscription.id}`);
   }
 
-  private async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-    this.logger.log(`Subscription updated: ${subscription.id}`);
-    // TODO: Update subscription in database
-    // TODO: Emit Kafka event for subscription.updated
+  async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+    console.log(`Subscription deleted: ${subscription.id}`);
   }
 
-  private async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-    this.logger.log(`Subscription deleted: ${subscription.id}`);
-    // TODO: Update subscription status in database
-    // TODO: Emit Kafka event for subscription.cancelled
+  async handleInvoicePaymentSuccess(invoice: Stripe.Invoice) {
+    console.log(`Invoice payment succeeded: ${invoice.id}`);
   }
 
-  private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
-    this.logger.log(`Invoice payment succeeded: ${invoice.id}`);
-    // TODO: Record invoice payment in database
-  }
-
-  private async handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-    this.logger.error(`Invoice payment failed: ${invoice.id}`);
-    // TODO: Handle failed recurring payment
+  async handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+    console.log(`Invoice payment failed: ${invoice.id}`);
   }
 }
