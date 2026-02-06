@@ -104,4 +104,10 @@ export class MessagingService {
     }
     return key;
   }
+
+  /** 檢查用戶是否為該對話參與者（用於發送前授權） */
+  async isParticipant(conversationId: string, userId: string): Promise<boolean> {
+    const participantIds = this.conversations.get(conversationId);
+    return Boolean(participantIds?.includes(userId));
+  }
 }

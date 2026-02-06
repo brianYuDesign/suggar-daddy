@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { RedisModule } from '@suggar-daddy/redis';
 import { KafkaModule } from '@suggar-daddy/kafka';
-import { UploadModule } from '@suggar-daddy/common';
+import { UploadModule, JwtStrategy } from '@suggar-daddy/common';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -16,6 +18,11 @@ import { UploadController } from './upload/upload.controller';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'your-jwt-secret-key',
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+    }),
     RedisModule.forRoot(),
     KafkaModule.forRoot({
       clientId: 'media-service',
@@ -25,6 +32,6 @@ import { UploadController } from './upload/upload.controller';
     UploadModule.forRoot(),
   ],
   controllers: [AppController, MediaController, UploadController],
-  providers: [AppService, MediaService],
+  providers: [AppService, MediaService, JwtStrategy],
 })
 export class AppModule {}

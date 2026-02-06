@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { RedisModule } from '@suggar-daddy/redis';
 import { KafkaModule } from '@suggar-daddy/kafka';
-import { StripeModule as CommonStripeModule } from '@suggar-daddy/common';
+import { StripeModule as CommonStripeModule, JwtStrategy } from '@suggar-daddy/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TransactionController } from './transaction.controller';
@@ -20,6 +22,11 @@ import { StripePaymentService } from './stripe/stripe-payment.service';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'your-jwt-secret-key',
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
     }),
     RedisModule.forRoot(),
     KafkaModule.forRoot({
@@ -43,6 +50,7 @@ import { StripePaymentService } from './stripe/stripe-payment.service';
     TipService,
     StripeWebhookService,
     StripePaymentService,
+    JwtStrategy,
   ],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { CONTENT_EVENTS } from '@suggar-daddy/common';
@@ -77,12 +77,42 @@ export class PostService {
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 
+  private readonly POST_UNLOCK = (postId: string, userId: string) =>
+    `post:unlock:${postId}:${userId}`;
+
   async findOne(id: string): Promise<any> {
     const raw = await this.redis.get(POST_KEY(id));
     if (!raw) {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
     return JSON.parse(raw);
+  }
+
+  /**
+   * 取得貼文，依 viewerId 與付費/訂閱狀態決定是否回傳完整內容。
+   * - 創作者本人：一律完整
+   * - PPV：已購買（Redis post:unlock:postId:viewerId）則完整；未解鎖則回傳鎖定版（locked: true、隱藏 mediaUrls）
+   * - 無 viewerId 且 PPV：回傳鎖定版
+   */
+  async findOneWithAccess(id: string, viewerId?: string | null): Promise<any> {
+    const post = await this.findOne(id);
+    const isPpv = post.ppvPrice != null && Number(post.ppvPrice) > 0;
+    const stripLocked = () => ({
+      ...post,
+      locked: true,
+      mediaUrls: [],
+      caption: post.caption ? '(Purchase to view)' : null,
+    });
+
+    if (!viewerId) {
+      return isPpv ? stripLocked() : post;
+    }
+    if (post.creatorId === viewerId) return post;
+    if (isPpv) {
+      const unlocked = await this.redis.get(this.POST_UNLOCK(id, viewerId));
+      if (!unlocked) return stripLocked();
+    }
+    return post;
   }
 
   async update(id: string, updateDto: UpdatePostDto): Promise<any> {

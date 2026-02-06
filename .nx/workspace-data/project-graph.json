@@ -12050,6 +12050,16 @@
       },
       {
         "source": "notification-service",
+        "target": "npm:@nestjs/jwt",
+        "type": "static"
+      },
+      {
+        "source": "notification-service",
+        "target": "npm:@nestjs/passport",
+        "type": "static"
+      },
+      {
+        "source": "notification-service",
         "target": "kafka",
         "type": "static"
       },
@@ -12135,6 +12145,16 @@
       {
         "source": "messaging-service",
         "target": "npm:@nestjs/config",
+        "type": "static"
+      },
+      {
+        "source": "messaging-service",
+        "target": "npm:@nestjs/jwt",
+        "type": "static"
+      },
+      {
+        "source": "messaging-service",
+        "target": "npm:@nestjs/passport",
         "type": "static"
       },
       {
@@ -26542,5 +26562,5 @@
   },
   "version": "6.0",
   "errors": [],
-  "computedAt": 1770400728176
+  "computedAt": 1770401132593
 }

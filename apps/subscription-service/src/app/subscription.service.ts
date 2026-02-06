@@ -116,4 +116,18 @@ export class SubscriptionService {
     });
     return sub;
   }
+
+  /** 支付完成後延長訂閱週期（由 payment.completed 消費者呼叫） */
+  async extendPeriod(subscriptionId: string, newPeriodEnd: string): Promise<any> {
+    const sub = await this.findOne(subscriptionId);
+    if (sub.status !== 'active') return sub;
+    sub.currentPeriodEnd = newPeriodEnd;
+    await this.redis.set(SUB_KEY(subscriptionId), JSON.stringify(sub));
+    await this.kafkaProducer.sendEvent(SUBSCRIPTION_EVENTS.SUBSCRIPTION_UPDATED, {
+      subscriptionId,
+      currentPeriodEnd: newPeriodEnd,
+      updatedAt: new Date().toISOString(),
+    });
+    return sub;
+  }
 }

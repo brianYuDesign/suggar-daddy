@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { KafkaModule } from '@suggar-daddy/kafka';
+import { JwtStrategy } from '@suggar-daddy/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { NotificationController } from './notification.controller';
@@ -12,6 +15,11 @@ import { MatchingEventConsumer } from './matching-event.consumer';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'your-jwt-secret-key',
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+    }),
     KafkaModule.forRoot({
       clientId: 'notification-service',
       brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
@@ -19,6 +27,6 @@ import { MatchingEventConsumer } from './matching-event.consumer';
     }),
   ],
   controllers: [AppController, NotificationController],
-  providers: [AppService, NotificationService, MatchingEventConsumer],
+  providers: [AppService, NotificationService, MatchingEventConsumer, JwtStrategy],
 })
 export class AppModule {}

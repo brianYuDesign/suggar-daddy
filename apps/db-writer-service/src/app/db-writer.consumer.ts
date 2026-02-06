@@ -37,15 +37,30 @@ export class DbWriterConsumer implements OnModuleInit {
       { topic: SUBSCRIPTION_EVENTS.TIER_CREATED, handler: (p) => this.dbWriter.handleTierCreated(p) },
     ];
 
+    const maxRetries = 2;
+    const retryDelayMs = 1000;
+
     for (const { topic, handler } of topics) {
       await this.kafkaConsumer.subscribe(topic, async (payload) => {
-        try {
-          const value = payload.message.value;
-          const event = value ? JSON.parse(value.toString()) : {};
-          await handler(event);
-        } catch (err) {
-          this.logger.error(`Error processing ${topic}:`, err);
+        const value = payload.message?.value;
+        const event = value ? JSON.parse(value.toString()) : {};
+        let lastErr: unknown;
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            await handler(event);
+            return;
+          } catch (err) {
+            lastErr = err;
+            this.logger.warn(
+              `Error processing ${topic} (attempt ${attempt + 1}/${maxRetries + 1}):`,
+              err
+            );
+            if (attempt < maxRetries) {
+              await new Promise((r) => setTimeout(r, retryDelayMs));
+            }
+          }
         }
+        this.logger.error(`Failed processing ${topic} after ${maxRetries + 1} attempts:`, lastErr);
       });
     }
 
