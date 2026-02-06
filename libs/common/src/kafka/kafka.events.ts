@@ -1,0 +1,70 @@
+/**
+ * Kafka Event Topics for Inter-Service Communication
+ */
+
+// Subscription Events
+export const SUBSCRIPTION_EVENTS = {
+  SUBSCRIPTION_CREATED: 'subscription.created',
+  SUBSCRIPTION_UPDATED: 'subscription.updated',
+  SUBSCRIPTION_CANCELLED: 'subscription.cancelled',
+  TIER_CREATED: 'subscription.tier.created',
+  TIER_UPDATED: 'subscription.tier.updated',
+} as const;
+
+// Payment Events
+export const PAYMENT_EVENTS = {
+  PAYMENT_COMPLETED: 'payment.completed',
+  PAYMENT_FAILED: 'payment.failed',
+  TIP_SENT: 'payment.tip.sent',
+  POST_PURCHASED: 'payment.post.purchased',
+} as const;
+
+// Content Events
+export const CONTENT_EVENTS = {
+  POST_CREATED: 'content.post.created',
+  POST_UPDATED: 'content.post.updated',
+  POST_DELETED: 'content.post.deleted',
+  POST_LIKED: 'content.post.liked',
+  POST_UNLIKED: 'content.post.unliked',
+  COMMENT_CREATED: 'content.comment.created',
+} as const;
+
+// Media Events
+export const MEDIA_EVENTS = {
+  MEDIA_UPLOADED: 'media.uploaded',
+  MEDIA_DELETED: 'media.deleted',
+  MEDIA_PROCESSED: 'media.processed',
+} as const;
+
+// Event Payload Interfaces
+export interface SubscriptionCreatedEvent {
+  subscriptionId: string;
+  subscriberId: string;
+  creatorId: string;
+  tierId: string;
+  startDate: Date;
+}
+
+export interface PaymentCompletedEvent {
+  transactionId: string;
+  userId: string;
+  amount: number;
+  type: 'subscription' | 'tip' | 'ppv';
+  metadata?: Record<string, any>;
+}
+
+export interface PostCreatedEvent {
+  postId: string;
+  creatorId: string;
+  contentType: string;
+  visibility: string;
+  mediaUrls: string[];
+}
+
+export interface MediaUploadedEvent {
+  mediaId: string;
+  userId: string;
+  storageUrl: string;
+  mimeType: string;
+  fileSize: number;
+}
