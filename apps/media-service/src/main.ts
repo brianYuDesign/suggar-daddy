@@ -1,18 +1,26 @@
-/**
- * Media Service - 媒體服務
- */
-
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const globalPrefix = 'api/v1/media';
+  const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3008;
+
+  // Enable global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  const port = process.env.PORT || 3007;
   await app.listen(port);
-  Logger.log(`🎬 Media Service running on: http://localhost:${port}/${globalPrefix}`);
+  Logger.log(
+    `🚀 Media service is running on: http://localhost:${port}/${globalPrefix}`,
+  );
 }
 
 bootstrap();
