@@ -21,6 +21,7 @@ export interface UserProfileDto {
   birthDate?: Date;
   preferences?: Record<string, unknown>;
   verificationStatus: string;
+  lastActiveAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -22,6 +22,30 @@ export class RedisService implements OnModuleDestroy {
     return this.client.del(key);
   }
 
+  async sAdd(key: string, ...members: (string | number)[]): Promise<number> {
+    return this.client.sadd(key, ...members.map(String));
+  }
+
+  async sMembers(key: string): Promise<string[]> {
+    return this.client.smembers(key);
+  }
+
+  async sRem(key: string, ...members: (string | number)[]): Promise<number> {
+    return this.client.srem(key, ...members.map(String));
+  }
+
+  async keys(pattern: string): Promise<string[]> {
+    return this.client.keys(pattern);
+  }
+
+  async lPush(key: string, ...values: (string | number)[]): Promise<number> {
+    return this.client.lpush(key, ...values.map(String));
+  }
+
+  async lRange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.client.lrange(key, start, stop);
+  }
+
   getClient(): Redis {
     return this.client;
   }

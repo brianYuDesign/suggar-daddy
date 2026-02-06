@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { getDatabaseConfig } from '@suggar-daddy/common';
+import { RedisModule } from '@suggar-daddy/redis';
+import { KafkaModule } from '@suggar-daddy/kafka';
+import { StripeModule as CommonStripeModule } from '@suggar-daddy/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TransactionController } from './transaction.controller';
@@ -10,9 +11,9 @@ import { PostPurchaseController } from './post-purchase.controller';
 import { PostPurchaseService } from './post-purchase.service';
 import { TipController } from './tip.controller';
 import { TipService } from './tip.service';
-import { Transaction } from './entities/transaction.entity';
-import { PostPurchase } from './entities/post-purchase.entity';
-import { Tip } from './entities/tip.entity';
+import { StripeWebhookController } from './stripe/stripe-webhook.controller';
+import { StripeWebhookService } from './stripe/stripe-webhook.service';
+import { StripePaymentService } from './stripe/stripe-payment.service';
 
 @Module({
   imports: [
@@ -20,22 +21,28 @@ import { Tip } from './entities/tip.entity';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot(
-      getDatabaseConfig([Transaction, PostPurchase, Tip])
-    ),
-    TypeOrmModule.forFeature([Transaction, PostPurchase, Tip]),
+    RedisModule.forRoot(),
+    KafkaModule.forRoot({
+      clientId: 'payment-service',
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+      groupId: 'payment-service-group',
+    }),
+    CommonStripeModule,
   ],
   controllers: [
     AppController,
     TransactionController,
     PostPurchaseController,
     TipController,
+    StripeWebhookController,
   ],
   providers: [
     AppService,
     TransactionService,
     PostPurchaseService,
     TipService,
+    StripeWebhookService,
+    StripePaymentService,
   ],
 })
 export class AppModule {}

@@ -7,9 +7,10 @@ import {
   Param,
   Post,
   Put,
-  Query,
 } from '@nestjs/common';
 import type { CreateUserDto, UpdateProfileDto } from '@suggar-daddy/dto';
+import { CurrentUser, Public } from '@suggar-daddy/common';
+import type { CurrentUserData } from '@suggar-daddy/common';
 import { UserService } from './user.service';
 
 @Controller()
@@ -18,10 +19,10 @@ export class UserController {
 
   constructor(private readonly userService: UserService) {}
 
-  /** 取得當前用戶完整資料 */
+  /** 取得當前用戶完整資料（從 JWT 取 userId） */
   @Get('me')
-  async getMe(@Query('userId') userId: string) {
-    const uid = userId || 'mock-user-id';
+  async getMe(@CurrentUser() user: CurrentUserData) {
+    const uid = user.userId;
     this.logger.log(`getMe request userId=${uid}`);
     const profile = await this.userService.getMe(uid);
     if (!profile) {
@@ -41,18 +42,19 @@ export class UserController {
     return profile;
   }
 
-  /** 更新當前用戶資料 */
+  /** 更新當前用戶資料（從 JWT 取 userId） */
   @Put('profile')
   async updateProfile(
-    @Query('userId') userId: string,
+    @CurrentUser() user: CurrentUserData,
     @Body() body: UpdateProfileDto
   ) {
-    const uid = userId || 'mock-user-id';
+    const uid = user.userId;
     this.logger.log(`updateProfile request userId=${uid}`);
     return this.userService.updateProfile(uid, body);
   }
 
-  /** 創建用戶（註冊） */
+  /** 創建用戶（註冊用；允許未登入，由 auth 或 gateway 呼叫） */
+  @Public()
   @Post()
   async create(@Body() body: CreateUserDto) {
     this.logger.log(`create user request role=${body.role} displayName=${body.displayName}`);

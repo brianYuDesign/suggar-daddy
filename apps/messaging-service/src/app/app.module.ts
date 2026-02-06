@@ -14,7 +14,7 @@ import { MatchingEventConsumer } from './matching-event.consumer';
     }),
     KafkaModule.forRoot({
       clientId: 'messaging-service',
-      brokers: [process.env.KAFKA_BROKERS || 'localhost:9092'],
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
       groupId: 'messaging-service-group',
     }),
   ],

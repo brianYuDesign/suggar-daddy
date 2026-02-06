@@ -2,6 +2,17 @@
  * Kafka Event Topics for Inter-Service Communication
  */
 
+// User Events (auth / user-service → DB Writer)
+export const USER_EVENTS = {
+  USER_CREATED: 'user.created',
+  USER_UPDATED: 'user.updated',
+} as const;
+
+// Matching Events (matching-service → notification / messaging)
+export const MATCHING_EVENTS = {
+  MATCHED: 'matching.matched',
+} as const;
+
 // Subscription Events
 export const SUBSCRIPTION_EVENTS = {
   SUBSCRIPTION_CREATED: 'subscription.created',
@@ -59,6 +70,9 @@ export interface PostCreatedEvent {
   contentType: string;
   visibility: string;
   mediaUrls: string[];
+  caption?: string;
+  requiredTierId?: string;
+  ppvPrice?: number;
 }
 
 export interface MediaUploadedEvent {
@@ -67,4 +81,23 @@ export interface MediaUploadedEvent {
   storageUrl: string;
   mimeType: string;
   fileSize: number;
+}
+
+// User event payloads (DB Writer persists these)
+export interface UserCreatedEvent {
+  id: string;
+  email: string;
+  passwordHash: string;
+  displayName: string;
+  role?: string;
+  bio?: string;
+  createdAt: string;
+}
+
+export interface UserUpdatedEvent {
+  userId: string;
+  displayName?: string;
+  bio?: string;
+  avatarUrl?: string;
+  updatedAt: string;
 }

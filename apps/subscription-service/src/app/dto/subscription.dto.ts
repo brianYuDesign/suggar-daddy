@@ -13,6 +13,12 @@ export class CreateSubscriptionDto {
   @IsOptional()
   @IsString()
   stripeSubscriptionId?: string;
+
+  @IsOptional()
+  startDate?: string;
+
+  @IsOptional()
+  currentPeriodEnd?: string;
 }
 
 export class UpdateSubscriptionDto {

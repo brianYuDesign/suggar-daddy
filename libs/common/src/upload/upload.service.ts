@@ -1,3 +1,4 @@
+/// <reference path="./streamifier.d.ts" />
 import { Injectable } from '@nestjs/common';
 import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 import { cloudinary } from './cloudinary.config';
@@ -27,10 +28,10 @@ export class UploadService {
           transformation: options.transformation,
           public_id: options.publicId,
         },
-        (error: UploadApiErrorResponse, result: UploadApiResponse) => {
+        ((error: UploadApiErrorResponse, result: UploadApiResponse) => {
           if (error) return reject(error);
           resolve(result);
-        },
+        }) as any,
       );
 
       streamifier.createReadStream(fileBuffer).pipe(uploadStream);
@@ -41,7 +42,7 @@ export class UploadService {
    * Upload multiple files
    */
   async uploadMultiple(
-    files: Express.Multer.File[],
+    files: Array<{ buffer: Buffer }>,
     options: UploadOptions = {},
   ): Promise<UploadApiResponse[]> {
     const uploadPromises = files.map((file) =>

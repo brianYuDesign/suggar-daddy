@@ -1,15 +1,14 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { getDatabaseConfig } from '@suggar-daddy/common';
+import { RedisModule } from '@suggar-daddy/redis';
+import { KafkaModule } from '@suggar-daddy/kafka';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SubscriptionTierController } from './subscription-tier.controller';
 import { SubscriptionTierService } from './subscription-tier.service';
 import { SubscriptionController } from './subscription.controller';
 import { SubscriptionService } from './subscription.service';
-import { SubscriptionTier } from './entities/subscription-tier.entity';
-import { Subscription } from './entities/subscription.entity';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -17,10 +16,13 @@ import { Subscription } from './entities/subscription.entity';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot(
-      getDatabaseConfig([SubscriptionTier, Subscription])
-    ),
-    TypeOrmModule.forFeature([SubscriptionTier, Subscription]),
+    RedisModule.forRoot(),
+    KafkaModule.forRoot({
+      clientId: 'subscription-service',
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+      groupId: 'subscription-service-group',
+    }),
+    StripeModule,
   ],
   controllers: [AppController, SubscriptionTierController, SubscriptionController],
   providers: [AppService, SubscriptionTierService, SubscriptionService],

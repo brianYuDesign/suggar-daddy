@@ -1,52 +1,104 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { SubscriptionTier } from './entities/subscription-tier.entity';
+import { RedisService } from '@suggar-daddy/redis';
+import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { SUBSCRIPTION_EVENTS } from '@suggar-daddy/common';
 import { CreateSubscriptionTierDto, UpdateSubscriptionTierDto } from './dto/subscription-tier.dto';
+
+const TIER_KEY = (id: string) => `tier:${id}`;
+const TIERS_CREATOR = (creatorId: string) => `tiers:creator:${creatorId}`;
+const TIERS_ALL = 'tiers:all';
 
 @Injectable()
 export class SubscriptionTierService {
   constructor(
-    @InjectRepository(SubscriptionTier)
-    private readonly tierRepository: Repository<SubscriptionTier>,
+    private readonly redis: RedisService,
+    private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
-  async create(createDto: CreateSubscriptionTierDto): Promise<SubscriptionTier> {
-    const tier = this.tierRepository.create(createDto);
-    return this.tierRepository.save(tier);
+  private genId(): string {
+    return `tier-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  async findAll(): Promise<SubscriptionTier[]> {
-    return this.tierRepository.find({
-      where: { isActive: true },
-      order: { createdAt: 'DESC' },
+  async create(createDto: CreateSubscriptionTierDto): Promise<any> {
+    const id = this.genId();
+    const now = new Date().toISOString();
+    const tier = {
+      id,
+      creatorId: createDto.creatorId,
+      name: createDto.name,
+      description: createDto.description ?? null,
+      priceMonthly: createDto.priceMonthly,
+      priceYearly: createDto.priceYearly ?? null,
+      benefits: createDto.benefits || [],
+      isActive: true,
+      stripePriceId: createDto.stripePriceId ?? null,
+      createdAt: now,
+    };
+    await this.redis.set(TIER_KEY(id), JSON.stringify(tier));
+    await this.redis.lPush(TIERS_CREATOR(createDto.creatorId), id);
+    await this.redis.sAdd(TIERS_ALL, id);
+    await this.kafkaProducer.sendEvent(SUBSCRIPTION_EVENTS.TIER_CREATED, {
+      tierId: id,
+      creatorId: createDto.creatorId,
+      name: createDto.name,
+      description: createDto.description,
+      priceMonthly: createDto.priceMonthly,
+      priceYearly: createDto.priceYearly,
+      benefits: createDto.benefits,
+      stripePriceId: createDto.stripePriceId,
     });
-  }
-
-  async findByCreator(creatorId: string): Promise<SubscriptionTier[]> {
-    return this.tierRepository.find({
-      where: { creatorId, isActive: true },
-      order: { priceMonthly: 'ASC' },
-    });
-  }
-
-  async findOne(id: string): Promise<SubscriptionTier> {
-    const tier = await this.tierRepository.findOne({ where: { id } });
-    if (!tier) {
-      throw new NotFoundException(`Subscription tier with ID ${id} not found`);
-    }
     return tier;
   }
 
-  async update(id: string, updateDto: UpdateSubscriptionTierDto): Promise<SubscriptionTier> {
+  async findAll(): Promise<any[]> {
+    const ids = await this.redis.sMembers(TIERS_ALL);
+    const out: any[] = [];
+    for (const id of ids) {
+      const raw = await this.redis.get(TIER_KEY(id));
+      if (raw) {
+        const t = JSON.parse(raw);
+        if (t.isActive !== false) out.push(t);
+      }
+    }
+    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+  }
+
+  async findByCreator(creatorId: string): Promise<any[]> {
+    const ids = await this.redis.lRange(TIERS_CREATOR(creatorId), 0, -1);
+    const out: any[] = [];
+    for (const id of ids) {
+      const raw = await this.redis.get(TIER_KEY(id));
+      if (raw) {
+        const t = JSON.parse(raw);
+        if (t.isActive !== false) out.push(t);
+      }
+    }
+    return out.sort((a, b) => (a.priceMonthly - b.priceMonthly));
+  }
+
+  async findOne(id: string): Promise<any> {
+    const raw = await this.redis.get(TIER_KEY(id));
+    if (!raw) {
+      throw new NotFoundException(`Subscription tier with ID ${id} not found`);
+    }
+    return JSON.parse(raw);
+  }
+
+  async update(id: string, updateDto: UpdateSubscriptionTierDto): Promise<any> {
     const tier = await this.findOne(id);
     Object.assign(tier, updateDto);
-    return this.tierRepository.save(tier);
+    await this.redis.set(TIER_KEY(id), JSON.stringify(tier));
+    await this.kafkaProducer.sendEvent(SUBSCRIPTION_EVENTS.TIER_UPDATED, {
+      tierId: id,
+      ...updateDto,
+      updatedAt: new Date().toISOString(),
+    });
+    return tier;
   }
 
   async remove(id: string): Promise<void> {
     const tier = await this.findOne(id);
     tier.isActive = false;
-    await this.tierRepository.save(tier);
+    await this.redis.set(TIER_KEY(id), JSON.stringify(tier));
   }
 }

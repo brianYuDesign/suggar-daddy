@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { KafkaConsumerService } from '@suggar-daddy/kafka';
+import { MATCHING_EVENTS } from '@suggar-daddy/common';
 import { NotificationService } from './notification.service';
 
 @Injectable()
@@ -14,7 +15,7 @@ export class MatchingEventConsumer implements OnModuleInit {
   async onModuleInit() {
     try {
       // 訂閱 matching.matched 事件
-      await this.kafkaConsumer.subscribe('matching.matched', async (payload) => {
+      await this.kafkaConsumer.subscribe(MATCHING_EVENTS.MATCHED, async (payload) => {
         const { message } = payload;
         const event = JSON.parse(message.value.toString());
         

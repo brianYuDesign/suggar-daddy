@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { MATCHING_EVENTS } from '@suggar-daddy/common';
 import type {
   UserCardDto,
   MatchDto,
@@ -114,7 +115,7 @@ export class MatchingService {
             this.logger.log(`match created matchId=${match.id} userA=${swiperId} userB=${targetUserId}`);
             
             // 發送 Kafka 事件
-            await this.kafkaProducer.sendEvent('matching.matched', {
+            await this.kafkaProducer.sendEvent(MATCHING_EVENTS.MATCHED, {
               matchId: match.id,
               userAId: swiperId,
               userBId: targetUserId,

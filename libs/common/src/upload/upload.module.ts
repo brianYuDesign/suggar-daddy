@@ -15,9 +15,9 @@ export class UploadModule {
           provide: 'CLOUDINARY_CONFIG',
           useFactory: (configService: ConfigService) => {
             return configureCloudinary({
-              cloudName: configService.get<string>('CLOUDINARY_CLOUD_NAME'),
-              apiKey: configService.get<string>('CLOUDINARY_API_KEY'),
-              apiSecret: configService.get<string>('CLOUDINARY_API_SECRET'),
+              cloudName: configService.get<string>('CLOUDINARY_CLOUD_NAME') ?? '',
+              apiKey: configService.get<string>('CLOUDINARY_API_KEY') ?? '',
+              apiSecret: configService.get<string>('CLOUDINARY_API_SECRET') ?? '',
             });
           },
           inject: [ConfigService],

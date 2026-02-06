@@ -14,7 +14,7 @@ import { MatchingEventConsumer } from './matching-event.consumer';
     }),
     KafkaModule.forRoot({
       clientId: 'notification-service',
-      brokers: [process.env.KAFKA_BROKERS || 'localhost:9092'],
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
       groupId: 'notification-service-group',
     }),
   ],

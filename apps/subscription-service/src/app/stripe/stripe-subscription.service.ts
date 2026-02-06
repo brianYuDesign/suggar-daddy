@@ -1,68 +1,59 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { getStripeClient } from '@suggar-daddy/common';
-import { Subscription } from '../entities/subscription.entity';
-import { SubscriptionTier } from '../entities/subscription-tier.entity';
+import { RedisService } from '@suggar-daddy/redis';
+import { SubscriptionService } from '../subscription.service';
+
+const TIER_KEY = (id: string) => `tier:${id}`;
+const SUBS_SUBSCRIBER = (id: string) => `subscriptions:subscriber:${id}`;
+const SUB_KEY = (id: string) => `subscription:${id}`;
+const STRIPE_CUSTOMER = (userId: string) => `stripe:customer:${userId}`;
 
 @Injectable()
 export class StripeSubscriptionService {
   private stripe: Stripe;
 
   constructor(
-    @InjectRepository(Subscription)
-    private subscriptionRepository: Repository<Subscription>,
-    @InjectRepository(SubscriptionTier)
-    private tierRepository: Repository<SubscriptionTier>,
+    private readonly redis: RedisService,
+    private readonly subscriptionService: SubscriptionService,
   ) {
     this.stripe = getStripeClient();
   }
 
-  /**
-   * Create a Stripe subscription for a user
-   */
   async createSubscription(
     userId: string,
     tierId: string,
     paymentMethodId: string,
   ) {
-    // Get tier details
-    const tier = await this.tierRepository.findOne({ where: { id: tierId } });
-    if (!tier) {
+    const tierRaw = await this.redis.get(TIER_KEY(tierId));
+    if (!tierRaw) {
       throw new BadRequestException('Subscription tier not found');
     }
+    const tier = JSON.parse(tierRaw);
 
-    // Check if user already has active subscription to this creator
-    const existingSubscription = await this.subscriptionRepository.findOne({
-      where: {
-        subscriberId: userId,
-        creatorId: tier.creatorId,
-        status: 'active',
-      },
-    });
-
-    if (existingSubscription) {
-      throw new BadRequestException('User already has an active subscription');
+    const subIds = await this.redis.lRange(SUBS_SUBSCRIBER(userId), 0, -1);
+    for (const subId of subIds) {
+      const raw = await this.redis.get(SUB_KEY(subId));
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.creatorId === tier.creatorId && s.status === 'active') {
+          throw new BadRequestException('User already has an active subscription');
+        }
+      }
     }
 
     try {
-      // Create or retrieve Stripe customer
       const customer = await this.createOrGetCustomer(userId);
-
-      // Attach payment method to customer
       await this.stripe.paymentMethods.attach(paymentMethodId, {
         customer: customer.id,
       });
-
-      // Set as default payment method
       await this.stripe.customers.update(customer.id, {
         invoice_settings: {
           default_payment_method: paymentMethodId,
         },
       });
 
-      // Create Stripe subscription
+      const price = tier.priceMonthly ?? tier.price ?? 0;
       const stripeSubscription = await this.stripe.subscriptions.create({
         customer: customer.id,
         items: [
@@ -71,12 +62,10 @@ export class StripeSubscriptionService {
               currency: 'usd',
               product_data: {
                 name: tier.name,
-                description: tier.description,
+                description: tier.description || undefined,
               },
-              unit_amount: Math.round(tier.price * 100), // Convert to cents
-              recurring: {
-                interval: 'month',
-              },
+              unit_amount: Math.round(price * 100),
+              recurring: { interval: 'month' },
             },
           },
         ],
@@ -85,78 +74,57 @@ export class StripeSubscriptionService {
         expand: ['latest_invoice.payment_intent'],
       });
 
-      // Save subscription to database
-      const subscription = this.subscriptionRepository.create({
+      const subscription = await this.subscriptionService.create({
         subscriberId: userId,
         creatorId: tier.creatorId,
         tierId: tier.id,
         stripeSubscriptionId: stripeSubscription.id,
-        stripeCustomerId: customer.id,
-        status: 'pending',
-        currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        startDate: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
+        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
       });
 
-      await this.subscriptionRepository.save(subscription);
+      const clientSecret =
+        (stripeSubscription.latest_invoice as Stripe.Invoice)?.payment_intent &&
+        typeof (stripeSubscription.latest_invoice as Stripe.Invoice).payment_intent === 'object'
+          ? ((stripeSubscription.latest_invoice as Stripe.Invoice).payment_intent as Stripe.PaymentIntent).client_secret
+          : null;
 
       return {
         subscriptionId: subscription.id,
-        clientSecret: (stripeSubscription.latest_invoice as Stripe.Invoice)
-          .payment_intent
-          ? ((stripeSubscription.latest_invoice as Stripe.Invoice).payment_intent as Stripe.PaymentIntent).client_secret
-          : null,
+        clientSecret,
       };
-    } catch (error) {
-      throw new BadRequestException(`Failed to create subscription: ${error.message}`);
+    } catch (error: any) {
+      throw new BadRequestException(`Failed to create subscription: ${error?.message || error}`);
     }
   }
 
-  /**
-   * Cancel a subscription
-   */
   async cancelSubscription(userId: string, subscriptionId: string) {
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId, subscriberId: userId },
-    });
-
-    if (!subscription) {
+    const sub = await this.subscriptionService.findOne(subscriptionId);
+    if (sub.subscriberId !== userId) {
       throw new BadRequestException('Subscription not found');
     }
-
     try {
-      // Cancel at period end (don't immediately revoke access)
-      await this.stripe.subscriptions.update(subscription.stripeSubscriptionId, {
-        cancel_at_period_end: true,
-      });
-
-      subscription.status = 'cancelled';
-      await this.subscriptionRepository.save(subscription);
-
+      if (sub.stripeSubscriptionId) {
+        await this.stripe.subscriptions.update(sub.stripeSubscriptionId, {
+          cancel_at_period_end: true,
+        });
+      }
+      await this.subscriptionService.cancel(subscriptionId);
       return { message: 'Subscription cancelled successfully' };
-    } catch (error) {
-      throw new BadRequestException(`Failed to cancel subscription: ${error.message}`);
+    } catch (error: any) {
+      throw new BadRequestException(`Failed to cancel subscription: ${error?.message || error}`);
     }
   }
 
-  /**
-   * Get or create Stripe customer for user
-   */
   private async createOrGetCustomer(userId: string): Promise<Stripe.Customer> {
-    // Check if customer already exists
-    const existingSubscription = await this.subscriptionRepository.findOne({
-      where: { subscriberId: userId },
-      order: { createdAt: 'DESC' },
-    });
-
-    if (existingSubscription?.stripeCustomerId) {
-      return await this.stripe.customers.retrieve(
-        existingSubscription.stripeCustomerId,
-      ) as Stripe.Customer;
+    const existingId = await this.redis.get(STRIPE_CUSTOMER(userId));
+    if (existingId) {
+      return (await this.stripe.customers.retrieve(existingId)) as Stripe.Customer;
     }
-
-    // Create new customer
-    return await this.stripe.customers.create({
+    const customer = await this.stripe.customers.create({
       metadata: { userId },
     });
+    await this.redis.set(STRIPE_CUSTOMER(userId), customer.id);
+    return customer;
   }
 }

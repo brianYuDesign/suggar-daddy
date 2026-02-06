@@ -6,12 +6,12 @@ export class StripeService {
   private stripe: Stripe;
 
   constructor() {
-    const apiKey = process.env.STRIPE_SECRET_KEY;
+    const apiKey = process.env['STRIPE_SECRET_KEY'];
     if (!apiKey) {
       throw new Error('STRIPE_SECRET_KEY is not defined');
     }
     this.stripe = new Stripe(apiKey, {
-      apiVersion: '2024-11-20.acacia',
+      apiVersion: '2023-10-16',
     });
   }
 
@@ -110,7 +110,7 @@ export class StripeService {
 
   // Webhook signature verification
   constructWebhookEvent(payload: Buffer, signature: string) {
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const webhookSecret = process.env['STRIPE_WEBHOOK_SECRET'];
     if (!webhookSecret) {
       throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
     }
@@ -122,7 +122,7 @@ export class StripeService {
         webhookSecret
       );
     } catch (err) {
-      throw new BadRequestException(`Webhook signature verification failed: ${err.message}`);
+      throw new BadRequestException(`Webhook signature verification failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 }

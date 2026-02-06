@@ -1,62 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { StripeService } from '@suggar-daddy/common';
-import { Transaction } from '../entities/transaction.entity';
-import { PostPurchase } from '../entities/post-purchase.entity';
-import { Tip } from '../entities/tip.entity';
+import { TransactionService } from '../transaction.service';
+import { PostPurchaseService } from '../post-purchase.service';
+import { TipService } from '../tip.service';
 
 @Injectable()
 export class StripePaymentService {
   constructor(
-    @InjectRepository(Transaction)
-    private transactionRepo: Repository<Transaction>,
-    @InjectRepository(PostPurchase)
-    private postPurchaseRepo: Repository<PostPurchase>,
-    @InjectRepository(Tip)
-    private tipRepo: Repository<Tip>,
-    private stripeService: StripeService,
+    private readonly transactionService: TransactionService,
+    private readonly postPurchaseService: PostPurchaseService,
+    private readonly tipService: TipService,
+    private readonly stripeService: StripeService,
   ) {}
 
-  // One-time post purchase
   async purchasePost(
     userId: string,
     postId: string,
     amount: number,
     stripeCustomerId: string,
   ) {
-    // Create payment intent
     const paymentIntent = await this.stripeService.createPaymentIntent(
       amount,
       'usd',
       stripeCustomerId,
-      {
-        userId,
-        postId,
-        type: 'post_purchase',
-      }
+      { userId, postId, type: 'post_purchase' },
     );
-
-    // Create transaction record
-    const transaction = this.transactionRepo.create({
+    const transaction = await this.transactionService.create({
       userId,
+      type: 'ppv',
       amount,
-      currency: 'usd',
-      type: 'post_purchase',
-      status: 'pending',
-      stripePaymentIntentId: paymentIntent.id,
+      stripePaymentId: paymentIntent.id,
+      relatedEntityId: postId,
+      relatedEntityType: 'post',
     });
-    await this.transactionRepo.save(transaction);
-
-    // Create post purchase record
-    const postPurchase = this.postPurchaseRepo.create({
-      userId,
+    const postPurchase = await this.postPurchaseService.create({
       postId,
-      transactionId: transaction.id,
+      buyerId: userId,
       amount,
+      stripePaymentId: paymentIntent.id,
     });
-    await this.postPurchaseRepo.save(postPurchase);
-
     return {
       transaction,
       postPurchase,
@@ -64,7 +46,6 @@ export class StripePaymentService {
     };
   }
 
-  // Tip creator
   async tipCreator(
     userId: string,
     creatorId: string,
@@ -72,39 +53,27 @@ export class StripePaymentService {
     stripeCustomerId: string,
     message?: string,
   ) {
-    // Create payment intent
     const paymentIntent = await this.stripeService.createPaymentIntent(
       amount,
       'usd',
       stripeCustomerId,
-      {
-        userId,
-        creatorId,
-        type: 'tip',
-      }
+      { userId, creatorId, type: 'tip' },
     );
-
-    // Create transaction record
-    const transaction = this.transactionRepo.create({
+    const transaction = await this.transactionService.create({
       userId,
-      amount,
-      currency: 'usd',
       type: 'tip',
-      status: 'pending',
-      stripePaymentIntentId: paymentIntent.id,
+      amount,
+      stripePaymentId: paymentIntent.id,
+      relatedEntityId: creatorId,
+      relatedEntityType: 'creator',
     });
-    await this.transactionRepo.save(transaction);
-
-    // Create tip record
-    const tip = this.tipRepo.create({
-      senderId: userId,
-      receiverId: creatorId,
-      transactionId: transaction.id,
+    const tip = await this.tipService.create({
+      fromUserId: userId,
+      toUserId: creatorId,
       amount,
       message,
+      stripePaymentId: paymentIntent.id,
     });
-    await this.tipRepo.save(tip);
-
     return {
       transaction,
       tip,
@@ -112,16 +81,11 @@ export class StripePaymentService {
     };
   }
 
-  // Get transaction status
   async getTransaction(transactionId: string, userId: string) {
-    const transaction = await this.transactionRepo.findOne({
-      where: { id: transactionId, userId },
-    });
-
-    if (!transaction) {
+    const transaction = await this.transactionService.findOne(transactionId);
+    if (transaction.userId !== userId) {
       throw new NotFoundException('Transaction not found');
     }
-
     return transaction;
   }
 }

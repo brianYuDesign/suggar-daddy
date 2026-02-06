@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { getDatabaseConfig } from '@suggar-daddy/common';
+import { RedisModule } from '@suggar-daddy/redis';
+import { KafkaModule } from '@suggar-daddy/kafka';
+import { UploadModule } from '@suggar-daddy/common';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MediaController } from './media.controller';
 import { MediaService } from './media.service';
-import { MediaFile } from './entities/media-file.entity';
+import { UploadController } from './upload/upload.controller';
 
 @Module({
   imports: [
@@ -14,12 +16,15 @@ import { MediaFile } from './entities/media-file.entity';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot(
-      getDatabaseConfig([MediaFile])
-    ),
-    TypeOrmModule.forFeature([MediaFile]),
+    RedisModule.forRoot(),
+    KafkaModule.forRoot({
+      clientId: 'media-service',
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+      groupId: 'media-service-group',
+    }),
+    UploadModule.forRoot(),
   ],
-  controllers: [AppController, MediaController],
+  controllers: [AppController, MediaController, UploadController],
   providers: [AppService, MediaService],
 })
 export class AppModule {}

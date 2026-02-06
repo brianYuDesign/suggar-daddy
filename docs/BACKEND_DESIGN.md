@@ -842,19 +842,19 @@ user.verified               # 用戶驗證完成
 | libs/dto | ✅ | auth / user / matching / notification / messaging DTO |
 | libs/database | ✅ | DatabaseModule、Swipe/Match entity（供日後 DB Writer 使用） |
 | libs/redis | ✅ | RedisModule.forRoot()、RedisService（get/set/setex/del）、Auth 已使用 |
-| libs/kafka | 🟡 | 僅空模組，**無 Producer/Consumer**，尚未被任何服務 import |
+| libs/kafka | ✅ | KafkaProducerService / KafkaConsumerService，User/Matching/Auth/Notification/Messaging/DB Writer 已使用 |
 | libs/auth | ✅ | JWT Strategy、JwtAuthGuard、CurrentUser decorator、AuthModule |
 
 ### 2. User Service
 
 | 項目 | 狀態 | 說明 |
 |------|------|------|
-| GET /api/v1/users/me | ✅ | 取得當前用戶完整資料（query userId，待改為 JWT） |
+| GET /api/v1/users/me | ✅ | 取得當前用戶完整資料（**從 JWT CurrentUser 取 userId**） |
 | GET /api/v1/users/profile/:userId | ✅ | 取得指定用戶對外資料 |
-| PUT /api/v1/users/profile | ✅ | 更新當前用戶資料 |
-| POST /api/v1/users | ✅ | 創建用戶（註冊用） |
-| 讀取來源為 Redis | ❌ | 目前 **in-memory Map**，未接 Redis |
-| 寫入經 Kafka | ❌ | 註解 TODO，未發送 `user.created` / `user.updated` |
+| PUT /api/v1/users/profile | ✅ | 更新當前用戶資料（**從 JWT CurrentUser 取 userId**） |
+| POST /api/v1/users | ✅ | 創建用戶（註冊用；@Public 允許未登入呼叫） |
+| 讀取來源為 Redis | ✅ | UserService 已接 Redis |
+| 寫入經 Kafka | ✅ | create/updateProfile 已發送 `user.created` / `user.updated` |
 
 ### 3. Auth Service
 
@@ -876,9 +876,9 @@ user.verified               # 用戶驗證完成
 | GET /api/v1/matching/cards | ✅ | query: limit, cursor；設計另有 filters?，目前未實作 filters |
 | GET /api/v1/matching/matches | ✅ | query: limit, cursor |
 | DELETE /api/v1/matching/matches/:matchId | ✅ | 取消配對 |
-| 卡片推薦：Redis 快取 + 地理位置/偏好 | ❌ | 目前 **in-memory mock 卡片**，未接 Redis、無地理位置 |
-| 滑動寫入 Kafka、配對發 matching.matched | ❌ | 未使用 Kafka，僅 in-memory 陣列 |
-| userId 來源 | 🟡 | 目前 query `userId` / mock，**未強制從 JWT 取** |
+| 卡片推薦：Redis 快取 + 地理位置/偏好 | 🟡 | 滑動狀態已存 Redis；卡片仍 **in-memory mock**，無地理位置 |
+| 滑動寫入 Redis、配對發 matching.matched | ✅ | 滑動/配對存 Redis，配對成功發 Kafka `matching.matched` |
+| userId 來源 | ✅ | **從 JWT CurrentUser 取**，swipe/cards/matches/unmatch 皆需 JWT |
 
 ### 5. Notification Service
 
@@ -886,7 +886,7 @@ user.verified               # 用戶驗證完成
 |------|------|------|
 | 發送推播介面（供內部/Kafka 消費者呼叫） | ✅ | POST /send，body: userId, type, title, body?, data? |
 | 用戶通知列表、標記已讀 | ✅ | GET /list、POST /read/:id |
-| 消費 matching.matched 並推播雙方 | ❌ | **無 Kafka 消費者**，配對成功不會自動發通知 |
+| 消費 matching.matched 並推播雙方 | ✅ | MatchingEventConsumer 訂閱 `matching.matched`，配對成功自動推播雙方 |
 | 實際裝置推播（FCM/APNs） | ❌ | 僅 in-memory 儲存，未接 Firebase/Apple Push |
 
 ### 6. Messaging Service
@@ -895,15 +895,15 @@ user.verified               # 用戶驗證完成
 |------|------|------|
 | 發送訊息、對話列表、訊息列表 API | ✅ | POST /send；GET /conversations；GET /conversations/:id/messages |
 | 設計列為「WebSocket」即時訊息 | ❌ | 目前僅 **REST**，**無 WebSocket Gateway** |
-| 配對後自動建立對話 | 🟡 | MessagingService 有 ensureConversation()，但 **Matching 配對成功未呼叫** |
+| 配對後自動建立對話 | ✅ | MatchingEventConsumer 訂閱 `matching.matched`，配對成功呼叫 ensureConversation() |
 
 ### 7. 架構原則（設計：用戶 API 不直連 DB）
 
 | 項目 | 狀態 | 說明 |
 |------|------|------|
-| 用戶 API 讀取來自 Redis | 🟡 | 僅 Auth 使用 Redis；User / Matching 為 in-memory |
-| 用戶 API 寫入經 Kafka | ❌ | 無服務發送 Kafka 事件；Kafka lib 為空模組 |
-| DB Writer 服務 | ❌ | **未建立**，無消費者寫入 PostgreSQL |
+| 用戶 API 讀取來自 Redis | ✅ | Auth / User / Matching 皆使用 Redis |
+| 用戶 API 寫入經 Kafka | ✅ | User/Auth/Matching 發送事件；Notification/Messaging/DB Writer 消費 |
+| DB Writer 服務 | ✅ | **已建立** `apps/db-writer-service`，消費 user/content/media/subscription/payment 寫入 PostgreSQL |
 
 ---
 
@@ -911,11 +911,11 @@ user.verified               # 用戶驗證完成
 
 | 類別 | 已完成 | 部分完成 | 未完成 |
 |------|--------|----------|--------|
-| 服務骨架與 API 路徑 | 5 服務齊全、API 與設計對齊 | — | — |
-| 資料流（Redis 讀 / Kafka 寫） | Auth 使用 Redis | User/Matching 仍 mock | Kafka 未接、無 DB Writer |
-| 整合與進階功能 | — | Matching/Notification/Messaging 介面已有 | OAuth、WebSocket、matching.matched→推播、cards filters |
+| 服務骨架與 API 路徑 | 各服務齊全、API 與設計對齊 | — | — |
+| 資料流（Redis 讀 / Kafka 寫） | User/Matching/Auth 讀 Redis、寫 Kafka；DB Writer 消費寫 DB | — | — |
+| 整合與進階功能 | matching.matched→推播與建立對話、JWT 取 userId | 卡片仍 mock、無 filters | OAuth、WebSocket、真實推播 FCM/APNs |
 
-**結論：** Phase 1 的 **API 與服務骨架已齊全**，可跑通註冊→登入→滑動→配對→通知列表→發訊。尚未完成的部分：**Kafka 產消、User/Matching 接 Redis、配對後發 matching.matched 並觸發推播與建立對話、OAuth、WebSocket、真實推播**。若以「可演示的 MVP」為 Phase 1 完成標準，目前達標；若以「符合設計文件資料流與非同步事件」為標準，需補齊上述項目。
+**結論：** Phase 1 **資料流已對齊設計**：註冊→登入→滑動（Redis+Kafka）→配對發 `matching.matched`→Notification/Messaging 消費推播與建對話。尚未完成：**OAuth、WebSocket、真實裝置推播、卡片推薦接 Redis/地理位置**。
 
 ---
 
@@ -924,24 +924,25 @@ user.verified               # 用戶驗證完成
 ### Phase 1: 配對系統 (4-6 週)
 - [x] Nx Monorepo 專案初始化
 - [x] Common libs (database, redis, kafka, auth)
-- [x] User Service (CRUD, profile) — in-memory；待接 Redis/Kafka 即符合架構
+- [x] User Service (CRUD, profile) — Redis 讀、Kafka 寫、JWT CurrentUser
 - [x] Auth Service (JWT, Redis 存用戶/refresh)；OAuth 未做
-- [x] Matching Service (swipe, cards, matches, unmatch) — in-memory；待接 Redis/Kafka + JWT
-- [x] Notification Service (push API 與列表/已讀)；未接 Kafka 消費者與真實推播
-- [x] Messaging Service (REST 訊息 API)；WebSocket 未做；配對後未自動建對話
+- [x] Matching Service (swipe, cards, matches, unmatch) — Redis + Kafka、JWT CurrentUser、配對發 matching.matched
+- [x] Notification Service (push API 與列表/已讀)；消費 matching.matched 推播；真實推播 FCM/APNs 未做
+- [x] Messaging Service (REST 訊息 API)；消費 matching.matched 自動建對話；WebSocket 未做
+- [x] DB Writer 服務（消費 Kafka 寫入 PostgreSQL）
 
 ### Phase 2: 訂閱系統 (4-6 週)
-- [ ] Subscription Service
-- [ ] Content Service
-- [ ] Payment Service (Stripe)
-- [ ] Media Service (S3 upload, processing)
+- [x] Subscription Service
+- [x] Content Service
+- [x] Payment Service (Stripe)
+- [x] Media Service (S3 upload, processing)
 
 ### Phase 3: 擴展 & 優化 (持續)
-- [ ] 讀寫分離實作
-- [ ] Sharding 導入
+- [x] 讀寫分離實作（`getDatabaseConfig` 支援 `DB_MASTER_HOST` + `DB_REPLICA_HOSTS`，見 `docs/PERFORMANCE.md`）
+- [x] Sharding 導入（`ShardingService` in `@suggar-daddy/common`，`getShardId` / 依表分片鍵方法，見 `docs/PERFORMANCE.md`）
 - [ ] 監控 & 告警
-- [ ] 效能調優
+- [x] 效能調優（連線池 env、索引建議、PERFORMANCE.md）
 
 ---
 
-**目前進度：** Phase 1 各服務 API 與骨架均已就緒，可端到端演示；與設計文件一致的資料流（Redis 讀、Kafka 寫、DB Writer、配對→推播/對話）及 OAuth、WebSocket 尚未實作。詳見上方 **Phase 1 功能完成度檢核**。Phase 2 可開始。
+**目前進度：** Phase 1 資料流已對齊；Phase 2 四服務已實作；Phase 3 已完成讀寫分離、Sharding 基礎與效能調優文件。尚未完成：OAuth、WebSocket、真實推播 FCM/APNs、卡片推薦 Redis/地理位置、監控 & 告警。

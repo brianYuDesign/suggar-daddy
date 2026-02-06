@@ -7,8 +7,11 @@ import {
   Param,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import type { SwipeRequestDto, SwipeAction } from '@suggar-daddy/dto';
+import { JwtAuthGuard, CurrentUser } from '@suggar-daddy/common';
+import type { CurrentUserData } from '@suggar-daddy/common';
 import { MatchingService } from './matching.service';
 
 @Controller()
@@ -18,12 +21,12 @@ export class MatchingController {
   constructor(private readonly matchingService: MatchingService) {}
 
   @Post('swipe')
+  @UseGuards(JwtAuthGuard)
   async swipe(
-    @Body() body: SwipeRequestDto,
-    @Query('userId') userId: string
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: SwipeRequestDto
   ) {
-    // TODO: 從 JWT/Auth 取得 userId
-    const swiperId = userId || 'mock-user-id';
+    const swiperId = user.userId;
     this.logger.log(
       `swipe request swiperId=${swiperId} targetUserId=${body.targetUserId} action=${body.action}`
     );
@@ -39,12 +42,13 @@ export class MatchingController {
   }
 
   @Get('cards')
+  @UseGuards(JwtAuthGuard)
   async getCards(
-    @Query('userId') userId: string,
+    @CurrentUser() user: CurrentUserData,
     @Query('limit') limit = '20',
     @Query('cursor') cursor?: string
   ) {
-    const uid = userId || 'mock-user-id';
+    const uid = user.userId;
     this.logger.log(`getCards userId=${uid} limit=${limit} cursor=${cursor ?? 'none'}`);
     const result = await this.matchingService.getCards(uid, parseInt(limit, 10) || 20, cursor);
     this.logger.log(`getCards result userId=${uid} cardsCount=${result.cards.length} nextCursor=${result.nextCursor ?? 'none'}`);
@@ -52,12 +56,13 @@ export class MatchingController {
   }
 
   @Get('matches')
+  @UseGuards(JwtAuthGuard)
   async getMatches(
-    @Query('userId') userId: string,
+    @CurrentUser() user: CurrentUserData,
     @Query('limit') limit = '20',
     @Query('cursor') cursor?: string
   ) {
-    const uid = userId || 'mock-user-id';
+    const uid = user.userId;
     this.logger.log(`getMatches userId=${uid} limit=${limit} cursor=${cursor ?? 'none'}`);
     const result = await this.matchingService.getMatches(uid, parseInt(limit, 10) || 20, cursor);
     this.logger.log(`getMatches result userId=${uid} matchesCount=${result.matches.length} nextCursor=${result.nextCursor ?? 'none'}`);
@@ -65,11 +70,12 @@ export class MatchingController {
   }
 
   @Delete('matches/:matchId')
+  @UseGuards(JwtAuthGuard)
   async unmatch(
-    @Param('matchId') matchId: string,
-    @Query('userId') userId: string
+    @CurrentUser() user: CurrentUserData,
+    @Param('matchId') matchId: string
   ) {
-    const uid = userId || 'mock-user-id';
+    const uid = user.userId;
     this.logger.log(`unmatch request userId=${uid} matchId=${matchId}`);
     const result = await this.matchingService.unmatch(uid, matchId);
     this.logger.log(`unmatch result userId=${uid} matchId=${matchId} success=${result.success}`);

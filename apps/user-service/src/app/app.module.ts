@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { getDatabaseConfig, JwtAuthGuard, RolesGuard } from '@suggar-daddy/common';
+import { JwtAuthGuard, RolesGuard } from '@suggar-daddy/common';
+import { RedisModule } from '@suggar-daddy/redis';
+import { KafkaModule } from '@suggar-daddy/kafka';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { AuthModule } from './auth/auth.module';
-import { User } from './entities/user.entity';
 
 @Module({
   imports: [
@@ -16,20 +16,22 @@ import { User } from './entities/user.entity';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot(getDatabaseConfig([User])),
-    TypeOrmModule.forFeature([User]),
+    RedisModule.forRoot(),
+    KafkaModule.forRoot({
+      clientId: 'user-service',
+      brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+      groupId: 'user-service-group',
+    }),
     AuthModule,
   ],
   controllers: [AppController, UserController],
   providers: [
     AppService,
     UserService,
-    // Global JWT Auth Guard
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
-    // Global Roles Guard
     {
       provide: APP_GUARD,
       useClass: RolesGuard,

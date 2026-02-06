@@ -7,6 +7,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RedisService } from '@suggar-daddy/redis';
+import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { USER_EVENTS } from '@suggar-daddy/common';
 import type {
   LoginDto,
   RegisterDto,
@@ -16,7 +18,7 @@ import type {
 const SALT_ROUNDS = 10;
 const ACCESS_EXPIRES_SEC = 15 * 60; // 15 min
 const REFRESH_EXPIRES_SEC = 7 * 24 * 60 * 60; // 7 days
-const AUTH_USER_EMAIL_PREFIX = 'auth:user:email:';
+const USER_EMAIL_PREFIX = 'user:email:';
 const AUTH_REFRESH_PREFIX = 'auth:refresh:';
 
 interface StoredUser {
@@ -40,12 +42,13 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly redis: RedisService
+    private readonly redis: RedisService,
+    private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
   async register(dto: RegisterDto): Promise<TokenResponseDto> {
     const normalizedEmail = dto.email.trim().toLowerCase();
-    const key = AUTH_USER_EMAIL_PREFIX + normalizedEmail;
+    const key = USER_EMAIL_PREFIX + normalizedEmail;
     const existing = await this.redis.get(key);
     if (existing) {
       throw new ConflictException('Email already registered');
@@ -61,22 +64,39 @@ export class AuthService {
       bio: dto.bio?.trim(),
       createdAt: new Date().toISOString(),
     };
-    await this.redis.set(key, JSON.stringify(user));
+    // 寫入 Redis 供登入使用（user:email -> userId, user:id -> 完整用戶）
+    const userKey = `user:${userId}`;
+    const emailKey = USER_EMAIL_PREFIX + normalizedEmail;
+    await this.redis.set(userKey, JSON.stringify(user));
+    await this.redis.set(emailKey, userId);
     this.logger.log(
       `register email=${normalizedEmail} userId=${userId} role=${dto.role}`
     );
-    // TODO: 發送 Kafka 事件 user.created（架構：寫入 Kafka，由 DB Writer 寫入 DB）
+    // 發送 Kafka 事件（DB Writer 寫入 DB 後會覆寫 Redis）
+    await this.kafkaProducer.sendEvent(USER_EVENTS.USER_CREATED, {
+      id: userId,
+      email: normalizedEmail,
+      passwordHash: user.passwordHash,
+      displayName: user.displayName,
+      role: user.role,
+      bio: user.bio,
+      createdAt: user.createdAt,
+    });
     return this.issueTokens(userId, normalizedEmail);
   }
 
   async login(dto: LoginDto): Promise<TokenResponseDto> {
     const normalizedEmail = dto.email.trim().toLowerCase();
-    const key = AUTH_USER_EMAIL_PREFIX + normalizedEmail;
-    const raw = await this.redis.get(key);
-    if (!raw) {
+    const emailKey = USER_EMAIL_PREFIX + normalizedEmail;
+    const userId = await this.redis.get(emailKey);
+    if (!userId) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    const user = JSON.parse(raw) as StoredUser;
+    const userRaw = await this.redis.get(`user:${userId}`);
+    if (!userRaw) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+    const user = JSON.parse(userRaw) as StoredUser;
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
       throw new UnauthorizedException('Invalid email or password');

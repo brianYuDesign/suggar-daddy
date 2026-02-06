@@ -54,7 +54,7 @@ if [[ "$RUN_COMMIT" == true ]]; then
     echo "請提供 commit message，例如："
     echo "  ./scripts/commit.sh \"feat: add login\""
     echo "  ./scripts/commit.sh -m \"fix: typo\""
-    exit 1
+    exit 1bvgg/'''''32w/fgv
   fi
   git add -A
   git commit -m "$COMMIT_MSG"
