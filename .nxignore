@@ -1,0 +1,2 @@
+# 排除子專案目錄，避免與根目錄 apps/libs 同名專案衝突（MultipleProjectsWithSameNameError）
+suggar-daddy/
