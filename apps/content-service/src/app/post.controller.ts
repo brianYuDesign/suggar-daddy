@@ -27,10 +27,14 @@ export class PostController {
   }
 
   @Get()
+  @UseGuards(OptionalJwtGuard)
   @Public()
-  findAll(@Query('creatorId') creatorId?: string) {
+  findAll(
+    @Query('creatorId') creatorId?: string,
+    @CurrentUser() user?: CurrentUserData
+  ) {
     if (creatorId) {
-      return this.postService.findByCreator(creatorId);
+      return this.postService.findByCreatorWithAccess(creatorId, user?.userId);
     }
     return this.postService.findAll();
   }

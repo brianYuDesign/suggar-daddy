@@ -4,6 +4,8 @@ import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { PAYMENT_EVENTS } from '@suggar-daddy/common';
 import { TransactionService } from '../transaction.service';
+import { PostPurchaseService } from '../post-purchase.service';
+import { TipService } from '../tip.service';
 
 const WEBHOOK_IDEMPOTENCY_PREFIX = 'stripe:webhook:processed:';
 const WEBHOOK_IDEMPOTENCY_TTL_SEC = 86400; // 24h
@@ -16,6 +18,8 @@ export class StripeWebhookService {
     private readonly transactionService: TransactionService,
     private readonly kafkaProducer: KafkaProducerService,
     private readonly redis: RedisService,
+    private readonly postPurchaseService: PostPurchaseService,
+    private readonly tipService: TipService,
   ) {}
 
   async handleEvent(event: Stripe.Event): Promise<void> {
@@ -44,6 +48,34 @@ export class StripeWebhookService {
     const transaction = await this.transactionService.findByStripePaymentId(paymentIntent.id);
     if (!transaction) return;
     await this.transactionService.update(transaction.id, { status: 'succeeded' });
+
+    if (transaction.type === 'ppv' && transaction.relatedEntityId && transaction.relatedEntityType === 'post') {
+      try {
+        await this.postPurchaseService.create({
+          postId: transaction.relatedEntityId,
+          buyerId: transaction.userId,
+          amount: transaction.amount,
+          stripePaymentId: paymentIntent.id,
+        });
+        this.logger.log(`Post purchase created for transaction ${transaction.id}`);
+      } catch (e) {
+        this.logger.warn(`Post purchase create (may be duplicate): ${e}`);
+      }
+    }
+    if (transaction.type === 'tip' && transaction.relatedEntityId && transaction.relatedEntityType === 'creator') {
+      try {
+        await this.tipService.create({
+          fromUserId: transaction.userId,
+          toUserId: transaction.relatedEntityId,
+          amount: transaction.amount,
+          stripePaymentId: paymentIntent.id,
+        });
+        this.logger.log(`Tip created for transaction ${transaction.id}`);
+      } catch (e) {
+        this.logger.warn(`Tip create (may be duplicate): ${e}`);
+      }
+    }
+
     await this.kafkaProducer.sendEvent(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
       transactionId: transaction.id,
       userId: transaction.userId,

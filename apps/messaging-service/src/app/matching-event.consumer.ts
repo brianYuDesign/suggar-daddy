@@ -22,7 +22,7 @@ export class MatchingEventConsumer implements OnModuleInit {
         this.logger.log(`Received matching.matched event: matchId=${event.matchId}`);
         
         // 自動建立對話
-        const conversationId = this.messagingService.ensureConversation(
+        const conversationId = await this.messagingService.ensureConversation(
           event.userAId,
           event.userBId
         );

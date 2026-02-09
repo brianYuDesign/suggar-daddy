@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MatchingController } from './matching.controller';
 import { MatchingService } from './matching.service';
+import { UserServiceClient } from './user-service.client';
 
 @Module({
   imports: [
@@ -34,6 +35,6 @@ import { MatchingService } from './matching.service';
     }),
   ],
   controllers: [AppController, MatchingController],
-  providers: [AppService, MatchingService, JwtStrategy],
+  providers: [AppService, MatchingService, UserServiceClient, JwtStrategy],
 })
 export class AppModule {}

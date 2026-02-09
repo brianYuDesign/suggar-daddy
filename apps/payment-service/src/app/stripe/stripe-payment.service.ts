@@ -1,18 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { StripeService } from '@suggar-daddy/common';
 import { TransactionService } from '../transaction.service';
-import { PostPurchaseService } from '../post-purchase.service';
-import { TipService } from '../tip.service';
 
 @Injectable()
 export class StripePaymentService {
   constructor(
     private readonly transactionService: TransactionService,
-    private readonly postPurchaseService: PostPurchaseService,
-    private readonly tipService: TipService,
     private readonly stripeService: StripeService,
   ) {}
 
+  /** 建立 PPV 支付意圖；成功後由 webhook 建立 postPurchase */
   async purchasePost(
     userId: string,
     postId: string,
@@ -33,19 +30,13 @@ export class StripePaymentService {
       relatedEntityId: postId,
       relatedEntityType: 'post',
     });
-    const postPurchase = await this.postPurchaseService.create({
-      postId,
-      buyerId: userId,
-      amount,
-      stripePaymentId: paymentIntent.id,
-    });
     return {
       transaction,
-      postPurchase,
       clientSecret: paymentIntent.client_secret,
     };
   }
 
+  /** 建立打賞支付意圖；成功後由 webhook 建立 tip */
   async tipCreator(
     userId: string,
     creatorId: string,
@@ -67,16 +58,8 @@ export class StripePaymentService {
       relatedEntityId: creatorId,
       relatedEntityType: 'creator',
     });
-    const tip = await this.tipService.create({
-      fromUserId: userId,
-      toUserId: creatorId,
-      amount,
-      message,
-      stripePaymentId: paymentIntent.id,
-    });
     return {
       transaction,
-      tip,
       clientSecret: paymentIntent.client_secret,
     };
   }

@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
+import { SubscriptionServiceClient } from './subscription-service.client';
 import { PostPurchaseConsumer } from './events/post-purchase.consumer';
 
 @Module({
@@ -30,6 +31,6 @@ import { PostPurchaseConsumer } from './events/post-purchase.consumer';
     }),
   ],
   controllers: [AppController, PostController],
-  providers: [AppService, PostService, JwtStrategy, PostPurchaseConsumer],
+  providers: [AppService, PostService, SubscriptionServiceClient, JwtStrategy, PostPurchaseConsumer],
 })
 export class AppModule {}

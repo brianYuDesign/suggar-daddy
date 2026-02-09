@@ -10,8 +10,9 @@ import type {
   CardsResponseDto,
   MatchesResponseDto,
 } from '@suggar-daddy/dto';
+import { UserServiceClient } from './user-service.client';
 
-// 架構：讀取 Redis，寫入 Kafka。不操作 DB。
+// 架構：讀取 Redis，寫入 Kafka；推薦卡片由 user-service 提供。
 interface SwipeRecord {
   swiperId: string;
   swipedId: string;
@@ -34,24 +35,12 @@ export class MatchingService {
   private readonly MATCH_PREFIX = 'match:';
   private readonly USER_SWIPES_PREFIX = 'user_swipes:';
   private readonly USER_MATCHES_PREFIX = 'user_matches:';
-  private mockCards: UserCardDto[] = this.createMockCards();
 
   constructor(
     private readonly redisService: RedisService,
     private readonly kafkaProducer: KafkaProducerService,
+    private readonly userServiceClient: UserServiceClient,
   ) {}
-
-  private createMockCards(): UserCardDto[] {
-    return Array.from({ length: 10 }, (_, i) => ({
-      id: `user-${i + 1}`,
-      displayName: `User ${i + 1}`,
-      bio: `Bio for user ${i + 1}`,
-      avatarUrl: undefined,
-      role: i % 2 === 0 ? 'sugar_baby' : 'sugar_daddy',
-      verificationStatus: 'unverified',
-      lastActiveAt: new Date(Date.now() - i * 3600000),
-    }));
-  }
 
   async swipe(
     swiperId: string,
@@ -139,14 +128,21 @@ export class MatchingService {
     limit: number,
     cursor?: string
   ): Promise<CardsResponseDto> {
-    // 從 Redis 取得用戶已經 swipe 過的 ID
     const userSwipesKey = `${this.USER_SWIPES_PREFIX}${userId}`;
     const swipedIdsArray = await this.redisService.sMembers(userSwipesKey);
-    const swipedIds = new Set(swipedIdsArray);
-    
-    const available = this.mockCards.filter(
-      (c) => c.id !== userId && !swipedIds.has(c.id)
-    );
+    const excludeIds = [userId, ...swipedIdsArray];
+    const requestLimit = Math.max(limit * 2, 50);
+    let available: UserCardDto[];
+    try {
+      available = await this.userServiceClient.getCardsForRecommendation(
+        excludeIds,
+        requestLimit
+      );
+    } catch (err) {
+      this.logger.warn('user-service getCards failed, returning empty', err);
+      return { cards: [], nextCursor: undefined };
+    }
+    available = available.filter((c) => c.id !== userId && !excludeIds.includes(c.id));
 
     let start = 0;
     if (cursor) {

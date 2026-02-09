@@ -73,6 +73,24 @@ export class UserService {
     };
   }
 
+  /** 取得推薦用卡片列表（排除指定 ID，供 matching-service 呼叫） */
+  async getCardsForRecommendation(
+    excludeIds: string[],
+    limit: number
+  ): Promise<UserCardDto[]> {
+    const keys = await this.redisService.keys(`${this.USER_PREFIX}*`);
+    const excludeSet = new Set(excludeIds);
+    const userIds = keys
+      .map((k) => k.replace(this.USER_PREFIX, ''))
+      .filter((id) => id && !excludeSet.has(id));
+    const result: UserCardDto[] = [];
+    for (let i = 0; i < userIds.length && result.length < limit; i++) {
+      const card = await this.getCard(userIds[i]);
+      if (card) result.push(card);
+    }
+    return result;
+  }
+
   /** 創建用戶（註冊） */
   async create(dto: CreateUserDto): Promise<UserProfileDto> {
     const id = `user-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;

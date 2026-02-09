@@ -4,6 +4,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { CONTENT_EVENTS } from '@suggar-daddy/common';
 import { CreatePostDto, UpdatePostDto } from './dto/post.dto';
 import { CreatePostCommentDto } from './dto/post-comment.dto';
+import { SubscriptionServiceClient } from './subscription-service.client';
 
 const POST_KEY = (id: string) => `post:${id}`;
 const POSTS_PUBLIC_IDS = 'posts:public:ids';
@@ -16,6 +17,7 @@ export class PostService {
   constructor(
     private readonly redis: RedisService,
     private readonly kafkaProducer: KafkaProducerService,
+    private readonly subscriptionClient: SubscriptionServiceClient,
   ) {}
 
   private genId(prefix: string): string {
@@ -77,6 +79,39 @@ export class PostService {
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 
+  /** 依創作者取得貼文，並依 viewerId 過濾訂閱牆可見性（僅回傳 viewer 有權看到的） */
+  async findByCreatorWithAccess(creatorId: string, viewerId?: string | null): Promise<any[]> {
+    const all = await this.findByCreator(creatorId);
+    if (!viewerId) {
+      return all.filter((p) => p.visibility === 'public');
+    }
+    const result: any[] = [];
+    for (const post of all) {
+      if (post.visibility === 'public') {
+        result.push(post);
+        continue;
+      }
+      if (post.creatorId === viewerId) {
+        result.push(post);
+        continue;
+      }
+      if (post.visibility === 'subscribers') {
+        const hasAccess = await this.subscriptionClient.hasActiveSubscription(viewerId, post.creatorId);
+        if (hasAccess) result.push(post);
+        continue;
+      }
+      if (post.visibility === 'tier_specific' && post.requiredTierId) {
+        const hasAccess = await this.subscriptionClient.hasActiveSubscription(
+          viewerId,
+          post.creatorId,
+          post.requiredTierId
+        );
+        if (hasAccess) result.push(post);
+      }
+    }
+    return result.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+  }
+
   private readonly POST_UNLOCK = (postId: string, userId: string) =>
     `post:unlock:${postId}:${userId}`;
 
@@ -91,8 +126,10 @@ export class PostService {
   /**
    * 取得貼文，依 viewerId 與付費/訂閱狀態決定是否回傳完整內容。
    * - 創作者本人：一律完整
-   * - PPV：已購買（Redis post:unlock:postId:viewerId）則完整；未解鎖則回傳鎖定版（locked: true、隱藏 mediaUrls）
-   * - 無 viewerId 且 PPV：回傳鎖定版
+   * - visibility subscribers：僅訂閱者可見，否則鎖定版
+   * - visibility tier_specific：僅訂閱該方案者可見，否則鎖定版
+   * - PPV：已購買則完整；未解鎖則鎖定版
+   * - 無 viewerId 且 PPV/訂閱牆：回傳鎖定版
    */
   async findOneWithAccess(id: string, viewerId?: string | null): Promise<any> {
     const post = await this.findOne(id);
@@ -105,9 +142,24 @@ export class PostService {
     });
 
     if (!viewerId) {
-      return isPpv ? stripLocked() : post;
+      if (isPpv) return stripLocked();
+      if (post.visibility === 'subscribers' || post.visibility === 'tier_specific') return stripLocked();
+      return post;
     }
     if (post.creatorId === viewerId) return post;
+
+    if (post.visibility === 'subscribers') {
+      const hasAccess = await this.subscriptionClient.hasActiveSubscription(viewerId, post.creatorId);
+      if (!hasAccess) return stripLocked();
+    } else if (post.visibility === 'tier_specific' && post.requiredTierId) {
+      const hasAccess = await this.subscriptionClient.hasActiveSubscription(
+        viewerId,
+        post.creatorId,
+        post.requiredTierId
+      );
+      if (!hasAccess) return stripLocked();
+    }
+
     if (isPpv) {
       const unlocked = await this.redis.get(this.POST_UNLOCK(id, viewerId));
       if (!unlocked) return stripLocked();

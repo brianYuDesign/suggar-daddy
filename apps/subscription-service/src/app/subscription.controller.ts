@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Param,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import {
@@ -20,6 +21,26 @@ import { SubscriptionService } from './subscription.service';
 @Controller('subscriptions')
 export class SubscriptionController {
   constructor(private subscriptionService: SubscriptionService) {}
+
+  /** 檢查訂閱者是否對創作者有有效訂閱（供 content-service 訂閱牆可見性使用） */
+  @Public()
+  @Get('check')
+  @ApiOperation({ summary: 'Check if subscriber has access to creator (optional tier)' })
+  async checkAccess(
+    @Query('subscriberId') subscriberId: string,
+    @Query('creatorId') creatorId: string,
+    @Query('tierId') tierId?: string
+  ) {
+    if (!subscriberId || !creatorId) {
+      return { hasAccess: false };
+    }
+    const hasAccess = await this.subscriptionService.hasActiveSubscription(
+      subscriberId,
+      creatorId,
+      tierId ?? null
+    );
+    return { hasAccess };
+  }
 
   // Public endpoint - anyone can view subscription tiers
   @Public()

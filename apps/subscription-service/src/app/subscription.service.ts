@@ -130,4 +130,24 @@ export class SubscriptionService {
     });
     return sub;
   }
+
+  /** 檢查訂閱者是否對創作者（及可選方案）有有效訂閱（供 content-service 訂閱牆可見性使用） */
+  async hasActiveSubscription(
+    subscriberId: string,
+    creatorId: string,
+    tierId?: string | null
+  ): Promise<boolean> {
+    const subs = await this.findBySubscriber(subscriberId);
+    const now = new Date().toISOString();
+    const active = subs.filter(
+      (s) =>
+        s.creatorId === creatorId &&
+        s.status === 'active' &&
+        (!s.currentPeriodEnd || s.currentPeriodEnd >= now)
+    );
+    if (tierId) {
+      return active.some((s) => s.tierId === tierId);
+    }
+    return active.length > 0;
+  }
 }

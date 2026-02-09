@@ -3,25 +3,33 @@ import Stripe from 'stripe';
 
 @Injectable()
 export class StripeService {
-  private stripe: Stripe;
+  private stripe: Stripe | null = null;
 
   constructor() {
     const apiKey = process.env['STRIPE_SECRET_KEY'];
-    if (!apiKey) {
-      throw new Error('STRIPE_SECRET_KEY is not defined');
+    if (apiKey) {
+      this.stripe = new Stripe(apiKey, {
+        apiVersion: '2023-10-16',
+      });
     }
-    this.stripe = new Stripe(apiKey, {
-      apiVersion: '2023-10-16',
-    });
   }
 
   getStripeInstance(): Stripe {
+    if (!this.stripe) {
+      throw new BadRequestException(
+        'Stripe is not configured. Set STRIPE_SECRET_KEY to enable payments.'
+      );
+    }
     return this.stripe;
+  }
+
+  isConfigured(): boolean {
+    return this.stripe != null;
   }
 
   // Customer Management
   async createCustomer(email: string, name: string, userId: string) {
-    return this.stripe.customers.create({
+    return this.getStripeInstance().customers.create({
       email,
       name,
       metadata: { userId },
@@ -29,7 +37,7 @@ export class StripeService {
   }
 
   async getCustomer(customerId: string) {
-    return this.stripe.customers.retrieve(customerId);
+    return this.getStripeInstance().customers.retrieve(customerId);
   }
 
   // Subscription Management
@@ -38,7 +46,7 @@ export class StripeService {
     priceId: string,
     metadata?: Record<string, string>
   ) {
-    return this.stripe.subscriptions.create({
+    return this.getStripeInstance().subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
       payment_behavior: 'default_incomplete',
@@ -49,12 +57,13 @@ export class StripeService {
   }
 
   async cancelSubscription(subscriptionId: string) {
-    return this.stripe.subscriptions.cancel(subscriptionId);
+    return this.getStripeInstance().subscriptions.cancel(subscriptionId);
   }
 
   async updateSubscription(subscriptionId: string, priceId: string) {
-    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
-    return this.stripe.subscriptions.update(subscriptionId, {
+    const stripe = this.getStripeInstance();
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    return stripe.subscriptions.update(subscriptionId, {
       items: [
         {
           id: subscription.items.data[0].id,
@@ -71,7 +80,7 @@ export class StripeService {
     customerId: string,
     metadata?: Record<string, string>
   ) {
-    return this.stripe.paymentIntents.create({
+    return this.getStripeInstance().paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents
       currency,
       customer: customerId,
@@ -97,32 +106,36 @@ export class StripeService {
       priceData.recurring = { interval };
     }
 
-    return this.stripe.prices.create(priceData);
+    return this.getStripeInstance().prices.create(priceData);
   }
 
   // Product Management
   async createProduct(name: string, description: string) {
-    return this.stripe.products.create({
+    return this.getStripeInstance().products.create({
       name,
       description,
     });
   }
 
-  // Webhook signature verification
-  constructWebhookEvent(payload: Buffer, signature: string) {
+  // Webhook signature verification（僅需 STRIPE_WEBHOOK_SECRET，不依賴 STRIPE_SECRET_KEY）
+  constructWebhookEvent(payload: Buffer, signature: string): Stripe.Event {
     const webhookSecret = process.env['STRIPE_WEBHOOK_SECRET'];
     if (!webhookSecret) {
-      throw new Error('STRIPE_WEBHOOK_SECRET is not defined');
-    }
-
-    try {
-      return this.stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        webhookSecret
+      throw new BadRequestException(
+        'Stripe webhook is not configured. Set STRIPE_WEBHOOK_SECRET to verify webhooks.'
       );
+    }
+    try {
+      const client =
+        this.stripe ??
+        new Stripe(process.env['STRIPE_SECRET_KEY'] || 'sk_test_placeholder_webhook_only', {
+          apiVersion: '2023-10-16',
+        });
+      return client.webhooks.constructEvent(payload, signature, webhookSecret);
     } catch (err) {
-      throw new BadRequestException(`Webhook signature verification failed: ${err instanceof Error ? err.message : String(err)}`);
+      throw new BadRequestException(
+        `Webhook signature verification failed: ${err instanceof Error ? err.message : String(err)}`
+      );
     }
   }
 }

@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import type { CreateUserDto, UpdateProfileDto } from '@suggar-daddy/dto';
 import { CurrentUser, Public } from '@suggar-daddy/common';
@@ -29,6 +30,18 @@ export class UserController {
       throw new NotFoundException('User not found');
     }
     return profile;
+  }
+
+  /** 取得推薦用卡片（exclude 逗號分隔的 userId，供 matching-service 使用） */
+  @Public()
+  @Get('cards')
+  async getCards(
+    @Query('exclude') excludeStr?: string,
+    @Query('limit') limitStr?: string
+  ) {
+    const exclude = excludeStr ? excludeStr.split(',').map((s) => s.trim()).filter(Boolean) : [];
+    const limit = Math.min(100, Math.max(1, parseInt(limitStr || '20', 10) || 20));
+    return this.userService.getCardsForRecommendation(exclude, limit);
   }
 
   /** 取得指定用戶對外資料 */
