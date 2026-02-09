@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "nx run-many -t build --all",
+    "serve:api-gateway": "nx serve api-gateway",
     "serve:user-service": "nx serve user-service",
     "serve:auth-service": "nx serve auth-service",
     "serve:matching-service": "nx serve matching-service",
