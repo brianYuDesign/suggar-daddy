@@ -1,0 +1,16 @@
+{
+  "name": "content-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/content-service/src",
+  "projectType": "application",
+  "tags": ["scope:content"],
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "apps/content-service/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "subscription-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/subscription-service/src",
+  "projectType": "application",
+  "tags": ["scope:subscription"],
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "apps/subscription-service/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  }
+}

@@ -29,6 +29,6 @@
         "production": { "buildTarget": "matching-service:build:production" }
       }
     },
-    "test": { "options": { "passWithNoTests": true } }
+    "test": { "executor": "@nx/jest:jest", "options": { "jestConfig": "apps/matching-service/jest.config.ts", "passWithNoTests": true } }
   }
 }
