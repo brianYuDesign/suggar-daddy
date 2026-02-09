@@ -44,4 +44,4 @@ npx nx serve user-service
 - Feature branches for development.
 
 ## Documentation
-See `docs/BACKEND_DESIGN.md` for detailed design.
+See `../docs/01-專案架構與設計.md` for detailed design.

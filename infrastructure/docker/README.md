@@ -18,7 +18,7 @@ docker compose -f infrastructure/docker/docker-compose.yml \
 
 - **Prometheus**: http://localhost:9090  
 - **Grafana**: http://localhost:3001（預設 admin / admin）  
-- 詳見 [docs/DEVOPS.md](../../docs/DEVOPS.md)
+- 詳見 [docs/04-運維與效能.md](../../docs/04-運維與效能.md)
 
 ## 環境變數
 
