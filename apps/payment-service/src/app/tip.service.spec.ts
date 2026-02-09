@@ -1,0 +1,91 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
+import { TipService } from './tip.service';
+import { RedisService } from '@suggar-daddy/redis';
+import { KafkaProducerService } from '@suggar-daddy/kafka';
+
+describe('TipService', () => {
+  let service: TipService;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange'>>;
+  let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
+
+  beforeEach(async () => {
+    redis = {
+      get: jest.fn(),
+      set: jest.fn(),
+      lPush: jest.fn(),
+      lRange: jest.fn(),
+    };
+    kafka = { sendEvent: jest.fn() };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TipService,
+        { provide: RedisService, useValue: redis },
+        { provide: KafkaProducerService, useValue: kafka },
+      ],
+    }).compile();
+
+    service = module.get(TipService);
+    jest.clearAllMocks();
+  });
+
+  describe('create', () => {
+    it('應建立打賞記錄並發送 Kafka', async () => {
+      redis.set!.mockResolvedValue(undefined);
+      redis.lPush!.mockResolvedValue(0);
+
+      const dto = {
+        fromUserId: 'user-1',
+        toUserId: 'user-2',
+        amount: 500,
+        message: 'Thanks!',
+      };
+
+      const result = await service.create(dto);
+
+      expect(result.id).toMatch(/^tip-/);
+      expect(result.fromUserId).toBe('user-1');
+      expect(result.toUserId).toBe('user-2');
+      expect(result.amount).toBe(500);
+      expect(result.message).toBe('Thanks!');
+      expect(kafka.sendEvent).toHaveBeenCalledWith(
+        'payment.tip.sent',
+        expect.objectContaining({
+          senderId: 'user-1',
+          recipientId: 'user-2',
+          amount: 500,
+        })
+      );
+    });
+  });
+
+  describe('findByFrom / findByTo', () => {
+    it('應回傳打賞列表', async () => {
+      redis.lRange!.mockResolvedValue(['tip-1']);
+      redis.get!.mockResolvedValue(JSON.stringify({
+        id: 'tip-1',
+        fromUserId: 'u1',
+        toUserId: 'u2',
+        amount: 100,
+        createdAt: new Date().toISOString(),
+      }));
+
+      const fromList = await service.findByFrom('u1');
+      expect(fromList.length).toBe(1);
+      expect(fromList[0].amount).toBe(100);
+
+      const toList = await service.findByTo('u2');
+      expect(toList.length).toBe(1);
+    });
+  });
+
+  describe('findOne', () => {
+    it('應在找不到時拋出 NotFoundException', async () => {
+      redis.get!.mockResolvedValue(null);
+
+      await expect(service.findOne('tip-missing')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('tip-missing')).rejects.toThrow('Tip');
+    });
+  });
+});
