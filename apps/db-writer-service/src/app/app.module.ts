@@ -22,6 +22,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DbWriterService } from './db-writer.service';
 import { DbWriterConsumer } from './db-writer.consumer';
+import { DlqService } from './dlq.service';
+import { DlqController } from './dlq.controller';
+import { ConsistencyService } from './consistency.service';
+import { ConsistencyController } from './consistency.controller';
 
 const ALL_ENTITIES = [
   UserEntity,
@@ -50,7 +54,7 @@ const ALL_ENTITIES = [
       groupId: 'db-writer-service-group',
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService, DbWriterService, DbWriterConsumer],
+  controllers: [AppController, DlqController, ConsistencyController],
+  providers: [AppService, DbWriterService, DbWriterConsumer, DlqService, ConsistencyService],
 })
 export class AppModule {}

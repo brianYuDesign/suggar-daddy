@@ -57,6 +57,11 @@ export const MEDIA_EVENTS = {
   MEDIA_PROCESSED: 'media.processed',
 } as const;
 
+// 系統事件（DLQ、監控）
+export const SYSTEM_EVENTS = {
+  DEAD_LETTER_QUEUE: 'dead-letter-queue',
+} as const;
+
 // Event Payload Interfaces
 export interface SubscriptionCreatedEvent {
   subscriptionId: string;

@@ -8,6 +8,7 @@ import {
   PAYMENT_EVENTS,
 } from '@suggar-daddy/common';
 import { DbWriterService } from './db-writer.service';
+import { DlqService } from './dlq.service';
 
 @Injectable()
 export class DbWriterConsumer implements OnModuleInit {
@@ -16,6 +17,7 @@ export class DbWriterConsumer implements OnModuleInit {
   constructor(
     private readonly kafkaConsumer: KafkaConsumerService,
     private readonly dbWriter: DbWriterService,
+    private readonly dlqService: DlqService,
   ) {}
 
   async onModuleInit() {
@@ -52,7 +54,7 @@ export class DbWriterConsumer implements OnModuleInit {
           } catch (err) {
             lastErr = err;
             this.logger.warn(
-              `Error processing ${topic} (attempt ${attempt + 1}/${maxRetries + 1}):`,
+              'Error processing ' + topic + ' (attempt ' + (attempt + 1) + '/' + (maxRetries + 1) + '):',
               err
             );
             if (attempt < maxRetries) {
@@ -60,11 +62,22 @@ export class DbWriterConsumer implements OnModuleInit {
             }
           }
         }
-        this.logger.error(`Failed processing ${topic} after ${maxRetries + 1} attempts:`, lastErr);
+        // 重試 3 次仍失敗，寫入死信佇列
+        this.logger.error('Failed processing ' + topic + ' after ' + (maxRetries + 1) + ' attempts, sending to DLQ');
+        try {
+          await this.dlqService.addToDeadLetterQueue(
+            topic,
+            event,
+            lastErr instanceof Error ? lastErr.message : String(lastErr),
+            maxRetries + 1,
+          );
+        } catch (dlqErr) {
+          this.logger.error('Failed to write to DLQ:', dlqErr);
+        }
       });
     }
 
     await this.kafkaConsumer.startConsuming();
-    this.logger.log('DB Writer consumer started');
+    this.logger.log('DB Writer consumer started (with DLQ support)');
   }
 }
