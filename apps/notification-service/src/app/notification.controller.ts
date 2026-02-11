@@ -8,7 +8,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import type { SendNotificationDto } from '@suggar-daddy/dto';
+import { SendNotificationDto } from '@suggar-daddy/dto';
 import { JwtAuthGuard, CurrentUser, Public } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
 import { NotificationService } from './notification.service';

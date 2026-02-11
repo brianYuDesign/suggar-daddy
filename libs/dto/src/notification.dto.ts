@@ -1,12 +1,28 @@
 /**
  * Notification 相關 DTO
  */
+import { IsString, IsNotEmpty, IsOptional, IsObject } from 'class-validator';
 
-export interface SendNotificationDto {
+export class SendNotificationDto {
+  @IsString()
+  @IsNotEmpty()
   userId: string;
+
+  @IsString()
+  @IsNotEmpty()
   type: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
   title: string;
+
+  @IsOptional()
+  @IsString()
   body?: string;
+
+  @IsOptional()
+  @IsObject()
   data?: Record<string, unknown>;
 }
 

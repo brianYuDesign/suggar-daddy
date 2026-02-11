@@ -1,9 +1,16 @@
 /**
  * Messaging 相關 DTO
  */
+import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
 
-export interface SendMessageDto {
+export class SendMessageDto {
+  @IsString()
+  @IsNotEmpty()
   conversationId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(5000)
   content: string;
 }
 

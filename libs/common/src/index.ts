@@ -5,3 +5,4 @@ export * from './auth';
 export * from './stripe';
 export * from './swagger';
 export * from './sharding';
+export * from './filters';

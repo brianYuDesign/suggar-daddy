@@ -7,6 +7,7 @@ import { NestFactory } from '@nestjs/core';
 /* eslint-disable @typescript-eslint/no-var-requires */
 const helmet = require('helmet');
 const compression = require('compression');
+import { AllExceptionsFilter } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
@@ -17,6 +18,9 @@ async function bootstrap() {
 
   // Gzip compression
   app.use(compression());
+
+  // Global error handling
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Input validation
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));

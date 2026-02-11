@@ -39,8 +39,7 @@ export class DbWriterConsumer implements OnModuleInit {
       { topic: SUBSCRIPTION_EVENTS.TIER_CREATED, handler: (p) => this.dbWriter.handleTierCreated(p) },
     ];
 
-    const maxRetries = 2;
-    const retryDelayMs = 1000;
+    const maxRetries = 3;
 
     for (const { topic, handler } of topics) {
       await this.kafkaConsumer.subscribe(topic, async (payload) => {
@@ -54,11 +53,13 @@ export class DbWriterConsumer implements OnModuleInit {
           } catch (err) {
             lastErr = err;
             this.logger.warn(
-              'Error processing ' + topic + ' (attempt ' + (attempt + 1) + '/' + (maxRetries + 1) + '):',
-              err
+              `Error processing ${topic} (attempt ${attempt + 1}/${maxRetries + 1}):`,
+              err,
             );
             if (attempt < maxRetries) {
-              await new Promise((r) => setTimeout(r, retryDelayMs));
+              // Exponential backoff: 500ms, 1s, 2s, 4s...
+              const delay = Math.pow(2, attempt) * 500;
+              await new Promise((r) => setTimeout(r, delay));
             }
           }
         }

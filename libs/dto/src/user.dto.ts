@@ -1,6 +1,7 @@
 /**
  * User 相關 DTO
  */
+import { IsString, IsNotEmpty, IsOptional, IsIn, MaxLength, IsDateString } from 'class-validator';
 
 export interface UserCardDto {
   id: string;
@@ -27,19 +28,50 @@ export interface UserProfileDto {
 }
 
 /** 創建用戶（註冊） */
-export interface CreateUserDto {
+export class CreateUserDto {
+  @IsIn(['sugar_baby', 'sugar_daddy'])
   role: 'sugar_baby' | 'sugar_daddy';
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
   displayName: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   bio?: string;
+
+  @IsOptional()
+  @IsString()
   avatarUrl?: string;
+
+  @IsOptional()
+  @IsDateString()
   birthDate?: string;
 }
 
 /** 更新個人資料（部分欄位） */
-export interface UpdateProfileDto {
+export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
   displayName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   bio?: string;
+
+  @IsOptional()
+  @IsString()
   avatarUrl?: string;
+
+  @IsOptional()
+  @IsDateString()
   birthDate?: string;
+
+  @IsOptional()
   preferences?: Record<string, unknown>;
 }

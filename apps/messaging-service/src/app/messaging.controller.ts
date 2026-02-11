@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import type { SendMessageDto } from '@suggar-daddy/dto';
+import { SendMessageDto } from '@suggar-daddy/dto';
 import { JwtAuthGuard, CurrentUser } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
 import { MessagingService } from './messaging.service';

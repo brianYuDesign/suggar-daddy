@@ -8,6 +8,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 /* eslint-disable @typescript-eslint/no-var-requires */
 const helmet = require('helmet');
+import { AllExceptionsFilter } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
@@ -18,6 +19,9 @@ async function bootstrap() {
 
   // Security headers
   app.use(helmet());
+
+  // Global error handling
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Input validation
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));

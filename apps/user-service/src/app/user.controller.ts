@@ -12,7 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import type { CreateUserDto, UpdateProfileDto } from '@suggar-daddy/dto';
+import { CreateUserDto, UpdateProfileDto } from '@suggar-daddy/dto';
 import { CurrentUser, Public, Roles, RolesGuard, UserRole, JwtAuthGuard } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
 import { UserService } from './user.service';

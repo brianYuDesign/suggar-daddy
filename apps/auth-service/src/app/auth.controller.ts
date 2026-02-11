@@ -1,10 +1,6 @@
 import { Body, Controller, Get, Logger, Param, Post, UseGuards } from '@nestjs/common';
-import type {
-  LoginDto,
-  RegisterDto,
-  TokenResponseDto,
-  RefreshTokenDto,
-} from '@suggar-daddy/dto';
+import { LoginDto, RegisterDto, RefreshTokenDto } from '@suggar-daddy/dto';
+import type { TokenResponseDto } from '@suggar-daddy/dto';
 import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole } from '@suggar-daddy/auth';
 import type { JwtUser } from '@suggar-daddy/auth';
 import { AuthService } from './auth.service';

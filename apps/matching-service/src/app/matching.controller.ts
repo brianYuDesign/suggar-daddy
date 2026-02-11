@@ -9,7 +9,8 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import type { SwipeRequestDto, SwipeAction } from '@suggar-daddy/dto';
+import { SwipeRequestDto } from '@suggar-daddy/dto';
+import type { SwipeAction } from '@suggar-daddy/dto';
 import { JwtAuthGuard, CurrentUser } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
 import { MatchingService } from './matching.service';

@@ -1,13 +1,17 @@
 /**
  * Matching 相關 DTO
  */
-
+import { IsString, IsNotEmpty, IsIn } from 'class-validator';
 import type { UserCardDto } from './user.dto';
 
 export type SwipeAction = 'like' | 'pass' | 'super_like';
 
-export interface SwipeRequestDto {
+export class SwipeRequestDto {
+  @IsString()
+  @IsNotEmpty()
   targetUserId: string;
+
+  @IsIn(['like', 'pass', 'super_like'])
   action: SwipeAction;
 }
 
