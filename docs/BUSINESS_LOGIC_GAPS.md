@@ -70,7 +70,8 @@
 | 項目 | 現狀 | 建議 |
 |------|------|------|
 | 訂閱支付完成 | ✅ PaymentEventConsumer 訂閱 payment.completed，呼叫 subscriptionService.extendPeriod 延長週期 | — |
-| 貼文可見性 | ✅ PPV 依 post:unlock 解鎖；未登入/未購買回傳 locked 版（隱藏 mediaUrls） | 訂閱牆（subscribers/tier_specific）可後續補 |
+| 貼文可見性 | ✅ PPV 依 post:unlock 解鎖；未登入/未購買回傳 locked 版（隱藏 mediaUrls） | — |
+| 訂閱牆可見性 | ✅ visibility=subscribers 僅訂閱者可見；tier_specific 僅訂閱該方案者可見；content-service 呼叫 subscription /check，findByCreatorWithAccess 依 viewer 過濾 | — |
 
 ---
 
@@ -92,3 +93,14 @@
 5. **低**：付費貼文讀取權限邏輯、Kafka/Redis 一致性與重試策略。
 
 以上項目補齊後，再依需求補 OAuth、WebSocket、真實推播等進階功能。
+
+---
+
+## 6. 架構與入口 ✅
+
+| 項目 | 現狀 | 建議 |
+|------|------|------|
+| API Gateway | ✅ 統一入口（預設 port 3000），依路徑前綴代理至 auth / user / matching / content / payment / subscription / media；轉傳 Authorization、query、body | 環境變數可覆寫各服務 URL |
+| Matching 推薦卡片 | ✅ getCards 改為呼叫 user-service GET /api/v1/users/cards（exclude 已 swipe + 自己），不再使用 mock 列表 | — |
+| Messaging 持久化 | ✅ 對話與訊息存 Redis（conversation:*、msg:*、user:*:conversations）；發送時發送 Kafka message.created | — |
+| Notification 持久化 | ✅ 通知存 Redis（notification:*、user:*:notifications）；發送時發送 Kafka notification.created | — |
