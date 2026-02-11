@@ -1,0 +1,79 @@
+version: '3.8'
+
+# 測試環境：只啟動基礎設施（避免 port 衝突）
+services:
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: suggar-daddy-postgres-test
+    environment:
+      POSTGRES_DB: suggar_daddy
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword123}
+    ports:
+      - "5433:5432"  # 改用 5433 避免衝突
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d suggar_daddy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suggar-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: suggar-daddy-redis-test
+    ports:
+      - "6380:6379"  # 改用 6380 避免衝突
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suggar-network
+
+  # Kafka (改用不同的 ports)
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: suggar-daddy-kafka-test
+    ports:
+      - "9094:9092"  # 改用 9094
+      - "9095:9093"  # 改用 9095
+    environment:
+      # KRaft 設定
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # Listener 設定
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      # 其他設定
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_CFG_LOG_RETENTION_HOURS: 168
+    volumes:
+      - kafka_test_data:/bitnami/kafka
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - suggar-network
+
+networks:
+  suggar-network:
+    driver: bridge
+
+volumes:
+  postgres_test_data:
+  redis_test_data:
+  kafka_test_data:

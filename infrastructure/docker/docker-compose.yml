@@ -1,34 +1,399 @@
-# Sugar Daddy 本地開發環境
-# 使用: docker compose -f infrastructure/docker/docker-compose.yml up -d
-
 version: '3.8'
 
 services:
+  # PostgreSQL
   postgres:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
+    container_name: suggar-daddy-postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      POSTGRES_DB: suggar_daddy
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U admin -d suggar_daddy"]
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - suggar-network
 
+  # Redis
   redis:
     image: redis:7-alpine
+    container_name: suggar-daddy-redis
     ports:
-      - '6379:6379'
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - suggar-network
+
+  # Kafka (使用 KRaft 模式，不需要 Zookeeper)
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: suggar-daddy-kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      # KRaft 設定
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # Listener 設定
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      # 其他設定
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_CFG_LOG_RETENTION_HOURS: 168
+    volumes:
+      - kafka_data:/bitnami/kafka
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - suggar-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: api-gateway
+    container_name: suggar-daddy-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      # Service URLs
+      AUTH_SERVICE_URL: http://auth-service:3001
+      USER_SERVICE_URL: http://user-service:3002
+      MATCHING_SERVICE_URL: http://matching-service:3003
+      CONTENT_SERVICE_URL: http://content-service:3004
+      SUBSCRIPTION_SERVICE_URL: http://subscription-service:3009
+      PAYMENT_SERVICE_URL: http://payment-service:3006
+      MESSAGING_SERVICE_URL: http://messaging-service:3005
+      NOTIFICATION_SERVICE_URL: http://notification-service:3007
+      MEDIA_SERVICE_URL: http://media-service:3008
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: auth-service
+    container_name: suggar-daddy-auth
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-prod}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # User Service
+  user-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: user-service
+    container_name: suggar-daddy-user
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # Matching Service
+  matching-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: matching-service
+    container_name: suggar-daddy-matching
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      USER_SERVICE_URL: http://user-service:3002
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # Content Service
+  content-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: content-service
+    container_name: suggar-daddy-content
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      SUBSCRIPTION_SERVICE_URL: http://subscription-service:3009
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # Messaging Service
+  messaging-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: messaging-service
+    container_name: suggar-daddy-messaging
+    ports:
+      - "3005:3005"
+    environment:
+      NODE_ENV: development
+      PORT: 3005
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # Payment Service
+  payment-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: payment-service
+    container_name: suggar-daddy-payment
+    ports:
+      - "3006:3006"
+    environment:
+      NODE_ENV: development
+      PORT: 3006
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: notification-service
+    container_name: suggar-daddy-notification
+    ports:
+      - "3007:3007"
+    environment:
+      NODE_ENV: development
+      PORT: 3007
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # Media Service
+  media-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: media-service
+    container_name: suggar-daddy-media
+    ports:
+      - "3008:3008"
+    environment:
+      NODE_ENV: development
+      PORT: 3008
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      AWS_REGION: ${AWS_REGION:-ap-northeast-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-suggar-daddy-dev-media}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # Subscription Service
+  subscription-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: subscription-service
+    container_name: suggar-daddy-subscription
+    ports:
+      - "3009:3009"
+    environment:
+      NODE_ENV: development
+      PORT: 3009
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+  # DB Writer Service
+  db-writer-service:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+      args:
+        APP_NAME: db-writer-service
+    container_name: suggar-daddy-db-writer
+    ports:
+      - "3010:3010"
+    environment:
+      NODE_ENV: development
+      PORT: 3010
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/suggar_daddy
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-network
+    restart: unless-stopped
+
+networks:
+  suggar-network:
+    driver: bridge
 
 volumes:
-  pgdata:
+  postgres_data:
+  redis_data:
+  kafka_data:
