@@ -20,7 +20,9 @@
       "@suggar-daddy/database": ["libs/database/src/index.ts"],
       "@suggar-daddy/kafka": ["libs/kafka/src/index.ts"],
       "@suggar-daddy/redis": ["libs/redis/src/index.ts"],
-      "@suggar-daddy/auth": ["libs/auth/src/index.ts"]
+      "@suggar-daddy/auth": ["libs/auth/src/index.ts"],
+      "@suggar-daddy/ui": ["libs/ui/src/index.ts"],
+      "@suggar-daddy/api-client": ["libs/api-client/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

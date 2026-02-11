@@ -1,0 +1,73 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "incremental": true,
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "emitDecoratorMetadata": false,
+    "experimentalDecorators": false,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "types": [
+      "jest",
+      "node"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@suggar-daddy/common": [
+        "../../libs/common/src/index.ts"
+      ],
+      "@suggar-daddy/dto": [
+        "../../libs/dto/src/index.ts"
+      ],
+      "@suggar-daddy/database": [
+        "../../libs/database/src/index.ts"
+      ],
+      "@suggar-daddy/kafka": [
+        "../../libs/kafka/src/index.ts"
+      ],
+      "@suggar-daddy/redis": [
+        "../../libs/redis/src/index.ts"
+      ],
+      "@suggar-daddy/auth": [
+        "../../libs/auth/src/index.ts"
+      ],
+      "@suggar-daddy/ui": [
+        "../../libs/ui/src/index.ts"
+      ],
+      "@suggar-daddy/api-client": [
+        "../../libs/api-client/src/index.ts"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "../../dist/apps/admin/.next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "jest.config.ts",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
+}

@@ -53,6 +53,10 @@ infrastructure/**/*.tfstate.*
 infrastructure/**/.terraform/
 *.pem
 
+# Next.js
+.next/
+out/
+
 # Misc
 .cache/
 *.local
