@@ -128,7 +128,7 @@ export class StripeService {
     try {
       const client =
         this.stripe ??
-        new Stripe(process.env['STRIPE_SECRET_KEY'] || 'sk_test_placeholder_webhook_only', {
+        new Stripe(process.env['STRIPE_SECRET_KEY'] || '', {
           apiVersion: '2023-10-16',
         });
       return client.webhooks.constructEvent(payload, signature, webhookSecret);

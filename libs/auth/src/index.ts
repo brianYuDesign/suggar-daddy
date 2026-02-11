@@ -4,3 +4,4 @@ export { JwtAuthGuard } from './guards/jwt-auth.guard';
 export type { JwtUser } from './strategies/jwt.strategy';
 export * from './jwt-auth.guard';
 export * from './jwt.strategy';
+export { Roles, RolesGuard, UserRole } from '@suggar-daddy/common';

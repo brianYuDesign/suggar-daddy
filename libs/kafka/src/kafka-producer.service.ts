@@ -34,18 +34,21 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   }
 
   async send(topic: string, messages: { key?: string; value: string }[]) {
-    try {
-      const result = await this.producer.send({
-        topic,
-        messages,
-      });
-      this.logger.log(`Message sent to topic ${topic}`);
-      return result;
-    } catch (error) {
-      this.logger.error(`Failed to send message to topic ${topic}:`, error);
-      // Graceful degradation: log error but don't throw
-      return null;
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await this.producer.send({ topic, messages });
+        this.logger.log(`Message sent to topic ${topic}`);
+        return result;
+      } catch (error) {
+        this.logger.error(`Failed to send to ${topic} (attempt ${attempt}/${maxRetries}):`, error);
+        if (attempt < maxRetries) {
+          await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 500)); // exponential backoff
+        }
+      }
     }
+    this.logger.error(`All ${maxRetries} attempts failed for topic ${topic} — message dropped`);
+    return null;
   }
 
   async sendEvent(topic: string, event: any) {

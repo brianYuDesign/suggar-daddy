@@ -66,10 +66,11 @@ export class MediaService {
   }
 
   async findAll(): Promise<any[]> {
-    const keys = await this.redis.keys('media:media-*');
+    const keys = await this.redis.scan('media:media-*');
+    if (keys.length === 0) return [];
+    const values = await this.redis.mget(...keys);
     const out: any[] = [];
-    for (const key of keys) {
-      const raw = await this.redis.get(key);
+    for (const raw of values) {
       if (raw) out.push(JSON.parse(raw));
     }
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
@@ -77,9 +78,11 @@ export class MediaService {
 
   async findByUser(userId: string): Promise<any[]> {
     const ids = await this.redis.lRange(MEDIA_USER(userId), 0, -1);
+    if (ids.length === 0) return [];
+    const keys = ids.map((id) => MEDIA_KEY(id));
+    const values = await this.redis.mget(...keys);
     const out: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(MEDIA_KEY(id));
+    for (const raw of values) {
       if (raw) out.push(JSON.parse(raw));
     }
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));

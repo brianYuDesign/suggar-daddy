@@ -9,11 +9,18 @@ export class RedisService implements OnModuleDestroy {
     return this.client.get(key);
   }
 
-  async set(key: string, value: string): Promise<void> {
+  /** Set key with optional TTL (seconds). Defaults to 24h if ttlSeconds not provided. */
+  async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
+    const ttl = ttlSeconds ?? 86400; // default 24h
+    await this.client.setex(key, ttl, value);
+  }
+
+  /** Set key with no expiry — use sparingly for data that must persist */
+  async setPermanent(key: string, value: string): Promise<void> {
     await this.client.set(key, value);
   }
 
-  /** 設定 key = value，並在 ttlSeconds 秒後過期 */
+  /** @deprecated Use set() with ttlSeconds parameter instead */
   async setex(key: string, ttlSeconds: number, value: string): Promise<void> {
     await this.client.setex(key, ttlSeconds, value);
   }
@@ -34,8 +41,29 @@ export class RedisService implements OnModuleDestroy {
     return this.client.srem(key, ...members.map(String));
   }
 
+  /**
+   * @deprecated Use scan() instead. KEYS blocks Redis on large datasets.
+   */
   async keys(pattern: string): Promise<string[]> {
     return this.client.keys(pattern);
+  }
+
+  /** Iterate keys matching pattern using non-blocking SCAN */
+  async scan(pattern: string, count = 100): Promise<string[]> {
+    const keys: string[] = [];
+    let cursor = '0';
+    do {
+      const result = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', count);
+      cursor = result[0];
+      keys.push(...result[1]);
+    } while (cursor !== '0');
+    return keys;
+  }
+
+  /** Batch get multiple keys */
+  async mget(...keys: string[]): Promise<(string | null)[]> {
+    if (keys.length === 0) return [];
+    return this.client.mget(...keys);
   }
 
   async lPush(key: string, ...values: (string | number)[]): Promise<number> {

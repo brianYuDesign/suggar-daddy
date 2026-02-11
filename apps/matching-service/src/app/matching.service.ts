@@ -167,24 +167,33 @@ export class MatchingService {
     // 從 Redis 取得用戶的配對 ID 列表
     const userMatchesKey = `${this.USER_MATCHES_PREFIX}${userId}`;
     const matchIds = await this.redisService.sMembers(userMatchesKey);
-    
-    // 取得所有配對詳情
+
+    if (matchIds.length === 0) {
+      return { matches: [], nextCursor: undefined };
+    }
+
+    // 使用 SCAN 一次取得所有 match keys，再用 MGET 批次讀取
+    const allMatchKeys = await this.redisService.scan(`${this.MATCH_PREFIX}*`);
+    const values = allMatchKeys.length > 0
+      ? await this.redisService.mget(...allMatchKeys)
+      : [];
+
+    // 建立 matchId → MatchRecord 的 lookup map
+    const matchMap = new Map<string, MatchRecord>();
+    for (let i = 0; i < allMatchKeys.length; i++) {
+      const raw = values[i];
+      if (raw) {
+        const match: MatchRecord = JSON.parse(raw);
+        matchMap.set(match.id, match);
+      }
+    }
+
+    // 直接 lookup 而非巢狀迴圈
     const userMatches: MatchRecord[] = [];
     for (const matchId of matchIds) {
-      // 搜尋包含此 matchId 的配對
-      const keys = await this.redisService.keys(`${this.MATCH_PREFIX}*`);
-      for (const key of keys) {
-        const matchData = await this.redisService.get(key);
-        if (matchData) {
-          const match: MatchRecord = JSON.parse(matchData);
-          if (match.id === matchId && match.status === 'active') {
-            userMatches.push({
-              ...match,
-              matchedAt: new Date(match.matchedAt),
-            });
-            break;
-          }
-        }
+      const match = matchMap.get(matchId);
+      if (match && match.status === 'active') {
+        userMatches.push({ ...match, matchedAt: new Date(match.matchedAt) });
       }
     }
 
@@ -214,28 +223,27 @@ export class MatchingService {
   }
 
   async unmatch(userId: string, matchId: string): Promise<{ success: boolean }> {
-    // 搜尋包含此 matchId 的配對
-    const keys = await this.redisService.keys(`${this.MATCH_PREFIX}*`);
-    for (const key of keys) {
-      const matchData = await this.redisService.get(key);
-      if (matchData) {
-        const match: MatchRecord = JSON.parse(matchData);
-        if (
-          match.id === matchId &&
-          (match.userAId === userId || match.userBId === userId) &&
-          match.status === 'active'
-        ) {
-          // 更新狀態為 unmatched
-          match.status = 'unmatched';
-          await this.redisService.set(key, JSON.stringify(match));
-          
-          // 從用戶的配對列表中移除
-          await this.redisService.sRem(`${this.USER_MATCHES_PREFIX}${match.userAId}`, matchId);
-          await this.redisService.sRem(`${this.USER_MATCHES_PREFIX}${match.userBId}`, matchId);
-          
-          this.logger.log(`unmatch applied userId=${userId} matchId=${matchId}`);
-          return { success: true };
-        }
+    // 使用 SCAN 替代 KEYS
+    const keys = await this.redisService.scan(`${this.MATCH_PREFIX}*`);
+    const values = keys.length > 0 ? await this.redisService.mget(...keys) : [];
+
+    for (let i = 0; i < keys.length; i++) {
+      const raw = values[i];
+      if (!raw) continue;
+      const match: MatchRecord = JSON.parse(raw);
+      if (
+        match.id === matchId &&
+        (match.userAId === userId || match.userBId === userId) &&
+        match.status === 'active'
+      ) {
+        match.status = 'unmatched';
+        await this.redisService.set(keys[i], JSON.stringify(match));
+
+        await this.redisService.sRem(`${this.USER_MATCHES_PREFIX}${match.userAId}`, matchId);
+        await this.redisService.sRem(`${this.USER_MATCHES_PREFIX}${match.userBId}`, matchId);
+
+        this.logger.log(`unmatch applied userId=${userId} matchId=${matchId}`);
+        return { success: true };
       }
     }
     this.logger.warn(`unmatch failed (not found or not owner) userId=${userId} matchId=${matchId}`);

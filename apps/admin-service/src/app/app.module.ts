@@ -77,7 +77,7 @@ const ALL_ENTITIES = [
     // JWT 認證
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env['JWT_SECRET'] || 'your-jwt-secret-key',
+      secret: process.env['JWT_SECRET'],
       signOptions: { expiresIn: '24h' },
     }),
   ],

@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ModerationService } from './moderation.service';
-import { JwtAuthGuard, CurrentUser } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
 
 @Controller('moderation')
@@ -30,55 +30,55 @@ export class ModerationController {
   // ── Admin: Moderation queue ─────────────────────────────────────
 
   @Get('queue')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   getReportQueue(@Query('limit') limitStr?: string) {
-    // TODO: Add @Roles('ADMIN') guard
     const limit = Math.min(100, parseInt(limitStr || '50', 10) || 50);
     return this.moderationService.getReportQueue(limit);
   }
 
   @Get('reports/:postId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   getReportsForPost(@Param('postId') postId: string) {
-    // TODO: Add @Roles('ADMIN') guard
     return this.moderationService.getReportsForPost(postId);
   }
 
   @Put('review/:reportId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   reviewReport(
     @CurrentUser() user: CurrentUserData,
     @Param('reportId') reportId: string,
     @Body() body: { action: 'dismiss' | 'takedown' },
   ) {
-    // TODO: Add @Roles('ADMIN') guard
     return this.moderationService.reviewReport(reportId, body.action, user.userId);
   }
 
   @Post('takedown/:postId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   takeDownPost(
     @CurrentUser() user: CurrentUserData,
     @Param('postId') postId: string,
   ) {
-    // TODO: Add @Roles('ADMIN') guard
     return this.moderationService.takeDownPost(postId, user.userId);
   }
 
   @Post('reinstate/:postId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   reinstatePost(
     @CurrentUser() user: CurrentUserData,
     @Param('postId') postId: string,
   ) {
-    // TODO: Add @Roles('ADMIN') guard
     return this.moderationService.reinstatePost(postId, user.userId);
   }
 
   @Get('taken-down')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   getTakenDownPosts() {
-    // TODO: Add @Roles('ADMIN') guard
     return this.moderationService.getTakenDownPosts();
   }
 }

@@ -5,7 +5,7 @@ import type {
   TokenResponseDto,
   RefreshTokenDto,
 } from '@suggar-daddy/dto';
-import { JwtAuthGuard, CurrentUser } from '@suggar-daddy/auth';
+import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole } from '@suggar-daddy/auth';
 import type { JwtUser } from '@suggar-daddy/auth';
 import { AuthService } from './auth.service';
 
@@ -82,20 +82,22 @@ export class AuthController {
   // ── Account Management (Admin) ─────────────────────────────────────
 
   @Post('admin/suspend/:userId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async suspendAccount(@Param('userId') userId: string) {
-    // TODO: Add @Roles('ADMIN') guard when role system is fully wired
     return this.authService.suspendAccount(userId);
   }
 
   @Post('admin/ban/:userId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async banAccount(@Param('userId') userId: string) {
     return this.authService.banAccount(userId);
   }
 
   @Post('admin/reactivate/:userId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async reactivateAccount(@Param('userId') userId: string) {
     return this.authService.reactivateAccount(userId);
   }

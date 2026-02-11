@@ -47,6 +47,7 @@ coverage/
 # Docker
 *.pid
 .docker/
+infrastructure/docker/.env
 
 # Infrastructure (sensitive / generated)
 infrastructure/**/*.tfstate

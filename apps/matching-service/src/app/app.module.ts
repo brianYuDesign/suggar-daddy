@@ -18,7 +18,7 @@ import { UserServiceClient } from './user-service.client';
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-jwt-secret-key',
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
     }),
     RedisModule.forRootAsync({

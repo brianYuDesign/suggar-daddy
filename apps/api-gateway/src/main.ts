@@ -2,12 +2,24 @@
  * API Gateway - 統一入口，代理至各微服務
  */
 
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+/* eslint-disable @typescript-eslint/no-var-requires */
+const helmet = require('helmet');
+const compression = require('compression');
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Security headers
+  app.use(helmet());
+
+  // Gzip compression
+  app.use(compression());
+
+  // Input validation
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
 
   // CORS
   app.enableCors({
@@ -16,6 +28,9 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
+
+  // Graceful shutdown
+  app.enableShutdownHooks();
 
   const port = process.env.PORT || 3000;
   await app.listen(port);

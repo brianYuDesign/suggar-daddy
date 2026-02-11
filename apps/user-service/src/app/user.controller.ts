@@ -10,9 +10,10 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import type { CreateUserDto, UpdateProfileDto } from '@suggar-daddy/dto';
-import { CurrentUser, Public } from '@suggar-daddy/common';
+import { CurrentUser, Public, Roles, RolesGuard, UserRole, JwtAuthGuard } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
 import { UserService } from './user.service';
 
@@ -132,17 +133,19 @@ export class UserController {
   // ── Admin: Report Management ────────────────────────────────────
 
   @Get('admin/reports')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async getPendingReports() {
-    // TODO: Add @Roles('ADMIN') guard
     return this.userService.getPendingReports();
   }
 
   @Put('admin/reports/:reportId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   async updateReportStatus(
     @Param('reportId') reportId: string,
     @Body() body: { status: 'reviewed' | 'actioned' | 'dismissed' },
   ) {
-    // TODO: Add @Roles('ADMIN') guard
     return this.userService.updateReportStatus(reportId, body.status);
   }
 }

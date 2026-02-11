@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { JwtAuthGuard, CurrentUser } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
 
 @Controller('wallet')
@@ -48,19 +48,19 @@ export class WalletController {
   // ── Admin ────────────────────────────────────────────────────────
 
   @Get('admin/withdrawals/pending')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   getPendingWithdrawals() {
-    // TODO: Add @Roles('ADMIN') guard
     return this.walletService.getPendingWithdrawals();
   }
 
   @Put('admin/withdrawals/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   processWithdrawal(
     @Param('id') id: string,
     @Body() body: { action: 'approve' | 'reject' },
   ) {
-    // TODO: Add @Roles('ADMIN') guard
     return this.walletService.processWithdrawal(id, body.action);
   }
 }
