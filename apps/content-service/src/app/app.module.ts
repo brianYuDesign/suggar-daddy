@@ -9,6 +9,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
+import { ModerationController } from './moderation.controller';
+import { ModerationService } from './moderation.service';
 import { SubscriptionServiceClient } from './subscription-service.client';
 import { PostPurchaseConsumer } from './events/post-purchase.consumer';
 
@@ -30,7 +32,7 @@ import { PostPurchaseConsumer } from './events/post-purchase.consumer';
       groupId: 'content-service-group',
     }),
   ],
-  controllers: [AppController, PostController],
-  providers: [AppService, PostService, SubscriptionServiceClient, JwtStrategy, PostPurchaseConsumer],
+  controllers: [AppController, PostController, ModerationController],
+  providers: [AppService, PostService, ModerationService, SubscriptionServiceClient, JwtStrategy, PostPurchaseConsumer],
 })
 export class AppModule {}

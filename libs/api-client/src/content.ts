@@ -16,6 +16,15 @@ export interface CreatePostDto {
   isPremium?: boolean;
 }
 
+export interface ContentReport {
+  id: string;
+  reporterId: string;
+  postId: string;
+  reason: string;
+  status: string;
+  createdAt: string;
+}
+
 export class ContentApi {
   constructor(private readonly client: ApiClient) {}
 
@@ -34,5 +43,18 @@ export class ContentApi {
 
   deletePost(postId: string) {
     return this.client.delete<void>(`/api/posts/${postId}`);
+  }
+
+  likePost(postId: string) {
+    return this.client.post<Post>(`/api/posts/${postId}/like`);
+  }
+
+  unlikePost(postId: string) {
+    return this.client.delete<Post>(`/api/posts/${postId}/like`);
+  }
+
+  // Moderation
+  reportPost(postId: string, reason: string, description?: string) {
+    return this.client.post<ContentReport>('/api/moderation/report', { postId, reason, description });
   }
 }

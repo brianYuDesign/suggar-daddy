@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Logger,
   NotFoundException,
+  ForbiddenException,
   Param,
   Post,
   Put,
@@ -46,8 +48,20 @@ export class UserController {
 
   /** 取得指定用戶對外資料 */
   @Get('profile/:userId')
-  async getProfile(@Param('userId') userId: string) {
+  async getProfile(
+    @Param('userId') userId: string,
+    @CurrentUser() currentUser?: CurrentUserData,
+  ) {
     this.logger.log(`getProfile request userId=${userId}`);
+
+    // Check if blocked
+    if (currentUser) {
+      const blocked = await this.userService.isBlocked(userId, currentUser.userId);
+      if (blocked) {
+        throw new ForbiddenException('This user is not available');
+      }
+    }
+
     const profile = await this.userService.getProfile(userId);
     if (!profile) {
       throw new NotFoundException('User not found');
@@ -74,5 +88,61 @@ export class UserController {
     const user = await this.userService.create(body);
     this.logger.log(`create user result id=${user.id}`);
     return user;
+  }
+
+  // ── Block / Unblock ──────────────────────────────────────────────
+
+  @Post('block/:targetId')
+  async blockUser(
+    @CurrentUser() user: CurrentUserData,
+    @Param('targetId') targetId: string,
+  ) {
+    return this.userService.blockUser(user.userId, targetId);
+  }
+
+  @Delete('block/:targetId')
+  async unblockUser(
+    @CurrentUser() user: CurrentUserData,
+    @Param('targetId') targetId: string,
+  ) {
+    return this.userService.unblockUser(user.userId, targetId);
+  }
+
+  @Get('blocked')
+  async getBlockedUsers(@CurrentUser() user: CurrentUserData) {
+    return this.userService.getBlockedUsers(user.userId);
+  }
+
+  // ── Report ──────────────────────────────────────────────────────
+
+  @Post('report')
+  async createReport(
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: { targetType: 'user' | 'post' | 'comment'; targetId: string; reason: string; description?: string },
+  ) {
+    return this.userService.createReport(
+      user.userId,
+      body.targetType,
+      body.targetId,
+      body.reason,
+      body.description,
+    );
+  }
+
+  // ── Admin: Report Management ────────────────────────────────────
+
+  @Get('admin/reports')
+  async getPendingReports() {
+    // TODO: Add @Roles('ADMIN') guard
+    return this.userService.getPendingReports();
+  }
+
+  @Put('admin/reports/:reportId')
+  async updateReportStatus(
+    @Param('reportId') reportId: string,
+    @Body() body: { status: 'reviewed' | 'actioned' | 'dismissed' },
+  ) {
+    // TODO: Add @Roles('ADMIN') guard
+    return this.userService.updateReportStatus(reportId, body.status);
   }
 }

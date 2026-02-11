@@ -13,6 +13,8 @@ import { PostPurchaseController } from './post-purchase.controller';
 import { PostPurchaseService } from './post-purchase.service';
 import { TipController } from './tip.controller';
 import { TipService } from './tip.service';
+import { WalletController } from './wallet.controller';
+import { WalletService } from './wallet.service';
 import { StripeWebhookController } from './stripe/stripe-webhook.controller';
 import { StripeWebhookService } from './stripe/stripe-webhook.service';
 import { StripePaymentService } from './stripe/stripe-payment.service';
@@ -41,6 +43,7 @@ import { StripePaymentService } from './stripe/stripe-payment.service';
     TransactionController,
     PostPurchaseController,
     TipController,
+    WalletController,
     StripeWebhookController,
   ],
   providers: [
@@ -48,6 +51,7 @@ import { StripePaymentService } from './stripe/stripe-payment.service';
     TransactionService,
     PostPurchaseService,
     TipService,
+    WalletService,
     StripeWebhookService,
     StripePaymentService,
     JwtStrategy,

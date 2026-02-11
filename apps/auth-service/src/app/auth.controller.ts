@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Post, UseGuards } from '@nestjs/common';
 import type {
   LoginDto,
   RegisterDto,
@@ -41,5 +41,62 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   me(@CurrentUser() user: JwtUser): JwtUser {
     return user;
+  }
+
+  // ── Email Verification ─────────────────────────────────────────────
+
+  @Post('verify-email/:token')
+  async verifyEmail(@Param('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @Post('resend-verification')
+  @UseGuards(JwtAuthGuard)
+  async resendVerification(@CurrentUser() user: JwtUser) {
+    return this.authService.createEmailVerificationToken(user.userId, user.email);
+  }
+
+  // ── Password Reset ─────────────────────────────────────────────────
+
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: { email: string }) {
+    return this.authService.requestPasswordReset(body.email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { token: string; newPassword: string }) {
+    return this.authService.resetPassword(body.token, body.newPassword);
+  }
+
+  // ── Change Password (authenticated) ────────────────────────────────
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @CurrentUser() user: JwtUser,
+    @Body() body: { oldPassword: string; newPassword: string },
+  ) {
+    return this.authService.changePassword(user.userId, body.oldPassword, body.newPassword);
+  }
+
+  // ── Account Management (Admin) ─────────────────────────────────────
+
+  @Post('admin/suspend/:userId')
+  @UseGuards(JwtAuthGuard)
+  async suspendAccount(@Param('userId') userId: string) {
+    // TODO: Add @Roles('ADMIN') guard when role system is fully wired
+    return this.authService.suspendAccount(userId);
+  }
+
+  @Post('admin/ban/:userId')
+  @UseGuards(JwtAuthGuard)
+  async banAccount(@Param('userId') userId: string) {
+    return this.authService.banAccount(userId);
+  }
+
+  @Post('admin/reactivate/:userId')
+  @UseGuards(JwtAuthGuard)
+  async reactivateAccount(@Param('userId') userId: string) {
+    return this.authService.reactivateAccount(userId);
   }
 }

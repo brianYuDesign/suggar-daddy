@@ -4,7 +4,7 @@ import { ProxyService } from './proxy.service';
 
 @Controller()
 export class ProxyController {
-  constructor(private readonly proxy: ProxyService) {}
+  constructor(private readonly proxyService: ProxyService) {}
 
   @Get('health')
   health() {
@@ -21,7 +21,7 @@ export class ProxyController {
     if (auth) headers['authorization'] = Array.isArray(auth) ? auth[0] : auth;
     const ct = req.headers['content-type'];
     if (ct) headers['content-type'] = Array.isArray(ct) ? ct[0] : ct;
-    const { status, data, headers: resHeaders } = await this.proxy.forward(
+    const { status, data, headers: resHeaders } = await this.proxyService.forward(
       req.method,
       path,
       query,

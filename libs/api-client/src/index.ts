@@ -11,6 +11,7 @@ export { SubscriptionsApi } from './subscriptions';
 export { PaymentsApi } from './payments';
 
 // Re-export types from individual modules
-export type { Post, CreatePostDto } from './content';
+export type { Post, CreatePostDto, ContentReport } from './content';
 export type { SubscriptionTier, Subscription } from './subscriptions';
-export type { Tip, Transaction, PostPurchase } from './payments';
+export type { Tip, Transaction, PostPurchase, Wallet, Withdrawal } from './payments';
+export type { ReportDto } from './users';

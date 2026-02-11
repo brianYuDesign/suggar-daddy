@@ -6,6 +6,9 @@
 export const USER_EVENTS = {
   USER_CREATED: 'user.created',
   USER_UPDATED: 'user.updated',
+  USER_BLOCKED: 'user.blocked',
+  USER_UNBLOCKED: 'user.unblocked',
+  USER_REPORTED: 'user.reported',
 } as const;
 
 // Matching Events (matching-service → notification / messaging)
@@ -28,6 +31,9 @@ export const PAYMENT_EVENTS = {
   PAYMENT_FAILED: 'payment.failed',
   TIP_SENT: 'payment.tip.sent',
   POST_PURCHASED: 'payment.post.purchased',
+  WALLET_CREDITED: 'payment.wallet.credited',
+  WITHDRAWAL_REQUESTED: 'payment.withdrawal.requested',
+  WITHDRAWAL_COMPLETED: 'payment.withdrawal.completed',
 } as const;
 
 // Content Events
@@ -38,6 +44,10 @@ export const CONTENT_EVENTS = {
   POST_LIKED: 'content.post.liked',
   POST_UNLIKED: 'content.post.unliked',
   COMMENT_CREATED: 'content.comment.created',
+  POST_REPORTED: 'content.post.reported',
+  POST_TAKEN_DOWN: 'content.post.taken_down',
+  POST_REINSTATED: 'content.post.reinstated',
+  COMMENT_REPORTED: 'content.comment.reported',
 } as const;
 
 // Media Events

@@ -40,6 +40,10 @@ export class ProxyService {
         baseUrl: this.config.get<string>('MESSAGING_SERVICE_URL', 'http://localhost:3005'),
       },
       {
+        prefix: '/api/moderation',
+        baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
+      },
+      {
         prefix: '/api/posts',
         baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
       },
@@ -57,6 +61,10 @@ export class ProxyService {
       },
       {
         prefix: '/api/stripe',
+        baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
+      },
+      {
+        prefix: '/api/wallet',
         baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
       },
       {

@@ -1,6 +1,7 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { USER_EVENTS } from '@suggar-daddy/common';
 import type {
   UserProfileDto,
   CreateUserDto,
@@ -24,6 +25,24 @@ interface UserRecord {
   lastActiveAt: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Block/Report Redis key patterns
+const BLOCK_SET = (userId: string) => `user:blocks:${userId}`;
+const BLOCKED_BY_SET = (userId: string) => `user:blocked-by:${userId}`;
+const REPORT_KEY = (id: string) => `report:${id}`;
+const REPORTS_PENDING = 'reports:pending';
+const REPORTS_BY_USER = (userId: string) => `reports:by:${userId}`;
+
+interface ReportRecord {
+  id: string;
+  reporterId: string;
+  targetType: 'user' | 'post' | 'comment';
+  targetId: string;
+  reason: string;
+  description?: string;
+  status: 'pending' | 'reviewed' | 'actioned' | 'dismissed';
+  createdAt: string;
 }
 
 @Injectable()
@@ -73,16 +92,26 @@ export class UserService {
     };
   }
 
-  /** 取得推薦用卡片列表（排除指定 ID，供 matching-service 呼叫） */
+  /** 取得推薦用卡片列表（排除指定 ID + 被封鎖的用戶，供 matching-service 呼叫） */
   async getCardsForRecommendation(
     excludeIds: string[],
-    limit: number
+    limit: number,
+    currentUserId?: string,
   ): Promise<UserCardDto[]> {
     const keys = await this.redisService.keys(`${this.USER_PREFIX}*`);
     const excludeSet = new Set(excludeIds);
+
+    // Also exclude blocked users if currentUserId is provided
+    if (currentUserId) {
+      const blockedIds = await this.redisService.sMembers(BLOCK_SET(currentUserId));
+      const blockedByIds = await this.redisService.sMembers(BLOCKED_BY_SET(currentUserId));
+      blockedIds.forEach((id) => excludeSet.add(id));
+      blockedByIds.forEach((id) => excludeSet.add(id));
+    }
+
     const userIds = keys
       .map((k) => k.replace(this.USER_PREFIX, ''))
-      .filter((id) => id && !excludeSet.has(id));
+      .filter((id) => id && !id.includes(':') && !excludeSet.has(id));
     const result: UserCardDto[] = [];
     for (let i = 0; i < userIds.length && result.length < limit; i++) {
       const card = await this.getCard(userIds[i]);
@@ -152,6 +181,120 @@ export class UserService {
     });
     
     return this.toProfileDto(user);
+  }
+
+  // ── Block / Unblock ──────────────────────────────────────────────
+
+  async blockUser(blockerId: string, targetId: string): Promise<{ success: boolean }> {
+    if (blockerId === targetId) {
+      throw new BadRequestException('Cannot block yourself');
+    }
+    const target = await this.getUserFromRedis(targetId);
+    if (!target) {
+      throw new NotFoundException(`User not found: ${targetId}`);
+    }
+
+    const added = await this.redisService.sAdd(BLOCK_SET(blockerId), targetId);
+    if (added === 0) {
+      throw new ConflictException('User already blocked');
+    }
+    await this.redisService.sAdd(BLOCKED_BY_SET(targetId), blockerId);
+
+    this.logger.log(`user blocked blocker=${blockerId} target=${targetId}`);
+    await this.kafkaProducer.sendEvent(USER_EVENTS.USER_BLOCKED, {
+      blockerId,
+      targetId,
+      blockedAt: new Date().toISOString(),
+    });
+    return { success: true };
+  }
+
+  async unblockUser(blockerId: string, targetId: string): Promise<{ success: boolean }> {
+    await this.redisService.sRem(BLOCK_SET(blockerId), targetId);
+    await this.redisService.sRem(BLOCKED_BY_SET(targetId), blockerId);
+
+    this.logger.log(`user unblocked blocker=${blockerId} target=${targetId}`);
+    await this.kafkaProducer.sendEvent(USER_EVENTS.USER_UNBLOCKED, {
+      blockerId,
+      targetId,
+      unblockedAt: new Date().toISOString(),
+    });
+    return { success: true };
+  }
+
+  async getBlockedUsers(userId: string): Promise<string[]> {
+    return this.redisService.sMembers(BLOCK_SET(userId));
+  }
+
+  async isBlocked(blockerId: string, targetId: string): Promise<boolean> {
+    const blockedIds = await this.redisService.sMembers(BLOCK_SET(blockerId));
+    return blockedIds.includes(targetId);
+  }
+
+  // ── Report ──────────────────────────────────────────────────────
+
+  async createReport(
+    reporterId: string,
+    targetType: 'user' | 'post' | 'comment',
+    targetId: string,
+    reason: string,
+    description?: string,
+  ): Promise<ReportRecord> {
+    if (!reason || reason.trim().length < 3) {
+      throw new BadRequestException('Report reason must be at least 3 characters');
+    }
+
+    const id = `report-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const report: ReportRecord = {
+      id,
+      reporterId,
+      targetType,
+      targetId,
+      reason: reason.trim(),
+      description: description?.trim(),
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+
+    await this.redisService.set(REPORT_KEY(id), JSON.stringify(report));
+    await this.redisService.lPush(REPORTS_PENDING, id);
+    await this.redisService.lPush(REPORTS_BY_USER(reporterId), id);
+
+    this.logger.log(`report created id=${id} reporter=${reporterId} targetType=${targetType} targetId=${targetId}`);
+    await this.kafkaProducer.sendEvent(USER_EVENTS.USER_REPORTED, {
+      reportId: id,
+      reporterId,
+      targetType,
+      targetId,
+      reason: report.reason,
+      createdAt: report.createdAt,
+    });
+    return report;
+  }
+
+  async getPendingReports(): Promise<ReportRecord[]> {
+    const ids = await this.redisService.lRange(REPORTS_PENDING, 0, -1);
+    const out: ReportRecord[] = [];
+    for (const id of ids) {
+      const raw = await this.redisService.get(REPORT_KEY(id));
+      if (raw) out.push(JSON.parse(raw));
+    }
+    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+  }
+
+  async updateReportStatus(
+    reportId: string,
+    status: 'reviewed' | 'actioned' | 'dismissed',
+  ): Promise<ReportRecord> {
+    const raw = await this.redisService.get(REPORT_KEY(reportId));
+    if (!raw) {
+      throw new NotFoundException(`Report not found: ${reportId}`);
+    }
+    const report = JSON.parse(raw) as ReportRecord;
+    report.status = status;
+    await this.redisService.set(REPORT_KEY(reportId), JSON.stringify(report));
+    this.logger.log(`report status updated id=${reportId} status=${status}`);
+    return report;
   }
 
   /** 從 Redis 取得用戶 */
