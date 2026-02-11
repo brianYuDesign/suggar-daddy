@@ -46,12 +46,12 @@ describe('UploadController', () => {
   });
 
   describe('uploadSingle', () => {
-    const mockFile: Partial<Express.Multer.File> = {
+    const mockFile = {
       buffer: Buffer.from('fake-image-data'),
       originalname: 'photo.jpg',
       mimetype: 'image/jpeg',
       size: 12345,
-    };
+    } as any;
 
     it('should upload file and create media record', async () => {
       mediaService.create.mockResolvedValueOnce({
@@ -61,7 +61,7 @@ describe('UploadController', () => {
 
       const result = await controller.uploadSingle(
         mockUser as any,
-        mockFile as Express.Multer.File,
+        mockFile,
       );
 
       expect(uploadService.uploadFile).toHaveBeenCalledWith(mockFile.buffer, {
@@ -127,19 +127,18 @@ describe('UploadController', () => {
         thumbnailUrl: 'https://cdn.example.com/thumb.jpg',
       });
 
-      const videoFile: Partial<Express.Multer.File> = {
+      const videoFile = {
         buffer: Buffer.from('fake-video-data'),
         originalname: 'clip.mp4',
         mimetype: 'video/mp4',
         size: 5000000,
-      };
+      } as any;
 
       const result = await controller.uploadSingle(
         mockUser as any,
-        videoFile as Express.Multer.File,
+        videoFile,
       );
 
-      // Should call getVideoThumbnail for video resource_type
       expect(uploadService.getVideoThumbnail).toHaveBeenCalledWith(
         'video-public-id',
       );
@@ -157,7 +156,7 @@ describe('UploadController', () => {
   });
 
   describe('uploadMultiple', () => {
-    const mockFiles: Partial<Express.Multer.File>[] = [
+    const mockFiles = [
       {
         buffer: Buffer.from('file-1'),
         originalname: 'a.jpg',
@@ -170,7 +169,7 @@ describe('UploadController', () => {
         mimetype: 'image/png',
         size: 2000,
       },
-    ];
+    ] as any[];
 
     it('should upload multiple files', async () => {
       uploadService.uploadFile
@@ -199,7 +198,7 @@ describe('UploadController', () => {
 
       const result = await controller.uploadMultiple(
         mockUser as any,
-        mockFiles as Express.Multer.File[],
+        mockFiles,
       );
 
       expect(uploadService.uploadFile).toHaveBeenCalledTimes(2);
@@ -236,10 +235,9 @@ describe('UploadController', () => {
     });
 
     it('should throw ForbiddenException when deleting other user media', async () => {
-      mediaService.findOne.mockResolvedValueOnce({
-        id: 'media-other',
-        userId: 'user-999',
-      });
+      mediaService.findOne
+        .mockResolvedValueOnce({ id: 'media-other', userId: 'user-999' })
+        .mockResolvedValueOnce({ id: 'media-other', userId: 'user-999' });
 
       await expect(
         controller.delete(mockUser as any, 'media-other'),

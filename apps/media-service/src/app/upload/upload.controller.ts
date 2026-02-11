@@ -51,7 +51,7 @@ export class UploadController {
         : undefined,
       width: result.width,
       height: result.height,
-      duration: result.duration,
+      duration: result['duration'],
       processingStatus: 'completed',
       metadata: {
         format: result.format,
