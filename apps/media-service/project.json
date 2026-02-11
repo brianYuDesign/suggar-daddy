@@ -1,0 +1,54 @@
+{
+  "name": "media-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/media-service/src",
+  "projectType": "application",
+  "tags": [
+    "scope:media"
+  ],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "webpack-cli build",
+        "args": [
+          "--node-env=production"
+        ],
+        "cwd": "apps/media-service"
+      },
+      "configurations": {
+        "development": {
+          "args": [
+            "--node-env=development"
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": [
+        "build"
+      ],
+      "options": {
+        "buildTarget": "media-service:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "media-service:build:development"
+        },
+        "production": {
+          "buildTarget": "media-service:build:production"
+        }
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "apps/media-service/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { RedisModule } from '@suggar-daddy/redis';
 import { ProxyController } from './proxy.controller';
 import { ProxyService } from './proxy.service';
 import { AppController } from './app.controller';
@@ -12,6 +13,7 @@ import { RequestLoggerMiddleware } from './request-logger.middleware';
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
     }),
+    RedisModule.forRoot(),
   ],
   controllers: [AppController, ProxyController],
   providers: [ProxyService],
