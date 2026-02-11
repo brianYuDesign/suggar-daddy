@@ -83,6 +83,10 @@ export class ProxyService {
         prefix: '/api/media',
         baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3008'),
       },
+      {
+        prefix: '/api/v1/admin',
+        baseUrl: this.config.get<string>('ADMIN_SERVICE_URL', 'http://localhost:3011'),
+      },
     ].sort((a, b) => b.prefix.length - a.prefix.length);
   }
 

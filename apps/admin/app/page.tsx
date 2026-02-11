@@ -1,17 +1,23 @@
-import { Button } from '@suggar-daddy/ui';
+'use client';
 
-export default function AdminHomePage() {
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
+
+export default function RootPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      router.replace('/(dashboard)');
+    } else {
+      router.replace('/login');
+    }
+  }, [router]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
-      <h1 className="text-4xl font-bold">Admin Dashboard</h1>
-      <p className="text-lg text-muted-foreground">
-        Suggar Daddy management panel
-      </p>
-      <div className="flex gap-4">
-        <Button variant="default">Users</Button>
-        <Button variant="outline">Reports</Button>
-        <Button variant="secondary">Settings</Button>
-      </div>
-    </main>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>
   );
 }
