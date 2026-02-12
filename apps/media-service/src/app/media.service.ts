@@ -7,6 +7,24 @@ import { PaginatedResponse } from '@suggar-daddy/dto';
 const MEDIA_KEY = (id: string) => `media:${id}`;
 const MEDIA_USER = (userId: string) => `media:user:${userId}`;
 
+export interface Media {
+  id: string;
+  userId: string;
+  fileType: string;
+  originalUrl: string;
+  thumbnailUrl: string | null;
+  processedUrl: string | null;
+  fileName: string;
+  mimeType: string | null;
+  fileSize: number | null;
+  width: number | null;
+  height: number | null;
+  duration: number | null;
+  processingStatus: string;
+  metadata: object | null;
+  createdAt: string;
+}
+
 @Injectable()
 export class MediaService {
   private readonly logger = new Logger(MediaService.name);
@@ -33,7 +51,7 @@ export class MediaService {
     duration?: number;
     processingStatus?: string;
     metadata?: object;
-  }): Promise<any> {
+  }): Promise<Media> {
     const id = this.genId();
     const now = new Date().toISOString();
     const media = {
@@ -66,12 +84,12 @@ export class MediaService {
     return media;
   }
 
-  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<Media>> {
     // SCAN does not support native pagination — fetch all then slice
     const keys = await this.redis.scan('media:media-*');
     if (keys.length === 0) return { data: [], total: 0, page, limit };
     const values = await this.redis.mget(...keys);
-    const all: any[] = [];
+    const all: Media[] = [];
     for (const raw of values) {
       if (raw) all.push(JSON.parse(raw));
     }
@@ -80,7 +98,7 @@ export class MediaService {
     return { data: all.slice(skip, skip + limit), total: all.length, page, limit };
   }
 
-  async findByUser(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findByUser(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<Media>> {
     const key = MEDIA_USER(userId);
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
@@ -88,14 +106,14 @@ export class MediaService {
     if (ids.length === 0) return { data: [], total, page, limit };
     const keys = ids.map((id) => MEDIA_KEY(id));
     const values = await this.redis.mget(...keys);
-    const data: any[] = [];
+    const data: Media[] = [];
     for (const raw of values) {
       if (raw) data.push(JSON.parse(raw));
     }
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string): Promise<Media> {
     const raw = await this.redis.get(MEDIA_KEY(id));
     if (!raw) {
       throw new NotFoundException(`Media ${id} not found`);

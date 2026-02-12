@@ -16,8 +16,8 @@ export interface RedisModuleOptions {
 @Module({})
 export class RedisModule {
   static forRootAsync(options: {
-    inject?: any[];
-    useFactory: (...args: any[]) => RedisModuleOptions;
+    inject?: unknown[];
+    useFactory: (...args: unknown[]) => RedisModuleOptions;
   }): DynamicModule {
     return {
       module: RedisModule,

@@ -23,7 +23,7 @@ export class SubscriptionProducer {
     );
   }
 
-  async emitSubscriptionUpdated(subscriptionId: string, data: any) {
+  async emitSubscriptionUpdated(subscriptionId: string, data: Record<string, unknown>) {
     return this.kafkaClient.emit(SUBSCRIPTION_EVENTS.SUBSCRIPTION_UPDATED, {
       subscriptionId,
       ...data,
@@ -38,7 +38,7 @@ export class SubscriptionProducer {
     });
   }
 
-  async emitTierCreated(tierId: string, creatorId: string, data: any) {
+  async emitTierCreated(tierId: string, creatorId: string, data: Record<string, unknown>) {
     return this.kafkaClient.emit(SUBSCRIPTION_EVENTS.TIER_CREATED, {
       tierId,
       creatorId,

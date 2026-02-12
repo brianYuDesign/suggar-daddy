@@ -7,7 +7,7 @@ import * as streamifier from 'streamifier';
 export interface UploadOptions {
   folder?: string;
   resourceType?: 'image' | 'video' | 'raw' | 'auto';
-  transformation?: any;
+  transformation?: Record<string, unknown>;
   publicId?: string;
 }
 
@@ -28,10 +28,10 @@ export class UploadService {
           transformation: options.transformation,
           public_id: options.publicId,
         },
-        ((error: UploadApiErrorResponse, result: UploadApiResponse) => {
+        (error: UploadApiErrorResponse | undefined, result?: UploadApiResponse) => {
           if (error) return reject(error);
-          resolve(result);
-        }) as any,
+          if (result) resolve(result);
+        },
       );
 
       streamifier.createReadStream(fileBuffer).pipe(uploadStream);
@@ -63,7 +63,7 @@ export class UploadService {
   async deleteFile(
     publicId: string,
     resourceType: 'image' | 'video' | 'raw' = 'image',
-  ): Promise<any> {
+  ): Promise<{ result: string }> {
     return cloudinary.uploader.destroy(publicId, {
       resource_type: resourceType,
     });
@@ -75,7 +75,7 @@ export class UploadService {
   async deleteMultiple(
     publicIds: string[],
     resourceType: 'image' | 'video' | 'raw' = 'image',
-  ): Promise<any> {
+  ): Promise<{ deleted: Record<string, string> }> {
     return cloudinary.api.delete_resources(publicIds, {
       resource_type: resourceType,
     });

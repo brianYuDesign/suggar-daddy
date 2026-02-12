@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, Method } from 'axios';
 
 export interface ProxyTarget {
   prefix: string;
@@ -116,7 +116,7 @@ export class ProxyService {
     if (headers['authorization']) forwardHeaders['authorization'] = headers['authorization'];
     if (headers['content-type']) forwardHeaders['content-type'] = headers['content-type'];
     const config: AxiosRequestConfig = {
-      method: method as any,
+      method: method.toUpperCase() as Method,
       url,
       headers: forwardHeaders,
       data: body,
@@ -131,12 +131,13 @@ export class ProxyService {
         data: res.data,
         headers: resHeaders,
       };
-    } catch (error: any) {
-      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-        this.logger.error(`Gateway timeout: ${method} ${path}`, error.message);
+    } catch (error: unknown) {
+      const err = error as { code?: string; message?: string };
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        this.logger.error(`Gateway timeout: ${method} ${path}`, err.message);
         return { status: 504, data: { message: 'Gateway Timeout', path }, headers: {} };
       }
-      this.logger.error(`Bad gateway: ${method} ${path}`, error.message);
+      this.logger.error(`Bad gateway: ${method} ${path}`, err.message);
       return { status: 502, data: { message: 'Bad Gateway', path }, headers: {} };
     }
   }

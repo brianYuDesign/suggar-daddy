@@ -27,7 +27,7 @@ export class MediaProducer {
   async emitMediaProcessed(
     mediaId: string,
     thumbnailUrl: string,
-    metadata: any,
+    metadata: Record<string, unknown>,
   ) {
     return this.kafkaClient.emit(MEDIA_EVENTS.MEDIA_PROCESSED, {
       mediaId,

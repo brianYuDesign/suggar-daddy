@@ -16,7 +16,7 @@ export class ContentProducer {
     return this.kafkaClient.emit(CONTENT_EVENTS.POST_CREATED, event);
   }
 
-  async emitPostUpdated(postId: string, data: any) {
+  async emitPostUpdated(postId: string, data: Record<string, unknown>) {
     return this.kafkaClient.emit(CONTENT_EVENTS.POST_UPDATED, {
       postId,
       ...data,
