@@ -2,6 +2,7 @@ import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/comm
 import { WalletService } from './wallet.service';
 import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
+import { RequestWithdrawalDto, ProcessWithdrawalDto } from './dto/wallet.dto';
 
 @Controller('wallet')
 export class WalletController {
@@ -35,13 +36,13 @@ export class WalletController {
   @UseGuards(JwtAuthGuard)
   requestWithdrawal(
     @CurrentUser() user: CurrentUserData,
-    @Body() body: { amount: number; payoutMethod: string; payoutDetails?: string },
+    @Body() dto: RequestWithdrawalDto,
   ) {
     return this.walletService.requestWithdrawal(
       user.userId,
-      body.amount,
-      body.payoutMethod,
-      body.payoutDetails,
+      dto.amount,
+      dto.payoutMethod,
+      dto.payoutDetails,
     );
   }
 
@@ -59,8 +60,8 @@ export class WalletController {
   @Roles(UserRole.ADMIN)
   processWithdrawal(
     @Param('id') id: string,
-    @Body() body: { action: 'approve' | 'reject' },
+    @Body() dto: ProcessWithdrawalDto,
   ) {
-    return this.walletService.processWithdrawal(id, body.action);
+    return this.walletService.processWithdrawal(id, dto.action);
   }
 }

@@ -9,6 +9,13 @@ interface BaseConnectionOptions {
 
 function getBaseConnectionOptions(): BaseConnectionOptions {
   const isProd = process.env['NODE_ENV'] === 'production';
+
+  if (isProd) {
+    if (!process.env['DB_USERNAME'] || !process.env['DB_PASSWORD']) {
+      throw new Error('DB_USERNAME and DB_PASSWORD environment variables are required in production');
+    }
+  }
+
   return {
     username: process.env['DB_USERNAME'] || 'postgres',
     password: process.env['DB_PASSWORD'] || 'postgres',
