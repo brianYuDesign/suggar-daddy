@@ -15,11 +15,11 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     return super.canActivate(context);
   }
 
-  override handleRequest(
+  override handleRequest<TUser = Express.User>(
     err: Error | null,
-    user: Express.User | false,
+    user: TUser | false,
     _info: unknown,
-  ): any {
+  ): TUser {
     // You can throw an exception based on either "info" or "err" arguments
     if (err || !user) {
       throw err || new UnauthorizedException("Invalid or missing token");

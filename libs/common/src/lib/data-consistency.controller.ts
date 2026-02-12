@@ -92,7 +92,7 @@ export class DataConsistencyController {
     total: number;
     fixed: number;
     pending: number;
-    details: any;
+    details: Record<string, number> | null;
   }> {
     try {
       const result = await this.scheduler.runManualCheck();

@@ -39,7 +39,7 @@ function getPoolOptions(): { max?: number; min?: number; idleTimeoutMillis?: num
  * - 否則使用單一 DB_HOST 連線。
  * - 一律套用 connection pool 與效能相關選項。
  */
-export function getDatabaseConfig(entities: any[]): TypeOrmModuleOptions {
+export function getDatabaseConfig(entities: Function[]): TypeOrmModuleOptions {
   const base = getBaseConnectionOptions();
   const pool = getPoolOptions();
   const masterHost = process.env['DB_MASTER_HOST'];
