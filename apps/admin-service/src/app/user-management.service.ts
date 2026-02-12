@@ -236,6 +236,26 @@ export class UserManagementService {
     };
   }
 
+  /** 批量停用用戶帳號 */
+  async batchDisableUsers(userIds: string[]) {
+    // Batch query all users to avoid N+1 problem
+    const users = await this.userRepo
+      .createQueryBuilder('user')
+      .whereInIds(userIds)
+      .getMany();
+
+    // Use Redis pipeline for batch write
+    const pipeline = this.redisService.getClient().pipeline();
+    users.forEach(user => {
+      pipeline.set('user:disabled:' + user.id, 'true');
+    });
+    await pipeline.exec();
+
+    const disabledCount = users.length;
+    this.logger.warn(`批量停用用戶: ${disabledCount}/${userIds.length}`);
+    return { success: true, disabledCount };
+  }
+
   // ---- 私有方法 ----
 
   /** 從 Redis 掃描取得所有被停用的用戶 ID */
@@ -259,7 +279,7 @@ export class UserManagementService {
 
   /** 移除密碼等敏感欄位 */
   private sanitizeUser(user: UserEntity) {
-    const { passwordHash, ...rest } = user;
+    const { passwordHash: _passwordHash, ...rest } = user;
     return rest;
   }
 }

@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { PostEntity, UserEntity } from '@suggar-daddy/database';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { RedisService } from '@suggar-daddy/redis';
+import { safeJsonParse } from './safe-json-parse';
 
 /** 檢舉紀錄介面（儲存在 Redis 中） */
 interface ReportRecord {
@@ -53,7 +54,10 @@ export class ContentModerationService {
     if (!reportJson) {
       throw new NotFoundException('檢舉紀錄 ' + reportId + ' 不存在');
     }
-    const report: ReportRecord = JSON.parse(reportJson);
+    const report = safeJsonParse<ReportRecord>(reportJson, 'report:' + reportId);
+    if (!report) {
+      throw new NotFoundException('檢舉紀錄 ' + reportId + ' 資料損壞');
+    }
     const post = await this.postRepo.findOne({ where: { id: report.postId } });
     return { ...report, post: post || null };
   }
@@ -159,6 +163,32 @@ export class ContentModerationService {
     return { data, total, page, limit };
   }
 
+  /** 批量處理檢舉 */
+  async batchResolveReports(reportIds: string[]) {
+    // Batch read all reports using MGET
+    const keys = reportIds.map(id => 'report:' + id);
+    const reports = await this.redisService.mget(...keys);
+
+    // Use Redis pipeline for batch write
+    const pipeline = this.redisService.getClient().pipeline();
+    let resolvedCount = 0;
+
+    reports.forEach((reportJson, index) => {
+      if (reportJson) {
+        const report = safeJsonParse<ReportRecord>(reportJson, 'report:' + reportIds[index]);
+        if (report && report.status === 'pending') {
+          report.status = 'resolved';
+          pipeline.set('report:' + reportIds[index], JSON.stringify(report));
+          resolvedCount++;
+        }
+      }
+    });
+
+    await pipeline.exec();
+    this.logger.log(`批量處理檢舉: ${resolvedCount}/${reportIds.length}`);
+    return { success: true, resolvedCount };
+  }
+
   // ---- 私有方法 ----
 
   /** 從 Redis 取得所有檢舉紀錄 */
@@ -176,7 +206,8 @@ export class ContentModerationService {
       const values = await Promise.all(keys.map((k) => this.redisService.get(k)));
       return values
         .filter((v): v is string => v !== null)
-        .map((v) => JSON.parse(v) as ReportRecord)
+        .map((v) => safeJsonParse<ReportRecord>(v, 'report'))
+        .filter((v): v is ReportRecord => v !== null)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } catch {
       return [];

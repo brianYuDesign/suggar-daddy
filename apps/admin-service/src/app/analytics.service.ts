@@ -44,7 +44,7 @@ export class AnalyticsService {
   async getDauMau(days: number) {
     const cacheKey = 'analytics:dau_mau:' + days;
     const cached = await this.redisService.get(cacheKey);
-    if (cached) { return JSON.parse(cached); }
+    if (cached) { try { return JSON.parse(cached); } catch { this.logger.warn('Analytics cache corrupted, recomputing'); } }
 
     const today = new Date().toISOString().split('T')[0];
     const dauCount = await this.getDauCount('analytics:dau:' + today);
@@ -75,7 +75,7 @@ export class AnalyticsService {
   async getCreatorRevenueRanking(limit: number) {
     const cacheKey = 'analytics:creator_revenue:' + limit;
     const cached = await this.redisService.get(cacheKey);
-    if (cached) { return JSON.parse(cached); }
+    if (cached) { try { return JSON.parse(cached); } catch { this.logger.warn('Analytics cache corrupted, recomputing'); } }
 
     const ranking = await this.tipRepo
       .createQueryBuilder('tip')
@@ -87,16 +87,23 @@ export class AnalyticsService {
       .limit(limit)
       .getRawMany();
 
-    const result = [];
-    for (const r of ranking) {
-      const user = await this.userRepo.findOne({ where: { id: r.creatorId } });
-      result.push({
-        creatorId: r.creatorId,
-        displayName: user?.displayName || '未知用戶',
-        totalRevenue: Math.round(Number(r.totalRevenue) * 100) / 100,
-        tipCount: parseInt(r.tipCount, 10),
-      });
-    }
+    // Batch query all users to avoid N+1 problem
+    const creatorIds = ranking.map(r => r.creatorId);
+    const users = await this.userRepo
+      .createQueryBuilder('user')
+      .whereInIds(creatorIds)
+      .getMany();
+
+    // Create a map for O(1) lookup
+    const userMap = new Map(users.map(u => [u.id, u]));
+
+    // Build result using map instead of loop with queries
+    const result = ranking.map(r => ({
+      creatorId: r.creatorId,
+      displayName: userMap.get(r.creatorId)?.displayName || '未知用戶',
+      totalRevenue: Math.round(Number(r.totalRevenue) * 100) / 100,
+      tipCount: parseInt(r.tipCount, 10),
+    }));
 
     await this.redisService.setex(cacheKey, ANALYTICS_CACHE_TTL, JSON.stringify(result));
     return result;
@@ -106,7 +113,7 @@ export class AnalyticsService {
   async getPopularContent(limit: number) {
     const cacheKey = 'analytics:popular_content:' + limit;
     const cached = await this.redisService.get(cacheKey);
-    if (cached) { return JSON.parse(cached); }
+    if (cached) { try { return JSON.parse(cached); } catch { this.logger.warn('Analytics cache corrupted, recomputing'); } }
 
     const posts = await this.postRepo
       .createQueryBuilder('post')
@@ -139,7 +146,7 @@ export class AnalyticsService {
   async getSubscriptionChurnRate(period: string) {
     const cacheKey = 'analytics:churn_rate:' + period;
     const cached = await this.redisService.get(cacheKey);
-    if (cached) { return JSON.parse(cached); }
+    if (cached) { try { return JSON.parse(cached); } catch { this.logger.warn('Analytics cache corrupted, recomputing'); } }
 
     const now = new Date();
     const periodStart = new Date();
@@ -188,7 +195,7 @@ export class AnalyticsService {
   async getMatchingStats() {
     const cacheKey = 'analytics:matching_stats';
     const cached = await this.redisService.get(cacheKey);
-    if (cached) { return JSON.parse(cached); }
+    if (cached) { try { return JSON.parse(cached); } catch { this.logger.warn('Analytics cache corrupted, recomputing'); } }
 
     const totalSwipes = await this.swipeRepo.count();
     const totalMatches = await this.matchRepo.count();
