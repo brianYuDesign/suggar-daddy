@@ -9,6 +9,16 @@ const TIP_KEY = (id: string) => `tip:${id}`;
 const TIPS_FROM = (userId: string) => `tips:from:${userId}`;
 const TIPS_TO = (userId: string) => `tips:to:${userId}`;
 
+export interface Tip {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  message: string | null;
+  stripePaymentId: string | null;
+  createdAt: string;
+}
+
 @Injectable()
 export class TipService {
   constructor(
@@ -20,10 +30,10 @@ export class TipService {
     return `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  async create(dto: CreateTipDto & { stripePaymentId?: string }): Promise<any> {
+  async create(dto: CreateTipDto & { stripePaymentId?: string }): Promise<Tip> {
     const id = this.genId();
     const now = new Date().toISOString();
-    const tip = {
+    const tip: Tip = {
       id,
       fromUserId: dto.fromUserId,
       toUserId: dto.toUserId,
@@ -45,7 +55,7 @@ export class TipService {
     return tip;
   }
 
-  async findByFrom(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findByFrom(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<Tip>> {
     const key = TIPS_FROM(userId);
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
@@ -56,7 +66,7 @@ export class TipService {
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
-  async findByTo(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findByTo(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<Tip>> {
     const key = TIPS_TO(userId);
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
@@ -67,7 +77,7 @@ export class TipService {
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string): Promise<Tip> {
     const raw = await this.redis.get(TIP_KEY(id));
     if (!raw) throw new NotFoundException(`Tip ${id} not found`);
     return JSON.parse(raw);
