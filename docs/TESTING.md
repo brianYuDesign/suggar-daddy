@@ -19,10 +19,16 @@
 | **matching-service** | `MatchingService` | getHealth、getCards、swipe（無配對/雙向 like）、getMatches、unmatch |
 | **notification-service** | `NotificationService` | send、list（依 userId/unreadOnly）、markRead |
 | **messaging-service** | `MessagingService` | ensureConversation、send、isParticipant、getMessages、getConversations |
-| **payment-service** | `PostPurchaseService`、`TipService` | PPV 建立/重複購買防呆、findByBuyer/findOne；打賞建立、findByFrom/To、findOne |
+| **payment-service** | `PostPurchaseService`、`TipService`、`WalletService` | PPV 建立/重複購買防呆、findByBuyer/findOne；打賞建立、findByFrom/To（分頁格式）、findOne；錢包服務 |
 | **subscription-service** | `SubscriptionService` | create、findOne、extendPeriod、cancel |
-| **content-service** | `PostService` | create、findOne、findOneWithAccess（創作者/PPV 解鎖/鎖定/無 viewerId） |
+| **content-service** | `PostService`、`ModerationService` | create、findOne、findOneWithAccess（創作者/PPV 解鎖/鎖定/無 viewerId）；內容審核 |
 | **db-writer-service** | `DbWriterService` | handleUserCreated、handlePostCreated；必填欄位缺失不寫入 |
+
+### Admin E2E 測試
+
+- `scripts/admin-browser-test.mjs` — Puppeteer 瀏覽器自動化測試
+- `scripts/admin-e2e-test.mjs` — Admin 端到端測試腳本
+- `scripts/screenshots/` — 測試截圖（登入、Dashboard、用戶管理、內容審核等）
 
 ## 如何執行
 
@@ -33,14 +39,12 @@
 nx run-many -t test --all
 
 # 僅執行單一專案
-nx run auth-service:test
-nx run common:test
+nx test auth-service
+nx test common
 
-# 僅執行 common lib（在 lib 目錄下直接跑 Jest）
-cd libs/common && npx jest --config jest.config.ts
+# CI 檢查（lint + test）
+bash scripts/ci-check.sh
 ```
-
-CI 腳本 `scripts/ci-check.sh` 會依設定執行 lint 與 test。
 
 ## 撰寫新測試
 
@@ -52,6 +56,5 @@ CI 腳本 `scripts/ci-check.sh` 會依設定執行 lint 與 test。
 ## 尚未覆蓋
 
 - 各 app 的 controller 層整合測試
-- E2E
 - Stripe / Kafka 的整合測試（需 mock 或 test 環境）
-- **media-service**：尚未加入 Nx 專案圖，可補 `project.json` + Jest + `MediaService` / `MediaUploadService` 單元測試
+- 前端元件測試（web / admin）

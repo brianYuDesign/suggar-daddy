@@ -9,7 +9,7 @@
 | 項目 | 現況 |
 |------|------|
 | 架構 | Nx Monorepo + NestJS 微服務 |
-| 服務 | Auth、User、Matching、Subscription、Content、Payment、Media、Messaging、Notification、DB Writer |
+| 服務 | Auth、User、Matching、Subscription、Content、Payment、Media、Messaging、Notification、DB Writer、Admin（共 12 個後端服務） |
 | 資料層 | PostgreSQL、Redis、Kafka |
 | 部署 | Docker Compose（本地開發）、Kafka 在 `suggar-daddy/docker-compose.yml` |
 | 監控 | Prometheus + Grafana + Exporters |
@@ -278,9 +278,43 @@ DB_REPLICA_HOSTS=<rds-replica>
 
 ---
 
+## 成本估算
+
+### 方案 A：MVP 階段（月費約 $80）
+
+適用：用戶 < 10,000、DAU < 1,000
+
+| 項目 | 月費 |
+|------|------|
+| Lightsail (8GB/4vCPU) | $40 |
+| RDS PostgreSQL (t4g.micro) | $15 |
+| ElastiCache Redis (t4g.micro) | $12 |
+| S3 + CloudFront | $10 |
+| **合計** | **~$77** |
+
+### 方案 B：成長期（月費約 $200–300）
+
+適用：用戶 10K–100K、需高可用
+
+- ECS Fargate + ALB
+- RDS Multi-AZ
+- ElastiCache Cluster
+- MSK Serverless
+
+### 方案 C：擴展期（月費約 $500–1000）
+
+適用：100K+ 用戶
+
+- ECS Fargate Auto Scaling
+- RDS Aurora Serverless
+- MSK / Confluent Cloud
+- CloudFront + WAF
+
+---
+
 ## 相關文件
 
 - [01-專案架構與設計](./01-專案架構與設計.md)
 - [04-運維與效能](./04-運維與效能.md)
 - [03-資料庫遷移](./03-資料庫遷移.md)
-- [infrastructure/docker/README.md](../infrastructure/docker/README.md)
+- [infrastructure/docker/](../infrastructure/docker/)
