@@ -37,11 +37,11 @@ export class SystemMonitorService {
         status: val === 'pong' ? 'healthy' : 'degraded',
         latencyMs: Date.now() - redisStart,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       health.redis = {
         status: 'unhealthy',
         latencyMs: Date.now() - redisStart,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
 
@@ -50,11 +50,11 @@ export class SystemMonitorService {
     try {
       await this.userRepo.query('SELECT 1');
       health.database = { status: 'healthy', latencyMs: Date.now() - dbStart };
-    } catch (error: any) {
+    } catch (error: unknown) {
       health.database = {
         status: 'unhealthy',
         latencyMs: Date.now() - dbStart,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
 
@@ -76,11 +76,11 @@ export class SystemMonitorService {
         dbWriterHealth: response.data,
         timestamp: new Date().toISOString(),
       };
-    } catch (error: any) {
-      this.logger.warn('無法連線至 db-writer-service: ' + error.message);
+    } catch (error: unknown) {
+      this.logger.warn('無法連線至 db-writer-service: ' + (error as Error).message);
       return {
         status: 'unknown',
-        error: '無法連線至 db-writer-service: ' + error.message,
+        error: '無法連線至 db-writer-service: ' + (error as Error).message,
         timestamp: new Date().toISOString(),
       };
     }
@@ -91,9 +91,78 @@ export class SystemMonitorService {
     try {
       const response = await axios.get(this.dbWriterBaseUrl + '/dlq/stats', { timeout: 5000 });
       return response.data;
-    } catch (error: any) {
-      this.logger.warn('無法取得 DLQ 統計: ' + error.message);
-      return { error: '無法取得 DLQ 統計: ' + error.message, timestamp: new Date().toISOString() };
+    } catch (error: unknown) {
+      this.logger.warn('無法取得 DLQ 統計: ' + (error as Error).message);
+      return { error: '無法取得 DLQ 統計: ' + (error as Error).message, timestamp: new Date().toISOString() };
+    }
+  }
+
+  /** 取得 DLQ 訊息列表 */
+  async getDlqMessages() {
+    try {
+      const response = await axios.get(this.dbWriterBaseUrl + '/dlq/messages', { timeout: 5000 });
+      return response.data;
+    } catch (error: unknown) {
+      this.logger.warn('無法取得 DLQ 訊息: ' + (error as Error).message);
+      return { messages: [], error: '無法取得 DLQ 訊息: ' + (error as Error).message };
+    }
+  }
+
+  /** 重試單一 DLQ 訊息 */
+  async retryDlqMessage(messageId: string) {
+    try {
+      const response = await axios.post(
+        this.dbWriterBaseUrl + '/dlq/retry/' + messageId,
+        {},
+        { timeout: 5000 },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      this.logger.warn('重試 DLQ 訊息失敗: ' + (error as Error).message);
+      return { success: false, error: '重試失敗: ' + (error as Error).message };
+    }
+  }
+
+  /** 重試所有 DLQ 訊息 */
+  async retryAllDlqMessages() {
+    try {
+      const response = await axios.post(
+        this.dbWriterBaseUrl + '/dlq/retry-all',
+        {},
+        { timeout: 10000 },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      this.logger.warn('重試全部 DLQ 訊息失敗: ' + (error as Error).message);
+      return { success: false, error: '重試全部失敗: ' + (error as Error).message };
+    }
+  }
+
+  /** 刪除單一 DLQ 訊息 */
+  async deleteDlqMessage(messageId: string) {
+    try {
+      const response = await axios.delete(
+        this.dbWriterBaseUrl + '/dlq/messages/' + messageId,
+        { timeout: 5000 },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      this.logger.warn('刪除 DLQ 訊息失敗: ' + (error as Error).message);
+      return { success: false, error: '刪除失敗: ' + (error as Error).message };
+    }
+  }
+
+  /** 清除所有 DLQ 訊息 */
+  async purgeDlqMessages() {
+    try {
+      const response = await axios.delete(
+        this.dbWriterBaseUrl + '/dlq/purge',
+        { timeout: 10000 },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      this.logger.warn('清除 DLQ 失敗: ' + (error as Error).message);
+      return { success: false, error: '清除失敗: ' + (error as Error).message };
     }
   }
 
@@ -105,9 +174,9 @@ export class SystemMonitorService {
         { timeout: 5000 },
       );
       return response.data;
-    } catch (error: any) {
-      this.logger.warn('無法取得一致性指標: ' + error.message);
-      return { error: '無法取得一致性指標: ' + error.message, timestamp: new Date().toISOString() };
+    } catch (error: unknown) {
+      this.logger.warn('無法取得一致性指標: ' + (error as Error).message);
+      return { error: '無法取得一致性指標: ' + (error as Error).message, timestamp: new Date().toISOString() };
     }
   }
 }

@@ -15,7 +15,7 @@ interface FailedWrite {
   type: 'user' | 'post';
   entityId: string;
   operation: 'sync_redis' | 'sync_db';
-  payload: any;
+  payload: Record<string, unknown>;
   error: string;
   retryCount: number;
   createdAt: string;
@@ -88,7 +88,7 @@ export class ConsistencyService implements OnModuleInit, OnModuleDestroy {
     type: 'user' | 'post',
     entityId: string,
     operation: 'sync_redis' | 'sync_db',
-    payload: any,
+    payload: Record<string, unknown>,
     error: string,
   ): Promise<void> {
     const id = type + ':' + entityId + ':' + Date.now();
@@ -160,11 +160,11 @@ export class ConsistencyService implements OnModuleInit, OnModuleDestroy {
         await this.redis.del(FAILED_WRITE_KEY(id));
         succeeded++;
         this.logger.log('重試成功: id=' + id);
-      } catch (err: any) {
+      } catch (err: unknown) {
         // 重試失敗，更新重試計數
         record.retryCount++;
         record.lastRetryAt = new Date().toISOString();
-        record.error = err?.message || String(err);
+        record.error = (err as Error)?.message || String(err);
         await this.redis.set(FAILED_WRITE_KEY(id), JSON.stringify(record));
         failed++;
         this.logger.warn(
@@ -446,10 +446,10 @@ export class ConsistencyService implements OnModuleInit, OnModuleDestroy {
           repaired++;
           this.logger.log('已修復使用者快取: id=' + user.id);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         errors.push({
           entityId: item.entityId,
-          error: err?.message || String(err),
+          error: (err as Error)?.message || String(err),
         });
         this.logger.error('修復使用者快取失敗: id=' + item.entityId, err?.stack);
       }
@@ -477,10 +477,10 @@ export class ConsistencyService implements OnModuleInit, OnModuleDestroy {
           repaired++;
           this.logger.log('已修復貼文快取: id=' + post.id);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         errors.push({
           entityId: item.entityId,
-          error: err?.message || String(err),
+          error: (err as Error)?.message || String(err),
         });
         this.logger.error('修復貼文快取失敗: id=' + item.entityId, err?.stack);
       }
@@ -527,7 +527,7 @@ export class ConsistencyService implements OnModuleInit, OnModuleDestroy {
    */
   async getMonitoringMetrics(): Promise<{
     failedWrites: { pendingCount: number; records: FailedWrite[] };
-    lastConsistencyCheck: any;
+    lastConsistencyCheck: unknown;
   }> {
     const failedWrites = await this.getFailedWriteStats();
 
