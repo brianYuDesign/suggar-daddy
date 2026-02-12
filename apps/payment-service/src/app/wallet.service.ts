@@ -57,6 +57,109 @@ export class WalletService {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
+  /**
+   * Lua script for atomic wallet credit operation
+   * Returns: { wallet: WalletRecord, created: boolean }
+   */
+  private readonly creditWalletScript = `
+    local walletKey = KEYS[1]
+    local netAmount = tonumber(ARGV[1])
+    local updatedAt = ARGV[2]
+
+    local walletData = redis.call('GET', walletKey)
+    local wallet
+    local created = false
+
+    if not walletData then
+      -- Initialize new wallet
+      wallet = {
+        userId = ARGV[3],
+        balance = netAmount,
+        pendingBalance = 0,
+        totalEarnings = netAmount,
+        totalWithdrawn = 0,
+        updatedAt = updatedAt
+      }
+      created = true
+    else
+      wallet = cjson.decode(walletData)
+      wallet.balance = wallet.balance + netAmount
+      wallet.totalEarnings = wallet.totalEarnings + netAmount
+      wallet.updatedAt = updatedAt
+    end
+
+    redis.call('SET', walletKey, cjson.encode(wallet))
+    return { cjson.encode(wallet), created and 1 or 0 }
+  `;
+
+  /**
+   * Lua script for atomic withdrawal deduction
+   * Returns: { success: boolean, wallet?: WalletRecord, error?: string }
+   */
+  private readonly deductWithdrawalScript = `
+    local walletKey = KEYS[1]
+    local amount = tonumber(ARGV[1])
+    local updatedAt = ARGV[2]
+
+    local walletData = redis.call('GET', walletKey)
+    if not walletData then
+      return { err = 'WALLET_NOT_FOUND' }
+    end
+
+    local wallet = cjson.decode(walletData)
+    if wallet.balance < amount then
+      return { err = 'INSUFFICIENT_BALANCE', balance = wallet.balance }
+    end
+
+    wallet.balance = wallet.balance - amount
+    wallet.updatedAt = updatedAt
+    redis.call('SET', walletKey, cjson.encode(wallet))
+
+    return { ok = cjson.encode(wallet) }
+  `;
+
+  /**
+   * Lua script for atomic balance refund (on withdrawal rejection)
+   */
+  private readonly refundBalanceScript = `
+    local walletKey = KEYS[1]
+    local amount = tonumber(ARGV[1])
+    local updatedAt = ARGV[2]
+
+    local walletData = redis.call('GET', walletKey)
+    if not walletData then
+      return { err = 'WALLET_NOT_FOUND' }
+    end
+
+    local wallet = cjson.decode(walletData)
+    wallet.balance = wallet.balance + amount
+    wallet.updatedAt = updatedAt
+    redis.call('SET', walletKey, cjson.encode(wallet))
+
+    return { ok = cjson.encode(wallet) }
+  `;
+
+  /**
+   * Lua script for atomic totalWithdrawn update
+   */
+  private readonly updateWithdrawnScript = `
+    local walletKey = KEYS[1]
+    local amount = tonumber(ARGV[1])
+    local updatedAt = ARGV[2]
+
+    local walletData = redis.call('GET', walletKey)
+    if not walletData then
+      return { err = 'WALLET_NOT_FOUND' }
+    end
+
+    local wallet = cjson.decode(walletData)
+    wallet.totalWithdrawn = wallet.totalWithdrawn + amount
+    wallet.updatedAt = updatedAt
+    redis.call('SET', walletKey, cjson.encode(wallet))
+
+    return { ok = cjson.encode(wallet) }
+  `;
+
   // ── Wallet Balance ──────────────────────────────────────────────
 
   async getWallet(userId: string): Promise<WalletRecord> {
@@ -82,14 +185,21 @@ export class WalletService {
     type: 'tip_received' | 'subscription_received' | 'ppv_received',
     referenceId?: string,
   ): Promise<WalletRecord> {
-    const wallet = await this.getWallet(userId);
     const platformFee = Math.round(grossAmount * PLATFORM_FEE_RATE * 100) / 100;
     const netAmount = Math.round((grossAmount - platformFee) * 100) / 100;
+    const now = new Date().toISOString();
 
-    wallet.balance += netAmount;
-    wallet.totalEarnings += netAmount;
-    wallet.updatedAt = new Date().toISOString();
-    await this.redis.set(WALLET_KEY(userId), JSON.stringify(wallet));
+    // Atomic wallet credit using Lua script
+    const result = await this.redis.getClient().eval(
+      this.creditWalletScript,
+      1,
+      WALLET_KEY(userId),
+      netAmount.toString(),
+      now,
+      userId,
+    ) as [string, number];
+
+    const wallet: WalletRecord = JSON.parse(result[0]);
 
     // Record transaction
     const txId = this.genId('wt');
@@ -101,13 +211,14 @@ export class WalletService {
       netAmount,
       referenceId,
       description: `${type.replace('_', ' ')} - gross $${grossAmount}, fee $${platformFee}`,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
     };
     await this.redis.lPush(WALLET_HISTORY(userId), JSON.stringify(walletTx));
 
     this.logger.log(`wallet credited userId=${userId} type=${type} gross=${grossAmount} net=${netAmount}`);
 
-    await this.kafkaProducer.sendEvent(PAYMENT_EVENTS.WALLET_CREDITED, {
+    // Fire-and-forget Kafka event (non-blocking)
+    this.kafkaProducer.sendEvent(PAYMENT_EVENTS.WALLET_CREDITED, {
       userId,
       type,
       grossAmount,
@@ -115,6 +226,8 @@ export class WalletService {
       platformFee,
       referenceId,
       creditedAt: walletTx.createdAt,
+    }).catch(err => {
+      this.logger.error('Failed to send WALLET_CREDITED event', err);
     });
 
     return wallet;
@@ -154,17 +267,28 @@ export class WalletService {
       throw new BadRequestException(`Minimum withdrawal amount is $${MIN_WITHDRAWAL_AMOUNT}`);
     }
 
-    const wallet = await this.getWallet(userId);
-    if (wallet.balance < amount) {
+    const now = new Date().toISOString();
+
+    // Atomic balance deduction using Lua script
+    const result = await this.redis.getClient().eval(
+      this.deductWithdrawalScript,
+      1,
+      WALLET_KEY(userId),
+      amount.toString(),
+      now,
+    ) as { err?: string; balance?: number; ok?: string };
+
+    if (result.err === 'WALLET_NOT_FOUND') {
+      throw new NotFoundException('Wallet not found');
+    }
+
+    if (result.err === 'INSUFFICIENT_BALANCE') {
       throw new BadRequestException(
-        `Insufficient balance. Available: $${wallet.balance.toFixed(2)}, Requested: $${amount.toFixed(2)}`
+        `Insufficient balance. Available: $${result.balance?.toFixed(2) || '0.00'}, Requested: $${amount.toFixed(2)}`
       );
     }
 
-    // Deduct from balance immediately
-    wallet.balance -= amount;
-    wallet.updatedAt = new Date().toISOString();
-    await this.redis.set(WALLET_KEY(userId), JSON.stringify(wallet));
+    // Wallet balance successfully deducted (result.ok contains updated wallet JSON)
 
     const id = this.genId('wd');
     const withdrawal: WithdrawalRecord = {
@@ -174,7 +298,7 @@ export class WalletService {
       status: 'pending',
       payoutMethod,
       payoutDetails,
-      requestedAt: new Date().toISOString(),
+      requestedAt: now,
     };
 
     await this.redis.set(WITHDRAWAL_KEY(id), JSON.stringify(withdrawal));
@@ -190,18 +314,21 @@ export class WalletService {
       netAmount: -amount,
       referenceId: id,
       description: `Withdrawal request via ${payoutMethod} - $${amount.toFixed(2)}`,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
     };
     await this.redis.lPush(WALLET_HISTORY(userId), JSON.stringify(walletTx));
 
     this.logger.log(`withdrawal requested userId=${userId} amount=${amount} id=${id}`);
 
-    await this.kafkaProducer.sendEvent(PAYMENT_EVENTS.WITHDRAWAL_REQUESTED, {
+    // Fire-and-forget Kafka event (non-blocking)
+    this.kafkaProducer.sendEvent(PAYMENT_EVENTS.WITHDRAWAL_REQUESTED, {
       withdrawalId: id,
       userId,
       amount,
       payoutMethod,
       requestedAt: withdrawal.requestedAt,
+    }).catch(err => {
+      this.logger.error('Failed to send WITHDRAWAL_REQUESTED event', err);
     });
 
     return withdrawal;
@@ -242,35 +369,54 @@ export class WalletService {
       throw new BadRequestException(`Withdrawal is already ${withdrawal.status}`);
     }
 
+    const now = new Date().toISOString();
+
     if (action === 'reject') {
-      // Refund balance
-      const wallet = await this.getWallet(withdrawal.userId);
-      wallet.balance += withdrawal.amount;
-      wallet.updatedAt = new Date().toISOString();
-      await this.redis.set(WALLET_KEY(withdrawal.userId), JSON.stringify(wallet));
+      // Atomic refund using Lua script
+      const result = await this.redis.getClient().eval(
+        this.refundBalanceScript,
+        1,
+        WALLET_KEY(withdrawal.userId),
+        withdrawal.amount.toString(),
+        now,
+      ) as { err?: string; ok?: string };
+
+      if (result.err === 'WALLET_NOT_FOUND') {
+        throw new NotFoundException('Wallet not found');
+      }
 
       withdrawal.status = 'rejected';
-      withdrawal.processedAt = new Date().toISOString();
+      withdrawal.processedAt = now;
       await this.redis.set(WITHDRAWAL_KEY(withdrawalId), JSON.stringify(withdrawal));
       this.logger.log(`withdrawal rejected id=${withdrawalId} userId=${withdrawal.userId}`);
     } else {
       withdrawal.status = 'completed';
-      withdrawal.processedAt = new Date().toISOString();
+      withdrawal.processedAt = now;
       await this.redis.set(WITHDRAWAL_KEY(withdrawalId), JSON.stringify(withdrawal));
 
-      // Update total withdrawn
-      const wallet = await this.getWallet(withdrawal.userId);
-      wallet.totalWithdrawn += withdrawal.amount;
-      wallet.updatedAt = new Date().toISOString();
-      await this.redis.set(WALLET_KEY(withdrawal.userId), JSON.stringify(wallet));
+      // Atomic update of totalWithdrawn using Lua script
+      const result = await this.redis.getClient().eval(
+        this.updateWithdrawnScript,
+        1,
+        WALLET_KEY(withdrawal.userId),
+        withdrawal.amount.toString(),
+        now,
+      ) as { err?: string; ok?: string };
+
+      if (result.err === 'WALLET_NOT_FOUND') {
+        this.logger.error(`Wallet not found for user ${withdrawal.userId} during withdrawal completion`);
+      }
 
       this.logger.log(`withdrawal completed id=${withdrawalId} userId=${withdrawal.userId} amount=${withdrawal.amount}`);
 
-      await this.kafkaProducer.sendEvent(PAYMENT_EVENTS.WITHDRAWAL_COMPLETED, {
+      // Fire-and-forget Kafka event (non-blocking)
+      this.kafkaProducer.sendEvent(PAYMENT_EVENTS.WITHDRAWAL_COMPLETED, {
         withdrawalId,
         userId: withdrawal.userId,
         amount: withdrawal.amount,
         completedAt: withdrawal.processedAt,
+      }).catch(err => {
+        this.logger.error('Failed to send WITHDRAWAL_COMPLETED event', err);
       });
     }
 
