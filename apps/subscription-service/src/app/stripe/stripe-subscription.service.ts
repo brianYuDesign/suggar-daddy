@@ -93,8 +93,9 @@ export class StripeSubscriptionService {
         subscriptionId: subscription.id,
         clientSecret,
       };
-    } catch (error: any) {
-      throw new BadRequestException(`Failed to create subscription: ${error?.message || error}`);
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      throw new BadRequestException(`Failed to create subscription: ${err?.message || error}`);
     }
   }
 
@@ -111,8 +112,9 @@ export class StripeSubscriptionService {
       }
       await this.subscriptionService.cancel(subscriptionId);
       return { message: 'Subscription cancelled successfully' };
-    } catch (error: any) {
-      throw new BadRequestException(`Failed to cancel subscription: ${error?.message || error}`);
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      throw new BadRequestException(`Failed to cancel subscription: ${err?.message || error}`);
     }
   }
 

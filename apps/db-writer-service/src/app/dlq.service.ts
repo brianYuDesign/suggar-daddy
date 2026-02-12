@@ -6,7 +6,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 export interface DlqMessage {
   id: string;
   originalTopic: string;
-  payload: any;
+  payload: Record<string, unknown>;
   error: string;
   attempts: number;
   createdAt: string;
@@ -37,7 +37,7 @@ export class DlqService {
    */
   async addToDeadLetterQueue(
     originalTopic: string,
-    payload: any,
+    payload: Record<string, unknown>,
     error: string,
     attempts: number,
   ): Promise<DlqMessage> {

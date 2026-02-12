@@ -21,7 +21,7 @@ export class DbWriterConsumer implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const topics: Array<{ topic: string; handler: (payload: any) => Promise<void> }> = [
+    const topics: Array<{ topic: string; handler: (payload: Record<string, unknown>) => Promise<void> }> = [
       { topic: USER_EVENTS.USER_CREATED, handler: (p) => this.dbWriter.handleUserCreated(p) },
       { topic: USER_EVENTS.USER_UPDATED, handler: (p) => this.dbWriter.handleUserUpdated(p) },
       { topic: CONTENT_EVENTS.POST_CREATED, handler: (p) => this.dbWriter.handlePostCreated(p) },
