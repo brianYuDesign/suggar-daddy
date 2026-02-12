@@ -5,7 +5,7 @@
 
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import {
   SubscriptionEntity,
   SubscriptionTierEntity,
@@ -49,7 +49,7 @@ export class SubscriptionManagementService {
 
     const tierIds = [...new Set(subs.map((s) => s.tierId))];
     const tiers = tierIds.length > 0
-      ? await this.tierRepo.findByIds(tierIds)
+      ? await this.tierRepo.findBy({ id: In(tierIds) })
       : [];
     const tierMap = new Map(tiers.map((t) => [t.id, t]));
 

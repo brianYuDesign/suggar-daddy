@@ -5,9 +5,10 @@ import { PAYMENT_EVENTS } from '@suggar-daddy/common';
 import { PaginatedResponse } from '@suggar-daddy/dto';
 import { CreateTransactionDto, UpdateTransactionDto } from './dto/transaction.dto';
 
-const TX_KEY = (id: string) => `transaction:${id}`;
-const TX_USER = (userId: string) => `transactions:user:${userId}`;
-const TX_STRIPE = (stripeId: string) => `transaction:stripe:${stripeId}`;
+const TX_KEY = (id: string): string => `transaction:${id}`;
+const TX_USER = (userId: string): string => `transactions:user:${userId}`;
+const TX_STRIPE = (stripeId: string): string => `transaction:stripe:${stripeId}`;
+const TX_ALL_BY_TIME = 'transactions:all:by-time'; // Sorted Set for time-based pagination
 
 export interface Transaction {
   id: string;
@@ -48,22 +49,42 @@ export class TransactionService {
       metadata: (createDto.metadata as Record<string, unknown>) ?? null,
       createdAt: now,
     };
-    await this.redis.set(TX_KEY(id), JSON.stringify(tx));
-    await this.redis.lPush(TX_USER(createDto.userId), id);
+
+    // Use pipeline for atomic batch write
+    const pipeline = this.redis.getClient().pipeline();
+    pipeline.set(TX_KEY(id), JSON.stringify(tx));
+    pipeline.lpush(TX_USER(createDto.userId), id);
+    // Add to sorted set for efficient time-based pagination
+    pipeline.zadd(TX_ALL_BY_TIME, Date.now(), id);
     if (tx.stripePaymentId) {
-      await this.redis.set(TX_STRIPE(tx.stripePaymentId), id);
+      pipeline.set(TX_STRIPE(tx.stripePaymentId), id);
     }
+    await pipeline.exec();
+
     return tx;
   }
 
   async findAll(page = 1, limit = 20): Promise<PaginatedResponse<Transaction>> {
-    // SCAN does not support native pagination — fetch all then slice
-    const scannedKeys = await this.redis.scan('transaction:tx-*');
-    const values = await this.redis.mget(...scannedKeys);
-    const all = values.filter(Boolean).map((raw) => JSON.parse(raw!));
-    all.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    // Use Sorted Set for efficient pagination (O(log N + M) instead of O(N))
     const skip = (page - 1) * limit;
-    return { data: all.slice(skip, skip + limit), total: all.length, page, limit };
+    const client = this.redis.getClient();
+
+    // Get transaction IDs from sorted set (reverse order - newest first)
+    const ids = await client.zrevrange(TX_ALL_BY_TIME, skip, skip + limit - 1);
+    const total = await client.zcard(TX_ALL_BY_TIME);
+
+    if (ids.length === 0) {
+      return { data: [], total, page, limit };
+    }
+
+    // Batch fetch transaction data
+    const keys = ids.map((id) => TX_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const data = values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!));
+
+    return { data, total, page, limit };
   }
 
   async findByUser(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<Transaction>> {

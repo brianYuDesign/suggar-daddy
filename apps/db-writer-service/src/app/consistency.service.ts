@@ -451,7 +451,7 @@ export class ConsistencyService implements OnModuleInit, OnModuleDestroy {
           entityId: item.entityId,
           error: (err as Error)?.message || String(err),
         });
-        this.logger.error('修復使用者快取失敗: id=' + item.entityId, err?.stack);
+        this.logger.error('修復使用者快取失敗: id=' + item.entityId, (err as Error)?.stack);
       }
     }
 
@@ -482,7 +482,7 @@ export class ConsistencyService implements OnModuleInit, OnModuleDestroy {
           entityId: item.entityId,
           error: (err as Error)?.message || String(err),
         });
-        this.logger.error('修復貼文快取失敗: id=' + item.entityId, err?.stack);
+        this.logger.error('修復貼文快取失敗: id=' + item.entityId, (err as Error)?.stack);
       }
     }
 

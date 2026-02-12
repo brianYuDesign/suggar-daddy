@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
+import { ApiError } from '@suggar-daddy/api-client';
 import { StatsCard } from '@/components/stats-card';
 import { Pagination } from '@/components/pagination';
 import {
@@ -64,7 +65,7 @@ export default function SubscriptionsPage() {
       toast.success(`"${tierName}" ${res.isActive ? 'activated' : 'deactivated'}`);
       tiers.refetch();
     } catch (err) {
-      toast.error((err as { message?: string })?.message || 'Failed to update tier');
+      toast.error(ApiError.getMessage(err, 'Failed to update tier'));
     } finally {
       setToggling(null);
     }

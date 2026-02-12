@@ -1,22 +1,65 @@
-import { ApiClient, AuthApi, AdminApi } from '@suggar-daddy/api-client';
-import { getToken, clearToken } from './auth';
+import { ApiClient, AuthApi, AdminApi, ApiError } from '@suggar-daddy/api-client';
+import { getToken, setToken, setRefreshToken, getRefreshToken, clearToken } from './auth';
 
 const client = new ApiClient({ baseURL: '' });
 
-// Wrap each method to attach token and handle 401
+// Token refresh lock to prevent concurrent refresh requests
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefreshToken(): Promise<boolean> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+
+  try {
+    // Use a raw AuthApi to avoid the interceptor loop
+    const rawClient = new ApiClient({ baseURL: '' });
+    const rawAuth = new AuthApi(rawClient);
+    const res = await rawAuth.refresh({ refreshToken });
+    setToken(res.accessToken);
+    if (res.refreshToken) {
+      setRefreshToken(res.refreshToken);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Wrap each method to attach token and handle 401 with refresh
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function withAuth(fn: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
-  return (...args: unknown[]) => {
+  return async (...args: unknown[]) => {
     const token = getToken();
     if (token) client.setToken(token);
-    return fn(...args).catch((err: unknown) => {
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      if (status === 401 && typeof window !== 'undefined') {
-        clearToken();
-        window.location.href = '/login';
+
+    try {
+      return await fn(...args);
+    } catch (err: unknown) {
+      const status = ApiError.getStatusCode(err);
+      if (status !== 401 || typeof window === 'undefined') {
+        throw err;
       }
+
+      // Attempt token refresh with lock to avoid concurrent refreshes
+      if (!refreshPromise) {
+        refreshPromise = tryRefreshToken().finally(() => {
+          refreshPromise = null;
+        });
+      }
+
+      const refreshed = await refreshPromise;
+      if (refreshed) {
+        // Retry the original request with the new token
+        const newToken = getToken();
+        if (newToken) client.setToken(newToken);
+        return fn(...args);
+      }
+
+      // Refresh failed — redirect to login
+      clearToken();
+      window.location.href = '/login';
       throw err;
-    });
+    }
   };
 }
 

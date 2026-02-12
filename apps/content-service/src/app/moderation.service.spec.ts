@@ -14,9 +14,14 @@ describe('ModerationService', () => {
   const samplePost = {
     id: 'post-1',
     creatorId: 'creator-1',
-    visibility: 'public',
+    contentType: 'image' as const,
+    visibility: 'public' as const,
     caption: 'Hello',
     mediaUrls: ['url1'],
+    requiredTierId: null,
+    ppvPrice: null,
+    likeCount: 0,
+    commentCount: 0,
     createdAt: '2025-01-01T00:00:00.000Z',
   };
 

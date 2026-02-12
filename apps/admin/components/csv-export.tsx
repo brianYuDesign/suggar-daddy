@@ -10,7 +10,7 @@ interface CsvExportProps<T> {
   filename?: string;
 }
 
-export function CsvExport<T extends Record<string, unknown>>({
+export function CsvExport<T extends object>({
   data,
   columns,
   filename = 'export',

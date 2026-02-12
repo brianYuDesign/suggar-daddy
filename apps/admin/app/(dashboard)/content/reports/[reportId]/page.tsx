@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
+import { ApiError } from '@suggar-daddy/api-client';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Skeleton, Separator, Button } from '@suggar-daddy/ui';
 import { TakeDownDialog } from '@/components/take-down-dialog';
 
@@ -28,7 +29,7 @@ export default function ReportDetailPage() {
       toast.success('Post has been taken down');
       refetch();
     } catch (err) {
-      toast.error((err as { message?: string })?.message || 'Failed to take down post');
+      toast.error(ApiError.getMessage(err, 'Failed to take down post'));
     } finally {
       setActionLoading(false);
       setTakeDownOpen(false);
@@ -43,7 +44,7 @@ export default function ReportDetailPage() {
       toast.success('Post has been reinstated');
       refetch();
     } catch (err) {
-      toast.error((err as { message?: string })?.message || 'Failed to reinstate post');
+      toast.error(ApiError.getMessage(err, 'Failed to reinstate post'));
     } finally {
       setActionLoading(false);
     }
@@ -125,6 +126,31 @@ export default function ReportDetailPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Caption</p>
                   <p className="mt-1 rounded-md bg-muted p-3 text-sm">{report.post.caption}</p>
+                </div>
+              )}
+              {report.post.mediaUrls && report.post.mediaUrls.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Media</p>
+                  <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                    {report.post.mediaUrls.map((url, idx) => {
+                      const isVideo = /\.(mp4|webm|mov)$/i.test(url);
+                      return isVideo ? (
+                        <video
+                          key={idx}
+                          src={url}
+                          controls
+                          className="aspect-square w-full rounded-md border object-cover"
+                        />
+                      ) : (
+                        <img
+                          key={idx}
+                          src={url}
+                          alt={`Media ${idx + 1}`}
+                          className="aspect-square w-full rounded-md border object-cover"
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               )}
               <div className="flex gap-4 text-sm text-muted-foreground">

@@ -13,6 +13,7 @@ import {
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
+  HttpCode,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
 import { UserManagementService } from './user-management.service';
@@ -47,6 +48,13 @@ export class UserManagementController {
     return this.userManagementService.getUserStats();
   }
 
+  /** POST /api/v1/admin/users/batch/disable — 批量停用用戶 */
+  @Post('batch/disable')
+  @HttpCode(200)
+  batchDisableUsers(@Body('userIds') userIds: string[]) {
+    return this.userManagementService.batchDisableUsers(userIds);
+  }
+
   /**
    * GET /api/v1/admin/users/:userId
    * 取得單一用戶詳情
@@ -61,6 +69,7 @@ export class UserManagementController {
    * 停用用戶帳號
    */
   @Post(':userId/disable')
+  @HttpCode(200)
   disableUser(@Param('userId') userId: string) {
     return this.userManagementService.disableUser(userId);
   }
@@ -70,12 +79,14 @@ export class UserManagementController {
    * 啟用用戶帳號
    */
   @Post(':userId/enable')
+  @HttpCode(200)
   enableUser(@Param('userId') userId: string) {
     return this.userManagementService.enableUser(userId);
   }
 
   /** POST /api/v1/admin/users/:userId/role — 變更用戶角色 */
   @Post(':userId/role')
+  @HttpCode(200)
   changeUserRole(
     @Param('userId') userId: string,
     @Body('role') role: string,

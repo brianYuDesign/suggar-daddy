@@ -9,7 +9,7 @@ import { RedisService } from '@suggar-daddy/redis';
 describe('ContentModerationService', () => {
   let service: ContentModerationService;
   let redis: jest.Mocked<
-    Pick<RedisService, 'set' | 'get' | 'del' | 'getClient'>
+    Pick<RedisService, 'set' | 'get' | 'del' | 'getClient' | 'mget'>
   >;
   let kafkaProducer: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
   let postRepo: Record<string, jest.Mock>;
@@ -28,7 +28,14 @@ describe('ContentModerationService', () => {
       set: jest.fn().mockResolvedValue(undefined),
       get: jest.fn().mockResolvedValue(null),
       del: jest.fn().mockResolvedValue(1),
-      getClient: jest.fn().mockReturnValue({ scan: mockScan }) as any,
+      mget: jest.fn().mockResolvedValue([]),
+      getClient: jest.fn().mockReturnValue({
+        scan: mockScan,
+        pipeline: jest.fn().mockReturnValue({
+          set: jest.fn().mockReturnThis(),
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      }) as any,
     };
 
     kafkaProducer = {
@@ -68,7 +75,14 @@ describe('ContentModerationService', () => {
     redis.set.mockResolvedValue(undefined);
     redis.get.mockResolvedValue(null);
     redis.del.mockResolvedValue(1);
-    redis.getClient.mockReturnValue({ scan: mockScan } as any);
+    redis.mget.mockResolvedValue([]);
+    redis.getClient.mockReturnValue({
+      scan: mockScan,
+      pipeline: jest.fn().mockReturnValue({
+        set: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      }),
+    } as any);
     mockScan.mockResolvedValue(['0', []]);
     kafkaProducer.sendEvent.mockResolvedValue(undefined);
     postRepo.findOne.mockResolvedValue(null);
@@ -245,6 +259,41 @@ describe('ContentModerationService', () => {
       postRepo.findOne.mockResolvedValue(null);
 
       await expect(service.reinstatePost('p-nonexistent')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // =====================================================
+  // batchResolveReports 測試
+  // =====================================================
+  describe('batchResolveReports', () => {
+    it('應批量處理 pending 狀態的檢舉', async () => {
+      const pendingReport = { id: 'r-1', postId: 'p-1', reporterId: 'u-1', reason: 'spam', status: 'pending', createdAt: '2024-01-01T00:00:00.000Z' };
+      const resolvedReport = { id: 'r-2', postId: 'p-2', reporterId: 'u-2', reason: 'abuse', status: 'resolved', createdAt: '2024-01-01T00:00:00.000Z' };
+
+      redis.mget.mockResolvedValueOnce([
+        JSON.stringify(pendingReport),
+        JSON.stringify(resolvedReport),
+      ]);
+
+      const result = await service.batchResolveReports(['r-1', 'r-2']);
+
+      expect(result).toEqual({ success: true, resolvedCount: 1 });
+    });
+
+    it('檢舉不存在時不應計入 resolvedCount', async () => {
+      redis.mget.mockResolvedValueOnce([null]);
+
+      const result = await service.batchResolveReports(['r-nonexistent']);
+
+      expect(result).toEqual({ success: true, resolvedCount: 0 });
+    });
+
+    it('空陣列應回傳 resolvedCount 為 0', async () => {
+      redis.mget.mockResolvedValueOnce([]);
+
+      const result = await service.batchResolveReports([]);
+
+      expect(result).toEqual({ success: true, resolvedCount: 0 });
     });
   });
 

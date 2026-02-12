@@ -21,7 +21,7 @@ export class AuthApi {
     return this.client.post<TokenResponseDto>('/api/v1/auth/refresh', dto);
   }
 
-  logout() {
-    return this.client.post<void>('/api/v1/auth/logout');
+  logout(refreshToken?: string) {
+    return this.client.post<void>('/api/v1/auth/logout', refreshToken ? { refreshToken } : undefined);
   }
 }

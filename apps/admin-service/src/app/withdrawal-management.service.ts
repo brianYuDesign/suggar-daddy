@@ -5,11 +5,12 @@
 
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { RedisService } from '@suggar-daddy/redis';
 import { UserEntity } from '@suggar-daddy/database';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { safeJsonParse } from './safe-json-parse';
 
 /** 提款紀錄結構（與 wallet.service.ts 的 WithdrawalRecord 對齊） */
 interface WithdrawalRecord {
@@ -21,6 +22,14 @@ interface WithdrawalRecord {
   payoutDetails?: string;
   requestedAt: string;
   processedAt?: string;
+}
+
+/** 錢包紀錄結構 */
+interface WalletRecord {
+  balance: number;
+  totalEarnings: number;
+  totalWithdrawn: number;
+  updatedAt: string;
 }
 
 const WITHDRAWAL_KEY = (id: string) => `withdrawal:${id}`;
@@ -54,7 +63,8 @@ export class WithdrawalManagementService {
 
     let withdrawals: WithdrawalRecord[] = rawValues
       .filter(Boolean)
-      .map((raw) => JSON.parse(raw!) as WithdrawalRecord);
+      .map((raw) => safeJsonParse<WithdrawalRecord>(raw!, 'withdrawal'))
+      .filter((w): w is WithdrawalRecord => w !== null);
 
     // 2. 狀態篩選
     if (status) {
@@ -75,7 +85,7 @@ export class WithdrawalManagementService {
     // 5. 附帶用戶資訊
     const userIds = [...new Set(data.map((w) => w.userId))];
     const users = userIds.length > 0
-      ? await this.userRepo.findByIds(userIds)
+      ? await this.userRepo.findBy({ id: In(userIds) })
       : [];
     const userMap = new Map(users.map((u) => [u.id, u]));
 
@@ -106,7 +116,8 @@ export class WithdrawalManagementService {
     const rawValues = keys.length > 0 ? await this.redis.mget(...keys) : [];
     const withdrawals: WithdrawalRecord[] = rawValues
       .filter(Boolean)
-      .map((raw) => JSON.parse(raw!) as WithdrawalRecord);
+      .map((raw) => safeJsonParse<WithdrawalRecord>(raw!, 'withdrawal'))
+      .filter((w): w is WithdrawalRecord => w !== null);
 
     const pending = withdrawals.filter((w) => w.status === 'pending');
     const completed = withdrawals.filter((w) => w.status === 'completed');
@@ -133,14 +144,17 @@ export class WithdrawalManagementService {
     if (!raw) {
       throw new NotFoundException(`Withdrawal not found: ${withdrawalId}`);
     }
-    const withdrawal = JSON.parse(raw) as WithdrawalRecord;
+    const withdrawal = safeJsonParse<WithdrawalRecord>(raw, 'withdrawal:' + withdrawalId);
+    if (!withdrawal) {
+      throw new NotFoundException(`Withdrawal data corrupted: ${withdrawalId}`);
+    }
 
     // 附帶用戶資訊
     const user = await this.userRepo.findOneBy({ id: withdrawal.userId });
 
     // 附帶錢包資訊
     const walletRaw = await this.redis.get(`wallet:${withdrawal.userId}`);
-    const wallet = walletRaw ? JSON.parse(walletRaw) : null;
+    const wallet = walletRaw ? safeJsonParse<WalletRecord>(walletRaw, 'wallet:' + withdrawal.userId) : null;
 
     return {
       ...withdrawal,
@@ -177,7 +191,10 @@ export class WithdrawalManagementService {
       throw new NotFoundException(`Withdrawal not found: ${withdrawalId}`);
     }
 
-    const withdrawal = JSON.parse(raw) as WithdrawalRecord;
+    const withdrawal = safeJsonParse<WithdrawalRecord>(raw, 'withdrawal:' + withdrawalId);
+    if (!withdrawal) {
+      throw new NotFoundException(`Withdrawal data corrupted: ${withdrawalId}`);
+    }
     if (withdrawal.status !== 'pending') {
       return {
         success: false,
@@ -187,16 +204,9 @@ export class WithdrawalManagementService {
 
     if (action === 'reject') {
       // 退還餘額
-      const walletRaw = await this.redis.get(`wallet:${withdrawal.userId}`);
-      if (walletRaw) {
-        const wallet = JSON.parse(walletRaw);
+      await this.updateWallet(withdrawal.userId, (wallet) => {
         wallet.balance += withdrawal.amount;
-        wallet.updatedAt = new Date().toISOString();
-        await this.redis.set(
-          `wallet:${withdrawal.userId}`,
-          JSON.stringify(wallet),
-        );
-      }
+      });
 
       withdrawal.status = 'rejected';
       withdrawal.processedAt = new Date().toISOString();
@@ -217,16 +227,9 @@ export class WithdrawalManagementService {
       );
 
       // 更新已提領總額
-      const walletRaw = await this.redis.get(`wallet:${withdrawal.userId}`);
-      if (walletRaw) {
-        const wallet = JSON.parse(walletRaw);
+      await this.updateWallet(withdrawal.userId, (wallet) => {
         wallet.totalWithdrawn += withdrawal.amount;
-        wallet.updatedAt = new Date().toISOString();
-        await this.redis.set(
-          `wallet:${withdrawal.userId}`,
-          JSON.stringify(wallet),
-        );
-      }
+      });
 
       this.logger.log(
         `withdrawal approved id=${withdrawalId} amount=${withdrawal.amount}`,
@@ -238,5 +241,21 @@ export class WithdrawalManagementService {
       message: `Withdrawal ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
       withdrawal,
     };
+  }
+
+  /** 安全讀取並更新錢包資料 */
+  private async updateWallet(userId: string, updater: (wallet: WalletRecord) => void) {
+    const walletRaw = await this.redis.get(`wallet:${userId}`);
+    if (!walletRaw) return;
+
+    const wallet = safeJsonParse<WalletRecord>(walletRaw, 'wallet:' + userId);
+    if (!wallet) {
+      this.logger.warn(`Wallet data corrupted for user ${userId}, skipping wallet update`);
+      return;
+    }
+
+    updater(wallet);
+    wallet.updatedAt = new Date().toISOString();
+    await this.redis.set(`wallet:${userId}`, JSON.stringify(wallet));
   }
 }

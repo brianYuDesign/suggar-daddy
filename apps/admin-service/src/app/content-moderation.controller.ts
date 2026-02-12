@@ -13,6 +13,7 @@ import {
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
+  HttpCode,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
 import { ContentModerationService } from './content-moderation.service';
@@ -35,6 +36,13 @@ export class ContentModerationController {
     return this.contentModerationService.listReports(page, limit, status);
   }
 
+  /** POST /api/v1/admin/content/reports/batch/resolve — 批量處理檢舉 */
+  @Post('reports/batch/resolve')
+  @HttpCode(200)
+  batchResolveReports(@Body('reportIds') reportIds: string[]) {
+    return this.contentModerationService.batchResolveReports(reportIds);
+  }
+
   /** GET /api/v1/admin/content/reports/:reportId - 取得單一檢舉詳情 */
   @Get('reports/:reportId')
   getReportDetail(@Param('reportId') reportId: string) {
@@ -43,6 +51,7 @@ export class ContentModerationController {
 
   /** POST /api/v1/admin/content/posts/:postId/take-down - 下架費文 */
   @Post('posts/:postId/take-down')
+  @HttpCode(200)
   takeDownPost(
     @Param('postId') postId: string,
     @Body('reason') reason: string,
@@ -52,6 +61,7 @@ export class ContentModerationController {
 
   /** POST /api/v1/admin/content/posts/:postId/reinstate - 恢復已下架費文 */
   @Post('posts/:postId/reinstate')
+  @HttpCode(200)
   reinstatePost(@Param('postId') postId: string) {
     return this.contentModerationService.reinstatePost(postId);
   }

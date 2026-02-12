@@ -13,6 +13,7 @@ import {
   LogOut,
   Crown,
   ArrowUpDown,
+  ScrollText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth-provider';
@@ -26,6 +27,7 @@ const navItems = [
   { href: '/payments', label: 'Payments', icon: CreditCard },
   { href: '/withdrawals', label: 'Withdrawals', icon: Wallet },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/audit-log', label: 'Audit Log', icon: ScrollText },
   { href: '/system', label: 'System', icon: Activity },
 ];
 

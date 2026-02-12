@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken, clearToken, isAuthenticated, getTokenTTL } from '@/lib/auth';
+import { getToken, clearToken, getRefreshToken, isAuthenticated, getTokenTTL } from '@/lib/auth';
+import { authApi } from '@/lib/api';
 
 interface AuthContextType {
   token: string | null;
@@ -28,6 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [showWarning, setShowWarning] = useState(false);
 
   const logout = useCallback(() => {
+    const refreshToken = getRefreshToken();
+    authApi.logout(refreshToken || undefined).catch(() => {});
     clearToken();
     setTokenState(null);
     router.replace('/login');

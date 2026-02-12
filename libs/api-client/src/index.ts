@@ -1,5 +1,7 @@
 export { ApiClient } from './client';
 export type { ApiClientConfig } from './client';
+export { ApiError } from './errors';
+export type { ApiErrorData } from './errors';
 
 export { AuthApi } from './auth';
 export { UsersApi } from './users';
@@ -49,4 +51,8 @@ export type {
   TransactionUser,
   TransactionRecord,
   TransactionTypeStats,
+  DlqMessage,
+  DlqStats,
+  ConsistencyMetrics,
+  AuditLogRecord,
 } from './admin';

@@ -40,6 +40,8 @@ describe('SystemMonitorService', () => {
     redis.get.mockResolvedValue(null);
     userRepo.query.mockResolvedValue([{ '?column?': 1 }]);
     (axios.get as jest.Mock).mockResolvedValue({ data: {} });
+    (axios.post as jest.Mock).mockResolvedValue({ data: {} });
+    (axios.delete as jest.Mock).mockResolvedValue({ data: {} });
   });
 
   // =====================================================
@@ -165,6 +167,139 @@ describe('SystemMonitorService', () => {
 
       expect(result.error).toContain('無法取得 DLQ 統計');
       expect(result.timestamp).toBeDefined();
+    });
+  });
+
+  // =====================================================
+  // getDlqMessages 測試
+  // =====================================================
+  describe('getDlqMessages', () => {
+    it('成功取得 DLQ 訊息列表時應回傳資料', async () => {
+      const messages = [{ id: 'dlq-1', topic: 'user.created', error: 'parse error' }];
+      (axios.get as jest.Mock).mockResolvedValue({ data: messages });
+
+      const result = await service.getDlqMessages();
+
+      expect(result).toEqual(messages);
+      expect(axios.get).toHaveBeenCalledWith(
+        expect.stringContaining('/dlq/messages'),
+        { timeout: 5000 },
+      );
+    });
+
+    it('無法取得 DLQ 訊息時應回傳錯誤', async () => {
+      (axios.get as jest.Mock).mockRejectedValue(new Error('timeout'));
+
+      const result = await service.getDlqMessages();
+
+      expect(result.error).toContain('無法取得 DLQ 訊息');
+      expect(result.messages).toEqual([]);
+    });
+  });
+
+  // =====================================================
+  // retryDlqMessage 測試
+  // =====================================================
+  describe('retryDlqMessage', () => {
+    it('成功重試 DLQ 訊息時應回傳結果', async () => {
+      const responseData = { success: true, messageId: 'dlq-1' };
+      (axios.post as jest.Mock).mockResolvedValue({ data: responseData });
+
+      const result = await service.retryDlqMessage('dlq-1');
+
+      expect(result).toEqual(responseData);
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/dlq/retry/dlq-1'),
+        {},
+        { timeout: 5000 },
+      );
+    });
+
+    it('重試失敗時應回傳錯誤', async () => {
+      (axios.post as jest.Mock).mockRejectedValue(new Error('not found'));
+
+      const result = await service.retryDlqMessage('dlq-1');
+
+      expect(result).toEqual({ success: false, error: expect.stringContaining('重試失敗') });
+    });
+  });
+
+  // =====================================================
+  // retryAllDlqMessages 測試
+  // =====================================================
+  describe('retryAllDlqMessages', () => {
+    it('成功重試全部 DLQ 訊息時應回傳結果', async () => {
+      const responseData = { success: true, retriedCount: 5 };
+      (axios.post as jest.Mock).mockResolvedValue({ data: responseData });
+
+      const result = await service.retryAllDlqMessages();
+
+      expect(result).toEqual(responseData);
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/dlq/retry-all'),
+        {},
+        { timeout: 10000 },
+      );
+    });
+
+    it('重試全部失敗時應回傳錯誤', async () => {
+      (axios.post as jest.Mock).mockRejectedValue(new Error('service down'));
+
+      const result = await service.retryAllDlqMessages();
+
+      expect(result).toEqual({ success: false, error: expect.stringContaining('重試全部失敗') });
+    });
+  });
+
+  // =====================================================
+  // deleteDlqMessage 測試
+  // =====================================================
+  describe('deleteDlqMessage', () => {
+    it('成功刪除 DLQ 訊息時應回傳結果', async () => {
+      const responseData = { success: true };
+      (axios.delete as jest.Mock).mockResolvedValue({ data: responseData });
+
+      const result = await service.deleteDlqMessage('dlq-1');
+
+      expect(result).toEqual(responseData);
+      expect(axios.delete).toHaveBeenCalledWith(
+        expect.stringContaining('/dlq/messages/dlq-1'),
+        { timeout: 5000 },
+      );
+    });
+
+    it('刪除失敗時應回傳錯誤', async () => {
+      (axios.delete as jest.Mock).mockRejectedValue(new Error('not found'));
+
+      const result = await service.deleteDlqMessage('dlq-1');
+
+      expect(result).toEqual({ success: false, error: expect.stringContaining('刪除失敗') });
+    });
+  });
+
+  // =====================================================
+  // purgeDlqMessages 測試
+  // =====================================================
+  describe('purgeDlqMessages', () => {
+    it('成功清除所有 DLQ 訊息時應回傳結果', async () => {
+      const responseData = { success: true, purgedCount: 10 };
+      (axios.delete as jest.Mock).mockResolvedValue({ data: responseData });
+
+      const result = await service.purgeDlqMessages();
+
+      expect(result).toEqual(responseData);
+      expect(axios.delete).toHaveBeenCalledWith(
+        expect.stringContaining('/dlq/purge'),
+        { timeout: 10000 },
+      );
+    });
+
+    it('清除失敗時應回傳錯誤', async () => {
+      (axios.delete as jest.Mock).mockRejectedValue(new Error('service error'));
+
+      const result = await service.purgeDlqMessages();
+
+      expect(result).toEqual({ success: false, error: expect.stringContaining('清除失敗') });
     });
   });
 

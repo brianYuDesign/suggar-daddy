@@ -13,6 +13,7 @@ import {
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
+  HttpCode,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
 import { WithdrawalManagementService } from './withdrawal-management.service';
@@ -61,6 +62,7 @@ export class WithdrawalManagementController {
    * 批准提款申請
    */
   @Post(':withdrawalId/approve')
+  @HttpCode(200)
   approveWithdrawal(@Param('withdrawalId') withdrawalId: string) {
     return this.withdrawalService.processWithdrawal(withdrawalId, 'approve');
   }
@@ -70,6 +72,7 @@ export class WithdrawalManagementController {
    * 拒絕提款申請（需填理由）
    */
   @Post(':withdrawalId/reject')
+  @HttpCode(200)
   rejectWithdrawal(
     @Param('withdrawalId') withdrawalId: string,
     @Body('reason') reason?: string,

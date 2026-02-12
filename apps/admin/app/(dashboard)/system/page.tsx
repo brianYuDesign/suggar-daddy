@@ -1,16 +1,60 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
-import { Card, CardHeader, CardTitle, CardContent, Skeleton } from '@suggar-daddy/ui';
+import { useToast } from '@/components/toast';
+import type { DlqMessage } from '@suggar-daddy/api-client';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Skeleton,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  Badge,
+  Button,
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@suggar-daddy/ui';
 import { HealthBadge } from '@/components/health-badge';
 
 export default function SystemPage() {
+  const toast = useToast();
   const health = useAdminQuery(() => adminApi.getSystemHealth());
   const kafka = useAdminQuery(() => adminApi.getKafkaStatus());
   const dlq = useAdminQuery(() => adminApi.getDlqStats());
   const consistency = useAdminQuery(() => adminApi.getConsistencyMetrics());
+
+  const [dlqMessages, setDlqMessages] = useState<DlqMessage[]>([]);
+  const [dlqLoading, setDlqLoading] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ action: 'retryAll' | 'purge' } | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const fetchDlqMessages = async () => {
+    setDlqLoading(true);
+    try {
+      const res = await adminApi.getDlqMessages();
+      setDlqMessages(res.messages || []);
+    } catch (err) {
+      console.error('Failed to fetch DLQ messages:', err);
+      setDlqMessages([]);
+    } finally {
+      setDlqLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDlqMessages();
+  }, []);
 
   // Auto-refresh every 30s
   useEffect(() => {
@@ -19,10 +63,57 @@ export default function SystemPage() {
       kafka.refetch();
       dlq.refetch();
       consistency.refetch();
+      fetchDlqMessages();
     }, 30000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleRetry = async (messageId: string) => {
+    try {
+      await adminApi.retryDlqMessage(messageId);
+      toast.success('Message retry initiated');
+      fetchDlqMessages();
+      dlq.refetch();
+    } catch (err) {
+      console.error('Failed to retry message:', err);
+      toast.error('Failed to retry message');
+    }
+  };
+
+  const handleDelete = async (messageId: string) => {
+    try {
+      await adminApi.deleteDlqMessage(messageId);
+      toast.success('Message deleted');
+      fetchDlqMessages();
+      dlq.refetch();
+    } catch (err) {
+      console.error('Failed to delete message:', err);
+      toast.error('Failed to delete message');
+    }
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmDialog) return;
+    setActionLoading(true);
+    try {
+      if (confirmDialog.action === 'retryAll') {
+        await adminApi.retryAllDlqMessages();
+        toast.success('All messages retry initiated');
+      } else {
+        await adminApi.purgeDlqMessages();
+        toast.success('All DLQ messages purged');
+      }
+      fetchDlqMessages();
+      dlq.refetch();
+    } catch (err) {
+      console.error('DLQ operation failed:', err);
+      toast.error('Operation failed');
+    } finally {
+      setActionLoading(false);
+      setConfirmDialog(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -34,6 +125,7 @@ export default function SystemPage() {
             kafka.refetch();
             dlq.refetch();
             consistency.refetch();
+            fetchDlqMessages();
           }}
           className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
         >
@@ -135,6 +227,80 @@ export default function SystemPage() {
         </Card>
       </div>
 
+      {/* DLQ Messages */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">DLQ Messages</CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDialog({ action: 'retryAll' })}
+                disabled={dlqMessages.length === 0}
+              >
+                Retry All
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDialog({ action: 'purge' })}
+                disabled={dlqMessages.length === 0}
+              >
+                Purge All
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {dlqLoading ? (
+            <Skeleton className="h-[100px]" />
+          ) : dlqMessages.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Topic</TableHead>
+                  <TableHead>Error</TableHead>
+                  <TableHead>Retries</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {dlqMessages.map((msg) => (
+                  <TableRow key={msg.id}>
+                    <TableCell className="font-mono text-xs">{msg.id.slice(0, 8)}...</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{msg.topic}</Badge>
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                      {msg.error}
+                    </TableCell>
+                    <TableCell className="text-sm">{msg.retryCount}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(msg.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button variant="outline" size="sm" onClick={() => handleRetry(msg.id)}>
+                          Retry
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(msg.id)}>
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground">No DLQ messages</p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Consistency Metrics */}
       <Card>
         <CardHeader>
@@ -159,6 +325,32 @@ export default function SystemPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Confirm Dialog */}
+      <Dialog open={!!confirmDialog} onClose={() => setConfirmDialog(null)}>
+        <DialogHeader>
+          <DialogTitle>
+            {confirmDialog?.action === 'retryAll' ? 'Retry All Messages' : 'Purge All Messages'}
+          </DialogTitle>
+          <DialogDescription>
+            {confirmDialog?.action === 'retryAll'
+              ? 'This will retry all messages in the dead letter queue. Are you sure?'
+              : 'This will permanently delete all messages in the dead letter queue. This action cannot be undone.'}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setConfirmDialog(null)} disabled={actionLoading}>
+            Cancel
+          </Button>
+          <Button
+            variant={confirmDialog?.action === 'purge' ? 'destructive' : 'default'}
+            onClick={handleConfirmAction}
+            disabled={actionLoading}
+          >
+            {actionLoading ? 'Processing...' : 'Confirm'}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </div>
   );
 }

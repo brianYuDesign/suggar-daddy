@@ -10,3 +10,4 @@ export * from './subscription-tier.entity';
 export * from './transaction.entity';
 export * from './tip.entity';
 export * from './post-purchase.entity';
+export * from './audit-log.entity';

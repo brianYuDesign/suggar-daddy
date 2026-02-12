@@ -4,6 +4,7 @@
  */
 
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
@@ -24,6 +25,7 @@ import {
   PostPurchaseEntity,
   SwipeEntity,
   MatchEntity,
+  AuditLogEntity,
 } from '@suggar-daddy/database';
 
 import { AppController } from './app.controller';
@@ -44,6 +46,9 @@ import { SubscriptionManagementController } from './subscription-management.cont
 import { SubscriptionManagementService } from './subscription-management.service';
 import { TransactionManagementController } from './transaction-management.controller';
 import { TransactionManagementService } from './transaction-management.service';
+import { AuditLogController } from './audit-log.controller';
+import { AuditLogService } from './audit-log.service';
+import { AuditLogInterceptor } from './audit-log.interceptor';
 
 /** 所有資料庫實體 */
 const ALL_ENTITIES = [
@@ -59,6 +64,7 @@ const ALL_ENTITIES = [
   PostPurchaseEntity,
   SwipeEntity,
   MatchEntity,
+  AuditLogEntity,
 ];
 
 @Module({
@@ -97,10 +103,16 @@ const ALL_ENTITIES = [
     WithdrawalManagementController,
     SubscriptionManagementController,
     TransactionManagementController,
+    AuditLogController,
   ],
   providers: [
     AppService,
     JwtStrategy,
+    AuditLogService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditLogInterceptor,
+    },
     UserManagementService,
     ContentModerationService,
     PaymentStatsService,

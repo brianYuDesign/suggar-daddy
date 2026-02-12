@@ -2,7 +2,7 @@
  * 用戶 API 的讀取來源（快取）。
  * API 讀取 → Redis；寫入 → Kafka（由 DB Writer 異步寫入 DB）。
  */
-import { DynamicModule, Global, Module } from '@nestjs/common';
+import { DynamicModule, Global, InjectionToken, Module, OptionalFactoryDependency } from '@nestjs/common';
 import Redis from 'ioredis';
 import { RedisService } from './redis.service';
 
@@ -16,7 +16,7 @@ export interface RedisModuleOptions {
 @Module({})
 export class RedisModule {
   static forRootAsync(options: {
-    inject?: unknown[];
+    inject?: (InjectionToken | OptionalFactoryDependency)[];
     useFactory: (...args: unknown[]) => RedisModuleOptions;
   }): DynamicModule {
     return {

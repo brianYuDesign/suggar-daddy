@@ -12,9 +12,11 @@ describe('MediaService', () => {
     set: jest.fn().mockResolvedValue(undefined),
     get: jest.fn().mockResolvedValue(null),
     del: jest.fn().mockResolvedValue(1),
-    keys: jest.fn().mockResolvedValue([]),
+    scan: jest.fn().mockResolvedValue([]),
+    mget: jest.fn().mockResolvedValue([]),
     lPush: jest.fn().mockResolvedValue(1),
     lRange: jest.fn().mockResolvedValue([]),
+    lLen: jest.fn().mockResolvedValue(0),
   };
 
   const kafkaProducer = {
@@ -119,26 +121,26 @@ describe('MediaService', () => {
         createdAt: '2024-06-01T00:00:00.000Z',
       };
 
-      redis.keys.mockResolvedValueOnce(['media:media-1', 'media:media-2']);
-      redis.get
-        .mockResolvedValueOnce(JSON.stringify(media1))
-        .mockResolvedValueOnce(JSON.stringify(media2));
+      redis.scan.mockResolvedValueOnce(['media:media-1', 'media:media-2']);
+      redis.mget.mockResolvedValueOnce([
+        JSON.stringify(media1),
+        JSON.stringify(media2),
+      ]);
 
       const result = await service.findAll();
 
-      expect(result).toHaveLength(2);
+      expect(result.data).toHaveLength(2);
       // media2 has later createdAt, should come first
-      expect(result[0].id).toBe('media-2');
-      expect(result[1].id).toBe('media-1');
-      expect(redis.keys).toHaveBeenCalledWith('media:media-*');
+      expect(result.data[0].id).toBe('media-2');
+      expect(result.data[1].id).toBe('media-1');
     });
 
     it('should return empty array when no keys', async () => {
-      redis.keys.mockResolvedValueOnce([]);
+      redis.scan.mockResolvedValueOnce([]);
 
       const result = await service.findAll();
 
-      expect(result).toEqual([]);
+      expect(result.data).toEqual([]);
     });
   });
 
@@ -155,17 +157,19 @@ describe('MediaService', () => {
         createdAt: '2024-03-20T00:00:00.000Z',
       };
 
+      redis.lLen.mockResolvedValueOnce(2);
       redis.lRange.mockResolvedValueOnce(['media-a', 'media-b']);
-      redis.get
-        .mockResolvedValueOnce(JSON.stringify(media1))
-        .mockResolvedValueOnce(JSON.stringify(media2));
+      redis.mget.mockResolvedValueOnce([
+        JSON.stringify(media1),
+        JSON.stringify(media2),
+      ]);
 
       const result = await service.findByUser('user-1');
 
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('media-b');
-      expect(result[1].id).toBe('media-a');
-      expect(redis.lRange).toHaveBeenCalledWith('media:user:user-1', 0, -1);
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0].id).toBe('media-b');
+      expect(result.data[1].id).toBe('media-a');
+      expect(redis.lRange).toHaveBeenCalledWith('media:user:user-1', 0, 19);
     });
   });
 

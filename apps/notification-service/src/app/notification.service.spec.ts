@@ -1,12 +1,44 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationService } from './notification.service';
+import { RedisService } from '@suggar-daddy/redis';
+import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('NotificationService', () => {
   let service: NotificationService;
 
+  const store = new Map<string, string>();
+  const lists = new Map<string, string[]>();
+
+  const redis = {
+    get: jest.fn(async (key: string) => store.get(key) ?? null),
+    set: jest.fn(async (key: string, value: string) => { store.set(key, value); }),
+    lPush: jest.fn(async (key: string, value: string) => {
+      const arr = lists.get(key) ?? [];
+      arr.push(value);
+      lists.set(key, arr);
+      return arr.length;
+    }),
+    lRange: jest.fn(async (key: string, start: number, end: number) => {
+      const arr = lists.get(key) ?? [];
+      return arr.slice(start, end === -1 ? undefined : end + 1);
+    }),
+  };
+
+  const kafka = {
+    sendEvent: jest.fn().mockResolvedValue(null),
+  };
+
   beforeEach(async () => {
+    store.clear();
+    lists.clear();
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [NotificationService],
+      providers: [
+        NotificationService,
+        { provide: RedisService, useValue: redis },
+        { provide: KafkaProducerService, useValue: kafka },
+      ],
     }).compile();
 
     service = module.get(NotificationService);

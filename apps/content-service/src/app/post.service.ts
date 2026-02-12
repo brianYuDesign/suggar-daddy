@@ -19,13 +19,16 @@ export interface Post {
   contentType: 'image' | 'video' | 'text';
   caption: string | null;
   mediaUrls: string[];
-  visibility: 'public' | 'subscribers' | 'tier_specific' | 'ppv';
+  visibility: 'public' | 'subscribers' | 'tier_specific' | 'ppv' | 'hidden';
   requiredTierId: string | null;
   ppvPrice: number | null;
   likeCount: number;
   commentCount: number;
   createdAt: string;
   updatedAt?: string;
+  moderationStatus?: string;
+  moderationActionBy?: string;
+  moderationActionAt?: string;
 }
 
 export interface PostComment {
@@ -227,7 +230,7 @@ export class PostService {
   async update(id: string, updateDto: UpdatePostDto): Promise<Post> {
     const post = await this.findOne(id);
     if (updateDto.caption !== undefined) post.caption = updateDto.caption;
-    if (updateDto.visibility !== undefined) post.visibility = updateDto.visibility;
+    if (updateDto.visibility !== undefined) post.visibility = updateDto.visibility as Post['visibility'];
     if (updateDto.requiredTierId !== undefined) post.requiredTierId = updateDto.requiredTierId;
     if (updateDto.ppvPrice !== undefined) post.ppvPrice = updateDto.ppvPrice;
     await this.redis.set(POST_KEY(id), JSON.stringify(post));

@@ -4,8 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
+import { useSort } from '@/lib/use-sort';
+import { useSelection } from '@/lib/use-selection';
+import { useToast } from '@/components/toast';
 import { StatsCard } from '@/components/stats-card';
 import { Pagination } from '@/components/pagination';
+import { SortableTableHead } from '@/components/sortable-table-head';
+import { BatchActionBar } from '@/components/batch-action-bar';
 import {
   Card,
   CardHeader,
@@ -22,6 +27,7 @@ import {
   Skeleton,
   Avatar,
   Input,
+  Button,
   Tabs,
   TabsList,
   TabsTrigger,
@@ -29,11 +35,13 @@ import {
 import { FileText, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 export default function ContentPage() {
+  const toast = useToast();
   const [tab, setTab] = useState<'reports' | 'posts'>('reports');
 
   // Reports state
   const [reportPage, setReportPage] = useState(1);
   const [reportStatus, setReportStatus] = useState('');
+  const [batchLoading, setBatchLoading] = useState(false);
   const limit = 20;
 
   // Posts state
@@ -52,6 +60,10 @@ export default function ContentPage() {
     [postPage, postVisibility, postSearch],
   );
 
+  const { sorted: sortedReports, sort: reportSort, toggleSort: toggleReportSort } = useSort(reports.data?.data, 'createdAt');
+  const { sorted: sortedPosts, sort: postSort, toggleSort: togglePostSort } = useSort(posts.data?.data, 'createdAt');
+  const reportSelection = useSelection(reports.data?.data);
+
   const reportTotalPages = reports.data ? Math.ceil(reports.data.total / limit) : 0;
   const postTotalPages = posts.data ? Math.ceil(posts.data.total / limit) : 0;
 
@@ -61,6 +73,23 @@ export default function ContentPage() {
       case 'resolved': return 'success';
       case 'dismissed': return 'secondary';
       default: return 'outline';
+    }
+  };
+
+  const handleBatchResolve = async () => {
+    if (reportSelection.selectedCount === 0) return;
+    setBatchLoading(true);
+    try {
+      const result = await adminApi.batchResolveReports(reportSelection.selectedIds);
+      toast.success(`${result.resolvedCount} report(s) resolved`);
+      reportSelection.clear();
+      reports.refetch();
+      stats.refetch();
+    } catch (err) {
+      console.error('Batch resolve failed:', err);
+      toast.error('Batch resolve failed');
+    } finally {
+      setBatchLoading(false);
     }
   };
 
@@ -95,67 +124,97 @@ export default function ContentPage() {
       </Tabs>
 
       {tab === 'reports' && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Reports</CardTitle>
-            <Select value={reportStatus} onChange={(e) => { setReportStatus(e.target.value); setReportPage(1); }} className="w-36">
-              <option value="">All</option>
-              <option value="pending">Pending</option>
-              <option value="resolved">Resolved</option>
-              <option value="dismissed">Dismissed</option>
-            </Select>
-          </CardHeader>
-          <CardContent>
-            {reports.loading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}
-              </div>
-            ) : (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Report ID</TableHead>
-                      <TableHead>Post ID</TableHead>
-                      <TableHead>Reason</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reports.data?.data.map((report) => (
-                      <TableRow key={report.id}>
-                        <TableCell className="font-mono text-xs">{report.id.slice(0, 8)}...</TableCell>
-                        <TableCell className="font-mono text-xs">{report.postId.slice(0, 8)}...</TableCell>
-                        <TableCell>{report.reason}</TableCell>
-                        <TableCell>
-                          <Badge variant={statusVariant(report.status)}>{report.status}</Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {new Date(report.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <Link href={`/content/reports/${report.id}`} className="text-sm text-primary hover:underline">
-                            Review
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {reports.data?.data.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground">No reports found</TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 flex justify-center">
-                  <Pagination page={reportPage} totalPages={reportTotalPages} onPageChange={setReportPage} />
+        <>
+          {/* Batch Action Bar for Reports */}
+          <BatchActionBar selectedCount={reportSelection.selectedCount} onClear={reportSelection.clear}>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleBatchResolve}
+              disabled={batchLoading}
+            >
+              {batchLoading ? 'Resolving...' : 'Resolve Selected'}
+            </Button>
+          </BatchActionBar>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Reports</CardTitle>
+              <Select value={reportStatus} onChange={(e) => { setReportStatus(e.target.value); setReportPage(1); }} className="w-36">
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="resolved">Resolved</option>
+                <option value="dismissed">Dismissed</option>
+              </Select>
+            </CardHeader>
+            <CardContent>
+              {reports.loading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-10">
+                          <input
+                            type="checkbox"
+                            checked={reportSelection.allSelected}
+                            onChange={reportSelection.toggleAll}
+                            className="h-4 w-4 rounded border-gray-300"
+                          />
+                        </TableHead>
+                        <TableHead>Report ID</TableHead>
+                        <TableHead>Post ID</TableHead>
+                        <SortableTableHead label="Reason" sortKey="reason" sort={reportSort} onToggle={toggleReportSort} />
+                        <SortableTableHead label="Status" sortKey="status" sort={reportSort} onToggle={toggleReportSort} />
+                        <SortableTableHead label="Date" sortKey="createdAt" sort={reportSort} onToggle={toggleReportSort} />
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sortedReports?.map((report) => (
+                        <TableRow key={report.id}>
+                          <TableCell>
+                            <input
+                              type="checkbox"
+                              checked={reportSelection.isSelected(report.id)}
+                              onChange={() => reportSelection.toggle(report.id)}
+                              className="h-4 w-4 rounded border-gray-300"
+                            />
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">{report.id.slice(0, 8)}...</TableCell>
+                          <TableCell className="font-mono text-xs">{report.postId.slice(0, 8)}...</TableCell>
+                          <TableCell>{report.reason}</TableCell>
+                          <TableCell>
+                            <Badge variant={statusVariant(report.status)}>{report.status}</Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(report.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <Link href={`/content/reports/${report.id}`} className="text-sm text-primary hover:underline">
+                              Review
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {sortedReports?.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-muted-foreground">No reports found</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                  <div className="mt-4 flex justify-center">
+                    <Pagination page={reportPage} totalPages={reportTotalPages} onPageChange={setReportPage} />
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </>
       )}
 
       {tab === 'posts' && (
@@ -198,27 +257,27 @@ export default function ContentPage() {
                       <TableRow>
                         <TableHead>Creator</TableHead>
                         <TableHead>Caption</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Visibility</TableHead>
-                        <TableHead>Engagement</TableHead>
-                        <TableHead>Date</TableHead>
+                        <SortableTableHead label="Type" sortKey="contentType" sort={postSort} onToggle={togglePostSort} />
+                        <SortableTableHead label="Visibility" sortKey="visibility" sort={postSort} onToggle={togglePostSort} />
+                        <SortableTableHead label="Likes" sortKey="likeCount" sort={postSort} onToggle={togglePostSort} />
+                        <SortableTableHead label="Date" sortKey="createdAt" sort={postSort} onToggle={togglePostSort} />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {posts.data?.data.map((post) => (
+                      {sortedPosts?.map((post) => (
                         <TableRow key={post.id}>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Avatar src={post.creator?.avatarUrl} fallback={post.creator?.displayName || '?'} size="sm" />
                               <div>
                                 <p className="text-sm font-medium">{post.creator?.displayName || 'Unknown'}</p>
-                                <p className="text-xs text-muted-foreground">{post.creator?.email || '—'}</p>
+                                <p className="text-xs text-muted-foreground">{post.creator?.email || '-'}</p>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="text-sm max-w-[200px] truncate">{post.caption || '—'}</TableCell>
-                          <TableCell><Badge variant="secondary">{post.contentType || '—'}</Badge></TableCell>
-                          <TableCell><Badge variant="secondary">{post.visibility || '—'}</Badge></TableCell>
+                          <TableCell className="text-sm max-w-[200px] truncate">{post.caption || '-'}</TableCell>
+                          <TableCell><Badge variant="secondary">{post.contentType || '-'}</Badge></TableCell>
+                          <TableCell><Badge variant="secondary">{post.visibility || '-'}</Badge></TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {post.likeCount} likes, {post.commentCount} comments
                           </TableCell>
@@ -227,7 +286,7 @@ export default function ContentPage() {
                           </TableCell>
                         </TableRow>
                       ))}
-                      {posts.data?.data.length === 0 && (
+                      {sortedPosts?.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center text-muted-foreground">No posts found</TableCell>
                         </TableRow>

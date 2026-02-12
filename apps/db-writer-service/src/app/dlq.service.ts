@@ -64,7 +64,7 @@ export class DlqService {
     await this.redis.lPush(DLQ_LIST_KEY, id);
 
     // 發送到 dead-letter-queue topic 供監控系統消費
-    await this.kafkaProducer.sendEvent(DLQ_TOPIC, message);
+    await this.kafkaProducer.sendEvent(DLQ_TOPIC, { ...message });
 
     this.logger.warn(
       `訊息已加入死信佇列: id=${id}, topic=${originalTopic}, error=${error}`,

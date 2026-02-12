@@ -9,7 +9,7 @@ import type {
 const NOTIF_KEY = (id: string) => `notification:${id}`;
 const USER_NOTIFS = (userId: string) => `user:${userId}:notifications`;
 
-interface StoredNotification extends NotificationItemDto {
+interface StoredNotification extends Omit<NotificationItemDto, 'createdAt'> {
   userId: string;
   createdAt: string;
 }

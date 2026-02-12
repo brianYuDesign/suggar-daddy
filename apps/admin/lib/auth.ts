@@ -1,5 +1,6 @@
 const TOKEN_KEY = 'admin_token';
 const TOKEN_EXPIRY_KEY = 'admin_token_expiry';
+const REFRESH_TOKEN_KEY = 'admin_refresh_token';
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -33,6 +34,16 @@ export function setToken(token: string): void {
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(TOKEN_EXPIRY_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+export function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function setRefreshToken(token: string): void {
+  localStorage.setItem(REFRESH_TOKEN_KEY, token);
 }
 
 export function isAuthenticated(): boolean {

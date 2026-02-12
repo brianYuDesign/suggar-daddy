@@ -54,7 +54,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   async sendEvent(topic: string, event: Record<string, unknown>) {
     return this.send(topic, [
       {
-        key: event.id || Date.now().toString(),
+        key: (event['id'] as string) || Date.now().toString(),
         value: JSON.stringify(event),
       },
     ]);

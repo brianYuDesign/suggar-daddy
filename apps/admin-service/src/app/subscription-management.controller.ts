@@ -12,6 +12,7 @@ import {
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
+  HttpCode,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
 import { SubscriptionManagementService } from './subscription-management.service';
@@ -52,6 +53,7 @@ export class SubscriptionManagementController {
 
   /** POST /api/v1/admin/subscriptions/tiers/:tierId/toggle — 切換方案狀態 */
   @Post('tiers/:tierId/toggle')
+  @HttpCode(200)
   toggleTierActive(@Param('tierId') tierId: string) {
     return this.subscriptionService.toggleTierActive(tierId);
   }

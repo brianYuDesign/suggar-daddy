@@ -65,7 +65,13 @@ describe('UserManagementService', () => {
       set: jest.fn().mockResolvedValue(undefined),
       get: jest.fn().mockResolvedValue(null),
       del: jest.fn().mockResolvedValue(1),
-      getClient: jest.fn().mockReturnValue({ scan: mockScan }) as any,
+      getClient: jest.fn().mockReturnValue({
+        scan: mockScan,
+        pipeline: jest.fn().mockReturnValue({
+          set: jest.fn().mockReturnThis(),
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      }) as any,
     };
 
     userRepo = {
@@ -107,7 +113,13 @@ describe('UserManagementService', () => {
     redis.set.mockResolvedValue(undefined);
     redis.get.mockResolvedValue(null);
     redis.del.mockResolvedValue(1);
-    redis.getClient.mockReturnValue({ scan: mockScan } as any);
+    redis.getClient.mockReturnValue({
+      scan: mockScan,
+      pipeline: jest.fn().mockReturnValue({
+        set: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      }),
+    } as any);
     mockScan.mockResolvedValue(['0', []]);
 
     userRepo.createQueryBuilder.mockReturnValue(mockQb);
@@ -282,6 +294,38 @@ describe('UserManagementService', () => {
       userRepo.findOne.mockResolvedValue(null);
 
       await expect(service.enableUser('u-nonexistent')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // =====================================================
+  // batchDisableUsers 測試
+  // =====================================================
+  describe('batchDisableUsers', () => {
+    it('應批量停用存在的用戶並回傳成功數量', async () => {
+      mockQb.getMany.mockResolvedValueOnce([
+        { id: 'u-1', email: 'a@b.com' },
+        { id: 'u-2', email: 'c@d.com' },
+      ]);
+
+      const result = await service.batchDisableUsers(['u-1', 'u-2', 'u-3']);
+
+      expect(result).toEqual({ success: true, disabledCount: 2 });
+    });
+
+    it('所有用戶都不存在時 disabledCount 應為 0', async () => {
+      mockQb.getMany.mockResolvedValueOnce([]);
+
+      const result = await service.batchDisableUsers(['u-1', 'u-2']);
+
+      expect(result).toEqual({ success: true, disabledCount: 0 });
+    });
+
+    it('空陣列應回傳 disabledCount 為 0', async () => {
+      mockQb.getMany.mockResolvedValueOnce([]);
+
+      const result = await service.batchDisableUsers([]);
+
+      expect(result).toEqual({ success: true, disabledCount: 0 });
     });
   });
 

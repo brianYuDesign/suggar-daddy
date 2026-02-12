@@ -61,8 +61,14 @@ describe('AnalyticsService', () => {
       }) as any,
     };
 
+    const mockUserQb = {
+      whereInIds: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([]),
+    };
+
     userRepo = {
       findOne: jest.fn().mockResolvedValue(null),
+      createQueryBuilder: jest.fn().mockReturnValue(mockUserQb),
     };
 
     postRepo = {
@@ -235,9 +241,11 @@ describe('AnalyticsService', () => {
         { creatorId: 'u-1', totalRevenue: '500.50', tipCount: '10' },
         { creatorId: 'u-2', totalRevenue: '300.00', tipCount: '5' },
       ]);
-      userRepo.findOne
-        .mockResolvedValueOnce({ id: 'u-1', displayName: 'Alice' })
-        .mockResolvedValueOnce({ id: 'u-2', displayName: 'Bob' });
+      const mockUserQb = userRepo.createQueryBuilder();
+      mockUserQb.getMany.mockResolvedValueOnce([
+        { id: 'u-1', displayName: 'Alice' },
+        { id: 'u-2', displayName: 'Bob' },
+      ]);
 
       const result = await service.getCreatorRevenueRanking(10);
 
@@ -258,7 +266,8 @@ describe('AnalyticsService', () => {
       mockTipQb.getRawMany.mockResolvedValue([
         { creatorId: 'u-deleted', totalRevenue: '100', tipCount: '1' },
       ]);
-      userRepo.findOne.mockResolvedValue(null);
+      const mockUserQb = userRepo.createQueryBuilder();
+      mockUserQb.getMany.mockResolvedValueOnce([]);
 
       const result = await service.getCreatorRevenueRanking(10);
 

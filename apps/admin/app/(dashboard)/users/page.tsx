@@ -4,25 +4,51 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
-import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge, Select, Avatar, Skeleton, Input } from '@suggar-daddy/ui';
+import { useSort } from '@/lib/use-sort';
+import { useSelection } from '@/lib/use-selection';
+import { useToast } from '@/components/toast';
+import { SortableTableHead } from '@/components/sortable-table-head';
+import { BatchActionBar } from '@/components/batch-action-bar';
+import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge, Select, Avatar, Skeleton, Input, Button } from '@suggar-daddy/ui';
 import { Pagination } from '@/components/pagination';
 
 export default function UsersPage() {
+  const toast = useToast();
   const [page, setPage] = useState(1);
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [batchLoading, setBatchLoading] = useState(false);
   const limit = 20;
 
-  const { data, loading } = useAdminQuery(
+  const { data, loading, refetch } = useAdminQuery(
     () => adminApi.listUsers(page, limit, role || undefined, status || undefined, search || undefined),
     [page, role, status, search],
   );
 
+  const { sorted, sort, toggleSort } = useSort(data?.data, 'createdAt');
+  const selection = useSelection(data?.data);
+
   const handleSearch = () => {
     setSearch(searchInput);
     setPage(1);
+  };
+
+  const handleBatchDisable = async () => {
+    if (selection.selectedCount === 0) return;
+    setBatchLoading(true);
+    try {
+      const result = await adminApi.batchDisableUsers(selection.selectedIds);
+      toast.success(`${result.disabledCount} user(s) disabled`);
+      selection.clear();
+      refetch();
+    } catch (err) {
+      console.error('Batch disable failed:', err);
+      toast.error('Batch disable failed');
+    } finally {
+      setBatchLoading(false);
+    }
   };
 
   const totalPages = data ? Math.ceil(data.total / limit) : 0;
@@ -56,6 +82,18 @@ export default function UsersPage() {
         </Select>
       </div>
 
+      {/* Batch Action Bar */}
+      <BatchActionBar selectedCount={selection.selectedCount} onClear={selection.clear}>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={handleBatchDisable}
+          disabled={batchLoading}
+        >
+          {batchLoading ? 'Disabling...' : 'Disable Selected'}
+        </Button>
+      </BatchActionBar>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
@@ -74,16 +112,32 @@ export default function UsersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        checked={selection.allSelected}
+                        onChange={selection.toggleAll}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                    </TableHead>
                     <TableHead>User</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Joined</TableHead>
+                    <SortableTableHead label="Email" sortKey="email" sort={sort} onToggle={toggleSort} />
+                    <SortableTableHead label="Role" sortKey="role" sort={sort} onToggle={toggleSort} />
+                    <SortableTableHead label="Joined" sortKey="createdAt" sort={sort} onToggle={toggleSort} />
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data?.data.map((user) => (
+                  {sorted?.map((user) => (
                     <TableRow key={user.id}>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selection.isSelected(user.id)}
+                          onChange={() => selection.toggle(user.id)}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar
@@ -115,9 +169,9 @@ export default function UsersPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {data?.data.length === 0 && (
+                  {sorted?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
                         No users found
                       </TableCell>
                     </TableRow>

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
+import { ApiError } from '@suggar-daddy/api-client';
 import {
   Card,
   CardHeader,
@@ -64,7 +65,7 @@ export default function UserDetailPage() {
       }
       refetch();
     } catch (err) {
-      toast.error((err as { message?: string })?.message || 'Failed to update user status');
+      toast.error(ApiError.getMessage(err, 'Failed to update user status'));
     } finally {
       setActionLoading(false);
       setConfirmOpen(false);
@@ -79,7 +80,7 @@ export default function UserDetailPage() {
       toast.success(`Role changed to ${selectedRole}`);
       refetch();
     } catch (err) {
-      toast.error((err as { message?: string })?.message || 'Failed to change role');
+      toast.error(ApiError.getMessage(err, 'Failed to change role'));
     } finally {
       setActionLoading(false);
       setRoleDialogOpen(false);

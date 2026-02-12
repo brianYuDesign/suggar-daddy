@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
+import { useSort } from '@/lib/use-sort';
 import { StatsCard } from '@/components/stats-card';
 import { Pagination } from '@/components/pagination';
+import { SortableTableHead } from '@/components/sortable-table-head';
 import {
   Card,
   CardHeader,
@@ -49,6 +51,8 @@ export default function TransactionsPage() {
     () => adminApi.listTransactions(page, limit, typeFilter || undefined, statusFilter || undefined),
     [page, typeFilter, statusFilter],
   );
+
+  const { sorted, sort, toggleSort } = useSort(data?.data, 'createdAt');
 
   const totalPages = data ? Math.ceil(data.total / limit) : 0;
 
@@ -139,22 +143,22 @@ export default function TransactionsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
+                    <SortableTableHead label="Type" sortKey="type" sort={sort} onToggle={toggleSort} />
+                    <SortableTableHead label="Amount" sortKey="amount" sort={sort} onToggle={toggleSort} />
+                    <SortableTableHead label="Status" sortKey="status" sort={sort} onToggle={toggleSort} />
                     <TableHead>Stripe ID</TableHead>
-                    <TableHead>Date</TableHead>
+                    <SortableTableHead label="Date" sortKey="createdAt" sort={sort} onToggle={toggleSort} />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data?.data.map((tx) => (
+                  {sorted?.map((tx) => (
                     <TableRow key={tx.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar src={tx.user?.avatarUrl} fallback={tx.user?.displayName || '?'} size="sm" />
                           <div>
                             <p className="text-sm font-medium">{tx.user?.displayName || 'Unknown'}</p>
-                            <p className="text-xs text-muted-foreground">{tx.user?.email || '—'}</p>
+                            <p className="text-xs text-muted-foreground">{tx.user?.email || '-'}</p>
                           </div>
                         </div>
                       </TableCell>
@@ -166,14 +170,14 @@ export default function TransactionsPage() {
                         <Badge variant={statusVariant[tx.status] || 'secondary'}>{tx.status}</Badge>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground font-mono max-w-[150px] truncate">
-                        {tx.stripePaymentId || '—'}
+                        {tx.stripePaymentId || '-'}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(tx.createdAt).toLocaleDateString()}
                       </TableCell>
                     </TableRow>
                   ))}
-                  {data?.data.length === 0 && (
+                  {sorted?.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-muted-foreground">
                         No transactions found
