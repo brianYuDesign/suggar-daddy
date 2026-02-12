@@ -1,0 +1,535 @@
+version: '3.8'
+
+services:
+  # Database Services
+  postgres:
+    image: postgres:15-alpine
+    container_name: suggar-daddy-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suggar-daddy-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: suggar-daddy-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suggar-daddy-network
+
+  # Kafka & Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: suggar-daddy-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - suggar-daddy-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: suggar-daddy-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - suggar-daddy-network
+
+  # Backend Services
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: api-gateway
+    container_name: suggar-daddy-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://localhost:4300}
+      # Service URLs
+      AUTH_SERVICE_URL: http://auth-service:3002
+      USER_SERVICE_URL: http://user-service:3001
+      PAYMENT_SERVICE_URL: http://payment-service:3007
+      SUBSCRIPTION_SERVICE_URL: http://subscription-service:3009
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+    command: npm run serve:api-gateway
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: auth-service
+    container_name: suggar-daddy-auth-service
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3002
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      # Firebase (optional)
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run serve:auth-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: user-service
+    container_name: suggar-daddy-user-service
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3001
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Cloudinary (for file uploads)
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run serve:user-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: payment-service
+    container_name: suggar-daddy-payment-service
+    ports:
+      - "3007:3007"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3007
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      # Stripe
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: npm run serve:payment-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  subscription-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: subscription-service
+    container_name: suggar-daddy-subscription-service
+    ports:
+      - "3009:3009"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3009
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: npm run serve:subscription-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  db-writer-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: db-writer-service
+    container_name: suggar-daddy-db-writer-service
+    ports:
+      - "3010:3010"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3010
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_GROUP_ID: db-writer-group
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: npm run serve:db-writer-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  # Optional: Additional services from package.json
+  matching-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: matching-service
+    container_name: suggar-daddy-matching-service
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3003
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run serve:matching-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    profiles:
+      - full
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: notification-service
+    container_name: suggar-daddy-notification-service
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3004
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: npm run serve:notification-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    profiles:
+      - full
+
+  messaging-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: messaging-service
+    container_name: suggar-daddy-messaging-service
+    ports:
+      - "3005:3005"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3005
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run serve:messaging-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    profiles:
+      - full
+
+  admin-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: admin-service
+    container_name: suggar-daddy-admin-service
+    ports:
+      - "3006:3006"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3006
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run serve:admin-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    profiles:
+      - full
+
+  # Frontend Applications
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: development
+    container_name: suggar-daddy-web
+    ports:
+      - "4200:4200"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - api-gateway
+    command: npm run serve:web
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    profiles:
+      - frontend
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      target: development
+    container_name: suggar-daddy-admin
+    ports:
+      - "4300:4300"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - api-gateway
+    command: npm run serve:admin
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    profiles:
+      - frontend
+
+networks:
+  suggar-daddy-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  kafka_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  zookeeper_logs:
+    driver: local
