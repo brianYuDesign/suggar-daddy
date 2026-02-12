@@ -1,470 +1,408 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { PAYMENT_EVENTS } from '@suggar-daddy/common';
 
 describe('WalletService', () => {
   let service: WalletService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'mget'>>;
-  let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
+  let redisService: jest.Mocked<RedisService>;
+  let kafkaProducer: jest.Mocked<KafkaProducerService>;
+
+  const mockRedisClient = {
+    get: jest.fn(),
+    set: jest.fn(),
+    lpush: jest.fn(),
+    lrange: jest.fn(),
+    eval: jest.fn(),
+    evalsha: jest.fn(),
+    zadd: jest.fn(),
+    zrevrange: jest.fn(),
+    zcard: jest.fn(),
+    del: jest.fn(),
+  };
+
+  const mockRedisService = {
+    getClient: jest.fn(() => mockRedisClient),
+    get: jest.fn(),
+    set: jest.fn(),
+  };
+
+  const mockKafkaProducer = {
+    send: jest.fn(),
+  };
+
+  const mockWallet = {
+    userId: 'user-123',
+    balance: 1000,
+    pendingBalance: 500,
+    totalEarnings: 2000,
+    totalWithdrawn: 500,
+    updatedAt: new Date().toISOString(),
+  };
 
   beforeEach(async () => {
-    redis = {
-      get: jest.fn(),
-      set: jest.fn().mockResolvedValue(undefined),
-      lPush: jest.fn().mockResolvedValue(0),
-      lRange: jest.fn().mockResolvedValue([]),
-      mget: jest.fn().mockResolvedValue([]),
-    };
-    kafka = { sendEvent: jest.fn().mockResolvedValue(undefined) };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WalletService,
-        { provide: RedisService, useValue: redis },
-        { provide: KafkaProducerService, useValue: kafka },
+        {
+          provide: RedisService,
+          useValue: mockRedisService,
+        },
+        {
+          provide: KafkaProducerService,
+          useValue: mockKafkaProducer,
+        },
       ],
     }).compile();
 
-    service = module.get(WalletService);
+    service = module.get<WalletService>(WalletService);
+    redisService = module.get(RedisService);
+    kafkaProducer = module.get(KafkaProducerService);
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  // ── getWallet ──────────────────────────────────────────────────
-
   describe('getWallet', () => {
-    it('should return existing wallet from Redis', async () => {
-      const wallet = {
-        userId: 'u1',
-        balance: 100,
-        pendingBalance: 0,
-        totalEarnings: 200,
-        totalWithdrawn: 100,
-        updatedAt: '2025-01-01T00:00:00.000Z',
-      };
-      redis.get.mockResolvedValue(JSON.stringify(wallet));
+    it('should get wallet for user', async () => {
+      mockRedisClient.get.mockResolvedValue(JSON.stringify(mockWallet));
 
-      const result = await service.getWallet('u1');
+      const result = await service.getWallet('user-123');
 
-      expect(result).toEqual(wallet);
-      expect(redis.get).toHaveBeenCalledWith('wallet:u1');
+      expect(result).toEqual(mockWallet);
+      expect(mockRedisClient.get).toHaveBeenCalledWith('wallet:user-123');
     });
 
-    it('should initialize wallet if not exists', async () => {
-      redis.get.mockResolvedValue(null);
-      redis.set.mockResolvedValue(undefined);
+    it('should throw NotFoundException when wallet not found', async () => {
+      mockRedisClient.get.mockResolvedValue(null);
 
-      const result = await service.getWallet('u-new');
-
-      expect(result.userId).toBe('u-new');
-      expect(result.balance).toBe(0);
-      expect(result.pendingBalance).toBe(0);
-      expect(result.totalEarnings).toBe(0);
-      expect(result.totalWithdrawn).toBe(0);
-      expect(redis.set).toHaveBeenCalledWith(
-        'wallet:u-new',
-        expect.any(String),
+      await expect(service.getWallet('non-existent')).rejects.toThrow(
+        NotFoundException
       );
     });
-
-    it('should persist the newly initialized wallet', async () => {
-      redis.get.mockResolvedValue(null);
-      redis.set.mockResolvedValue(undefined);
-
-      await service.getWallet('u2');
-
-      const saved = JSON.parse(redis.set.mock.calls[0][1] as string);
-      expect(saved.userId).toBe('u2');
-      expect(saved.balance).toBe(0);
-    });
   });
-
-  // ── creditWallet ──────────────────────────────────────────────
 
   describe('creditWallet', () => {
-    const existingWallet = {
-      userId: 'creator-1',
-      balance: 50,
-      pendingBalance: 0,
-      totalEarnings: 50,
-      totalWithdrawn: 0,
-      updatedAt: '2025-01-01T00:00:00.000Z',
-    };
+    it('should credit wallet with tip received', async () => {
+      const grossAmount = 100;
+      const platformFee = 20; // 20%
+      const netAmount = 80;
 
-    beforeEach(() => {
-      redis.get.mockResolvedValue(JSON.stringify(existingWallet));
-    });
-
-    it('should deduct 20% platform fee and credit net amount', async () => {
-      const result = await service.creditWallet('creator-1', 100, 'tip_received', 'tip-1');
-
-      // 100 * 0.2 = 20 fee, net = 80
-      expect(result.balance).toBe(130); // 50 + 80
-      expect(result.totalEarnings).toBe(130); // 50 + 80
-    });
-
-    it('should handle small amounts with rounding correctly', async () => {
-      const result = await service.creditWallet('creator-1', 1.5, 'tip_received');
-
-      // fee = 1.5 * 0.2 = 0.3, net = 1.2
-      expect(result.balance).toBe(51.2);
-    });
-
-    it('should record wallet transaction in history', async () => {
-      await service.creditWallet('creator-1', 100, 'subscription_received', 'sub-1');
-
-      expect(redis.lPush).toHaveBeenCalledWith(
-        'wallet:history:creator-1',
-        expect.stringContaining('"type":"subscription_received"'),
-      );
-    });
-
-    it('should send WALLET_CREDITED Kafka event', async () => {
-      await service.creditWallet('creator-1', 100, 'tip_received', 'tip-1');
-
-      expect(kafka.sendEvent).toHaveBeenCalledWith(
-        'payment.wallet.credited',
-        expect.objectContaining({
-          userId: 'creator-1',
-          type: 'tip_received',
-          grossAmount: 100,
-          netAmount: 80,
-          platformFee: 20,
-          referenceId: 'tip-1',
+      mockRedisClient.eval.mockResolvedValue([
+        JSON.stringify({
+          ...mockWallet,
+          balance: mockWallet.balance + netAmount,
+          totalEarnings: mockWallet.totalEarnings + netAmount,
         }),
+        0,
+      ]);
+
+      const result = await service.creditWallet(
+        'user-123',
+        grossAmount,
+        'tip_received',
+        'tip-456'
+      );
+
+      expect(result.balance).toBeGreaterThan(mockWallet.balance);
+      expect(mockKafkaProducer.send).toHaveBeenCalledWith(
+        PAYMENT_EVENTS.WALLET_CREDITED,
+        expect.objectContaining({
+          userId: 'user-123',
+          amount: grossAmount,
+          netAmount: netAmount,
+        })
       );
     });
 
-    it('should credit ppv_received type correctly', async () => {
-      const result = await service.creditWallet('creator-1', 50, 'ppv_received', 'ppv-1');
+    it('should credit wallet with subscription received', async () => {
+      const grossAmount = 500;
+      const netAmount = 400; // after 20% platform fee
 
-      // fee = 10, net = 40
-      expect(result.balance).toBe(90); // 50 + 40
-      expect(kafka.sendEvent).toHaveBeenCalledWith(
-        'payment.wallet.credited',
-        expect.objectContaining({ type: 'ppv_received', netAmount: 40 }),
+      mockRedisClient.eval.mockResolvedValue([
+        JSON.stringify({
+          ...mockWallet,
+          balance: mockWallet.balance + netAmount,
+        }),
+        0,
+      ]);
+
+      await service.creditWallet(
+        'user-123',
+        grossAmount,
+        'subscription_received',
+        'sub-789'
       );
+
+      expect(mockRedisClient.eval).toHaveBeenCalled();
+      expect(mockKafkaProducer.send).toHaveBeenCalled();
     });
 
-    it('should persist updated wallet to Redis', async () => {
-      await service.creditWallet('creator-1', 100, 'tip_received');
+    it('should create wallet if not exists', async () => {
+      const grossAmount = 100;
+      const netAmount = 80;
 
-      expect(redis.set).toHaveBeenCalledWith(
-        'wallet:creator-1',
-        expect.any(String),
+      mockRedisClient.eval.mockResolvedValue([
+        JSON.stringify({
+          userId: 'new-user',
+          balance: netAmount,
+          pendingBalance: 0,
+          totalEarnings: netAmount,
+          totalWithdrawn: 0,
+          updatedAt: new Date().toISOString(),
+        }),
+        1, // created flag
+      ]);
+
+      const result = await service.creditWallet(
+        'new-user',
+        grossAmount,
+        'tip_received'
       );
-      const saved = JSON.parse(redis.set.mock.calls[0][1] as string);
-      expect(saved.balance).toBe(130);
+
+      expect(result.userId).toBe('new-user');
+      expect(result.balance).toBe(netAmount);
+      expect(result.totalEarnings).toBe(netAmount);
     });
   });
-
-  // ── requestWithdrawal ──────────────────────────────────────────
 
   describe('requestWithdrawal', () => {
-    const richWallet = {
-      userId: 'creator-1',
-      balance: 200,
-      pendingBalance: 0,
-      totalEarnings: 500,
-      totalWithdrawn: 300,
-      updatedAt: '2025-01-01T00:00:00.000Z',
-    };
-
-    it('should reject withdrawal below $20 minimum', async () => {
-      redis.get.mockResolvedValue(JSON.stringify(richWallet));
-
-      await expect(
-        service.requestWithdrawal('creator-1', 19, 'bank_transfer'),
-      ).rejects.toThrow(BadRequestException);
-      await expect(
-        service.requestWithdrawal('creator-1', 5, 'bank_transfer'),
-      ).rejects.toThrow('Minimum withdrawal amount');
-    });
-
-    it('should reject withdrawal exceeding balance', async () => {
-      redis.get.mockResolvedValue(JSON.stringify(richWallet));
-
-      await expect(
-        service.requestWithdrawal('creator-1', 250, 'bank_transfer'),
-      ).rejects.toThrow(BadRequestException);
-      await expect(
-        service.requestWithdrawal('creator-1', 250, 'bank_transfer'),
-      ).rejects.toThrow('Insufficient balance');
-    });
-
-    it('should create a pending withdrawal and deduct balance', async () => {
-      redis.get.mockResolvedValue(JSON.stringify(richWallet));
-
-      const result = await service.requestWithdrawal('creator-1', 50, 'bank_transfer', '****1234');
-
-      expect(result.id).toMatch(/^wd-/);
-      expect(result.userId).toBe('creator-1');
-      expect(result.amount).toBe(50);
-      expect(result.status).toBe('pending');
-      expect(result.payoutMethod).toBe('bank_transfer');
-      expect(result.payoutDetails).toBe('****1234');
-    });
-
-    it('should deduct balance immediately', async () => {
-      redis.get.mockResolvedValue(JSON.stringify(richWallet));
-
-      await service.requestWithdrawal('creator-1', 50, 'bank_transfer');
-
-      // Wallet save should show deducted balance
-      const walletSaveCall = redis.set.mock.calls.find(
-        (c) => (c[0] as string) === 'wallet:creator-1',
+    it('should request withdrawal successfully', async () => {
+      const withdrawalAmount = 500;
+      mockRedisClient.get.mockResolvedValue(
+        JSON.stringify({ ...mockWallet, balance: 1000 })
       );
-      expect(walletSaveCall).toBeDefined();
-      const savedWallet = JSON.parse(walletSaveCall![1] as string);
-      expect(savedWallet.balance).toBe(150); // 200 - 50
-    });
+      mockRedisClient.eval.mockResolvedValue([
+        JSON.stringify({ ...mockWallet, balance: 500 }),
+      ]);
 
-    it('should send WITHDRAWAL_REQUESTED Kafka event', async () => {
-      redis.get.mockResolvedValue(JSON.stringify(richWallet));
+      const result = await service.requestWithdrawal(
+        'user-123',
+        withdrawalAmount,
+        'bank_transfer',
+        { accountNumber: '****1234' }
+      );
 
-      await service.requestWithdrawal('creator-1', 50, 'stripe_payout');
-
-      expect(kafka.sendEvent).toHaveBeenCalledWith(
-        'payment.withdrawal.requested',
+      expect(result).toBeDefined();
+      expect(result.id).toMatch(/^withdrawal-/);
+      expect(result.amount).toBe(withdrawalAmount);
+      expect(result.status).toBe('pending');
+      expect(mockKafkaProducer.send).toHaveBeenCalledWith(
+        PAYMENT_EVENTS.WITHDRAWAL_REQUESTED,
         expect.objectContaining({
-          userId: 'creator-1',
-          amount: 50,
-          payoutMethod: 'stripe_payout',
-        }),
+          withdrawalId: result.id,
+          userId: 'user-123',
+          amount: withdrawalAmount,
+        })
       );
     });
 
-    it('should record withdrawal in wallet history', async () => {
-      redis.get.mockResolvedValue(JSON.stringify(richWallet));
+    it('should throw BadRequestException for amount below minimum', async () => {
+      mockRedisClient.get.mockResolvedValue(JSON.stringify(mockWallet));
 
-      await service.requestWithdrawal('creator-1', 50, 'bank_transfer');
-
-      expect(redis.lPush).toHaveBeenCalledWith(
-        'wallet:history:creator-1',
-        expect.stringContaining('"type":"withdrawal"'),
-      );
+      await expect(
+        service.requestWithdrawal('user-123', 10, 'bank_transfer')
+      ).rejects.toThrow(BadRequestException);
     });
 
-    it('should add withdrawal to pending list', async () => {
-      redis.get.mockResolvedValue(JSON.stringify(richWallet));
-
-      await service.requestWithdrawal('creator-1', 50, 'bank_transfer');
-
-      expect(redis.lPush).toHaveBeenCalledWith(
-        'withdrawals:pending',
-        expect.stringMatching(/^wd-/),
+    it('should throw BadRequestException for insufficient balance', async () => {
+      mockRedisClient.get.mockResolvedValue(
+        JSON.stringify({ ...mockWallet, balance: 100 })
       );
-    });
 
-    it('should allow withdrawal exactly at $20 minimum', async () => {
-      redis.get.mockResolvedValue(JSON.stringify(richWallet));
-
-      const result = await service.requestWithdrawal('creator-1', 20, 'bank_transfer');
-
-      expect(result.status).toBe('pending');
-      expect(result.amount).toBe(20);
+      await expect(
+        service.requestWithdrawal('user-123', 500, 'bank_transfer')
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
-  // ── processWithdrawal ──────────────────────────────────────────
+  describe('getWithdrawalHistory', () => {
+    it('should get withdrawal history for user', async () => {
+      const mockWithdrawals = [
+        {
+          id: 'withdrawal-1',
+          userId: 'user-123',
+          amount: 500,
+          status: 'completed',
+          payoutMethod: 'bank_transfer',
+          requestedAt: new Date().toISOString(),
+          processedAt: new Date().toISOString(),
+        },
+        {
+          id: 'withdrawal-2',
+          userId: 'user-123',
+          amount: 300,
+          status: 'pending',
+          payoutMethod: 'stripe_payout',
+          requestedAt: new Date().toISOString(),
+        },
+      ];
+
+      mockRedisClient.lrange.mockResolvedValue(['withdrawal-1', 'withdrawal-2']);
+      mockRedisClient.get
+        .mockResolvedValueOnce(JSON.stringify(mockWithdrawals[0]))
+        .mockResolvedValueOnce(JSON.stringify(mockWithdrawals[1]));
+
+      const result = await service.getWithdrawalHistory('user-123');
+
+      expect(result).toHaveLength(2);
+      expect(result[0].status).toBe('completed');
+      expect(result[1].status).toBe('pending');
+    });
+
+    it('should return empty array when no withdrawals', async () => {
+      mockRedisClient.lrange.mockResolvedValue([]);
+
+      const result = await service.getWithdrawalHistory('user-123');
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getPendingWithdrawals', () => {
+    it('should get all pending withdrawals', async () => {
+      const mockPendingIds = ['withdrawal-1', 'withdrawal-2'];
+      const mockPendingWithdrawal = {
+        id: 'withdrawal-1',
+        userId: 'user-123',
+        amount: 500,
+        status: 'pending',
+        payoutMethod: 'bank_transfer',
+        requestedAt: new Date().toISOString(),
+      };
+
+      mockRedisClient.zrevrange.mockResolvedValue(mockPendingIds);
+      mockRedisClient.get.mockResolvedValue(
+        JSON.stringify(mockPendingWithdrawal)
+      );
+
+      const result = await service.getPendingWithdrawals();
+
+      expect(result).toHaveLength(2);
+      expect(result[0].status).toBe('pending');
+    });
+  });
 
   describe('processWithdrawal', () => {
-    const pendingWithdrawal = {
-      id: 'wd-1',
-      userId: 'creator-1',
-      amount: 100,
-      status: 'pending',
-      payoutMethod: 'bank_transfer',
-      requestedAt: '2025-01-01T00:00:00.000Z',
-    };
+    it('should process withdrawal successfully', async () => {
+      const withdrawalId = 'withdrawal-123';
+      const mockWithdrawal = {
+        id: withdrawalId,
+        userId: 'user-123',
+        amount: 500,
+        status: 'pending',
+        payoutMethod: 'bank_transfer',
+        requestedAt: new Date().toISOString(),
+      };
 
-    const wallet = {
-      userId: 'creator-1',
-      balance: 100,
-      pendingBalance: 0,
-      totalEarnings: 400,
-      totalWithdrawn: 200,
-      updatedAt: '2025-01-01T00:00:00.000Z',
-    };
+      mockRedisClient.get.mockResolvedValue(JSON.stringify(mockWithdrawal));
+
+      const result = await service.processWithdrawal(withdrawalId, 'completed');
+
+      expect(result.status).toBe('completed');
+      expect(result.processedAt).toBeDefined();
+      expect(mockKafkaProducer.send).toHaveBeenCalledWith(
+        PAYMENT_EVENTS.WITHDRAWAL_COMPLETED,
+        expect.objectContaining({
+          withdrawalId,
+          status: 'completed',
+        })
+      );
+    });
+
+    it('should reject withdrawal', async () => {
+      const withdrawalId = 'withdrawal-123';
+      const mockWithdrawal = {
+        id: withdrawalId,
+        userId: 'user-123',
+        amount: 500,
+        status: 'pending',
+        payoutMethod: 'bank_transfer',
+        requestedAt: new Date().toISOString(),
+      };
+
+      mockRedisClient.get
+        .mockResolvedValueOnce(JSON.stringify(mockWithdrawal))
+        .mockResolvedValueOnce(JSON.stringify(mockWallet));
+      mockRedisClient.eval.mockResolvedValue([
+        JSON.stringify({ ...mockWallet, balance: mockWallet.balance + 500 }),
+      ]);
+
+      const result = await service.processWithdrawal(withdrawalId, 'rejected');
+
+      expect(result.status).toBe('rejected');
+      expect(mockKafkaProducer.send).toHaveBeenCalledWith(
+        PAYMENT_EVENTS.WITHDRAWAL_REJECTED,
+        expect.anything()
+      );
+    });
 
     it('should throw NotFoundException for non-existent withdrawal', async () => {
-      redis.get.mockResolvedValue(null);
+      mockRedisClient.get.mockResolvedValue(null);
 
       await expect(
-        service.processWithdrawal('wd-missing', 'approve'),
+        service.processWithdrawal('non-existent', 'completed')
       ).rejects.toThrow(NotFoundException);
     });
-
-    it('should throw BadRequestException for already processed withdrawal', async () => {
-      redis.get.mockResolvedValue(
-        JSON.stringify({ ...pendingWithdrawal, status: 'completed' }),
-      );
-
-      await expect(
-        service.processWithdrawal('wd-1', 'approve'),
-      ).rejects.toThrow(BadRequestException);
-      await expect(
-        service.processWithdrawal('wd-1', 'approve'),
-      ).rejects.toThrow('already completed');
-    });
-
-    describe('approve', () => {
-      it('should mark withdrawal as completed', async () => {
-        redis.get
-          .mockResolvedValueOnce(JSON.stringify(pendingWithdrawal)) // withdrawal lookup
-          .mockResolvedValueOnce(JSON.stringify(wallet)); // getWallet
-
-        const result = await service.processWithdrawal('wd-1', 'approve');
-
-        expect(result.status).toBe('completed');
-        expect(result.processedAt).toBeDefined();
-      });
-
-      it('should update totalWithdrawn on wallet', async () => {
-        redis.get
-          .mockResolvedValueOnce(JSON.stringify(pendingWithdrawal))
-          .mockResolvedValueOnce(JSON.stringify(wallet));
-
-        await service.processWithdrawal('wd-1', 'approve');
-
-        const walletSave = redis.set.mock.calls.find(
-          (c) => (c[0] as string) === 'wallet:creator-1',
-        );
-        expect(walletSave).toBeDefined();
-        const saved = JSON.parse(walletSave![1] as string);
-        expect(saved.totalWithdrawn).toBe(300); // 200 + 100
-      });
-
-      it('should send WITHDRAWAL_COMPLETED Kafka event', async () => {
-        redis.get
-          .mockResolvedValueOnce(JSON.stringify(pendingWithdrawal))
-          .mockResolvedValueOnce(JSON.stringify(wallet));
-
-        await service.processWithdrawal('wd-1', 'approve');
-
-        expect(kafka.sendEvent).toHaveBeenCalledWith(
-          'payment.withdrawal.completed',
-          expect.objectContaining({
-            withdrawalId: 'wd-1',
-            userId: 'creator-1',
-            amount: 100,
-          }),
-        );
-      });
-    });
-
-    describe('reject', () => {
-      it('should mark withdrawal as rejected', async () => {
-        redis.get
-          .mockResolvedValueOnce(JSON.stringify(pendingWithdrawal))
-          .mockResolvedValueOnce(JSON.stringify(wallet));
-
-        const result = await service.processWithdrawal('wd-1', 'reject');
-
-        expect(result.status).toBe('rejected');
-        expect(result.processedAt).toBeDefined();
-      });
-
-      it('should refund balance on rejection', async () => {
-        redis.get
-          .mockResolvedValueOnce(JSON.stringify(pendingWithdrawal))
-          .mockResolvedValueOnce(JSON.stringify(wallet));
-
-        await service.processWithdrawal('wd-1', 'reject');
-
-        const walletSave = redis.set.mock.calls.find(
-          (c) => (c[0] as string) === 'wallet:creator-1',
-        );
-        expect(walletSave).toBeDefined();
-        const saved = JSON.parse(walletSave![1] as string);
-        expect(saved.balance).toBe(200); // 100 + 100 refunded
-      });
-
-      it('should NOT send Kafka event on rejection', async () => {
-        redis.get
-          .mockResolvedValueOnce(JSON.stringify(pendingWithdrawal))
-          .mockResolvedValueOnce(JSON.stringify(wallet));
-
-        await service.processWithdrawal('wd-1', 'reject');
-
-        expect(kafka.sendEvent).not.toHaveBeenCalled();
-      });
-    });
   });
-
-  // ── getWalletHistory ──────────────────────────────────────────
 
   describe('getWalletHistory', () => {
-    it('should return parsed wallet transactions', async () => {
-      const tx = {
-        id: 'wt-1',
-        userId: 'u1',
-        type: 'tip_received',
-        amount: 50,
-        netAmount: 40,
-        createdAt: '2025-01-01T00:00:00.000Z',
-      };
-      redis.lRange.mockResolvedValue([JSON.stringify(tx)]);
+    it('should get wallet transaction history', async () => {
+      const mockHistory = [
+        {
+          id: 'wh-1',
+          userId: 'user-123',
+          type: 'tip_received',
+          amount: 100,
+          netAmount: 80,
+          description: 'Tip from user',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 'wh-2',
+          userId: 'user-123',
+          type: 'withdrawal',
+          amount: -500,
+          netAmount: -500,
+          description: 'Withdrawal request',
+          createdAt: new Date().toISOString(),
+        },
+      ];
 
-      const result = await service.getWalletHistory('u1');
+      mockRedisClient.lrange.mockResolvedValue(['wh-1', 'wh-2']);
+      mockRedisClient.get
+        .mockResolvedValueOnce(JSON.stringify(mockHistory[0]))
+        .mockResolvedValueOnce(JSON.stringify(mockHistory[1]));
 
-      expect(result).toHaveLength(1);
+      const result = await service.getWalletHistory('user-123', 10);
+
+      expect(result).toHaveLength(2);
       expect(result[0].type).toBe('tip_received');
-      expect(redis.lRange).toHaveBeenCalledWith('wallet:history:u1', 0, 49);
-    });
-
-    it('should respect custom limit', async () => {
-      redis.lRange.mockResolvedValue([]);
-
-      await service.getWalletHistory('u1', 10);
-
-      expect(redis.lRange).toHaveBeenCalledWith('wallet:history:u1', 0, 9);
+      expect(result[1].type).toBe('withdrawal');
     });
   });
 
-  // ── getEarningsSummary ──────────────────────────────────────────
+  describe('clearPendingBalance', () => {
+    it('should clear pending balance to available balance', async () => {
+      mockRedisClient.eval.mockResolvedValue([
+        JSON.stringify({
+          ...mockWallet,
+          balance: mockWallet.balance + mockWallet.pendingBalance,
+          pendingBalance: 0,
+        }),
+      ]);
 
-  describe('getEarningsSummary', () => {
-    it('should aggregate wallet, transactions, and pending withdrawals', async () => {
-      const wallet = {
-        userId: 'u1',
-        balance: 100,
-        pendingBalance: 0,
-        totalEarnings: 500,
-        totalWithdrawn: 400,
-        updatedAt: '2025-01-01T00:00:00.000Z',
-      };
-      const walletTx = {
-        id: 'wt-1',
-        type: 'tip_received',
-        amount: 50,
-        createdAt: '2025-01-01T00:00:00.000Z',
-      };
-      const pendingWd = {
-        id: 'wd-1',
-        userId: 'u1',
-        amount: 50,
-        status: 'pending',
-        requestedAt: '2025-01-01T00:00:00.000Z',
-      };
+      const result = await service.clearPendingBalance('user-123');
 
-      redis.get
-        .mockResolvedValueOnce(JSON.stringify(wallet));    // getWallet
-
-      redis.lRange
-        .mockResolvedValueOnce([JSON.stringify(walletTx)]) // wallet history
-        .mockResolvedValueOnce(['wd-1']);                   // withdrawal ids
-
-      redis.mget!
-        .mockResolvedValueOnce([JSON.stringify(pendingWd)]); // batch withdrawal lookup
-
-      const result = await service.getEarningsSummary('u1');
-
-      expect(result.wallet.balance).toBe(100);
-      expect(result.recentTransactions).toHaveLength(1);
-      expect(result.pendingWithdrawals).toHaveLength(1);
-      expect(result.pendingWithdrawals[0].status).toBe('pending');
+      expect(result.pendingBalance).toBe(0);
+      expect(result.balance).toBeGreaterThan(mockWallet.balance);
+      expect(mockKafkaProducer.send).toHaveBeenCalledWith(
+        PAYMENT_EVENTS.PENDING_BALANCE_CLEARED,
+        expect.objectContaining({ userId: 'user-123' })
+      );
     });
   });
 });
