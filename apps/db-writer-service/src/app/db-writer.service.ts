@@ -50,7 +50,7 @@ export class DbWriterService {
     private readonly redis: RedisService,
   ) {}
 
-  async handleUserCreated(payload: any): Promise<void> {
+  async handleUserCreated(payload: Record<string, unknown>): Promise<void> {
     const { id, email, displayName, role, bio, createdAt } = payload;
     if (!id || !email || !displayName) {
       this.logger.warn('user.created missing required fields');
@@ -93,12 +93,12 @@ export class DbWriterService {
     this.logger.log(`user.created persisted id=${id}`);
   }
 
-  async handleUserUpdated(payload: any): Promise<void> {
+  async handleUserUpdated(payload: Record<string, unknown>): Promise<void> {
     const { userId, displayName, bio, avatarUrl, updatedAt } = payload;
     if (!userId) return;
     await this.userRepo.update(
-      { id: userId },
-      { displayName, bio, avatarUrl, updatedAt: new Date(updatedAt || Date.now()) } as any,
+      { id: userId as string },
+      { displayName: displayName as string, bio: bio as string | null, avatarUrl: avatarUrl as string | null, updatedAt: new Date((updatedAt as string) || Date.now()) },
     );
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (user) {
@@ -118,7 +118,7 @@ export class DbWriterService {
     this.logger.log(`user.updated persisted userId=${userId}`);
   }
 
-  async handlePostCreated(payload: any): Promise<void> {
+  async handlePostCreated(payload: Record<string, unknown>): Promise<void> {
     const {
       postId,
       creatorId,
@@ -164,24 +164,24 @@ export class DbWriterService {
     this.logger.log(`content.post.created persisted postId=${postId}`);
   }
 
-  async handlePostUpdated(payload: any): Promise<void> {
+  async handlePostUpdated(payload: Record<string, unknown>): Promise<void> {
     const { postId, ...data } = payload;
     if (!postId) return;
-    await this.postRepo.update({ id: postId }, data as any);
+    await this.postRepo.update({ id: postId }, data);
     const post = await this.postRepo.findOne({ where: { id: postId } });
     if (post) {
       await this.redis.set(
         POST_KEY(postId),
         JSON.stringify({
           ...post,
-          createdAt: (post as any).createdAt?.toISOString?.(),
+          createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : String(post.createdAt),
         }),
       );
     }
     this.logger.log(`content.post.updated persisted postId=${postId}`);
   }
 
-  async handlePostDeleted(payload: any): Promise<void> {
+  async handlePostDeleted(payload: Record<string, unknown>): Promise<void> {
     const { postId } = payload;
     if (!postId) return;
     await this.postLikeRepo.delete({ postId });
@@ -191,7 +191,7 @@ export class DbWriterService {
     this.logger.log(`content.post.deleted postId=${postId}`);
   }
 
-  async handlePostLiked(payload: any): Promise<void> {
+  async handlePostLiked(payload: Record<string, unknown>): Promise<void> {
     const { postId, userId } = payload;
     if (!postId || !userId) return;
     await this.postLikeRepo.insert({ postId, userId, createdAt: new Date() });
@@ -203,14 +203,14 @@ export class DbWriterService {
         JSON.stringify({
           ...post,
           likeCount: post.likeCount,
-          createdAt: (post as any).createdAt?.toISOString?.(),
+          createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : String(post.createdAt),
         }),
       );
     }
     this.logger.log(`content.post.liked postId=${postId} userId=${userId}`);
   }
 
-  async handlePostUnliked(payload: any): Promise<void> {
+  async handlePostUnliked(payload: Record<string, unknown>): Promise<void> {
     const { postId, userId } = payload;
     if (!postId || !userId) return;
     await this.postLikeRepo.delete({ postId, userId });
@@ -222,14 +222,14 @@ export class DbWriterService {
         JSON.stringify({
           ...post,
           likeCount: Math.max(0, post.likeCount),
-          createdAt: (post as any).createdAt?.toISOString?.(),
+          createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : String(post.createdAt),
         }),
       );
     }
     this.logger.log(`content.post.unliked postId=${postId} userId=${userId}`);
   }
 
-  async handleCommentCreated(payload: any): Promise<void> {
+  async handleCommentCreated(payload: Record<string, unknown>): Promise<void> {
     const { postId, commentId, userId, content, createdAt } = payload;
     if (!postId || !commentId || !userId || !content) return;
     await this.postCommentRepo.insert({
@@ -247,14 +247,14 @@ export class DbWriterService {
         JSON.stringify({
           ...post,
           commentCount: post.commentCount,
-          createdAt: (post as any).createdAt?.toISOString?.(),
+          createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : String(post.createdAt),
         }),
       );
     }
     this.logger.log(`content.comment.created postId=${postId} commentId=${commentId}`);
   }
 
-  async handleMediaUploaded(payload: any): Promise<void> {
+  async handleMediaUploaded(payload: Record<string, unknown>): Promise<void> {
     const { mediaId, userId, storageUrl, mimeType, fileSize } = payload;
     if (!mediaId || !userId || !storageUrl) return;
     await this.mediaFileRepo.insert({
@@ -281,7 +281,7 @@ export class DbWriterService {
     this.logger.log(`media.uploaded persisted mediaId=${mediaId}`);
   }
 
-  async handleMediaDeleted(payload: any): Promise<void> {
+  async handleMediaDeleted(payload: Record<string, unknown>): Promise<void> {
     const { mediaId } = payload;
     if (!mediaId) return;
     await this.mediaFileRepo.delete({ id: mediaId });
@@ -289,7 +289,7 @@ export class DbWriterService {
     this.logger.log(`media.deleted mediaId=${mediaId}`);
   }
 
-  async handleSubscriptionCreated(payload: any): Promise<void> {
+  async handleSubscriptionCreated(payload: Record<string, unknown>): Promise<void> {
     const { subscriptionId, subscriberId, creatorId, tierId, startDate } = payload;
     if (!subscriptionId || !subscriberId || !creatorId || !tierId) return;
     await this.subscriptionRepo.insert({
@@ -304,7 +304,7 @@ export class DbWriterService {
     this.logger.log(`subscription.created persisted subscriptionId=${subscriptionId}`);
   }
 
-  async handlePaymentCompleted(payload: any): Promise<void> {
+  async handlePaymentCompleted(payload: Record<string, unknown>): Promise<void> {
     const { transactionId, userId, amount, type, metadata } = payload;
     if (!transactionId || !userId) return;
     await this.transactionRepo.insert({
@@ -319,7 +319,7 @@ export class DbWriterService {
     this.logger.log(`payment.completed transactionId=${transactionId}`);
   }
 
-  async handleTipSent(payload: any): Promise<void> {
+  async handleTipSent(payload: Record<string, unknown>): Promise<void> {
     const { senderId, recipientId, amount, transactionId } = payload;
     if (!senderId || !recipientId || amount == null) return;
     const id = transactionId || `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -334,7 +334,7 @@ export class DbWriterService {
     this.logger.log(`payment.tip.sent id=${id}`);
   }
 
-  async handlePostPurchased(payload: any): Promise<void> {
+  async handlePostPurchased(payload: Record<string, unknown>): Promise<void> {
     const { userId, postId, amount, transactionId } = payload;
     if (!userId || !postId || amount == null) return;
     const id = transactionId || `ppv-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -349,7 +349,7 @@ export class DbWriterService {
     this.logger.log(`payment.post.purchased id=${id}`);
   }
 
-  async handleTierCreated(payload: any): Promise<void> {
+  async handleTierCreated(payload: Record<string, unknown>): Promise<void> {
     const { tierId, creatorId, name, description, priceMonthly, priceYearly, benefits, stripePriceId } = payload;
     if (!tierId || !creatorId || !name || priceMonthly == null) return;
     await this.tierRepo.insert({
