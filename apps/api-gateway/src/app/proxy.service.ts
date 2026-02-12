@@ -69,11 +69,11 @@ export class ProxyService {
       },
       {
         prefix: '/api/subscription-tiers',
-        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3009'),
+        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3005'),
       },
       {
         prefix: '/api/subscriptions',
-        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3009'),
+        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3005'),
       },
       {
         prefix: '/api/upload',

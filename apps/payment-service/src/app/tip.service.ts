@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { PAYMENT_EVENTS } from '@suggar-daddy/common';
+import { PaginatedResponse } from '@suggar-daddy/dto';
 import { CreateTipDto } from './dto/tip.dto';
 
 const TIP_KEY = (id: string) => `tip:${id}`;
@@ -44,24 +45,30 @@ export class TipService {
     return tip;
   }
 
-  async findByFrom(userId: string): Promise<any[]> {
-    const ids = await this.redis.lRange(TIPS_FROM(userId), 0, -1);
-    const out: any[] = [];
+  async findByFrom(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+    const key = TIPS_FROM(userId);
+    const total = await this.redis.lLen(key);
+    const skip = (page - 1) * limit;
+    const ids = await this.redis.lRange(key, skip, skip + limit - 1);
+    const data: any[] = [];
     for (const id of ids) {
       const raw = await this.redis.get(TIP_KEY(id));
-      if (raw) out.push(JSON.parse(raw));
+      if (raw) data.push(JSON.parse(raw));
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
-  async findByTo(userId: string): Promise<any[]> {
-    const ids = await this.redis.lRange(TIPS_TO(userId), 0, -1);
-    const out: any[] = [];
+  async findByTo(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+    const key = TIPS_TO(userId);
+    const total = await this.redis.lLen(key);
+    const skip = (page - 1) * limit;
+    const ids = await this.redis.lRange(key, skip, skip + limit - 1);
+    const data: any[] = [];
     for (const id of ids) {
       const raw = await this.redis.get(TIP_KEY(id));
-      if (raw) out.push(JSON.parse(raw));
+      if (raw) data.push(JSON.parse(raw));
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
   async findOne(id: string): Promise<any> {

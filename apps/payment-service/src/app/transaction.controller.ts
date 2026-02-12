@@ -12,11 +12,17 @@ export class TransactionController {
   }
 
   @Get()
-  findAll(@Query('userId') userId?: string) {
+  findAll(
+    @Query('userId') userId?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    const p = Number(page) || 1;
+    const l = Math.min(Number(limit) || 20, 100);
     if (userId) {
-      return this.transactionService.findByUser(userId);
+      return this.transactionService.findByUser(userId, p, l);
     }
-    return this.transactionService.findAll();
+    return this.transactionService.findAll(p, l);
   }
 
   @Get(':id')

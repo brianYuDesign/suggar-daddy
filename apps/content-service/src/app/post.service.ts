@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ConflictException, ForbiddenException } 
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { CONTENT_EVENTS } from '@suggar-daddy/common';
+import { PaginatedResponse } from '@suggar-daddy/dto';
 import { CreatePostDto, UpdatePostDto } from './dto/post.dto';
 import { CreatePostCommentDto } from './dto/post-comment.dto';
 import { SubscriptionServiceClient } from './subscription-service.client';
@@ -58,46 +59,63 @@ export class PostService {
     return post;
   }
 
-  async findAll(): Promise<any[]> {
-    const ids = await this.redis.lRange(POSTS_PUBLIC_IDS, 0, 49);
-    if (ids.length === 0) return [];
-    const out: any[] = [];
+  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+    const total = await this.redis.lLen(POSTS_PUBLIC_IDS);
+    const skip = (page - 1) * limit;
+    const ids = await this.redis.lRange(POSTS_PUBLIC_IDS, skip, skip + limit - 1);
+    const data: any[] = [];
     for (const id of ids) {
       const raw = await this.redis.get(POST_KEY(id));
-      if (raw) out.push(JSON.parse(raw));
+      if (raw) data.push(JSON.parse(raw));
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
-  async findByCreator(creatorId: string): Promise<any[]> {
-    const ids = await this.redis.lRange(POSTS_CREATOR(creatorId), 0, -1);
-    const out: any[] = [];
+  async findByCreator(creatorId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+    const key = POSTS_CREATOR(creatorId);
+    const total = await this.redis.lLen(key);
+    const skip = (page - 1) * limit;
+    const ids = await this.redis.lRange(key, skip, skip + limit - 1);
+    const data: any[] = [];
     for (const id of ids) {
       const raw = await this.redis.get(POST_KEY(id));
-      if (raw) out.push(JSON.parse(raw));
+      if (raw) data.push(JSON.parse(raw));
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
   /** 依創作者取得貼文，並依 viewerId 過濾訂閱牆可見性（僅回傳 viewer 有權看到的） */
-  async findByCreatorWithAccess(creatorId: string, viewerId?: string | null): Promise<any[]> {
-    const all = await this.findByCreator(creatorId);
-    if (!viewerId) {
-      return all.filter((p) => p.visibility === 'public');
+  async findByCreatorWithAccess(
+    creatorId: string,
+    viewerId?: string | null,
+    page = 1,
+    limit = 20,
+  ): Promise<PaginatedResponse<any>> {
+    // Must fetch all then filter — access check can't be done at Redis level
+    const ids = await this.redis.lRange(POSTS_CREATOR(creatorId), 0, -1);
+    const allPosts: any[] = [];
+    for (const id of ids) {
+      const raw = await this.redis.get(POST_KEY(id));
+      if (raw) allPosts.push(JSON.parse(raw));
     }
-    const result: any[] = [];
-    for (const post of all) {
+
+    const filtered: any[] = [];
+    for (const post of allPosts) {
+      if (!viewerId) {
+        if (post.visibility === 'public') filtered.push(post);
+        continue;
+      }
       if (post.visibility === 'public') {
-        result.push(post);
+        filtered.push(post);
         continue;
       }
       if (post.creatorId === viewerId) {
-        result.push(post);
+        filtered.push(post);
         continue;
       }
       if (post.visibility === 'subscribers') {
         const hasAccess = await this.subscriptionClient.hasActiveSubscription(viewerId, post.creatorId);
-        if (hasAccess) result.push(post);
+        if (hasAccess) filtered.push(post);
         continue;
       }
       if (post.visibility === 'tier_specific' && post.requiredTierId) {
@@ -106,10 +124,13 @@ export class PostService {
           post.creatorId,
           post.requiredTierId
         );
-        if (hasAccess) result.push(post);
+        if (hasAccess) filtered.push(post);
       }
     }
-    return result.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+
+    filtered.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    const skip = (page - 1) * limit;
+    return { data: filtered.slice(skip, skip + limit), total: filtered.length, page, limit };
   }
 
   private readonly POST_UNLOCK = (postId: string, userId: string) =>
@@ -245,9 +266,12 @@ export class PostService {
     return comment;
   }
 
-  async getComments(postId: string): Promise<any[]> {
+  async getComments(postId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
     await this.findOne(postId);
-    const list = await this.redis.lRange(POST_COMMENTS(postId), 0, -1);
-    return list.map((s) => JSON.parse(s)).reverse();
+    const key = POST_COMMENTS(postId);
+    const total = await this.redis.lLen(key);
+    const skip = (page - 1) * limit;
+    const list = await this.redis.lRange(key, skip, skip + limit - 1);
+    return { data: list.map((s) => JSON.parse(s)).reverse(), total, page, limit };
   }
 }

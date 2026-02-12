@@ -31,12 +31,16 @@ export class PostController {
   @Public()
   findAll(
     @Query('creatorId') creatorId?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
     @CurrentUser() user?: CurrentUserData
   ) {
+    const p = Number(page) || 1;
+    const l = Math.min(Number(limit) || 20, 100);
     if (creatorId) {
-      return this.postService.findByCreatorWithAccess(creatorId, user?.userId);
+      return this.postService.findByCreatorWithAccess(creatorId, user?.userId, p, l);
     }
-    return this.postService.findAll();
+    return this.postService.findAll(p, l);
   }
 
   @Get(':id')
@@ -94,7 +98,11 @@ export class PostController {
 
   @Get(':id/comments')
   @Public()
-  getComments(@Param('id') id: string) {
-    return this.postService.getComments(id);
+  getComments(
+    @Param('id') id: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    return this.postService.getComments(id, Number(page) || 1, Math.min(Number(limit) || 20, 100));
   }
 }

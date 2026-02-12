@@ -16,13 +16,21 @@ export class TipController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  findByUser(@CurrentUser() user: CurrentUserData, @Query('from') from?: string, @Query('to') to?: string) {
+  findByUser(
+    @CurrentUser() user: CurrentUserData,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
     const uid = user.userId;
-    if (from && from !== uid) return []; // 僅允許查自己為 from 的紀錄
-    if (to && to !== uid) return []; // 僅允許查自己為 to 的紀錄
-    if (from) return this.tipService.findByFrom(from);
-    if (to) return this.tipService.findByTo(to);
-    return [];
+    const p = Number(page) || 1;
+    const l = Math.min(Number(limit) || 20, 100);
+    if (from && from !== uid) return { data: [], total: 0, page: p, limit: l };
+    if (to && to !== uid) return { data: [], total: 0, page: p, limit: l };
+    if (from) return this.tipService.findByFrom(from, p, l);
+    if (to) return this.tipService.findByTo(to, p, l);
+    return { data: [], total: 0, page: p, limit: l };
   }
 
   @Get(':id')

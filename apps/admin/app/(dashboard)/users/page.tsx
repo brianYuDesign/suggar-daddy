@@ -91,7 +91,7 @@ export default function UsersPage() {
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={`/(dashboard)/users/${user.id}`}
+                          href={`/users/${user.id}`}
                           className="text-sm text-primary hover:underline"
                         >
                           View

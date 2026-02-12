@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { PAYMENT_EVENTS } from '@suggar-daddy/common';
+import { PaginatedResponse } from '@suggar-daddy/dto';
 import { CreateTransactionDto, UpdateTransactionDto } from './dto/transaction.dto';
 
 const TX_KEY = (id: string) => `transaction:${id}`;
@@ -42,24 +43,30 @@ export class TransactionService {
     return tx;
   }
 
-  async findAll(): Promise<any[]> {
-    const keys = await this.redis.keys('transaction:tx-*');
-    const out: any[] = [];
+  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+    // KEYS/SCAN does not support native pagination — fetch all then slice
+    const keys = await this.redis.scan('transaction:tx-*');
+    const all: any[] = [];
     for (const key of keys) {
       const raw = await this.redis.get(key);
-      if (raw) out.push(JSON.parse(raw));
+      if (raw) all.push(JSON.parse(raw));
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)).slice(0, 100);
+    all.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    const skip = (page - 1) * limit;
+    return { data: all.slice(skip, skip + limit), total: all.length, page, limit };
   }
 
-  async findByUser(userId: string): Promise<any[]> {
-    const ids = await this.redis.lRange(TX_USER(userId), 0, -1);
-    const out: any[] = [];
+  async findByUser(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+    const key = TX_USER(userId);
+    const total = await this.redis.lLen(key);
+    const skip = (page - 1) * limit;
+    const ids = await this.redis.lRange(key, skip, skip + limit - 1);
+    const data: any[] = [];
     for (const id of ids) {
       const raw = await this.redis.get(TX_KEY(id));
-      if (raw) out.push(JSON.parse(raw));
+      if (raw) data.push(JSON.parse(raw));
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
   async findOne(id: string): Promise<any> {

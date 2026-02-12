@@ -94,7 +94,7 @@ export default function ContentPage() {
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={`/(dashboard)/content/reports/${report.id}`}
+                          href={`/content/reports/${report.id}`}
                           className="text-sm text-primary hover:underline"
                         >
                           Review

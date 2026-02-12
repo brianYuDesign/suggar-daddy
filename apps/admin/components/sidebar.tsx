@@ -15,12 +15,12 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth-provider';
 
 const navItems = [
-  { href: '/(dashboard)', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/(dashboard)/users', label: 'Users', icon: Users },
-  { href: '/(dashboard)/content', label: 'Content', icon: FileWarning },
-  { href: '/(dashboard)/payments', label: 'Payments', icon: CreditCard },
-  { href: '/(dashboard)/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/(dashboard)/system', label: 'System', icon: Activity },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/users', label: 'Users', icon: Users },
+  { href: '/content', label: 'Content', icon: FileWarning },
+  { href: '/payments', label: 'Payments', icon: CreditCard },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/system', label: 'System', icon: Activity },
 ];
 
 export function Sidebar() {
@@ -36,7 +36,7 @@ export function Sidebar() {
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
-            (item.href !== '/(dashboard)' && pathname.startsWith(item.href));
+            (item.href !== '/' && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}

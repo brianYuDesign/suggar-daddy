@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { MEDIA_EVENTS } from '@suggar-daddy/common';
+import { PaginatedResponse } from '@suggar-daddy/dto';
 
 const MEDIA_KEY = (id: string) => `media:${id}`;
 const MEDIA_USER = (userId: string) => `media:user:${userId}`;
@@ -65,27 +66,33 @@ export class MediaService {
     return media;
   }
 
-  async findAll(): Promise<any[]> {
+  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+    // SCAN does not support native pagination — fetch all then slice
     const keys = await this.redis.scan('media:media-*');
-    if (keys.length === 0) return [];
+    if (keys.length === 0) return { data: [], total: 0, page, limit };
     const values = await this.redis.mget(...keys);
-    const out: any[] = [];
+    const all: any[] = [];
     for (const raw of values) {
-      if (raw) out.push(JSON.parse(raw));
+      if (raw) all.push(JSON.parse(raw));
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    all.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    const skip = (page - 1) * limit;
+    return { data: all.slice(skip, skip + limit), total: all.length, page, limit };
   }
 
-  async findByUser(userId: string): Promise<any[]> {
-    const ids = await this.redis.lRange(MEDIA_USER(userId), 0, -1);
-    if (ids.length === 0) return [];
+  async findByUser(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+    const key = MEDIA_USER(userId);
+    const total = await this.redis.lLen(key);
+    const skip = (page - 1) * limit;
+    const ids = await this.redis.lRange(key, skip, skip + limit - 1);
+    if (ids.length === 0) return { data: [], total, page, limit };
     const keys = ids.map((id) => MEDIA_KEY(id));
     const values = await this.redis.mget(...keys);
-    const out: any[] = [];
+    const data: any[] = [];
     for (const raw of values) {
-      if (raw) out.push(JSON.parse(raw));
+      if (raw) data.push(JSON.parse(raw));
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
   async findOne(id: string): Promise<any> {

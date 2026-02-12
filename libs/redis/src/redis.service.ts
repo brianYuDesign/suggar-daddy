@@ -74,6 +74,10 @@ export class RedisService implements OnModuleDestroy {
     return this.client.lrange(key, start, stop);
   }
 
+  async lLen(key: string): Promise<number> {
+    return this.client.llen(key);
+  }
+
   getClient(): Redis {
     return this.client;
   }

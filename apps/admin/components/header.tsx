@@ -3,12 +3,12 @@
 import { usePathname } from 'next/navigation';
 
 const titleMap: Record<string, string> = {
-  '/(dashboard)': 'Dashboard',
-  '/(dashboard)/users': 'User Management',
-  '/(dashboard)/content': 'Content Moderation',
-  '/(dashboard)/payments': 'Payments',
-  '/(dashboard)/analytics': 'Analytics',
-  '/(dashboard)/system': 'System Monitor',
+  '/': 'Dashboard',
+  '/users': 'User Management',
+  '/content': 'Content Moderation',
+  '/payments': 'Payments',
+  '/analytics': 'Analytics',
+  '/system': 'System Monitor',
 };
 
 export function Header() {

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { SUBSCRIPTION_EVENTS } from '@suggar-daddy/common';
+import { PaginatedResponse } from '@suggar-daddy/dto';
 import { CreateSubscriptionDto, UpdateSubscriptionDto } from './dto/subscription.dto';
 
 const SUB_KEY = (id: string) => `subscription:${id}`;
@@ -58,30 +59,35 @@ export class SubscriptionService {
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 
-  async findBySubscriber(subscriberId: string): Promise<any[]> {
+  async findBySubscriber(subscriberId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+    // Must fetch all and filter by status — can't paginate at Redis level
     const ids = await this.redis.lRange(SUBS_SUBSCRIBER(subscriberId), 0, -1);
-    const out: any[] = [];
+    const active: any[] = [];
     for (const id of ids) {
       const raw = await this.redis.get(SUB_KEY(id));
       if (raw) {
         const s = JSON.parse(raw);
-        if (s.status === 'active') out.push(s);
+        if (s.status === 'active') active.push(s);
       }
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    active.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    const skip = (page - 1) * limit;
+    return { data: active.slice(skip, skip + limit), total: active.length, page, limit };
   }
 
-  async findByCreator(creatorId: string): Promise<any[]> {
+  async findByCreator(creatorId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
     const ids = await this.redis.lRange(SUBS_CREATOR(creatorId), 0, -1);
-    const out: any[] = [];
+    const active: any[] = [];
     for (const id of ids) {
       const raw = await this.redis.get(SUB_KEY(id));
       if (raw) {
         const s = JSON.parse(raw);
-        if (s.status === 'active') out.push(s);
+        if (s.status === 'active') active.push(s);
       }
     }
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    active.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    const skip = (page - 1) * limit;
+    return { data: active.slice(skip, skip + limit), total: active.length, page, limit };
   }
 
   async findOne(id: string): Promise<any> {
@@ -137,9 +143,9 @@ export class SubscriptionService {
     creatorId: string,
     tierId?: string | null
   ): Promise<boolean> {
-    const subs = await this.findBySubscriber(subscriberId);
+    const result = await this.findBySubscriber(subscriberId, 1, 10000);
     const now = new Date().toISOString();
-    const active = subs.filter(
+    const active = result.data.filter(
       (s) =>
         s.creatorId === creatorId &&
         s.status === 'active' &&

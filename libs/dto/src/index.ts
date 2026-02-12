@@ -8,3 +8,4 @@ export * from './user.dto';
 export * from './matching.dto';
 export * from './notification.dto';
 export * from './messaging.dto';
+export * from './pagination.dto';
