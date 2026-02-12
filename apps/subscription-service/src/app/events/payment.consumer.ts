@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { PAYMENT_EVENTS, PaymentCompletedEvent } from '@suggar-daddy/common';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 @Injectable()
 export class PaymentConsumer {
+  private readonly logger = new Logger(PaymentConsumer.name);
+
   constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
   @EventPattern(PAYMENT_EVENTS.PAYMENT_COMPLETED)
   async handlePaymentCompleted(@Payload() event: PaymentCompletedEvent) {
-    console.log('Payment completed event received:', event);
+    this.logger.log('Payment completed event received:', event);
 
     // If this is a subscription payment, update subscription status
     if (event.type === 'subscription' && event.metadata?.subscriptionId) {
@@ -19,11 +21,11 @@ export class PaymentConsumer {
         // await this.subscriptionsService.activateSubscription(
         //   event.metadata.subscriptionId
         // );
-        console.log(
+        this.logger.log(
           `Subscription ${event.metadata.subscriptionId} payment processed`,
         );
       } catch (error) {
-        console.error('Error processing subscription payment:', error);
+        this.logger.error('Error processing subscription payment:', error);
       }
     }
   }

@@ -1,5 +1,5 @@
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, Logger } from '@nestjs/common';
 
 export interface SwaggerConfig {
   title: string;
@@ -42,5 +42,6 @@ export const setupSwagger = (
     customCss: '.swagger-ui .topbar { display: none }',
   });
 
-  console.log(`Swagger documentation available at: /${config.path || 'api'}`);
+  const logger = new Logger('SwaggerSetup');
+  logger.log(`Swagger documentation available at: /${config.path || 'api'}`);
 };
