@@ -10,6 +10,15 @@ const PURCHASES_POST = (postId: string) => `post-purchases:post:${postId}`;
 const PURCHASE_BY_BUYER_POST = (buyerId: string, postId: string) =>
   `post-purchase:by-buyer-post:${buyerId}:${postId}`;
 
+export interface PostPurchase {
+  id: string;
+  postId: string;
+  buyerId: string;
+  amount: number;
+  stripePaymentId: string | null;
+  createdAt: string;
+}
+
 @Injectable()
 export class PostPurchaseService {
   constructor(
@@ -21,7 +30,7 @@ export class PostPurchaseService {
     return `ppv-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  async create(dto: CreatePostPurchaseDto & { stripePaymentId?: string }): Promise<any> {
+  async create(dto: CreatePostPurchaseDto & { stripePaymentId?: string }): Promise<PostPurchase> {
     const existingId = await this.redis.get(PURCHASE_BY_BUYER_POST(dto.buyerId, dto.postId));
     if (existingId) {
       const existingRaw = await this.redis.get(PURCHASE_KEY(existingId));
@@ -32,7 +41,7 @@ export class PostPurchaseService {
 
     const id = this.genId();
     const now = new Date().toISOString();
-    const purchase = {
+    const purchase: PostPurchase = {
       id,
       postId: dto.postId,
       buyerId: dto.buyerId,
@@ -54,7 +63,7 @@ export class PostPurchaseService {
     return purchase;
   }
 
-  async findByBuyer(userId: string): Promise<any[]> {
+  async findByBuyer(userId: string): Promise<PostPurchase[]> {
     const ids = await this.redis.lRange(PURCHASES_BUYER(userId), 0, -1);
     const keys = ids.map((id) => PURCHASE_KEY(id));
     const values = await this.redis.mget(...keys);
@@ -62,7 +71,7 @@ export class PostPurchaseService {
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string): Promise<PostPurchase> {
     const raw = await this.redis.get(PURCHASE_KEY(id));
     if (!raw) throw new NotFoundException(`Post purchase ${id} not found`);
     return JSON.parse(raw);
