@@ -29,10 +29,10 @@ export * from "./lib/data-consistency-scheduler.service";
 export * from "./lib/data-consistency.controller";
 export * from "./lib/data-consistency.module";
 
-// OAuth exports
-export * from "./lib/oauth-google.strategy";
-export * from "./lib/oauth-apple.strategy";
-export * from "./lib/oauth.service";
+// OAuth exports - Temporarily disabled (needs API fixes)
+// export * from "./lib/oauth-google.strategy";
+// export * from "./lib/oauth-apple.strategy";
+// export * from "./lib/oauth.service";
 
-// Stripe Connect exports
-export * from "./lib/stripe-connect.service";
+// Stripe Connect exports - Temporarily disabled (needs API fixes)
+// export * from "./lib/stripe-connect.service";
