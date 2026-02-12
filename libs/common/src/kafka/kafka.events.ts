@@ -76,7 +76,7 @@ export interface PaymentCompletedEvent {
   userId: string;
   amount: number;
   type: 'subscription' | 'tip' | 'ppv';
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PostCreatedEvent {

@@ -71,7 +71,7 @@ export class SubscriptionController {
   @ApiOperation({ summary: 'Create a new subscription tier (Creator only)' })
   async createTier(
     @CurrentUser() user: CurrentUserData,
-    @Body() body: any,
+    @Body() body: Record<string, unknown>,
   ) {
     return {
       message: 'Creator only: Create tier',

@@ -29,7 +29,7 @@ export class UserServiceClient {
     const data = Array.isArray(res.data) ? res.data : [];
     data.forEach((c) => {
       if (c.lastActiveAt && typeof c.lastActiveAt === 'string') {
-        (c as any).lastActiveAt = new Date(c.lastActiveAt);
+        (c as UserCardDto & { lastActiveAt: Date | string }).lastActiveAt = new Date(c.lastActiveAt);
       }
     });
     return data;

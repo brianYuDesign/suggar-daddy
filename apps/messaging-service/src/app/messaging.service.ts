@@ -87,7 +87,7 @@ export class MessagingService {
     const convKeys = convIds.map((id) => CONV_KEY(id));
     const convValues = await this.redis.mget(...convKeys);
 
-    const validConvs: { conv: any; convId: string }[] = [];
+    const validConvs: { conv: { id: string; participantIds: string[] }; convId: string }[] = [];
     for (let i = 0; i < convIds.length; i++) {
       if (convValues[i]) {
         validConvs.push({ conv: JSON.parse(convValues[i]!), convId: convIds[i] });

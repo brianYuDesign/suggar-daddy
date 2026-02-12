@@ -23,14 +23,14 @@ export class TransactionController {
     const p = Number(page) || 1;
     const l = Math.min(Number(limit) || 20, 100);
     // Non-admin users can only query their own transactions
-    const queryUserId = (user as any).role === UserRole.ADMIN ? (userId ?? user.userId) : user.userId;
+    const queryUserId = user.role === UserRole.ADMIN ? (userId ?? user.userId) : user.userId;
     return this.transactionService.findByUser(queryUserId, p, l);
   }
 
   @Get(':id')
   async findOne(@CurrentUser() user: CurrentUserData, @Param('id') id: string) {
     const tx = await this.transactionService.findOne(id);
-    if ((user as any).role !== UserRole.ADMIN && tx.userId !== user.userId) {
+    if (user.role !== UserRole.ADMIN && tx.userId !== user.userId) {
       throw new ForbiddenException('You can only view your own transactions');
     }
     return tx;
