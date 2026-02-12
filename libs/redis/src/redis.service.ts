@@ -78,6 +78,16 @@ export class RedisService implements OnModuleDestroy {
     return this.client.llen(key);
   }
 
+  /** Safely parse JSON from a raw Redis string, returning null on failure */
+  static tryParseJson<T>(raw: string | null): T | null {
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
+    }
+  }
+
   getClient(): Redis {
     return this.client;
   }

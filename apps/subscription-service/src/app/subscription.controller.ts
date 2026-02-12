@@ -5,9 +5,11 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import {
+  JwtAuthGuard,
   CurrentUser,
   CurrentUserData,
   Roles,
@@ -52,6 +54,7 @@ export class SubscriptionController {
 
   // Protected endpoint - requires authentication
   @Get('my-subscription')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get current user subscription' })
   async getMySubscription(@CurrentUser() user: CurrentUserData) {
     return {
@@ -63,6 +66,7 @@ export class SubscriptionController {
 
   // Creator-only endpoint
   @Post('create-tier')
+  @UseGuards(JwtAuthGuard)
   @Roles(UserRole.CREATOR, UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new subscription tier (Creator only)' })
   async createTier(
@@ -78,6 +82,7 @@ export class SubscriptionController {
 
   // Admin-only endpoint
   @Get('admin/all')
+  @UseGuards(JwtAuthGuard)
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get all subscriptions (Admin only)' })
   async getAllSubscriptions(@CurrentUser('userId') userId: string) {

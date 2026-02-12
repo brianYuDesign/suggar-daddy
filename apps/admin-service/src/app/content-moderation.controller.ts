@@ -61,4 +61,15 @@ export class ContentModerationController {
   getContentStats() {
     return this.contentModerationService.getContentStats();
   }
+
+  /** GET /api/v1/admin/content/posts — 分頁查詢所有貼文 */
+  @Get('posts')
+  listPosts(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('visibility') visibility?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.contentModerationService.listPosts(page, limit, visibility, search);
+  }
 }

@@ -56,11 +56,9 @@ export class PostPurchaseService {
 
   async findByBuyer(userId: string): Promise<any[]> {
     const ids = await this.redis.lRange(PURCHASES_BUYER(userId), 0, -1);
-    const out: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(PURCHASE_KEY(id));
-      if (raw) out.push(JSON.parse(raw));
-    }
+    const keys = ids.map((id) => PURCHASE_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const out = values.filter(Boolean).map((raw) => JSON.parse(raw!));
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 

@@ -160,7 +160,6 @@ export class AuthService {
     await this.kafkaProducer.sendEvent(USER_EVENTS.USER_CREATED, {
       id: userId,
       email: normalizedEmail,
-      passwordHash: user.passwordHash,
       displayName: user.displayName,
       role: user.role,
       bio: user.bio,

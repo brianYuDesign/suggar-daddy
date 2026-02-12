@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { UserManagementService } from './user-management.service';
-import { UserEntity } from '@suggar-daddy/database';
+import {
+  UserEntity,
+  PostEntity,
+  SubscriptionEntity,
+  TransactionEntity,
+} from '@suggar-daddy/database';
 import { RedisService } from '@suggar-daddy/redis';
 
 describe('UserManagementService', () => {
@@ -11,6 +16,9 @@ describe('UserManagementService', () => {
     Pick<RedisService, 'set' | 'get' | 'del' | 'getClient'>
   >;
   let userRepo: Record<string, jest.Mock>;
+  let postRepo: Record<string, jest.Mock>;
+  let subscriptionRepo: Record<string, jest.Mock>;
+  let transactionRepo: Record<string, jest.Mock>;
 
   const mockScan = jest.fn();
 
@@ -23,9 +31,33 @@ describe('UserManagementService', () => {
     select: jest.fn().mockReturnThis(),
     addSelect: jest.fn().mockReturnThis(),
     groupBy: jest.fn().mockReturnThis(),
+    whereInIds: jest.fn().mockReturnThis(),
     getManyAndCount: jest.fn(),
+    getMany: jest.fn(),
     getCount: jest.fn(),
     getRawMany: jest.fn(),
+  };
+
+  const mockPostQb = {
+    where: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue([]),
+  };
+
+  const mockSubQb = {
+    where: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue([]),
+    getCount: jest.fn().mockResolvedValue(0),
+  };
+
+  const mockTxQb = {
+    where: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue([]),
   };
 
   beforeEach(async () => {
@@ -40,12 +72,30 @@ describe('UserManagementService', () => {
       createQueryBuilder: jest.fn().mockReturnValue(mockQb),
       findOne: jest.fn().mockResolvedValue(null),
       count: jest.fn().mockResolvedValue(0),
+      save: jest.fn().mockImplementation((u) => Promise.resolve(u)),
+    };
+
+    postRepo = {
+      createQueryBuilder: jest.fn().mockReturnValue(mockPostQb),
+      count: jest.fn().mockResolvedValue(0),
+    };
+
+    subscriptionRepo = {
+      createQueryBuilder: jest.fn().mockReturnValue(mockSubQb),
+    };
+
+    transactionRepo = {
+      createQueryBuilder: jest.fn().mockReturnValue(mockTxQb),
+      count: jest.fn().mockResolvedValue(0),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserManagementService,
         { provide: getRepositoryToken(UserEntity), useValue: userRepo },
+        { provide: getRepositoryToken(PostEntity), useValue: postRepo },
+        { provide: getRepositoryToken(SubscriptionEntity), useValue: subscriptionRepo },
+        { provide: getRepositoryToken(TransactionEntity), useValue: transactionRepo },
         { provide: RedisService, useValue: redis },
       ],
     }).compile();
@@ -63,6 +113,28 @@ describe('UserManagementService', () => {
     userRepo.createQueryBuilder.mockReturnValue(mockQb);
     userRepo.findOne.mockResolvedValue(null);
     userRepo.count.mockResolvedValue(0);
+    userRepo.save.mockImplementation((u) => Promise.resolve(u));
+
+    postRepo.createQueryBuilder.mockReturnValue(mockPostQb);
+    postRepo.count.mockResolvedValue(0);
+    mockPostQb.where.mockReturnThis();
+    mockPostQb.orderBy.mockReturnThis();
+    mockPostQb.take.mockReturnThis();
+    mockPostQb.getMany.mockResolvedValue([]);
+
+    subscriptionRepo.createQueryBuilder.mockReturnValue(mockSubQb);
+    mockSubQb.where.mockReturnThis();
+    mockSubQb.orderBy.mockReturnThis();
+    mockSubQb.take.mockReturnThis();
+    mockSubQb.getMany.mockResolvedValue([]);
+    mockSubQb.getCount.mockResolvedValue(0);
+
+    transactionRepo.createQueryBuilder.mockReturnValue(mockTxQb);
+    transactionRepo.count.mockResolvedValue(0);
+    mockTxQb.where.mockReturnThis();
+    mockTxQb.orderBy.mockReturnThis();
+    mockTxQb.take.mockReturnThis();
+    mockTxQb.getMany.mockResolvedValue([]);
 
     mockQb.andWhere.mockReturnThis();
     mockQb.where.mockReturnThis();
@@ -72,7 +144,9 @@ describe('UserManagementService', () => {
     mockQb.select.mockReturnThis();
     mockQb.addSelect.mockReturnThis();
     mockQb.groupBy.mockReturnThis();
+    mockQb.whereInIds.mockReturnThis();
     mockQb.getManyAndCount.mockResolvedValue([[], 0]);
+    mockQb.getMany.mockResolvedValue([]);
     mockQb.getCount.mockResolvedValue(0);
     mockQb.getRawMany.mockResolvedValue([]);
   });

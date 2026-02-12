@@ -7,7 +7,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PostEntity } from '@suggar-daddy/database';
+import { PostEntity, UserEntity } from '@suggar-daddy/database';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { RedisService } from '@suggar-daddy/redis';
 
@@ -28,6 +28,8 @@ export class ContentModerationService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepo: Repository<PostEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
     private readonly kafkaProducer: KafkaProducerService,
     private readonly redisService: RedisService,
   ) {}
@@ -110,6 +112,51 @@ export class ContentModerationService {
     const resolvedReports = allReports.filter((r) => r.status === 'resolved').length;
     const takenDownCount = await this.countTakenDownPosts();
     return { totalPosts, pendingReports, resolvedReports, takenDownCount };
+  }
+
+  /** 分頁查詢所有貼文 */
+  async listPosts(page: number, limit: number, visibility?: string, search?: string) {
+    const qb = this.postRepo.createQueryBuilder('post');
+    if (visibility) {
+      qb.andWhere('post.visibility = :visibility', { visibility });
+    }
+    if (search) {
+      qb.andWhere('post.caption ILIKE :search', { search: `%${search}%` });
+    }
+    qb.orderBy('post.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [posts, total] = await qb.getManyAndCount();
+
+    const creatorIds = [...new Set(posts.map((p) => p.creatorId))];
+    const creators = creatorIds.length > 0
+      ? await this.userRepo
+          .createQueryBuilder('u')
+          .select(['u.id', 'u.email', 'u.displayName', 'u.avatarUrl'])
+          .whereInIds(creatorIds)
+          .getMany()
+      : [];
+    const creatorMap = new Map(creators.map((c) => [c.id, c]));
+
+    const data = posts.map((p) => {
+      const creator = creatorMap.get(p.creatorId);
+      return {
+        id: p.id,
+        contentType: p.contentType,
+        caption: p.caption,
+        mediaUrls: p.mediaUrls,
+        visibility: p.visibility,
+        likeCount: p.likeCount,
+        commentCount: p.commentCount,
+        createdAt: p.createdAt,
+        creator: creator
+          ? { id: creator.id, email: creator.email, displayName: creator.displayName, avatarUrl: creator.avatarUrl }
+          : null,
+      };
+    });
+
+    return { data, total, page, limit };
   }
 
   // ---- 私有方法 ----

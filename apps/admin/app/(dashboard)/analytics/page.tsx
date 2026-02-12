@@ -5,6 +5,8 @@ import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { SimpleBarChart } from '@/components/simple-chart';
 import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Select, Skeleton, TabsList, TabsTrigger } from '@suggar-daddy/ui';
+import { StatsCard } from '@/components/stats-card';
+import { Heart, Users, Zap, Target } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const [dauDays, setDauDays] = useState(7);
@@ -14,10 +16,64 @@ export default function AnalyticsPage() {
   const creatorRevenue = useAdminQuery(() => adminApi.getCreatorRevenueRanking(10));
   const popularContent = useAdminQuery(() => adminApi.getPopularContent(10));
   const churnRate = useAdminQuery(() => adminApi.getSubscriptionChurnRate(churnPeriod), [churnPeriod]);
+  const matching = useAdminQuery(() => adminApi.getMatchingStats());
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Analytics</h1>
+
+      {/* Matching Stats */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Matching Statistics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {matching.loading ? (
+            <Skeleton className="h-[200px]" />
+          ) : matching.data ? (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <StatsCard title="Total Swipes" value={matching.data.totalSwipes.toLocaleString()} icon={Zap} />
+                <StatsCard title="Total Matches" value={matching.data.totalMatches.toLocaleString()} icon={Heart} />
+                <StatsCard title="Active Matches" value={matching.data.activeMatches.toLocaleString()} icon={Users} />
+                <StatsCard
+                  title="Match Rate"
+                  value={`${matching.data.matchRate}%`}
+                  icon={Target}
+                  description={`${matching.data.likeCount} likes, ${matching.data.passCount} passes`}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="rounded-md bg-muted p-4">
+                  <p className="text-sm text-muted-foreground">Likes</p>
+                  <p className="mt-1 text-2xl font-bold">{matching.data.likeCount.toLocaleString()}</p>
+                </div>
+                <div className="rounded-md bg-muted p-4">
+                  <p className="text-sm text-muted-foreground">Passes</p>
+                  <p className="mt-1 text-2xl font-bold">{matching.data.passCount.toLocaleString()}</p>
+                </div>
+                <div className="rounded-md bg-muted p-4">
+                  <p className="text-sm text-muted-foreground">Super Likes</p>
+                  <p className="mt-1 text-2xl font-bold">{matching.data.superLikeCount.toLocaleString()}</p>
+                </div>
+              </div>
+              {matching.data.dailyMatches.length > 0 && (
+                <div>
+                  <p className="mb-2 text-sm font-medium text-muted-foreground">Daily Matches (14 days)</p>
+                  <SimpleBarChart
+                    data={matching.data.dailyMatches.map((d) => ({
+                      label: d.date.slice(5),
+                      value: d.count,
+                    }))}
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="py-8 text-center text-sm text-muted-foreground">No matching data</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* DAU/MAU */}
       <Card>

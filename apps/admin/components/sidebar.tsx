@@ -9,7 +9,10 @@ import {
   CreditCard,
   BarChart3,
   Activity,
+  Wallet,
   LogOut,
+  Crown,
+  ArrowUpDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth-provider';
@@ -18,7 +21,10 @@ const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/users', label: 'Users', icon: Users },
   { href: '/content', label: 'Content', icon: FileWarning },
+  { href: '/subscriptions', label: 'Subscriptions', icon: Crown },
+  { href: '/transactions', label: 'Transactions', icon: ArrowUpDown },
   { href: '/payments', label: 'Payments', icon: CreditCard },
+  { href: '/withdrawals', label: 'Withdrawals', icon: Wallet },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/system', label: 'System', icon: Activity },
 ];

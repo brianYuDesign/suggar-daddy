@@ -1,6 +1,6 @@
 'use client';
 
-import { Users, FileText, CreditCard, Activity } from 'lucide-react';
+import { Users, FileText, CreditCard, Activity, Wallet } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { StatsCard } from '@/components/stats-card';
@@ -12,6 +12,7 @@ export default function DashboardPage() {
   const userStats = useAdminQuery(() => adminApi.getUserStats());
   const contentStats = useAdminQuery(() => adminApi.getContentStats());
   const paymentStats = useAdminQuery(() => adminApi.getPaymentStats());
+  const withdrawalStats = useAdminQuery(() => adminApi.getWithdrawalStats());
   const systemHealth = useAdminQuery(() => adminApi.getSystemHealth());
   const dailyRevenue = useAdminQuery(() => adminApi.getDailyRevenue(14));
 
@@ -20,7 +21,7 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold">Overview</h1>
 
       {/* Stats Row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {userStats.loading ? (
           <Skeleton className="h-[100px]" />
         ) : (
@@ -49,6 +50,16 @@ export default function DashboardPage() {
             value={`$${(paymentStats.data?.totalAmount ?? 0).toLocaleString()}`}
             icon={CreditCard}
             description={`${paymentStats.data?.successRate ?? 0}% success rate`}
+          />
+        )}
+        {withdrawalStats.loading ? (
+          <Skeleton className="h-[100px]" />
+        ) : (
+          <StatsCard
+            title="Pending Withdrawals"
+            value={withdrawalStats.data?.pendingCount ?? 0}
+            icon={Wallet}
+            description={`$${(withdrawalStats.data?.pendingAmount ?? 0).toLocaleString()} to review`}
           />
         )}
         {systemHealth.loading ? (

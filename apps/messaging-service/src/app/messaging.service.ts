@@ -83,26 +83,48 @@ export class MessagingService {
 
   async getConversations(userId: string): Promise<ConversationDto[]> {
     const convIds = await this.redis.sMembers(USER_CONVS(userId));
-    const result: ConversationDto[] = [];
-    for (const convId of convIds) {
-      const raw = await this.redis.get(CONV_KEY(convId));
-      if (!raw) continue;
-      const conv = JSON.parse(raw);
-      const msgIds = await this.redis.lRange(CONV_MESSAGES(convId), 0, 0);
-      let lastMessageAt: Date | undefined;
-      if (msgIds.length) {
-        const lastRaw = await this.redis.get(MSG_KEY(msgIds[0]));
-        if (lastRaw) {
-          const m = JSON.parse(lastRaw) as StoredMessage;
-          lastMessageAt = new Date(m.createdAt);
-        }
+    // Batch fetch all conversations
+    const convKeys = convIds.map((id) => CONV_KEY(id));
+    const convValues = await this.redis.mget(...convKeys);
+
+    const validConvs: { conv: any; convId: string }[] = [];
+    for (let i = 0; i < convIds.length; i++) {
+      if (convValues[i]) {
+        validConvs.push({ conv: JSON.parse(convValues[i]!), convId: convIds[i] });
       }
-      result.push({
-        id: conv.id,
-        participantIds: conv.participantIds,
-        lastMessageAt,
-      });
     }
+
+    // Fetch last message ID for each conversation
+    const lastMsgIdPromises = validConvs.map(({ convId }) =>
+      this.redis.lRange(CONV_MESSAGES(convId), 0, 0)
+    );
+    const lastMsgIds = await Promise.all(lastMsgIdPromises);
+
+    // Batch fetch last messages
+    const msgKeysToFetch: string[] = [];
+    const msgIndexMap: number[] = []; // maps msgKeysToFetch index -> validConvs index
+    for (let i = 0; i < lastMsgIds.length; i++) {
+      if (lastMsgIds[i].length) {
+        msgKeysToFetch.push(MSG_KEY(lastMsgIds[i][0]));
+        msgIndexMap.push(i);
+      }
+    }
+    const msgValues = msgKeysToFetch.length ? await this.redis.mget(...msgKeysToFetch) : [];
+
+    const lastMessageAtMap = new Map<number, Date>();
+    for (let i = 0; i < msgValues.length; i++) {
+      if (msgValues[i]) {
+        const m = JSON.parse(msgValues[i]!) as StoredMessage;
+        lastMessageAtMap.set(msgIndexMap[i], new Date(m.createdAt));
+      }
+    }
+
+    const result: ConversationDto[] = validConvs.map(({ conv }, i) => ({
+      id: conv.id,
+      participantIds: conv.participantIds,
+      lastMessageAt: lastMessageAtMap.get(i),
+    }));
+
     result.sort(
       (a, b) =>
         (b.lastMessageAt?.getTime() ?? 0) - (a.lastMessageAt?.getTime() ?? 0)
@@ -121,20 +143,20 @@ export class MessagingService {
     const conv = JSON.parse(convRaw);
     if (!conv.participantIds?.includes(userId)) return { messages: [] };
     const msgIds = await this.redis.lRange(CONV_MESSAGES(conversationId), 0, -1);
-    const messages: MessageDto[] = [];
-    for (const id of msgIds) {
-      const raw = await this.redis.get(MSG_KEY(id));
-      if (raw) {
-        const m = JSON.parse(raw) as StoredMessage;
-        messages.push({
+    const msgKeys = msgIds.map((id) => MSG_KEY(id));
+    const msgValues = await this.redis.mget(...msgKeys);
+    const messages: MessageDto[] = msgValues
+      .filter(Boolean)
+      .map((raw) => {
+        const m = JSON.parse(raw!) as StoredMessage;
+        return {
           id: m.id,
           conversationId: m.conversationId,
           senderId: m.senderId,
           content: m.content,
           createdAt: new Date(m.createdAt),
-        });
-      }
-    }
+        };
+      });
     messages.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     let start = 0;
     if (cursor) {

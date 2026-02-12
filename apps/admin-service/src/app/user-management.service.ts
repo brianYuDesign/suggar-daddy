@@ -3,10 +3,15 @@
  * 提供用戶列表查詢、詳情查看、停用/啟用、統計等功能
  */
 
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '@suggar-daddy/database';
+import {
+  UserEntity,
+  PostEntity,
+  SubscriptionEntity,
+  TransactionEntity,
+} from '@suggar-daddy/database';
 import { RedisService } from '@suggar-daddy/redis';
 
 @Injectable()
@@ -16,6 +21,12 @@ export class UserManagementService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    @InjectRepository(PostEntity)
+    private readonly postRepo: Repository<PostEntity>,
+    @InjectRepository(SubscriptionEntity)
+    private readonly subscriptionRepo: Repository<SubscriptionEntity>,
+    @InjectRepository(TransactionEntity)
+    private readonly transactionRepo: Repository<TransactionEntity>,
     private readonly redisService: RedisService,
   ) {}
 
@@ -31,8 +42,17 @@ export class UserManagementService {
     limit: number,
     role?: string,
     status?: string,
+    search?: string,
   ) {
     const qb = this.userRepo.createQueryBuilder('user');
+
+    // 搜尋（依名稱或 email 模糊匹配）
+    if (search) {
+      qb.andWhere(
+        '(user.email ILIKE :search OR user.displayName ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
 
     // 依角色篩選
     if (role) {
@@ -136,6 +156,83 @@ export class UserManagementService {
       ),
       newUsersThisWeek,
       newUsersThisMonth,
+    };
+  }
+
+  /** 變更用戶角色 */
+  async changeUserRole(userId: string, newRole: string) {
+    const validRoles = ['ADMIN', 'CREATOR', 'SUBSCRIBER'];
+    if (!validRoles.includes(newRole)) {
+      throw new BadRequestException('無效的角色: ' + newRole);
+    }
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('用戶 ' + userId + ' 不存在');
+    }
+    const oldRole = user.role;
+    user.role = newRole;
+    await this.userRepo.save(user);
+    this.logger.warn(`用戶角色變更: ${userId} ${oldRole} -> ${newRole}`);
+    return { success: true, message: `角色已從 ${oldRole} 變更為 ${newRole}` };
+  }
+
+  /** 取得用戶活動摘要（訂閱、交易、貼文） */
+  async getUserActivity(userId: string) {
+    const [posts, subscriptions, transactions] = await Promise.all([
+      this.postRepo
+        .createQueryBuilder('p')
+        .where('p.creatorId = :userId', { userId })
+        .orderBy('p.createdAt', 'DESC')
+        .take(10)
+        .getMany(),
+      this.subscriptionRepo
+        .createQueryBuilder('s')
+        .where('s.subscriberId = :userId OR s.creatorId = :userId', { userId })
+        .orderBy('s.createdAt', 'DESC')
+        .take(10)
+        .getMany(),
+      this.transactionRepo
+        .createQueryBuilder('t')
+        .where('t.userId = :userId', { userId })
+        .orderBy('t.createdAt', 'DESC')
+        .take(10)
+        .getMany(),
+    ]);
+
+    const postCount = await this.postRepo.count({ where: { creatorId: userId } });
+    const subCount = await this.subscriptionRepo
+      .createQueryBuilder('s')
+      .where('s.subscriberId = :userId OR s.creatorId = :userId', { userId })
+      .getCount();
+    const txCount = await this.transactionRepo.count({ where: { userId } });
+
+    return {
+      posts: posts.map((p) => ({
+        id: p.id,
+        contentType: p.contentType,
+        caption: p.caption,
+        visibility: p.visibility,
+        likeCount: p.likeCount,
+        commentCount: p.commentCount,
+        createdAt: p.createdAt,
+      })),
+      postCount,
+      subscriptions: subscriptions.map((s) => ({
+        id: s.id,
+        subscriberId: s.subscriberId,
+        creatorId: s.creatorId,
+        status: s.status,
+        createdAt: s.createdAt,
+      })),
+      subscriptionCount: subCount,
+      transactions: transactions.map((t) => ({
+        id: t.id,
+        type: t.type,
+        amount: Number(t.amount),
+        status: t.status,
+        createdAt: t.createdAt,
+      })),
+      transactionCount: txCount,
     };
   }
 

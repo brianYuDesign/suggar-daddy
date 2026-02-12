@@ -6,7 +6,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('TipService', () => {
   let service: TipService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'lLen'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'lLen' | 'mget'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
 
   beforeEach(async () => {
@@ -16,6 +16,7 @@ describe('TipService', () => {
       lPush: jest.fn(),
       lRange: jest.fn(),
       lLen: jest.fn().mockResolvedValue(0),
+      mget: jest.fn().mockResolvedValue([]),
     };
     kafka = { sendEvent: jest.fn() };
 
@@ -63,15 +64,16 @@ describe('TipService', () => {
 
   describe('findByFrom / findByTo', () => {
     it('應回傳打賞列表（分頁格式）', async () => {
-      redis.lLen!.mockResolvedValue(1);
-      redis.lRange!.mockResolvedValue(['tip-1']);
-      redis.get!.mockResolvedValue(JSON.stringify({
+      const tipJson = JSON.stringify({
         id: 'tip-1',
         fromUserId: 'u1',
         toUserId: 'u2',
         amount: 100,
         createdAt: new Date().toISOString(),
-      }));
+      });
+      redis.lLen!.mockResolvedValue(1);
+      redis.lRange!.mockResolvedValue(['tip-1']);
+      redis.mget!.mockResolvedValue([tipJson]);
 
       const fromResult = await service.findByFrom('u1');
       expect(fromResult.data.length).toBe(1);

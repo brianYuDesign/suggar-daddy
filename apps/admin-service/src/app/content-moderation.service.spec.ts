@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { ContentModerationService } from './content-moderation.service';
-import { PostEntity } from '@suggar-daddy/database';
+import { PostEntity, UserEntity } from '@suggar-daddy/database';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { RedisService } from '@suggar-daddy/redis';
 
@@ -13,8 +13,15 @@ describe('ContentModerationService', () => {
   >;
   let kafkaProducer: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
   let postRepo: Record<string, jest.Mock>;
+  let userRepo: Record<string, jest.Mock>;
 
   const mockScan = jest.fn();
+
+  const mockUserQb = {
+    select: jest.fn().mockReturnThis(),
+    whereInIds: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue([]),
+  };
 
   beforeEach(async () => {
     redis = {
@@ -31,12 +38,24 @@ describe('ContentModerationService', () => {
     postRepo = {
       findOne: jest.fn().mockResolvedValue(null),
       count: jest.fn().mockResolvedValue(0),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      }),
+    };
+
+    userRepo = {
+      createQueryBuilder: jest.fn().mockReturnValue(mockUserQb),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ContentModerationService,
         { provide: getRepositoryToken(PostEntity), useValue: postRepo },
+        { provide: getRepositoryToken(UserEntity), useValue: userRepo },
         { provide: KafkaProducerService, useValue: kafkaProducer },
         { provide: RedisService, useValue: redis },
       ],
@@ -54,6 +73,10 @@ describe('ContentModerationService', () => {
     kafkaProducer.sendEvent.mockResolvedValue(undefined);
     postRepo.findOne.mockResolvedValue(null);
     postRepo.count.mockResolvedValue(0);
+    userRepo.createQueryBuilder.mockReturnValue(mockUserQb);
+    mockUserQb.select.mockReturnThis();
+    mockUserQb.whereInIds.mockReturnThis();
+    mockUserQb.getMany.mockResolvedValue([]);
   });
 
   // =====================================================

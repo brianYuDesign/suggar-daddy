@@ -4,18 +4,52 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
-import { Card, CardHeader, CardTitle, CardContent, Badge, Avatar, Skeleton, Separator, Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Button } from '@suggar-daddy/ui';
+import { useToast } from '@/components/toast';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Badge,
+  Avatar,
+  Skeleton,
+  Separator,
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  Button,
+  Select,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '@suggar-daddy/ui';
 
 export default function UserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
   const router = useRouter();
+  const toast = useToast();
   const { data: user, loading, refetch } = useAdminQuery(
     () => adminApi.getUserDetail(userId),
     [userId],
   );
+  const activity = useAdminQuery(
+    () => adminApi.getUserActivity(userId),
+    [userId],
+  );
 
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('posts');
 
   const handleToggleStatus = async () => {
     if (!user) return;
@@ -23,15 +57,32 @@ export default function UserDetailPage() {
     try {
       if (user.isDisabled) {
         await adminApi.enableUser(userId);
+        toast.success(`${user.displayName || user.email} has been enabled`);
       } else {
         await adminApi.disableUser(userId);
+        toast.success(`${user.displayName || user.email} has been disabled`);
       }
       refetch();
-    } catch {
-      // error handled by interceptor
+    } catch (err) {
+      toast.error((err as { message?: string })?.message || 'Failed to update user status');
     } finally {
       setActionLoading(false);
       setConfirmOpen(false);
+    }
+  };
+
+  const handleChangeRole = async () => {
+    if (!selectedRole) return;
+    setActionLoading(true);
+    try {
+      await adminApi.changeUserRole(userId, selectedRole);
+      toast.success(`Role changed to ${selectedRole}`);
+      refetch();
+    } catch (err) {
+      toast.error((err as { message?: string })?.message || 'Failed to change role');
+    } finally {
+      setActionLoading(false);
+      setRoleDialogOpen(false);
     }
   };
 
@@ -70,17 +121,28 @@ export default function UserDetailPage() {
               <p className="text-sm text-muted-foreground">{user.email}</p>
               {user.bio && <p className="text-sm">{user.bio}</p>}
             </div>
-            <Button
-              variant={user.isDisabled ? 'default' : 'outline'}
-              onClick={() => setConfirmOpen(true)}
-            >
-              {user.isDisabled ? 'Enable User' : 'Disable User'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSelectedRole(user.role);
+                  setRoleDialogOpen(true);
+                }}
+              >
+                Change Role
+              </Button>
+              <Button
+                variant={user.isDisabled ? 'default' : 'outline'}
+                onClick={() => setConfirmOpen(true)}
+              >
+                {user.isDisabled ? 'Enable User' : 'Disable User'}
+              </Button>
+            </div>
           </div>
 
           <Separator className="my-6" />
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">User ID</p>
               <p className="mt-1 text-sm font-mono">{user.id}</p>
@@ -101,7 +163,121 @@ export default function UserDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Confirm Dialog */}
+      {/* Activity Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">User Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="posts" active={activeTab === 'posts'} onClick={() => setActiveTab('posts')}>
+                Posts ({activity.data?.postCount ?? 0})
+              </TabsTrigger>
+              <TabsTrigger value="subscriptions" active={activeTab === 'subscriptions'} onClick={() => setActiveTab('subscriptions')}>
+                Subscriptions ({activity.data?.subscriptionCount ?? 0})
+              </TabsTrigger>
+              <TabsTrigger value="transactions" active={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')}>
+                Transactions ({activity.data?.transactionCount ?? 0})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="mt-4">
+            {activity.loading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
+              </div>
+            ) : activeTab === 'posts' ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Caption</TableHead>
+                    <TableHead>Visibility</TableHead>
+                    <TableHead>Likes</TableHead>
+                    <TableHead>Comments</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activity.data?.posts.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="text-sm">{p.contentType || '—'}</TableCell>
+                      <TableCell className="text-sm max-w-[200px] truncate">{p.caption || '—'}</TableCell>
+                      <TableCell><Badge variant="secondary">{p.visibility || '—'}</Badge></TableCell>
+                      <TableCell className="text-sm">{p.likeCount}</TableCell>
+                      <TableCell className="text-sm">{p.commentCount}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{new Date(p.createdAt).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                  {(!activity.data?.posts || activity.data.posts.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">No posts</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            ) : activeTab === 'subscriptions' ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activity.data?.subscriptions.map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="text-xs font-mono">{s.id.slice(0, 8)}...</TableCell>
+                      <TableCell className="text-sm">
+                        {s.subscriberId === userId ? 'Subscriber' : 'Creator'}
+                      </TableCell>
+                      <TableCell><Badge variant={s.status === 'active' ? 'default' : 'secondary'}>{s.status}</Badge></TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{new Date(s.createdAt).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                  {(!activity.data?.subscriptions || activity.data.subscriptions.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">No subscriptions</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activity.data?.transactions.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell><Badge variant="secondary">{t.type}</Badge></TableCell>
+                      <TableCell className="text-sm font-semibold">${t.amount.toFixed(2)}</TableCell>
+                      <TableCell><Badge variant={t.status === 'completed' ? 'default' : 'secondary'}>{t.status}</Badge></TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{new Date(t.createdAt).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                  {(!activity.data?.transactions || activity.data.transactions.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">No transactions</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Enable/Disable Dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogHeader>
           <DialogTitle>{user.isDisabled ? 'Enable User' : 'Disable User'}</DialogTitle>
@@ -121,6 +297,31 @@ export default function UserDetailPage() {
             disabled={actionLoading}
           >
             {actionLoading ? 'Processing...' : user.isDisabled ? 'Enable' : 'Disable'}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      {/* Role Change Dialog */}
+      <Dialog open={roleDialogOpen} onClose={() => setRoleDialogOpen(false)}>
+        <DialogHeader>
+          <DialogTitle>Change User Role</DialogTitle>
+          <DialogDescription>
+            Select a new role for {user.displayName || user.email}.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} className="w-full">
+            <option value="SUBSCRIBER">Subscriber</option>
+            <option value="CREATOR">Creator</option>
+            <option value="ADMIN">Admin</option>
+          </Select>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setRoleDialogOpen(false)} disabled={actionLoading}>
+            Cancel
+          </Button>
+          <Button onClick={handleChangeRole} disabled={actionLoading || selectedRole === user.role}>
+            {actionLoading ? 'Processing...' : 'Change Role'}
           </Button>
         </DialogFooter>
       </Dialog>

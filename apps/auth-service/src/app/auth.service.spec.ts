@@ -39,8 +39,8 @@ describe('AuthService', () => {
 
   describe('register', () => {
     const dto = {
-      email: '  Test@Example.COM  ',
-      password: 'secret',
+      email: 'Test@Example.COM',
+      password: 'Secret123',
       role: 'sugar_baby' as const,
       displayName: 'Test User',
       bio: 'Hello',
@@ -76,17 +76,21 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
+    const storedUser = {
+      userId: 'user-1',
+      email: 'a@b.com',
+      passwordHash: 'hashed',
+      role: 'sugar_daddy',
+      displayName: 'User',
+      accountStatus: 'active',
+      createdAt: new Date().toISOString(),
+    };
+
     it('應在密碼正確時回傳 tokens', async () => {
       (redis.get as jest.Mock)
-        .mockResolvedValueOnce('user-1')
-        .mockResolvedValueOnce(JSON.stringify({
-          userId: 'user-1',
-          email: 'a@b.com',
-          passwordHash: 'hashed',
-          role: 'sugar_daddy',
-          displayName: 'User',
-          createdAt: new Date().toISOString(),
-        }));
+        .mockResolvedValueOnce(null)                       // checkLoginRateLimit
+        .mockResolvedValueOnce('user-1')                   // emailKey lookup
+        .mockResolvedValueOnce(JSON.stringify(storedUser)); // user data
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       const result = await service.login({ email: 'a@b.com', password: 'pwd' });
@@ -106,15 +110,9 @@ describe('AuthService', () => {
 
     it('應在密碼錯誤時拋出 UnauthorizedException', async () => {
       (redis.get as jest.Mock)
-        .mockResolvedValueOnce('user-1')
-        .mockResolvedValueOnce(JSON.stringify({
-          userId: 'user-1',
-          email: 'a@b.com',
-          passwordHash: 'hashed',
-          role: 'sugar_daddy',
-          displayName: 'User',
-          createdAt: new Date().toISOString(),
-        }));
+        .mockResolvedValueOnce(null)                       // checkLoginRateLimit
+        .mockResolvedValueOnce('user-1')                   // emailKey lookup
+        .mockResolvedValueOnce(JSON.stringify(storedUser)); // user data
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(
@@ -125,9 +123,9 @@ describe('AuthService', () => {
 
   describe('refresh', () => {
     it('應在有效 refresh token 時回傳新 tokens', async () => {
-      (redis.get as jest.Mock).mockResolvedValue(
-        JSON.stringify({ userId: 'user-1', email: 'a@b.com' })
-      );
+      (redis.get as jest.Mock)
+        .mockResolvedValueOnce(JSON.stringify({ userId: 'user-1', email: 'a@b.com' })) // refresh payload
+        .mockResolvedValueOnce(JSON.stringify({ accountStatus: 'active' }));            // user account check
       (redis.del as jest.Mock).mockResolvedValue(undefined);
 
       const result = await service.refresh('rt-valid');

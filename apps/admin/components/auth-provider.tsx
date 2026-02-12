@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken, clearToken, isAuthenticated } from '@/lib/auth';
+import { getToken, clearToken, isAuthenticated, getTokenTTL } from '@/lib/auth';
 
 interface AuthContextType {
   token: string | null;
@@ -18,10 +18,20 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+// Warn 5 minutes before token expiry
+const WARNING_THRESHOLD = 5 * 60 * 1000;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [token, setTokenState] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+
+  const logout = useCallback(() => {
+    clearToken();
+    setTokenState(null);
+    router.replace('/login');
+  }, [router]);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -32,11 +42,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setChecked(true);
   }, [router]);
 
-  const logout = () => {
-    clearToken();
-    setTokenState(null);
-    router.replace('/login');
-  };
+  // Session timeout watcher
+  useEffect(() => {
+    if (!token) return;
+
+    const checkExpiry = () => {
+      const ttl = getTokenTTL();
+      if (ttl === 0) {
+        logout();
+        return;
+      }
+      if (ttl < WARNING_THRESHOLD) {
+        setShowWarning(true);
+      }
+    };
+
+    // Check every 30 seconds
+    const interval = setInterval(checkExpiry, 30_000);
+    checkExpiry(); // Initial check
+
+    return () => clearInterval(interval);
+  }, [token, logout]);
+
+  // Activity listener — reset warning on user interaction
+  useEffect(() => {
+    if (!showWarning) return;
+    const handleActivity = () => {
+      const ttl = getTokenTTL();
+      if (ttl > WARNING_THRESHOLD) {
+        setShowWarning(false);
+      }
+    };
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    return () => {
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+    };
+  }, [showWarning]);
 
   if (!checked || !token) {
     return (
@@ -49,6 +92,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ token, logout }}>
       {children}
+      {showWarning && (
+        <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-yellow-500 bg-yellow-50 p-4 shadow-lg dark:bg-yellow-900/20">
+          <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+            Your session will expire soon.
+          </p>
+          <p className="mt-1 text-xs text-yellow-600 dark:text-yellow-300">
+            Please save your work. You will be logged out automatically.
+          </p>
+          <button
+            onClick={logout}
+            className="mt-2 rounded-md bg-yellow-600 px-3 py-1 text-xs text-white hover:bg-yellow-700"
+          >
+            Logout Now
+          </button>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }

@@ -38,6 +38,12 @@ import { SystemMonitorController } from './system-monitor.controller';
 import { SystemMonitorService } from './system-monitor.service';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
+import { WithdrawalManagementController } from './withdrawal-management.controller';
+import { WithdrawalManagementService } from './withdrawal-management.service';
+import { SubscriptionManagementController } from './subscription-management.controller';
+import { SubscriptionManagementService } from './subscription-management.service';
+import { TransactionManagementController } from './transaction-management.controller';
+import { TransactionManagementService } from './transaction-management.service';
 
 /** 所有資料庫實體 */
 const ALL_ENTITIES = [
@@ -88,6 +94,9 @@ const ALL_ENTITIES = [
     PaymentStatsController,
     SystemMonitorController,
     AnalyticsController,
+    WithdrawalManagementController,
+    SubscriptionManagementController,
+    TransactionManagementController,
   ],
   providers: [
     AppService,
@@ -97,6 +106,9 @@ const ALL_ENTITIES = [
     PaymentStatsService,
     SystemMonitorService,
     AnalyticsService,
+    WithdrawalManagementService,
+    SubscriptionManagementService,
+    TransactionManagementService,
   ],
 })
 export class AppModule {}

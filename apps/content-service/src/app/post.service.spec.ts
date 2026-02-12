@@ -1,13 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { PostService } from './post.service';
+import { SubscriptionServiceClient } from './subscription-service.client';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('PostService', () => {
   let service: PostService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'mget'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
+  let subscriptionClient: jest.Mocked<Pick<SubscriptionServiceClient, 'hasActiveSubscription'>>;
 
   beforeEach(async () => {
     redis = {
@@ -15,14 +17,19 @@ describe('PostService', () => {
       set: jest.fn(),
       lPush: jest.fn(),
       lRange: jest.fn(),
+      mget: jest.fn().mockResolvedValue([]),
     };
     kafka = { sendEvent: jest.fn() };
+    subscriptionClient = {
+      hasActiveSubscription: jest.fn().mockResolvedValue(false),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PostService,
         { provide: RedisService, useValue: redis },
         { provide: KafkaProducerService, useValue: kafka },
+        { provide: SubscriptionServiceClient, useValue: subscriptionClient },
       ],
     }).compile();
 

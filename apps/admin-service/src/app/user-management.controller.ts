@@ -9,6 +9,7 @@ import {
   Post,
   Param,
   Query,
+  Body,
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
@@ -32,8 +33,9 @@ export class UserManagementController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('role') role?: string,
     @Query('status') status?: string,
+    @Query('search') search?: string,
   ) {
-    return this.userManagementService.listUsers(page, limit, role, status);
+    return this.userManagementService.listUsers(page, limit, role, status, search);
   }
 
   /**
@@ -70,5 +72,20 @@ export class UserManagementController {
   @Post(':userId/enable')
   enableUser(@Param('userId') userId: string) {
     return this.userManagementService.enableUser(userId);
+  }
+
+  /** POST /api/v1/admin/users/:userId/role — 變更用戶角色 */
+  @Post(':userId/role')
+  changeUserRole(
+    @Param('userId') userId: string,
+    @Body('role') role: string,
+  ) {
+    return this.userManagementService.changeUserRole(userId, role);
+  }
+
+  /** GET /api/v1/admin/users/:userId/activity — 取得用戶活動摘要 */
+  @Get(':userId/activity')
+  getUserActivity(@Param('userId') userId: string) {
+    return this.userManagementService.getUserActivity(userId);
   }
 }

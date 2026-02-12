@@ -6,6 +6,8 @@ import {
   PostEntity,
   TipEntity,
   SubscriptionEntity,
+  SwipeEntity,
+  MatchEntity,
 } from '@suggar-daddy/database';
 import { RedisService } from '@suggar-daddy/redis';
 
@@ -18,6 +20,8 @@ describe('AnalyticsService', () => {
   let postRepo: Record<string, jest.Mock>;
   let tipRepo: Record<string, jest.Mock>;
   let subscriptionRepo: Record<string, jest.Mock>;
+  let swipeRepo: Record<string, jest.Mock>;
+  let matchRepo: Record<string, jest.Mock>;
 
   const mockScard = jest.fn();
   const mockSunionstore = jest.fn();
@@ -74,6 +78,30 @@ describe('AnalyticsService', () => {
       count: jest.fn().mockResolvedValue(0),
     };
 
+    const mockSwipeQb = {
+      select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue([]),
+    };
+    swipeRepo = {
+      count: jest.fn().mockResolvedValue(0),
+      createQueryBuilder: jest.fn().mockReturnValue(mockSwipeQb),
+    };
+
+    const mockMatchQb = {
+      select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue([]),
+    };
+    matchRepo = {
+      count: jest.fn().mockResolvedValue(0),
+      createQueryBuilder: jest.fn().mockReturnValue(mockMatchQb),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AnalyticsService,
@@ -81,6 +109,8 @@ describe('AnalyticsService', () => {
         { provide: getRepositoryToken(PostEntity), useValue: postRepo },
         { provide: getRepositoryToken(TipEntity), useValue: tipRepo },
         { provide: getRepositoryToken(SubscriptionEntity), useValue: subscriptionRepo },
+        { provide: getRepositoryToken(SwipeEntity), useValue: swipeRepo },
+        { provide: getRepositoryToken(MatchEntity), useValue: matchRepo },
         { provide: RedisService, useValue: redis },
       ],
     }).compile();

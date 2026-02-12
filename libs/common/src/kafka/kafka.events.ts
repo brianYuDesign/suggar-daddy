@@ -102,10 +102,11 @@ export interface MediaUploadedEvent {
 export interface UserCreatedEvent {
   id: string;
   email: string;
-  passwordHash: string;
   displayName: string;
   role?: string;
   bio?: string;
+  accountStatus?: string;
+  emailVerified?: boolean;
   createdAt: string;
 }
 

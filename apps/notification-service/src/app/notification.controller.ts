@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SendNotificationDto } from '@suggar-daddy/dto';
-import { JwtAuthGuard, CurrentUser, Public } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, Public, Roles, UserRole } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
 import { NotificationService } from './notification.service';
 
@@ -19,9 +19,10 @@ export class NotificationController {
 
   constructor(private readonly notificationService: NotificationService) {}
 
-  /** 發送推播（內部或 Kafka 消費者呼叫，不驗證 JWT） */
-  @Public()
+  /** 發送推播（僅限 Admin） */
   @Post('send')
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
   async send(@Body() body: SendNotificationDto) {
     this.logger.log(
       `send userId=${body.userId} type=${body.type} title=${body.title}`

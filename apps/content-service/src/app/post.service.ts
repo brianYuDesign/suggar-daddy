@@ -63,11 +63,9 @@ export class PostService {
     const total = await this.redis.lLen(POSTS_PUBLIC_IDS);
     const skip = (page - 1) * limit;
     const ids = await this.redis.lRange(POSTS_PUBLIC_IDS, skip, skip + limit - 1);
-    const data: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(POST_KEY(id));
-      if (raw) data.push(JSON.parse(raw));
-    }
+    const keys = ids.map((id) => POST_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const data = values.filter(Boolean).map((raw) => JSON.parse(raw!));
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
@@ -76,11 +74,9 @@ export class PostService {
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
     const ids = await this.redis.lRange(key, skip, skip + limit - 1);
-    const data: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(POST_KEY(id));
-      if (raw) data.push(JSON.parse(raw));
-    }
+    const keys = ids.map((id) => POST_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const data = values.filter(Boolean).map((raw) => JSON.parse(raw!));
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
@@ -93,10 +89,33 @@ export class PostService {
   ): Promise<PaginatedResponse<any>> {
     // Must fetch all then filter — access check can't be done at Redis level
     const ids = await this.redis.lRange(POSTS_CREATOR(creatorId), 0, -1);
-    const allPosts: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(POST_KEY(id));
-      if (raw) allPosts.push(JSON.parse(raw));
+    const postKeys = ids.map((id) => POST_KEY(id));
+    const postValues = await this.redis.mget(...postKeys);
+    const allPosts = postValues.filter(Boolean).map((raw) => JSON.parse(raw!));
+
+    // Pre-compute subscription access once (all posts belong to same creator)
+    let hasBaseSubscription = false;
+    const tierAccessCache = new Map<string, boolean>();
+
+    if (viewerId && viewerId !== creatorId) {
+      // Single HTTP call to check base subscription
+      hasBaseSubscription = await this.subscriptionClient.hasActiveSubscription(viewerId, creatorId);
+
+      // Collect unique tier IDs needed and check them
+      const uniqueTierIds = [
+        ...new Set(
+          allPosts
+            .filter((p) => p.visibility === 'tier_specific' && p.requiredTierId)
+            .map((p) => p.requiredTierId as string)
+        ),
+      ];
+      // Check tier-specific access in parallel
+      const tierChecks = await Promise.all(
+        uniqueTierIds.map((tierId) =>
+          this.subscriptionClient.hasActiveSubscription(viewerId, creatorId, tierId)
+        )
+      );
+      uniqueTierIds.forEach((tierId, i) => tierAccessCache.set(tierId, tierChecks[i]));
     }
 
     const filtered: any[] = [];
@@ -114,17 +133,11 @@ export class PostService {
         continue;
       }
       if (post.visibility === 'subscribers') {
-        const hasAccess = await this.subscriptionClient.hasActiveSubscription(viewerId, post.creatorId);
-        if (hasAccess) filtered.push(post);
+        if (hasBaseSubscription) filtered.push(post);
         continue;
       }
       if (post.visibility === 'tier_specific' && post.requiredTierId) {
-        const hasAccess = await this.subscriptionClient.hasActiveSubscription(
-          viewerId,
-          post.creatorId,
-          post.requiredTierId
-        );
-        if (hasAccess) filtered.push(post);
+        if (tierAccessCache.get(post.requiredTierId)) filtered.push(post);
       }
     }
 

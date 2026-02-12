@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
+import { useToast } from '@/components/toast';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Skeleton, Separator, Button } from '@suggar-daddy/ui';
 import { TakeDownDialog } from '@/components/take-down-dialog';
 
 export default function ReportDetailPage() {
   const { reportId } = useParams<{ reportId: string }>();
   const router = useRouter();
+  const toast = useToast();
   const { data: report, loading, refetch } = useAdminQuery(
     () => adminApi.getReportDetail(reportId),
     [reportId],
@@ -23,9 +25,10 @@ export default function ReportDetailPage() {
     setActionLoading(true);
     try {
       await adminApi.takeDownPost(report.post.id, reason);
+      toast.success('Post has been taken down');
       refetch();
-    } catch {
-      // handled by interceptor
+    } catch (err) {
+      toast.error((err as { message?: string })?.message || 'Failed to take down post');
     } finally {
       setActionLoading(false);
       setTakeDownOpen(false);
@@ -37,9 +40,10 @@ export default function ReportDetailPage() {
     setActionLoading(true);
     try {
       await adminApi.reinstatePost(report.post.id);
+      toast.success('Post has been reinstated');
       refetch();
-    } catch {
-      // handled by interceptor
+    } catch (err) {
+      toast.error((err as { message?: string })?.message || 'Failed to reinstate post');
     } finally {
       setActionLoading(false);
     }

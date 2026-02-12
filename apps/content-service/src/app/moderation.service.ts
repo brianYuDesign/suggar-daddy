@@ -99,24 +99,19 @@ export class ModerationService {
 
   async getReportQueue(limit = 50): Promise<ContentReport[]> {
     const ids = await this.redis.lRange(REPORTS_QUEUE, 0, limit - 1);
-    const out: ContentReport[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(REPORT_KEY(id));
-      if (raw) {
-        const report = JSON.parse(raw) as ContentReport;
-        if (report.status === 'pending') out.push(report);
-      }
-    }
-    return out;
+    const keys = ids.map((id) => REPORT_KEY(id));
+    const values = await this.redis.mget(...keys);
+    return values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!) as ContentReport)
+      .filter((report) => report.status === 'pending');
   }
 
   async getReportsForPost(postId: string): Promise<ContentReport[]> {
     const ids = await this.redis.lRange(REPORTS_BY_POST(postId), 0, -1);
-    const out: ContentReport[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(REPORT_KEY(id));
-      if (raw) out.push(JSON.parse(raw));
-    }
+    const keys = ids.map((id) => REPORT_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const out = values.filter(Boolean).map((raw) => JSON.parse(raw!) as ContentReport);
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 

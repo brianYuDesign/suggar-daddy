@@ -6,7 +6,10 @@ const titleMap: Record<string, string> = {
   '/': 'Dashboard',
   '/users': 'User Management',
   '/content': 'Content Moderation',
+  '/subscriptions': 'Subscriptions',
+  '/transactions': 'Transactions',
   '/payments': 'Payments',
+  '/withdrawals': 'Withdrawals',
   '/analytics': 'Analytics',
   '/system': 'System Monitor',
 };

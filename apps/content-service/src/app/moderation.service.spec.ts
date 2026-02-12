@@ -7,7 +7,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('ModerationService', () => {
   let service: ModerationService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'sAdd' | 'sRem' | 'sMembers'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'sAdd' | 'sRem' | 'sMembers' | 'mget'>>;
   let kafka: { sendEvent: jest.Mock };
   let postService: jest.Mocked<Pick<PostService, 'findOne'>>;
 
@@ -29,6 +29,7 @@ describe('ModerationService', () => {
       sAdd: jest.fn().mockResolvedValue(1),
       sRem: jest.fn().mockResolvedValue(1),
       sMembers: jest.fn().mockResolvedValue([]),
+      mget: jest.fn().mockResolvedValue([]),
     };
     kafka = { sendEvent: jest.fn().mockResolvedValue(null) };
     postService = {
@@ -357,9 +358,10 @@ describe('ModerationService', () => {
       };
 
       redis.lRange.mockResolvedValue(['cr-1', 'cr-2']);
-      redis.get
-        .mockResolvedValueOnce(JSON.stringify(pending))
-        .mockResolvedValueOnce(JSON.stringify(dismissed));
+      redis.mget.mockResolvedValueOnce([
+        JSON.stringify(pending),
+        JSON.stringify(dismissed),
+      ]);
 
       const result = await service.getReportQueue();
 
@@ -384,9 +386,10 @@ describe('ModerationService', () => {
       const r2 = { id: 'cr-2', postId: 'post-1', createdAt: '2025-01-02T00:00:00.000Z' };
 
       redis.lRange.mockResolvedValue(['cr-1', 'cr-2']);
-      redis.get
-        .mockResolvedValueOnce(JSON.stringify(r1))
-        .mockResolvedValueOnce(JSON.stringify(r2));
+      redis.mget.mockResolvedValueOnce([
+        JSON.stringify(r1),
+        JSON.stringify(r2),
+      ]);
 
       const result = await service.getReportsForPost('post-1');
 

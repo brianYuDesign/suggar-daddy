@@ -44,13 +44,10 @@ export class TransactionService {
   }
 
   async findAll(page = 1, limit = 20): Promise<PaginatedResponse<any>> {
-    // KEYS/SCAN does not support native pagination — fetch all then slice
-    const keys = await this.redis.scan('transaction:tx-*');
-    const all: any[] = [];
-    for (const key of keys) {
-      const raw = await this.redis.get(key);
-      if (raw) all.push(JSON.parse(raw));
-    }
+    // SCAN does not support native pagination — fetch all then slice
+    const scannedKeys = await this.redis.scan('transaction:tx-*');
+    const values = await this.redis.mget(...scannedKeys);
+    const all = values.filter(Boolean).map((raw) => JSON.parse(raw!));
     all.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
     const skip = (page - 1) * limit;
     return { data: all.slice(skip, skip + limit), total: all.length, page, limit };
@@ -61,11 +58,9 @@ export class TransactionService {
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
     const ids = await this.redis.lRange(key, skip, skip + limit - 1);
-    const data: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(TX_KEY(id));
-      if (raw) data.push(JSON.parse(raw));
-    }
+    const keys = ids.map((id) => TX_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const data = values.filter(Boolean).map((raw) => JSON.parse(raw!));
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 

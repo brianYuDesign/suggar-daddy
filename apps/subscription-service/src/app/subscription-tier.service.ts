@@ -52,27 +52,23 @@ export class SubscriptionTierService {
 
   async findAll(): Promise<any[]> {
     const ids = await this.redis.sMembers(TIERS_ALL);
-    const out: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(TIER_KEY(id));
-      if (raw) {
-        const t = JSON.parse(raw);
-        if (t.isActive !== false) out.push(t);
-      }
-    }
+    const keys = ids.map((id) => TIER_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const out = values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!))
+      .filter((t) => t.isActive !== false);
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 
   async findByCreator(creatorId: string): Promise<any[]> {
     const ids = await this.redis.lRange(TIERS_CREATOR(creatorId), 0, -1);
-    const out: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(TIER_KEY(id));
-      if (raw) {
-        const t = JSON.parse(raw);
-        if (t.isActive !== false) out.push(t);
-      }
-    }
+    const keys = ids.map((id) => TIER_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const out = values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!))
+      .filter((t) => t.isActive !== false);
     return out.sort((a, b) => (a.priceMonthly - b.priceMonthly));
   }
 

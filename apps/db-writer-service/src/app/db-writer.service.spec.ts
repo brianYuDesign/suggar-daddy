@@ -27,10 +27,10 @@ const mockRepo = () => ({
 describe('DbWriterService', () => {
   let service: DbWriterService;
   let moduleRef: TestingModule;
-  let redis: jest.Mocked<Pick<RedisService, 'set' | 'del' | 'lPush'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'del' | 'lPush'>>;
 
   beforeEach(async () => {
-    redis = { set: jest.fn(), del: jest.fn(), lPush: jest.fn() };
+    redis = { get: jest.fn(), set: jest.fn(), del: jest.fn(), lPush: jest.fn() };
 
     moduleRef = await Test.createTestingModule({
       providers: [
@@ -54,24 +54,34 @@ describe('DbWriterService', () => {
   });
 
   describe('handleUserCreated', () => {
-    it('應在 payload 完整時寫入 DB 與 Redis', async () => {
+    it('應在 payload 完整時寫入 DB 與 Redis（passwordHash 從 Redis 讀取）', async () => {
       const userRepo = moduleRef.get(getRepositoryToken(UserEntity)) as any;
       userRepo.insert.mockResolvedValue(undefined);
+
+      // auth-service 已在 register 時將 user 存入 Redis（含 passwordHash）
+      redis.get!.mockResolvedValue(JSON.stringify({
+        userId: 'user-1',
+        email: 'test@x.com',
+        passwordHash: 'hash-from-redis',
+        displayName: 'Test',
+        role: 'sugar_baby',
+      }));
 
       await service.handleUserCreated({
         id: 'user-1',
         email: '  Test@X.com  ',
-        passwordHash: 'hash',
         displayName: 'Test',
         role: 'sugar_baby',
         bio: 'Hi',
         createdAt: new Date().toISOString(),
       });
 
+      expect(redis.get).toHaveBeenCalledWith('user:user-1');
       expect(userRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'user-1',
           email: 'test@x.com',
+          passwordHash: 'hash-from-redis',
           displayName: 'Test',
           role: 'sugar_baby',
         })
@@ -86,7 +96,6 @@ describe('DbWriterService', () => {
       await service.handleUserCreated({
         id: 'user-1',
         email: '',
-        passwordHash: 'h',
         displayName: 'X',
       });
 

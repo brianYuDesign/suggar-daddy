@@ -51,12 +51,22 @@ export class DbWriterService {
   ) {}
 
   async handleUserCreated(payload: any): Promise<void> {
-    const { id, email, passwordHash, displayName, role, bio, createdAt } = payload;
-    if (!id || !email || !passwordHash || !displayName) {
+    const { id, email, displayName, role, bio, createdAt } = payload;
+    if (!id || !email || !displayName) {
       this.logger.warn('user.created missing required fields');
       return;
     }
     const normalizedEmail = String(email).trim().toLowerCase();
+
+    // passwordHash is no longer sent via Kafka for security.
+    // Read the full user record from Redis (written by auth-service at registration).
+    let passwordHash: string | null = null;
+    const existingUserRaw = await this.redis.get(USER_KEY(id));
+    if (existingUserRaw) {
+      const existingUser = JSON.parse(existingUserRaw);
+      passwordHash = existingUser.passwordHash ?? null;
+    }
+
     await this.userRepo.insert({
       id,
       email: normalizedEmail,
@@ -66,6 +76,7 @@ export class DbWriterService {
       bio: bio || null,
       createdAt: createdAt ? new Date(createdAt) : new Date(),
     });
+    // Redis user record is already written by auth-service; update with DB-canonical fields
     const redisUser = {
       id,
       email: normalizedEmail,

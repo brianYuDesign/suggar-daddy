@@ -5,19 +5,49 @@ import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { StatsCard } from '@/components/stats-card';
 import { SimpleBarChart } from '@/components/simple-chart';
+import { CsvExport } from '@/components/csv-export';
+import { DateRangePicker } from '@/components/date-range-picker';
 import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Select, Skeleton } from '@suggar-daddy/ui';
 import { CreditCard, TrendingUp, BarChart3, Percent } from 'lucide-react';
 
+function getDefaultDates() {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 30);
+  return {
+    start: start.toISOString().slice(0, 10),
+    end: end.toISOString().slice(0, 10),
+  };
+}
+
 export default function PaymentsPage() {
   const [days, setDays] = useState(30);
+  const defaultDates = getDefaultDates();
+  const [startDate, setStartDate] = useState(defaultDates.start);
+  const [endDate, setEndDate] = useState(defaultDates.end);
 
   const stats = useAdminQuery(() => adminApi.getPaymentStats());
   const dailyRevenue = useAdminQuery(() => adminApi.getDailyRevenue(days), [days]);
   const topCreators = useAdminQuery(() => adminApi.getTopCreators(10));
+  const revenue = useAdminQuery(
+    () => adminApi.getRevenueReport(startDate, endDate),
+    [startDate, endDate],
+  );
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Payments</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Payments</h1>
+        <CsvExport
+          data={dailyRevenue.data}
+          columns={[
+            { key: 'date', label: 'Date' },
+            { key: 'revenue', label: 'Revenue' },
+            { key: 'count', label: 'Count' },
+          ]}
+          filename="daily-revenue"
+        />
+      </div>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -49,6 +79,48 @@ export default function PaymentsPage() {
           </>
         )}
       </div>
+
+      {/* Revenue Report with Date Range */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Revenue Report</CardTitle>
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onStartChange={setStartDate}
+            onEndChange={setEndDate}
+          />
+        </CardHeader>
+        <CardContent>
+          {revenue.loading ? (
+            <Skeleton className="h-[100px]" />
+          ) : revenue.data ? (
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-md bg-muted p-4">
+                <p className="text-sm text-muted-foreground">Total Revenue</p>
+                <p className="mt-1 text-2xl font-bold">${revenue.data.totalRevenue.toLocaleString()}</p>
+              </div>
+              <div className="rounded-md bg-muted p-4">
+                <p className="text-sm text-muted-foreground">Transactions</p>
+                <p className="mt-1 text-2xl font-bold">{revenue.data.transactionCount}</p>
+              </div>
+              <div className="rounded-md bg-muted p-4">
+                <p className="text-sm text-muted-foreground">Types</p>
+                <div className="mt-1 space-y-1">
+                  {Object.entries(revenue.data.byType).map(([type, info]) => (
+                    <div key={type} className="flex justify-between text-sm">
+                      <span>{type}</span>
+                      <span className="font-medium">${info.amount.toLocaleString()} ({info.count})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="py-4 text-center text-sm text-muted-foreground">No data for selected range</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Daily Revenue Chart */}
       <Card>

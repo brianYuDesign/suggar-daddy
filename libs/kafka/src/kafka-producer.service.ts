@@ -59,4 +59,11 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       },
     ]);
   }
+
+  /** Fire-and-forget: sends event without awaiting. Errors are logged but not thrown. */
+  sendEventAsync(topic: string, event: any): void {
+    this.sendEvent(topic, event).catch((err) => {
+      this.logger.error(`sendEventAsync failed for topic ${topic}:`, err);
+    });
+  }
 }

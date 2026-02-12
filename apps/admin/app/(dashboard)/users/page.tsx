@@ -4,19 +4,26 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
-import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge, Select, Avatar, Skeleton } from '@suggar-daddy/ui';
+import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge, Select, Avatar, Skeleton, Input } from '@suggar-daddy/ui';
 import { Pagination } from '@/components/pagination';
 
 export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const limit = 20;
 
   const { data, loading } = useAdminQuery(
-    () => adminApi.listUsers(page, limit, role || undefined, status || undefined),
-    [page, role, status],
+    () => adminApi.listUsers(page, limit, role || undefined, status || undefined, search || undefined),
+    [page, role, status, search],
   );
+
+  const handleSearch = () => {
+    setSearch(searchInput);
+    setPage(1);
+  };
 
   const totalPages = data ? Math.ceil(data.total / limit) : 0;
 
@@ -28,6 +35,15 @@ export default function UsersPage() {
 
       {/* Filters */}
       <div className="flex gap-4">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Search by name or email..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className="w-64"
+          />
+        </div>
         <Select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="w-40">
           <option value="">All Roles</option>
           <option value="ADMIN">Admin</option>

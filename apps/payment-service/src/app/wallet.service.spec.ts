@@ -6,7 +6,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('WalletService', () => {
   let service: WalletService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'mget'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
 
   beforeEach(async () => {
@@ -15,6 +15,7 @@ describe('WalletService', () => {
       set: jest.fn().mockResolvedValue(undefined),
       lPush: jest.fn().mockResolvedValue(0),
       lRange: jest.fn().mockResolvedValue([]),
+      mget: jest.fn().mockResolvedValue([]),
     };
     kafka = { sendEvent: jest.fn().mockResolvedValue(undefined) };
 
@@ -449,12 +450,14 @@ describe('WalletService', () => {
       };
 
       redis.get
-        .mockResolvedValueOnce(JSON.stringify(wallet))     // getWallet
-        .mockResolvedValueOnce(JSON.stringify(pendingWd)); // withdrawal record
+        .mockResolvedValueOnce(JSON.stringify(wallet));    // getWallet
 
       redis.lRange
         .mockResolvedValueOnce([JSON.stringify(walletTx)]) // wallet history
         .mockResolvedValueOnce(['wd-1']);                   // withdrawal ids
+
+      redis.mget!
+        .mockResolvedValueOnce([JSON.stringify(pendingWd)]); // batch withdrawal lookup
 
       const result = await service.getEarningsSummary('u1');
 

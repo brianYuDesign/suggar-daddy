@@ -12,6 +12,8 @@ import {
   TipEntity,
   SubscriptionEntity,
   UserEntity,
+  SwipeEntity,
+  MatchEntity,
 } from '@suggar-daddy/database';
 import { RedisService } from '@suggar-daddy/redis';
 
@@ -31,6 +33,10 @@ export class AnalyticsService {
     private readonly tipRepo: Repository<TipEntity>,
     @InjectRepository(SubscriptionEntity)
     private readonly subscriptionRepo: Repository<SubscriptionEntity>,
+    @InjectRepository(SwipeEntity)
+    private readonly swipeRepo: Repository<SwipeEntity>,
+    @InjectRepository(MatchEntity)
+    private readonly matchRepo: Repository<MatchEntity>,
     private readonly redisService: RedisService,
   ) {}
 
@@ -172,6 +178,61 @@ export class AnalyticsService {
       periodStart: periodStart.toISOString(),
       periodEnd: now.toISOString(),
       activeAtStart, cancelledDuring, newDuring, currentActive, churnRate,
+    };
+
+    await this.redisService.setex(cacheKey, ANALYTICS_CACHE_TTL, JSON.stringify(result));
+    return result;
+  }
+
+  /** 取得匹配統計 */
+  async getMatchingStats() {
+    const cacheKey = 'analytics:matching_stats';
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) { return JSON.parse(cached); }
+
+    const totalSwipes = await this.swipeRepo.count();
+    const totalMatches = await this.matchRepo.count();
+    const activeMatches = await this.matchRepo.count({ where: { status: 'active' } });
+
+    const swipesByAction = await this.swipeRepo
+      .createQueryBuilder('swipe')
+      .select('swipe.action', 'action')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('swipe.action')
+      .getRawMany();
+
+    const likeCount = swipesByAction.find((s) => s.action === 'like')?.count || 0;
+    const passCount = swipesByAction.find((s) => s.action === 'pass')?.count || 0;
+    const superLikeCount = swipesByAction.find((s) => s.action === 'super_like')?.count || 0;
+
+    const matchRate = totalSwipes > 0
+      ? Math.round((totalMatches / totalSwipes) * 10000) / 100
+      : 0;
+
+    // Daily matches (last 14 days)
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const dailyMatches = await this.matchRepo
+      .createQueryBuilder('m')
+      .select("DATE(m.matchedAt)", 'date')
+      .addSelect('COUNT(*)', 'count')
+      .where('m.matchedAt >= :start', { start: twoWeeksAgo })
+      .groupBy("DATE(m.matchedAt)")
+      .orderBy('date', 'ASC')
+      .getRawMany();
+
+    const result = {
+      totalSwipes,
+      totalMatches,
+      activeMatches,
+      likeCount: parseInt(likeCount, 10),
+      passCount: parseInt(passCount, 10),
+      superLikeCount: parseInt(superLikeCount, 10),
+      matchRate,
+      dailyMatches: dailyMatches.map((d) => ({
+        date: d.date,
+        count: parseInt(d.count, 10),
+      })),
     };
 
     await this.redisService.setex(cacheKey, ANALYTICS_CACHE_TTL, JSON.stringify(result));

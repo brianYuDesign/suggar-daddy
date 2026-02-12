@@ -133,16 +133,12 @@ export class WalletService {
     const wallet = await this.getWallet(userId);
     const recentTransactions = await this.getWalletHistory(userId, 20);
     const withdrawalIds = await this.redis.lRange(WITHDRAWALS_USER(userId), 0, -1);
-    const pendingWithdrawals: WithdrawalRecord[] = [];
-    for (const id of withdrawalIds) {
-      const raw = await this.redis.get(WITHDRAWAL_KEY(id));
-      if (raw) {
-        const w = JSON.parse(raw) as WithdrawalRecord;
-        if (w.status === 'pending' || w.status === 'processing') {
-          pendingWithdrawals.push(w);
-        }
-      }
-    }
+    const wdKeys = withdrawalIds.map((id) => WITHDRAWAL_KEY(id));
+    const wdValues = await this.redis.mget(...wdKeys);
+    const pendingWithdrawals: WithdrawalRecord[] = wdValues
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!) as WithdrawalRecord)
+      .filter((w) => w.status === 'pending' || w.status === 'processing');
     return { wallet, recentTransactions, pendingWithdrawals };
   }
 
@@ -213,11 +209,9 @@ export class WalletService {
 
   async getWithdrawals(userId: string): Promise<WithdrawalRecord[]> {
     const ids = await this.redis.lRange(WITHDRAWALS_USER(userId), 0, -1);
-    const out: WithdrawalRecord[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(WITHDRAWAL_KEY(id));
-      if (raw) out.push(JSON.parse(raw));
-    }
+    const keys = ids.map((id) => WITHDRAWAL_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const out = values.filter(Boolean).map((raw) => JSON.parse(raw!) as WithdrawalRecord);
     return out.sort((a, b) => (b.requestedAt > a.requestedAt ? 1 : -1));
   }
 
@@ -225,14 +219,12 @@ export class WalletService {
 
   async getPendingWithdrawals(): Promise<WithdrawalRecord[]> {
     const ids = await this.redis.lRange(WITHDRAWALS_PENDING, 0, -1);
-    const out: WithdrawalRecord[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(WITHDRAWAL_KEY(id));
-      if (raw) {
-        const w = JSON.parse(raw) as WithdrawalRecord;
-        if (w.status === 'pending') out.push(w);
-      }
-    }
+    const keys = ids.map((id) => WITHDRAWAL_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const out = values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!) as WithdrawalRecord)
+      .filter((w) => w.status === 'pending');
     return out.sort((a, b) => (a.requestedAt > b.requestedAt ? 1 : -1));
   }
 

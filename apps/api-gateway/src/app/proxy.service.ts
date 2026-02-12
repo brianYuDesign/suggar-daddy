@@ -69,11 +69,11 @@ export class ProxyService {
       },
       {
         prefix: '/api/subscription-tiers',
-        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3005'),
+        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3009'),
       },
       {
         prefix: '/api/subscriptions',
-        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3005'),
+        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3009'),
       },
       {
         prefix: '/api/upload',
@@ -122,13 +122,22 @@ export class ProxyService {
       data: body,
     };
     this.logger.debug(`${method} ${path} -> ${url}`);
-    const res = await this.client.request(config);
-    const resHeaders: Record<string, string> = {};
-    if (res.headers['content-type']) resHeaders['content-type'] = res.headers['content-type'] as string;
-    return {
-      status: res.status,
-      data: res.data,
-      headers: resHeaders,
-    };
+    try {
+      const res = await this.client.request(config);
+      const resHeaders: Record<string, string> = {};
+      if (res.headers['content-type']) resHeaders['content-type'] = res.headers['content-type'] as string;
+      return {
+        status: res.status,
+        data: res.data,
+        headers: resHeaders,
+      };
+    } catch (error: any) {
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        this.logger.error(`Gateway timeout: ${method} ${path}`, error.message);
+        return { status: 504, data: { message: 'Gateway Timeout', path }, headers: {} };
+      }
+      this.logger.error(`Bad gateway: ${method} ${path}`, error.message);
+      return { status: 502, data: { message: 'Bad Gateway', path }, headers: {} };
+    }
   }
 }

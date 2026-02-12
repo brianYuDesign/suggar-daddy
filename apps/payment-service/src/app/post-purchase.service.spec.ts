@@ -6,7 +6,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('PostPurchaseService', () => {
   let service: PostPurchaseService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'mget'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
 
   beforeEach(async () => {
@@ -15,6 +15,7 @@ describe('PostPurchaseService', () => {
       set: jest.fn(),
       lPush: jest.fn(),
       lRange: jest.fn(),
+      mget: jest.fn().mockResolvedValue([]),
     };
     kafka = { sendEvent: jest.fn() };
 
@@ -77,9 +78,10 @@ describe('PostPurchaseService', () => {
   describe('findByBuyer', () => {
     it('應回傳該買家的購買列表並依時間倒序', async () => {
       redis.lRange!.mockResolvedValue(['ppv-1', 'ppv-2']);
-      redis.get!
-        .mockResolvedValueOnce(JSON.stringify({ id: 'ppv-1', createdAt: '2025-01-02T00:00:00.000Z' }))
-        .mockResolvedValueOnce(JSON.stringify({ id: 'ppv-2', createdAt: '2025-01-03T00:00:00.000Z' }));
+      redis.mget!.mockResolvedValue([
+        JSON.stringify({ id: 'ppv-1', createdAt: '2025-01-02T00:00:00.000Z' }),
+        JSON.stringify({ id: 'ppv-2', createdAt: '2025-01-03T00:00:00.000Z' }),
+      ]);
 
       const result = await service.findByBuyer('user-1');
 

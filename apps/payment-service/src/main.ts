@@ -1,12 +1,15 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
-import { setupSwagger } from '@suggar-daddy/common';
+import { AllExceptionsFilter, setupSwagger } from '@suggar-daddy/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
+
+  // Global error handling
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Enable global validation pipe
   app.useGlobalPipes(

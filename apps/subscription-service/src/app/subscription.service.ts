@@ -50,26 +50,21 @@ export class SubscriptionService {
   }
 
   async findAll(): Promise<any[]> {
-    const keys = await this.redis.keys('subscription:sub-*');
-    const out: any[] = [];
-    for (const key of keys) {
-      const raw = await this.redis.get(key);
-      if (raw) out.push(JSON.parse(raw));
-    }
+    const scannedKeys = await this.redis.scan('subscription:sub-*');
+    const values = await this.redis.mget(...scannedKeys);
+    const out = values.filter(Boolean).map((raw) => JSON.parse(raw!));
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 
   async findBySubscriber(subscriberId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
     // Must fetch all and filter by status — can't paginate at Redis level
     const ids = await this.redis.lRange(SUBS_SUBSCRIBER(subscriberId), 0, -1);
-    const active: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(SUB_KEY(id));
-      if (raw) {
-        const s = JSON.parse(raw);
-        if (s.status === 'active') active.push(s);
-      }
-    }
+    const keys = ids.map((id) => SUB_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const active = values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!))
+      .filter((s) => s.status === 'active');
     active.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
     const skip = (page - 1) * limit;
     return { data: active.slice(skip, skip + limit), total: active.length, page, limit };
@@ -77,14 +72,12 @@ export class SubscriptionService {
 
   async findByCreator(creatorId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
     const ids = await this.redis.lRange(SUBS_CREATOR(creatorId), 0, -1);
-    const active: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(SUB_KEY(id));
-      if (raw) {
-        const s = JSON.parse(raw);
-        if (s.status === 'active') active.push(s);
-      }
-    }
+    const keys = ids.map((id) => SUB_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const active = values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!))
+      .filter((s) => s.status === 'active');
     active.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
     const skip = (page - 1) * limit;
     return { data: active.slice(skip, skip + limit), total: active.length, page, limit };

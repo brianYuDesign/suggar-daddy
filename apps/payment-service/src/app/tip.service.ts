@@ -50,11 +50,9 @@ export class TipService {
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
     const ids = await this.redis.lRange(key, skip, skip + limit - 1);
-    const data: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(TIP_KEY(id));
-      if (raw) data.push(JSON.parse(raw));
-    }
+    const keys = ids.map((id) => TIP_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const data = values.filter(Boolean).map((raw) => JSON.parse(raw!));
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
@@ -63,11 +61,9 @@ export class TipService {
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
     const ids = await this.redis.lRange(key, skip, skip + limit - 1);
-    const data: any[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(TIP_KEY(id));
-      if (raw) data.push(JSON.parse(raw));
-    }
+    const keys = ids.map((id) => TIP_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const data = values.filter(Boolean).map((raw) => JSON.parse(raw!));
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 

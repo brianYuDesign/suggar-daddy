@@ -51,4 +51,10 @@ export class AnalyticsController {
   ) {
     return this.analyticsService.getSubscriptionChurnRate(period);
   }
+
+  /** GET /api/v1/admin/analytics/matching - 匹配統計 */
+  @Get('matching')
+  getMatchingStats() {
+    return this.analyticsService.getMatchingStats();
+  }
 }

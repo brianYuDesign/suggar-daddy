@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MatchingService } from './matching.service';
+import { UserServiceClient } from './user-service.client';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('MatchingService', () => {
   let service: MatchingService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'sAdd' | 'sMembers' | 'sRem' | 'keys'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'sAdd' | 'sMembers' | 'sRem' | 'keys' | 'scan' | 'mget'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
+  let userServiceClient: jest.Mocked<Pick<UserServiceClient, 'getCardsForRecommendation'>>;
 
   beforeEach(async () => {
     redis = {
@@ -16,14 +18,20 @@ describe('MatchingService', () => {
       sMembers: jest.fn(),
       sRem: jest.fn(),
       keys: jest.fn(),
+      scan: jest.fn().mockResolvedValue([]),
+      mget: jest.fn().mockResolvedValue([]),
     };
     kafka = { sendEvent: jest.fn() };
+    userServiceClient = {
+      getCardsForRecommendation: jest.fn().mockResolvedValue([]),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MatchingService,
         { provide: RedisService, useValue: redis },
         { provide: KafkaProducerService, useValue: kafka },
+        { provide: UserServiceClient, useValue: userServiceClient },
       ],
     }).compile();
 
@@ -41,6 +49,11 @@ describe('MatchingService', () => {
   describe('getCards', () => {
     it('應回傳未 swipe 過的卡片並排除自己', async () => {
       redis.sMembers!.mockResolvedValue(['user-3', 'user-5']);
+      userServiceClient.getCardsForRecommendation!.mockResolvedValue([
+        { id: 'user-1', displayName: 'A', avatarUrl: null },
+        { id: 'user-2', displayName: 'B', avatarUrl: null },
+        { id: 'user-3', displayName: 'C', avatarUrl: null },
+      ] as any);
       const result = await service.getCards('user-0', 3);
       expect(result.cards.length).toBeLessThanOrEqual(3);
       expect(result.cards.every((c) => c.id !== 'user-0')).toBe(true);
@@ -100,7 +113,8 @@ describe('MatchingService', () => {
   describe('getMatches', () => {
     it('應回傳空列表當無配對', async () => {
       redis.sMembers!.mockResolvedValue([]);
-      redis.keys!.mockResolvedValue([]);
+      redis.scan!.mockResolvedValue([]);
+      redis.mget!.mockResolvedValue([]);
 
       const result = await service.getMatches('user-1', 10);
 
@@ -117,8 +131,8 @@ describe('MatchingService', () => {
         matchedAt: new Date(),
         status: 'active',
       };
-      redis.keys!.mockResolvedValue(['match:user-1:user-2']);
-      redis.get!.mockResolvedValue(JSON.stringify(matchRecord));
+      redis.scan!.mockResolvedValue(['match:user-1:user-2']);
+      redis.mget!.mockResolvedValue([JSON.stringify(matchRecord)]);
       redis.set!.mockResolvedValue(undefined);
       redis.sRem!.mockResolvedValue(0);
 
@@ -132,7 +146,8 @@ describe('MatchingService', () => {
     });
 
     it('應在非本人或找不到時回傳 success: false', async () => {
-      redis.keys!.mockResolvedValue([]);
+      redis.scan!.mockResolvedValue([]);
+      redis.mget!.mockResolvedValue([]);
 
       const result = await service.unmatch('user-1', 'match-999');
 
