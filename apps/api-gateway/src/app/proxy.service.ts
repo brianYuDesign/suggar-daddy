@@ -91,6 +91,9 @@ export class ProxyService {
   }
 
   getTarget(path: string): ProxyTarget | null {
+    if (!path) {
+      return null;
+    }
     const normalized = path.startsWith('/') ? path : `/${path}`;
     return this.targets.find((t) => normalized.startsWith(t.prefix)) ?? null;
   }

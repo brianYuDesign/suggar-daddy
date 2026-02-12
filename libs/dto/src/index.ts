@@ -9,3 +9,4 @@ export * from './matching.dto';
 export * from './notification.dto';
 export * from './messaging.dto';
 export * from './pagination.dto';
+export * from './lib/stripe-connect.dto';

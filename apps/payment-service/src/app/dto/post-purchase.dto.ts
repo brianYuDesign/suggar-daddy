@@ -2,14 +2,14 @@ import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class CreatePostPurchaseDto {
   @IsString()
-  postId: string;
+  postId!: string;
 
   @IsString()
-  buyerId: string;
+  buyerId!: string;
 
   @IsNumber()
   @Min(0)
-  amount: number;
+  amount!: number;
 
   @IsOptional()
   @IsString()

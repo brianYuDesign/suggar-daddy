@@ -2,14 +2,14 @@ import { IsString, IsNumber, IsOptional, IsIn, Min } from 'class-validator';
 
 export class CreateTransactionDto {
   @IsString()
-  userId: string;
+  userId!: string;
 
   @IsIn(['subscription', 'ppv', 'tip'])
-  type: string;
+  type!: string;
 
   @IsNumber()
   @Min(0)
-  amount: number;
+  amount!: number;
 
   @IsOptional()
   @IsString()

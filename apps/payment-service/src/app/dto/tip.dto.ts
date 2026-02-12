@@ -2,14 +2,14 @@ import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class CreateTipDto {
   @IsString()
-  fromUserId: string;
+  fromUserId!: string;
 
   @IsString()
-  toUserId: string;
+  toUserId!: string;
 
   @IsNumber()
   @Min(0)
-  amount: number;
+  amount!: number;
 
   @IsOptional()
   @IsString()

@@ -1,38 +1,56 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { RedisModule } from '@suggar-daddy/redis';
-import { KafkaModule } from '@suggar-daddy/kafka';
-import { JwtStrategy } from '@suggar-daddy/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { PostController } from './post.controller';
-import { PostService } from './post.service';
-import { ModerationController } from './moderation.controller';
-import { ModerationService } from './moderation.service';
-import { SubscriptionServiceClient } from './subscription-service.client';
-import { PostPurchaseConsumer } from './events/post-purchase.consumer';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+import { RedisModule } from "@suggar-daddy/redis";
+import { KafkaModule } from "@suggar-daddy/kafka";
+import {
+  JwtStrategy,
+  EnvConfigModule,
+  AppConfigService,
+} from "@suggar-daddy/common";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { PostController } from "./post.controller";
+import { PostService } from "./post.service";
+import { ModerationController } from "./moderation.controller";
+import { ModerationService } from "./moderation.service";
+import { SubscriptionServiceClient } from "./subscription-service.client";
+import { PostPurchaseConsumer } from "./events/post-purchase.consumer";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ".env",
     }),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+    EnvConfigModule,
+    PassportModule.register({ defaultStrategy: "jwt" }),
+    JwtModule.registerAsync({
+      inject: [AppConfigService],
+      useFactory: (config: AppConfigService) => ({
+        secret: config.jwtSecret,
+        signOptions: { expiresIn: config.jwtExpiresIn },
+      }),
     }),
     RedisModule.forRoot(),
-    KafkaModule.forRoot({
-      clientId: 'content-service',
-      brokers: (process.env['KAFKA_BROKERS'] || 'localhost:9092').split(','),
-      groupId: 'content-service-group',
+    KafkaModule.forRootAsync({
+      useFactory: (config: AppConfigService) => ({
+        clientId: config.kafkaClientId,
+        brokers: config.kafkaBrokers,
+        groupId: config.kafkaGroupId,
+      }),
+      inject: [AppConfigService],
     }),
   ],
   controllers: [AppController, PostController, ModerationController],
-  providers: [AppService, PostService, ModerationService, SubscriptionServiceClient, JwtStrategy, PostPurchaseConsumer],
+  providers: [
+    AppService,
+    PostService,
+    ModerationService,
+    SubscriptionServiceClient,
+    JwtStrategy,
+    PostPurchaseConsumer,
+  ],
 })
 export class AppModule {}

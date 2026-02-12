@@ -20,6 +20,7 @@ export interface ErrorResponse {
   path: string;
   method: string;
   statusCode: number;
+  correlationId?: string;
   details?: Record<string, any>;
   stack?: string;
 }
@@ -56,6 +57,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const timestamp = new Date().toISOString();
     const path = request.url;
     const method = request.method;
+    const correlationId = (request as any).correlationId;
 
     // Handle BusinessException
     if (exception instanceof BusinessException) {
@@ -66,6 +68,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         path,
         method,
         statusCode: exception.getStatus(),
+        correlationId,
         details: exception.details,
       };
     }
@@ -95,6 +98,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         path,
         method,
         statusCode: status,
+        correlationId,
         details,
       };
     }
@@ -111,6 +115,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       path,
       method,
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      correlationId,
       stack: process.env["NODE_ENV"] === "development" ? stack : undefined,
     };
   }
