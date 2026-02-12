@@ -9,6 +9,19 @@ const SUB_KEY = (id: string) => `subscription:${id}`;
 const SUBS_SUBSCRIBER = (subscriberId: string) => `subscriptions:subscriber:${subscriberId}`;
 const SUBS_CREATOR = (creatorId: string) => `subscriptions:creator:${creatorId}`;
 
+export interface Subscription {
+  id: string;
+  subscriberId: string;
+  creatorId: string;
+  tierId: string;
+  status: 'active' | 'cancelled' | 'expired';
+  stripeSubscriptionId: string | null;
+  currentPeriodStart: string;
+  currentPeriodEnd: string | null;
+  createdAt: string;
+  cancelledAt: string | null;
+}
+
 @Injectable()
 export class SubscriptionService {
   constructor(
@@ -20,11 +33,11 @@ export class SubscriptionService {
     return `sub-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  async create(createDto: CreateSubscriptionDto): Promise<any> {
+  async create(createDto: CreateSubscriptionDto): Promise<Subscription> {
     const id = this.genId();
     const now = new Date().toISOString();
     const startDate = createDto.startDate || now;
-    const sub = {
+    const sub: Subscription = {
       id,
       subscriberId: createDto.subscriberId,
       creatorId: createDto.creatorId,
@@ -49,14 +62,14 @@ export class SubscriptionService {
     return sub;
   }
 
-  async findAll(): Promise<any[]> {
+  async findAll(): Promise<Subscription[]> {
     const scannedKeys = await this.redis.scan('subscription:sub-*');
     const values = await this.redis.mget(...scannedKeys);
     const out = values.filter(Boolean).map((raw) => JSON.parse(raw!));
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 
-  async findBySubscriber(subscriberId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findBySubscriber(subscriberId: string, page = 1, limit = 20): Promise<PaginatedResponse<Subscription>> {
     // Must fetch all and filter by status — can't paginate at Redis level
     const ids = await this.redis.lRange(SUBS_SUBSCRIBER(subscriberId), 0, -1);
     const keys = ids.map((id) => SUB_KEY(id));
@@ -70,7 +83,7 @@ export class SubscriptionService {
     return { data: active.slice(skip, skip + limit), total: active.length, page, limit };
   }
 
-  async findByCreator(creatorId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findByCreator(creatorId: string, page = 1, limit = 20): Promise<PaginatedResponse<Subscription>> {
     const ids = await this.redis.lRange(SUBS_CREATOR(creatorId), 0, -1);
     const keys = ids.map((id) => SUB_KEY(id));
     const values = await this.redis.mget(...keys);
@@ -83,7 +96,7 @@ export class SubscriptionService {
     return { data: active.slice(skip, skip + limit), total: active.length, page, limit };
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string): Promise<Subscription> {
     const raw = await this.redis.get(SUB_KEY(id));
     if (!raw) {
       throw new NotFoundException(`Subscription with ID ${id} not found`);
@@ -91,7 +104,7 @@ export class SubscriptionService {
     return JSON.parse(raw);
   }
 
-  async update(id: string, updateDto: UpdateSubscriptionDto): Promise<any> {
+  async update(id: string, updateDto: UpdateSubscriptionDto): Promise<Subscription> {
     const sub = await this.findOne(id);
     Object.assign(sub, updateDto);
     await this.redis.set(SUB_KEY(id), JSON.stringify(sub));
@@ -103,7 +116,7 @@ export class SubscriptionService {
     return sub;
   }
 
-  async cancel(id: string): Promise<any> {
+  async cancel(id: string): Promise<Subscription> {
     const sub = await this.findOne(id);
     sub.status = 'cancelled';
     sub.cancelledAt = new Date().toISOString();
@@ -117,7 +130,7 @@ export class SubscriptionService {
   }
 
   /** 支付完成後延長訂閱週期（由 payment.completed 消費者呼叫） */
-  async extendPeriod(subscriptionId: string, newPeriodEnd: string): Promise<any> {
+  async extendPeriod(subscriptionId: string, newPeriodEnd: string): Promise<Subscription> {
     const sub = await this.findOne(subscriptionId);
     if (sub.status !== 'active') return sub;
     sub.currentPeriodEnd = newPeriodEnd;

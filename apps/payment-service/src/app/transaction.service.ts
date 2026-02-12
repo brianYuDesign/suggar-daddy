@@ -9,6 +9,19 @@ const TX_KEY = (id: string) => `transaction:${id}`;
 const TX_USER = (userId: string) => `transactions:user:${userId}`;
 const TX_STRIPE = (stripeId: string) => `transaction:stripe:${stripeId}`;
 
+export interface Transaction {
+  id: string;
+  userId: string;
+  type: 'subscription' | 'ppv' | 'tip';
+  amount: number;
+  status: 'pending' | 'succeeded' | 'failed' | 'refunded';
+  stripePaymentId: string | null;
+  relatedEntityId: string | null;
+  relatedEntityType: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
 @Injectable()
 export class TransactionService {
   constructor(
@@ -20,19 +33,19 @@ export class TransactionService {
     return `tx-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  async create(createDto: CreateTransactionDto & { stripePaymentId?: string }): Promise<any> {
+  async create(createDto: CreateTransactionDto & { stripePaymentId?: string }): Promise<Transaction> {
     const id = this.genId();
     const now = new Date().toISOString();
-    const tx = {
+    const tx: Transaction = {
       id,
       userId: createDto.userId,
-      type: createDto.type || 'subscription',
+      type: (createDto.type || 'subscription') as Transaction['type'],
       amount: createDto.amount,
       status: 'pending',
       stripePaymentId: createDto.stripePaymentId ?? null,
       relatedEntityId: createDto.relatedEntityId ?? null,
       relatedEntityType: createDto.relatedEntityType ?? null,
-      metadata: createDto.metadata ?? null,
+      metadata: (createDto.metadata as Record<string, unknown>) ?? null,
       createdAt: now,
     };
     await this.redis.set(TX_KEY(id), JSON.stringify(tx));
@@ -43,7 +56,7 @@ export class TransactionService {
     return tx;
   }
 
-  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<Transaction>> {
     // SCAN does not support native pagination — fetch all then slice
     const scannedKeys = await this.redis.scan('transaction:tx-*');
     const values = await this.redis.mget(...scannedKeys);
@@ -53,7 +66,7 @@ export class TransactionService {
     return { data: all.slice(skip, skip + limit), total: all.length, page, limit };
   }
 
-  async findByUser(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findByUser(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<Transaction>> {
     const key = TX_USER(userId);
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
@@ -64,7 +77,7 @@ export class TransactionService {
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string): Promise<Transaction> {
     const raw = await this.redis.get(TX_KEY(id));
     if (!raw) {
       throw new NotFoundException(`Transaction with ID ${id} not found`);
@@ -72,13 +85,13 @@ export class TransactionService {
     return JSON.parse(raw);
   }
 
-  async findByStripePaymentId(stripePaymentId: string): Promise<any | null> {
+  async findByStripePaymentId(stripePaymentId: string): Promise<Transaction | null> {
     const id = await this.redis.get(TX_STRIPE(stripePaymentId));
     if (!id) return null;
     return this.findOne(id);
   }
 
-  async update(id: string, updateDto: UpdateTransactionDto): Promise<any> {
+  async update(id: string, updateDto: UpdateTransactionDto): Promise<Transaction> {
     const tx = await this.findOne(id);
     Object.assign(tx, updateDto);
     await this.redis.set(TX_KEY(id), JSON.stringify(tx));

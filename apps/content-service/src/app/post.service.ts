@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { CONTENT_EVENTS } from '@suggar-daddy/common';
@@ -13,6 +13,29 @@ const POSTS_CREATOR = (creatorId: string) => `posts:creator:${creatorId}`;
 const POST_LIKES = (postId: string) => `post:${postId}:likes`;
 const POST_COMMENTS = (postId: string) => `post:${postId}:comments`;
 
+export interface Post {
+  id: string;
+  creatorId: string;
+  contentType: 'image' | 'video' | 'text';
+  caption: string | null;
+  mediaUrls: string[];
+  visibility: 'public' | 'subscribers' | 'tier_specific' | 'ppv';
+  requiredTierId: string | null;
+  ppvPrice: number | null;
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface PostComment {
+  id: string;
+  postId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+}
+
 @Injectable()
 export class PostService {
   constructor(
@@ -25,16 +48,16 @@ export class PostService {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  async create(createDto: CreatePostDto): Promise<any> {
+  async create(createDto: CreatePostDto): Promise<Post> {
     const postId = this.genId('post');
     const now = new Date().toISOString();
-    const post = {
+    const post: Post = {
       id: postId,
       creatorId: createDto.creatorId,
-      contentType: createDto.contentType,
+      contentType: createDto.contentType as Post['contentType'],
       caption: createDto.caption ?? null,
       mediaUrls: createDto.mediaUrls || [],
-      visibility: createDto.visibility || 'public',
+      visibility: (createDto.visibility || 'public') as Post['visibility'],
       requiredTierId: createDto.requiredTierId ?? null,
       ppvPrice: createDto.ppvPrice ?? null,
       likeCount: 0,
@@ -59,7 +82,7 @@ export class PostService {
     return post;
   }
 
-  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<Post>> {
     const total = await this.redis.lLen(POSTS_PUBLIC_IDS);
     const skip = (page - 1) * limit;
     const ids = await this.redis.lRange(POSTS_PUBLIC_IDS, skip, skip + limit - 1);
@@ -69,7 +92,7 @@ export class PostService {
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
-  async findByCreator(creatorId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async findByCreator(creatorId: string, page = 1, limit = 20): Promise<PaginatedResponse<Post>> {
     const key = POSTS_CREATOR(creatorId);
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
@@ -86,7 +109,7 @@ export class PostService {
     viewerId?: string | null,
     page = 1,
     limit = 20,
-  ): Promise<PaginatedResponse<any>> {
+  ): Promise<PaginatedResponse<Post>> {
     // Must fetch all then filter — access check can't be done at Redis level
     const ids = await this.redis.lRange(POSTS_CREATOR(creatorId), 0, -1);
     const postKeys = ids.map((id) => POST_KEY(id));
@@ -118,7 +141,7 @@ export class PostService {
       uniqueTierIds.forEach((tierId, i) => tierAccessCache.set(tierId, tierChecks[i]));
     }
 
-    const filtered: any[] = [];
+    const filtered: Post[] = [];
     for (const post of allPosts) {
       if (!viewerId) {
         if (post.visibility === 'public') filtered.push(post);
@@ -149,7 +172,7 @@ export class PostService {
   private readonly POST_UNLOCK = (postId: string, userId: string) =>
     `post:unlock:${postId}:${userId}`;
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string): Promise<Post> {
     const raw = await this.redis.get(POST_KEY(id));
     if (!raw) {
       throw new NotFoundException(`Post with ID ${id} not found`);
@@ -165,7 +188,7 @@ export class PostService {
    * - PPV：已購買則完整；未解鎖則鎖定版
    * - 無 viewerId 且 PPV/訂閱牆：回傳鎖定版
    */
-  async findOneWithAccess(id: string, viewerId?: string | null): Promise<any> {
+  async findOneWithAccess(id: string, viewerId?: string | null): Promise<Post & { locked?: boolean }> {
     const post = await this.findOne(id);
     const isPpv = post.ppvPrice != null && Number(post.ppvPrice) > 0;
     const stripLocked = () => ({
@@ -201,7 +224,7 @@ export class PostService {
     return post;
   }
 
-  async update(id: string, updateDto: UpdatePostDto): Promise<any> {
+  async update(id: string, updateDto: UpdatePostDto): Promise<Post> {
     const post = await this.findOne(id);
     if (updateDto.caption !== undefined) post.caption = updateDto.caption;
     if (updateDto.visibility !== undefined) post.visibility = updateDto.visibility;
@@ -226,7 +249,7 @@ export class PostService {
     });
   }
 
-  async likePost(postId: string, userId: string): Promise<any> {
+  async likePost(postId: string, userId: string): Promise<Post> {
     const post = await this.findOne(postId);
     const added = await this.redis.sAdd(POST_LIKES(postId), userId);
     if (added === 0) {
@@ -242,7 +265,7 @@ export class PostService {
     return post;
   }
 
-  async unlikePost(postId: string, userId: string): Promise<any> {
+  async unlikePost(postId: string, userId: string): Promise<Post> {
     const post = await this.findOne(postId);
     await this.redis.sRem(POST_LIKES(postId), userId);
     post.likeCount = Math.max(0, (post.likeCount || 1) - 1);
@@ -255,11 +278,11 @@ export class PostService {
     return post;
   }
 
-  async createComment(postId: string, createDto: CreatePostCommentDto): Promise<any> {
+  async createComment(postId: string, createDto: CreatePostCommentDto): Promise<PostComment> {
     const post = await this.findOne(postId);
     const commentId = this.genId('comment');
     const now = new Date().toISOString();
-    const comment = {
+    const comment: PostComment = {
       id: commentId,
       postId,
       userId: createDto.userId,
@@ -279,7 +302,7 @@ export class PostService {
     return comment;
   }
 
-  async getComments(postId: string, page = 1, limit = 20): Promise<PaginatedResponse<any>> {
+  async getComments(postId: string, page = 1, limit = 20): Promise<PaginatedResponse<PostComment>> {
     await this.findOne(postId);
     const key = POST_COMMENTS(postId);
     const total = await this.redis.lLen(key);
