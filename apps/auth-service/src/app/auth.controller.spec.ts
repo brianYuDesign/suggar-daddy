@@ -1,11 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { JwtAuthGuard } from '@suggar-daddy/auth';
-import { LoginDto, RegisterDto, RefreshTokenDto } from '@suggar-daddy/dto';
-import { UserRole } from '@suggar-daddy/auth';
+import { Test, TestingModule } from "@nestjs/testing";
+import { AuthController } from "./auth.controller";
+import { AuthService } from "./auth.service";
+import { JwtAuthGuard } from "@suggar-daddy/auth";
+import { LoginDto, RegisterDto, RefreshTokenDto } from "@suggar-daddy/dto";
+import { UserRole } from "@suggar-daddy/auth";
 
-describe('AuthController', () => {
+describe("AuthController", () => {
   let controller: AuthController;
   let authService: jest.Mocked<AuthService>;
 
@@ -23,14 +23,14 @@ describe('AuthController', () => {
   };
 
   const mockJwtUser = {
-    userId: 'user-123',
-    email: 'test@example.com',
+    userId: "user-123",
+    email: "test@example.com",
     role: UserRole.SUBSCRIBER,
   };
 
   const mockTokenResponse = {
-    accessToken: 'mock-access-token',
-    refreshToken: 'mock-refresh-token',
+    accessToken: "mock-access-token",
+    refreshToken: "mock-refresh-token",
     expiresIn: 3600,
   };
 
@@ -56,13 +56,13 @@ describe('AuthController', () => {
     jest.clearAllMocks();
   });
 
-  describe('register', () => {
-    it('should register a new user successfully', async () => {
+  describe("register", () => {
+    it("should register a new user successfully", async () => {
       const registerDto: RegisterDto = {
-        email: 'newuser@example.com',
-        password: 'Password123!',
-        displayName: 'New User',
-        role: UserRole.CREATOR,
+        email: "newuser@example.com",
+        password: "Password123!",
+        displayName: "New User",
+        role: "sugar_daddy",
       };
 
       mockAuthService.register.mockResolvedValue(mockTokenResponse);
@@ -74,30 +74,30 @@ describe('AuthController', () => {
       expect(authService.register).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle registration errors', async () => {
+    it("should handle registration errors", async () => {
       const registerDto: RegisterDto = {
-        email: 'existing@example.com',
-        password: 'Password123!',
-        displayName: 'Existing User',
-        role: UserRole.SUBSCRIBER,
+        email: "existing@example.com",
+        password: "Password123!",
+        displayName: "Existing User",
+        role: "sugar_baby",
       };
 
       mockAuthService.register.mockRejectedValue(
-        new Error('Email already exists')
+        new Error("Email already exists"),
       );
 
       await expect(controller.register(registerDto)).rejects.toThrow(
-        'Email already exists'
+        "Email already exists",
       );
       expect(authService.register).toHaveBeenCalledWith(registerDto);
     });
   });
 
-  describe('login', () => {
-    it('should login user with valid credentials', async () => {
+  describe("login", () => {
+    it("should login user with valid credentials", async () => {
       const loginDto: LoginDto = {
-        email: 'test@example.com',
-        password: 'Password123!',
+        email: "test@example.com",
+        password: "Password123!",
       };
 
       mockAuthService.login.mockResolvedValue(mockTokenResponse);
@@ -109,26 +109,24 @@ describe('AuthController', () => {
       expect(authService.login).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle invalid credentials', async () => {
+    it("should handle invalid credentials", async () => {
       const loginDto: LoginDto = {
-        email: 'test@example.com',
-        password: 'WrongPassword',
+        email: "test@example.com",
+        password: "WrongPassword",
       };
 
-      mockAuthService.login.mockRejectedValue(
-        new Error('Invalid credentials')
-      );
+      mockAuthService.login.mockRejectedValue(new Error("Invalid credentials"));
 
       await expect(controller.login(loginDto)).rejects.toThrow(
-        'Invalid credentials'
+        "Invalid credentials",
       );
     });
   });
 
-  describe('refresh', () => {
-    it('should refresh access token with valid refresh token', async () => {
+  describe("refresh", () => {
+    it("should refresh access token with valid refresh token", async () => {
       const refreshDto: RefreshTokenDto = {
-        refreshToken: 'valid-refresh-token',
+        refreshToken: "valid-refresh-token",
       };
 
       mockAuthService.refresh.mockResolvedValue(mockTokenResponse);
@@ -139,25 +137,25 @@ describe('AuthController', () => {
       expect(authService.refresh).toHaveBeenCalledWith(refreshDto.refreshToken);
     });
 
-    it('should handle invalid refresh token', async () => {
+    it("should handle invalid refresh token", async () => {
       const refreshDto: RefreshTokenDto = {
-        refreshToken: 'invalid-refresh-token',
+        refreshToken: "invalid-refresh-token",
       };
 
       mockAuthService.refresh.mockRejectedValue(
-        new Error('Invalid refresh token')
+        new Error("Invalid refresh token"),
       );
 
       await expect(controller.refresh(refreshDto)).rejects.toThrow(
-        'Invalid refresh token'
+        "Invalid refresh token",
       );
     });
   });
 
-  describe('logout', () => {
-    it('should logout user successfully', async () => {
+  describe("logout", () => {
+    it("should logout user successfully", async () => {
       const refreshDto: RefreshTokenDto = {
-        refreshToken: 'valid-refresh-token',
+        refreshToken: "valid-refresh-token",
       };
 
       mockAuthService.logout.mockResolvedValue({ success: true });
@@ -169,17 +167,17 @@ describe('AuthController', () => {
     });
   });
 
-  describe('me', () => {
-    it('should return current user info', () => {
+  describe("me", () => {
+    it("should return current user info", () => {
       const result = controller.me(mockJwtUser);
 
       expect(result).toEqual(mockJwtUser);
     });
   });
 
-  describe('verifyEmail', () => {
-    it('should verify email with valid token', async () => {
-      const token = 'valid-email-token';
+  describe("verifyEmail", () => {
+    it("should verify email with valid token", async () => {
+      const token = "valid-email-token";
       mockAuthService.verifyEmail.mockResolvedValue({ success: true });
 
       const result = await controller.verifyEmail(token);
@@ -188,20 +186,20 @@ describe('AuthController', () => {
       expect(authService.verifyEmail).toHaveBeenCalledWith(token);
     });
 
-    it('should handle invalid email verification token', async () => {
-      const token = 'invalid-token';
+    it("should handle invalid email verification token", async () => {
+      const token = "invalid-token";
       mockAuthService.verifyEmail.mockRejectedValue(
-        new Error('Invalid or expired token')
+        new Error("Invalid or expired token"),
       );
 
       await expect(controller.verifyEmail(token)).rejects.toThrow(
-        'Invalid or expired token'
+        "Invalid or expired token",
       );
     });
   });
 
-  describe('resendVerification', () => {
-    it('should resend verification email', async () => {
+  describe("resendVerification", () => {
+    it("should resend verification email", async () => {
       mockAuthService.createEmailVerificationToken.mockResolvedValue({
         success: true,
       });
@@ -211,14 +209,14 @@ describe('AuthController', () => {
       expect(result).toEqual({ success: true });
       expect(authService.createEmailVerificationToken).toHaveBeenCalledWith(
         mockJwtUser.userId,
-        mockJwtUser.email
+        mockJwtUser.email,
       );
     });
   });
 
-  describe('forgotPassword', () => {
-    it('should request password reset', async () => {
-      const body = { email: 'test@example.com' };
+  describe("forgotPassword", () => {
+    it("should request password reset", async () => {
+      const body = { email: "test@example.com" };
       mockAuthService.requestPasswordReset.mockResolvedValue({ success: true });
 
       const result = await controller.forgotPassword(body);
@@ -228,9 +226,9 @@ describe('AuthController', () => {
     });
   });
 
-  describe('resetPassword', () => {
-    it('should reset password with valid token', async () => {
-      const body = { token: 'valid-reset-token', newPassword: 'NewPass123!' };
+  describe("resetPassword", () => {
+    it("should reset password with valid token", async () => {
+      const body = { token: "valid-reset-token", newPassword: "NewPass123!" };
       mockAuthService.resetPassword.mockResolvedValue({ success: true });
 
       const result = await controller.resetPassword(body);
@@ -238,16 +236,16 @@ describe('AuthController', () => {
       expect(result).toEqual({ success: true });
       expect(authService.resetPassword).toHaveBeenCalledWith(
         body.token,
-        body.newPassword
+        body.newPassword,
       );
     });
   });
 
-  describe('changePassword', () => {
-    it('should change password for authenticated user', async () => {
+  describe("changePassword", () => {
+    it("should change password for authenticated user", async () => {
       const body = {
-        oldPassword: 'OldPass123!',
-        newPassword: 'NewPass123!',
+        oldPassword: "OldPass123!",
+        newPassword: "NewPass123!",
       };
       mockAuthService.changePassword.mockResolvedValue({ success: true });
 
@@ -257,22 +255,22 @@ describe('AuthController', () => {
       expect(authService.changePassword).toHaveBeenCalledWith(
         mockJwtUser.userId,
         body.oldPassword,
-        body.newPassword
+        body.newPassword,
       );
     });
 
-    it('should handle incorrect old password', async () => {
+    it("should handle incorrect old password", async () => {
       const body = {
-        oldPassword: 'WrongOldPass',
-        newPassword: 'NewPass123!',
+        oldPassword: "WrongOldPass",
+        newPassword: "NewPass123!",
       };
       mockAuthService.changePassword.mockRejectedValue(
-        new Error('Current password is incorrect')
+        new Error("Current password is incorrect"),
       );
 
       await expect(
-        controller.changePassword(mockJwtUser, body)
-      ).rejects.toThrow('Current password is incorrect');
+        controller.changePassword(mockJwtUser, body),
+      ).rejects.toThrow("Current password is incorrect");
     });
   });
 });

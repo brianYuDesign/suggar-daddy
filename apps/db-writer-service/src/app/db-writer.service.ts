@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { RedisService } from '@suggar-daddy/redis';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { RedisService } from "@suggar-daddy/redis";
 import {
   UserEntity,
   PostEntity,
@@ -13,13 +13,14 @@ import {
   TransactionEntity,
   TipEntity,
   PostPurchaseEntity,
-} from '@suggar-daddy/database';
+} from "@suggar-daddy/database";
 
 const USER_KEY = (id: string) => `user:${id}`;
 const USER_EMAIL_KEY = (email: string) => `user:email:${email}`;
 const POST_KEY = (id: string) => `post:${id}`;
-const POSTS_PUBLIC_IDS = 'posts:public:ids';
-const POSTS_CREATOR_PREFIX = (creatorId: string) => `posts:creator:${creatorId}`;
+const POSTS_PUBLIC_IDS = "posts:public:ids";
+const POSTS_CREATOR_PREFIX = (creatorId: string) =>
+  `posts:creator:${creatorId}`;
 const MEDIA_KEY = (id: string) => `media:${id}`;
 
 @Injectable()
@@ -53,7 +54,7 @@ export class DbWriterService {
   async handleUserCreated(payload: Record<string, unknown>): Promise<void> {
     const { id, email, displayName, role, bio, createdAt } = payload;
     if (!id || !email || !displayName) {
-      this.logger.warn('user.created missing required fields');
+      this.logger.warn("user.created missing required fields");
       return;
     }
     const normalizedEmail = String(email).trim().toLowerCase();
@@ -61,35 +62,37 @@ export class DbWriterService {
     // passwordHash is no longer sent via Kafka for security.
     // Read the full user record from Redis (written by auth-service at registration).
     let passwordHash: string | null = null;
-    const existingUserRaw = await this.redis.get(USER_KEY(id));
+    const existingUserRaw = await this.redis.get(USER_KEY(id as string));
     if (existingUserRaw) {
       const existingUser = JSON.parse(existingUserRaw);
       passwordHash = existingUser.passwordHash ?? null;
     }
 
     await this.userRepo.insert({
-      id,
+      id: id as string,
       email: normalizedEmail,
       passwordHash,
-      displayName,
-      role: role || 'subscriber',
-      bio: bio || null,
-      createdAt: createdAt ? new Date(createdAt) : new Date(),
+      displayName: displayName as string,
+      role: (role as string) || "subscriber",
+      bio: (bio as string) || null,
+      createdAt: createdAt
+        ? new Date(createdAt as string | number)
+        : new Date(),
     });
     // Redis user record is already written by auth-service; update with DB-canonical fields
     const redisUser = {
-      id,
+      id: id as string,
       email: normalizedEmail,
       passwordHash,
-      displayName,
-      role: role || 'subscriber',
-      bio: bio ?? null,
+      displayName: displayName as string,
+      role: (role as string) || "subscriber",
+      bio: (bio as string) ?? null,
       avatarUrl: null,
       createdAt,
       updatedAt: createdAt,
     };
-    await this.redis.set(USER_KEY(id), JSON.stringify(redisUser));
-    await this.redis.set(USER_EMAIL_KEY(normalizedEmail), id);
+    await this.redis.set(USER_KEY(id as string), JSON.stringify(redisUser));
+    await this.redis.set(USER_EMAIL_KEY(normalizedEmail), id as string);
     this.logger.log(`user.created persisted id=${id}`);
   }
 
@@ -98,9 +101,16 @@ export class DbWriterService {
     if (!userId) return;
     await this.userRepo.update(
       { id: userId as string },
-      { displayName: displayName as string, bio: bio as string | null, avatarUrl: avatarUrl as string | null, updatedAt: new Date((updatedAt as string) || Date.now()) },
+      {
+        displayName: displayName as string,
+        bio: bio as string | null,
+        avatarUrl: avatarUrl as string | null,
+        updatedAt: new Date((updatedAt as string) || Date.now()),
+      },
     );
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepo.findOne({
+      where: { id: userId as string },
+    });
     if (user) {
       const redisUser = {
         id: user.id,
@@ -113,7 +123,10 @@ export class DbWriterService {
         createdAt: user.createdAt?.toISOString(),
         updatedAt: user.updatedAt?.toISOString(),
       };
-      await this.redis.set(USER_KEY(userId), JSON.stringify(redisUser));
+      await this.redis.set(
+        USER_KEY(userId as string),
+        JSON.stringify(redisUser),
+      );
     }
     this.logger.log(`user.updated persisted userId=${userId}`);
   }
@@ -131,50 +144,58 @@ export class DbWriterService {
     } = payload;
     if (!postId || !creatorId || !contentType) return;
     await this.postRepo.insert({
-      id: postId,
-      creatorId,
-      contentType,
-      caption: caption || null,
-      mediaUrls: Array.isArray(mediaUrls) ? mediaUrls : [],
-      visibility: visibility || 'public',
-      requiredTierId: requiredTierId || null,
-      ppvPrice: ppvPrice ?? null,
+      id: postId as string,
+      creatorId: creatorId as string,
+      contentType: contentType as string,
+      caption: (caption as string) || null,
+      mediaUrls: Array.isArray(mediaUrls) ? (mediaUrls as string[]) : [],
+      visibility: (visibility as string) || "public",
+      requiredTierId: (requiredTierId as string) || null,
+      ppvPrice: (ppvPrice as number) ?? null,
       likeCount: 0,
       commentCount: 0,
       createdAt: new Date(),
     });
     const postJson = {
-      id: postId,
-      creatorId,
-      contentType,
-      caption: caption || null,
-      mediaUrls: Array.isArray(mediaUrls) ? mediaUrls : [],
-      visibility: visibility || 'public',
-      requiredTierId: requiredTierId || null,
-      ppvPrice: ppvPrice ?? null,
+      id: postId as string,
+      creatorId: creatorId as string,
+      contentType: contentType as string,
+      caption: (caption as string) || null,
+      mediaUrls: Array.isArray(mediaUrls) ? (mediaUrls as string[]) : [],
+      visibility: (visibility as string) || "public",
+      requiredTierId: (requiredTierId as string) || null,
+      ppvPrice: (ppvPrice as number) ?? null,
       likeCount: 0,
       commentCount: 0,
       createdAt: new Date().toISOString(),
     };
-    await this.redis.set(POST_KEY(postId), JSON.stringify(postJson));
-    if ((visibility || 'public') === 'public') {
-      await this.redis.lPush(POSTS_PUBLIC_IDS, postId);
+    await this.redis.set(POST_KEY(postId as string), JSON.stringify(postJson));
+    if (((visibility as string) || "public") === "public") {
+      await this.redis.lPush(POSTS_PUBLIC_IDS, postId as string);
     }
-    await this.redis.lPush(POSTS_CREATOR_PREFIX(creatorId), postId);
+    await this.redis.lPush(
+      POSTS_CREATOR_PREFIX(creatorId as string),
+      postId as string,
+    );
     this.logger.log(`content.post.created persisted postId=${postId}`);
   }
 
   async handlePostUpdated(payload: Record<string, unknown>): Promise<void> {
     const { postId, ...data } = payload;
     if (!postId) return;
-    await this.postRepo.update({ id: postId }, data);
-    const post = await this.postRepo.findOne({ where: { id: postId } });
+    await this.postRepo.update({ id: postId as string }, data as any);
+    const post = await this.postRepo.findOne({
+      where: { id: postId as string },
+    });
     if (post) {
       await this.redis.set(
-        POST_KEY(postId),
+        POST_KEY(postId as string),
         JSON.stringify({
           ...post,
-          createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : String(post.createdAt),
+          createdAt:
+            post.createdAt instanceof Date
+              ? post.createdAt.toISOString()
+              : String(post.createdAt),
         }),
       );
     }
@@ -184,26 +205,35 @@ export class DbWriterService {
   async handlePostDeleted(payload: Record<string, unknown>): Promise<void> {
     const { postId } = payload;
     if (!postId) return;
-    await this.postLikeRepo.delete({ postId });
-    await this.postCommentRepo.delete({ postId });
-    await this.postRepo.delete({ id: postId });
-    await this.redis.del(POST_KEY(postId));
+    await this.postLikeRepo.delete({ postId: postId as string });
+    await this.postCommentRepo.delete({ postId: postId as string });
+    await this.postRepo.delete({ id: postId as string });
+    await this.redis.del(POST_KEY(postId as string));
     this.logger.log(`content.post.deleted postId=${postId}`);
   }
 
   async handlePostLiked(payload: Record<string, unknown>): Promise<void> {
     const { postId, userId } = payload;
     if (!postId || !userId) return;
-    await this.postLikeRepo.insert({ postId, userId, createdAt: new Date() });
-    await this.postRepo.increment({ id: postId }, 'likeCount', 1);
-    const post = await this.postRepo.findOne({ where: { id: postId } });
+    await this.postLikeRepo.insert({
+      postId: postId as string,
+      userId: userId as string,
+      createdAt: new Date(),
+    });
+    await this.postRepo.increment({ id: postId as string }, "likeCount", 1);
+    const post = await this.postRepo.findOne({
+      where: { id: postId as string },
+    });
     if (post) {
       await this.redis.set(
-        POST_KEY(postId),
+        POST_KEY(postId as string),
         JSON.stringify({
           ...post,
           likeCount: post.likeCount,
-          createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : String(post.createdAt),
+          createdAt:
+            post.createdAt instanceof Date
+              ? post.createdAt.toISOString()
+              : String(post.createdAt),
         }),
       );
     }
@@ -213,16 +243,24 @@ export class DbWriterService {
   async handlePostUnliked(payload: Record<string, unknown>): Promise<void> {
     const { postId, userId } = payload;
     if (!postId || !userId) return;
-    await this.postLikeRepo.delete({ postId, userId });
-    await this.postRepo.decrement({ id: postId }, 'likeCount', 1);
-    const post = await this.postRepo.findOne({ where: { id: postId } });
+    await this.postLikeRepo.delete({
+      postId: postId as string,
+      userId: userId as string,
+    });
+    await this.postRepo.decrement({ id: postId as string }, "likeCount", 1);
+    const post = await this.postRepo.findOne({
+      where: { id: postId as string },
+    });
     if (post) {
       await this.redis.set(
-        POST_KEY(postId),
+        POST_KEY(postId as string),
         JSON.stringify({
           ...post,
           likeCount: Math.max(0, post.likeCount),
-          createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : String(post.createdAt),
+          createdAt:
+            post.createdAt instanceof Date
+              ? post.createdAt.toISOString()
+              : String(post.createdAt),
         }),
       );
     }
@@ -233,87 +271,110 @@ export class DbWriterService {
     const { postId, commentId, userId, content, createdAt } = payload;
     if (!postId || !commentId || !userId || !content) return;
     await this.postCommentRepo.insert({
-      id: commentId,
-      postId,
-      userId,
-      content,
-      createdAt: createdAt ? new Date(createdAt) : new Date(),
+      id: commentId as string,
+      postId: postId as string,
+      userId: userId as string,
+      content: content as string,
+      createdAt: createdAt
+        ? new Date(createdAt as string | number)
+        : new Date(),
     });
-    await this.postRepo.increment({ id: postId }, 'commentCount', 1);
-    const post = await this.postRepo.findOne({ where: { id: postId } });
+    await this.postRepo.increment({ id: postId as string }, "commentCount", 1);
+    const post = await this.postRepo.findOne({
+      where: { id: postId as string },
+    });
     if (post) {
       await this.redis.set(
-        POST_KEY(postId),
+        POST_KEY(postId as string),
         JSON.stringify({
           ...post,
           commentCount: post.commentCount,
-          createdAt: post.createdAt instanceof Date ? post.createdAt.toISOString() : String(post.createdAt),
+          createdAt:
+            post.createdAt instanceof Date
+              ? post.createdAt.toISOString()
+              : String(post.createdAt),
         }),
       );
     }
-    this.logger.log(`content.comment.created postId=${postId} commentId=${commentId}`);
+    this.logger.log(
+      `content.comment.created postId=${postId} commentId=${commentId}`,
+    );
   }
 
   async handleMediaUploaded(payload: Record<string, unknown>): Promise<void> {
     const { mediaId, userId, storageUrl, mimeType, fileSize } = payload;
     if (!mediaId || !userId || !storageUrl) return;
+    const mimeTypeStr = (mimeType as string) || "application/octet-stream";
+    const fileTypeFromMime = mimeTypeStr.split("/")[0] || "file";
     await this.mediaFileRepo.insert({
-      id: mediaId,
-      userId,
-      fileType: (mimeType && mimeType.split('/')[0]) || 'image',
-      originalUrl: storageUrl,
-      fileName: storageUrl.split('/').pop() || mediaId,
-      mimeType: mimeType || null,
-      fileSize: fileSize ?? null,
-      processingStatus: 'completed',
+      id: mediaId as string,
+      userId: userId as string,
+      fileType: fileTypeFromMime,
+      originalUrl: storageUrl as string,
+      fileName: (storageUrl as string).split("/").pop() || (mediaId as string),
+      mimeType: mimeTypeStr || null,
+      fileSize: (fileSize as number) ?? null,
+      processingStatus: "completed",
       createdAt: new Date(),
     });
     const mediaJson = {
-      id: mediaId,
-      userId,
-      originalUrl: storageUrl,
-      mimeType: mimeType || null,
-      fileSize: fileSize ?? null,
-      processingStatus: 'completed',
+      id: mediaId as string,
+      userId: userId as string,
+      originalUrl: storageUrl as string,
+      mimeType: mimeTypeStr || null,
+      fileSize: (fileSize as number) ?? null,
+      processingStatus: "completed",
       createdAt: new Date().toISOString(),
     };
-    await this.redis.set(MEDIA_KEY(mediaId), JSON.stringify(mediaJson));
+    await this.redis.set(
+      MEDIA_KEY(mediaId as string),
+      JSON.stringify(mediaJson),
+    );
     this.logger.log(`media.uploaded persisted mediaId=${mediaId}`);
   }
 
   async handleMediaDeleted(payload: Record<string, unknown>): Promise<void> {
     const { mediaId } = payload;
     if (!mediaId) return;
-    await this.mediaFileRepo.delete({ id: mediaId });
-    await this.redis.del(MEDIA_KEY(mediaId));
+    await this.mediaFileRepo.delete({ id: mediaId as string });
+    await this.redis.del(MEDIA_KEY(mediaId as string));
     this.logger.log(`media.deleted mediaId=${mediaId}`);
   }
 
-  async handleSubscriptionCreated(payload: Record<string, unknown>): Promise<void> {
-    const { subscriptionId, subscriberId, creatorId, tierId, startDate } = payload;
+  async handleSubscriptionCreated(
+    payload: Record<string, unknown>,
+  ): Promise<void> {
+    const { subscriptionId, subscriberId, creatorId, tierId, startDate } =
+      payload;
     if (!subscriptionId || !subscriberId || !creatorId || !tierId) return;
     await this.subscriptionRepo.insert({
-      id: subscriptionId,
-      subscriberId,
-      creatorId,
-      tierId,
-      status: 'active',
-      currentPeriodStart: startDate ? new Date(startDate) : new Date(),
+      id: subscriptionId as string,
+      subscriberId: subscriberId as string,
+      creatorId: creatorId as string,
+      tierId: tierId as string,
+      status: "active",
+      currentPeriodStart: startDate
+        ? new Date(startDate as string | number)
+        : new Date(),
       createdAt: new Date(),
     });
-    this.logger.log(`subscription.created persisted subscriptionId=${subscriptionId}`);
+    this.logger.log(
+      `subscription.created persisted subscriptionId=${subscriptionId}`,
+    );
   }
 
-  async handlePaymentCompleted(payload: Record<string, unknown>): Promise<void> {
+  async handlePaymentCompleted(
+    payload: Record<string, unknown>,
+  ): Promise<void> {
     const { transactionId, userId, amount, type, metadata } = payload;
     if (!transactionId || !userId) return;
     await this.transactionRepo.insert({
-      id: transactionId,
-      userId,
-      type: type || 'subscription',
-      amount,
-      status: 'succeeded',
-      metadata: metadata || null,
+      id: transactionId as string,
+      userId: userId as string,
+      type: (type as string) || "subscription",
+      amount: amount as number,
+      status: "succeeded",
+      metadata: (metadata as object) || null,
       createdAt: new Date(),
     });
     this.logger.log(`payment.completed transactionId=${transactionId}`);
@@ -322,13 +383,15 @@ export class DbWriterService {
   async handleTipSent(payload: Record<string, unknown>): Promise<void> {
     const { senderId, recipientId, amount, transactionId } = payload;
     if (!senderId || !recipientId || amount == null) return;
-    const id = transactionId || `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const id =
+      (transactionId as string) ||
+      `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     await this.tipRepo.insert({
       id,
-      fromUserId: senderId,
-      toUserId: recipientId,
-      amount,
-      stripePaymentId: transactionId || null,
+      fromUserId: senderId as string,
+      toUserId: recipientId as string,
+      amount: amount as number,
+      stripePaymentId: (transactionId as string) || null,
       createdAt: new Date(),
     });
     this.logger.log(`payment.tip.sent id=${id}`);
@@ -337,31 +400,42 @@ export class DbWriterService {
   async handlePostPurchased(payload: Record<string, unknown>): Promise<void> {
     const { userId, postId, amount, transactionId } = payload;
     if (!userId || !postId || amount == null) return;
-    const id = transactionId || `ppv-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const id =
+      (transactionId as string) ||
+      `ppv-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     await this.postPurchaseRepo.insert({
       id,
-      postId,
-      buyerId: userId,
-      amount,
-      stripePaymentId: transactionId || null,
+      postId: postId as string,
+      buyerId: userId as string,
+      amount: amount as number,
+      stripePaymentId: (transactionId as string) || null,
       createdAt: new Date(),
     });
     this.logger.log(`payment.post.purchased id=${id}`);
   }
 
   async handleTierCreated(payload: Record<string, unknown>): Promise<void> {
-    const { tierId, creatorId, name, description, priceMonthly, priceYearly, benefits, stripePriceId } = payload;
-    if (!tierId || !creatorId || !name || priceMonthly == null) return;
-    await this.tierRepo.insert({
-      id: tierId,
+    const {
+      tierId,
       creatorId,
       name,
-      description: description || null,
+      description,
       priceMonthly,
-      priceYearly: priceYearly ?? null,
+      priceYearly,
+      benefits,
+      stripePriceId,
+    } = payload;
+    if (!tierId || !creatorId || !name || priceMonthly == null) return;
+    await this.tierRepo.insert({
+      id: tierId as string,
+      creatorId: creatorId as string,
+      name: name as string,
+      description: (description as string) || null,
+      priceMonthly: priceMonthly as number,
+      priceYearly: (priceYearly as number) ?? null,
       benefits: Array.isArray(benefits) ? benefits : [],
       isActive: true,
-      stripePriceId: stripePriceId || null,
+      stripePriceId: (stripePriceId as string) || null,
       createdAt: new Date(),
     });
     this.logger.log(`subscription.tier.created tierId=${tierId}`);
