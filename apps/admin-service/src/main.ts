@@ -6,7 +6,7 @@
 
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-/* eslint-disable @typescript-eslint/no-var-requires */
+ 
 const helmet = require('helmet');
 import { AllExceptionsFilter } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';

@@ -4,7 +4,7 @@
 
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-/* eslint-disable @typescript-eslint/no-var-requires */
+ 
 const helmet = require('helmet');
 const compression = require('compression');
 import { AllExceptionsFilter } from '@suggar-daddy/common';
