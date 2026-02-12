@@ -51,7 +51,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     return null;
   }
 
-  async sendEvent(topic: string, event: any) {
+  async sendEvent(topic: string, event: Record<string, unknown>) {
     return this.send(topic, [
       {
         key: event.id || Date.now().toString(),
@@ -61,7 +61,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   }
 
   /** Fire-and-forget: sends event without awaiting. Errors are logged but not thrown. */
-  sendEventAsync(topic: string, event: any): void {
+  sendEventAsync(topic: string, event: Record<string, unknown>): void {
     this.sendEvent(topic, event).catch((err) => {
       this.logger.error(`sendEventAsync failed for topic ${topic}:`, err);
     });
