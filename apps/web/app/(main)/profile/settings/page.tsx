@@ -75,11 +75,16 @@ export default function SettingsPage() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">隱私與安全</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3 text-sm text-gray-600">
+        <CardContent className="space-y-1">
+          <button
+            type="button"
+            onClick={() => router.push('/profile/settings/blocked')}
+            className="flex w-full items-center gap-3 rounded-lg px-2 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          >
             <ShieldBan className="h-4 w-4 text-gray-500" />
-            <span>封鎖名單可在使用者檔案頁面管理</span>
-          </div>
+            <span className="flex-1 text-left">封鎖名單</span>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </button>
         </CardContent>
       </Card>
 
