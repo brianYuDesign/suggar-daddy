@@ -1,5 +1,13 @@
 import { IsString, IsOptional, IsNumber, IsArray, IsIn, Min } from 'class-validator';
 
+export interface VideoMetaInput {
+  mediaId: string;
+  s3Key: string;
+  thumbnailUrl?: string;
+  previewUrl?: string;
+  duration?: number;
+}
+
 export class CreatePostDto {
   @IsString()
   creatorId: string;
@@ -26,6 +34,9 @@ export class CreatePostDto {
   @IsNumber()
   @Min(0)
   ppvPrice?: number;
+
+  @IsOptional()
+  videoMeta?: VideoMetaInput;
 }
 
 export class UpdatePostDto {

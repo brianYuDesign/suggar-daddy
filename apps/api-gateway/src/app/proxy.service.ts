@@ -44,6 +44,10 @@ export class ProxyService {
         baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
       },
       {
+        prefix: '/api/videos',
+        baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
+      },
+      {
         prefix: '/api/posts',
         baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
       },

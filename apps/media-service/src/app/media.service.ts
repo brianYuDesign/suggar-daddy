@@ -121,6 +121,17 @@ export class MediaService {
     return JSON.parse(raw);
   }
 
+  async updateFields(
+    id: string,
+    fields: Partial<Pick<Media, 'thumbnailUrl' | 'processedUrl' | 'processingStatus' | 'metadata'>>,
+  ): Promise<Media> {
+    const media = await this.findOne(id);
+    const updated = { ...media, ...fields };
+    await this.redis.set(MEDIA_KEY(id), JSON.stringify(updated));
+    this.logger.log(`media updated id=${id}`);
+    return updated;
+  }
+
   async remove(id: string): Promise<void> {
     const media = await this.findOne(id);
     await this.redis.del(MEDIA_KEY(id));

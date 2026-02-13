@@ -34,6 +34,9 @@ export class PostEntity {
   @Column('int', { default: 0 })
   commentCount!: number;
 
+  @Column('jsonb', { nullable: true })
+  videoMeta!: Record<string, unknown> | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 }

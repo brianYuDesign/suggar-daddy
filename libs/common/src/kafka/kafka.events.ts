@@ -55,6 +55,7 @@ export const MEDIA_EVENTS = {
   MEDIA_UPLOADED: 'media.uploaded',
   MEDIA_DELETED: 'media.deleted',
   MEDIA_PROCESSED: 'media.processed',
+  VIDEO_PROCESSED: 'media.video.processed',
 } as const;
 
 // 系統事件（DLQ、監控）
@@ -99,6 +100,16 @@ export interface MediaUploadedEvent {
 }
 
 // User event payloads (DB Writer persists these)
+export interface MediaVideoProcessedEvent {
+  mediaId: string;
+  userId: string;
+  s3Key: string;
+  thumbnailUrl: string;
+  previewUrl: string;
+  duration: number;
+  processingStatus: 'ready' | 'failed';
+}
+
 export interface UserCreatedEvent {
   id: string;
   email: string;

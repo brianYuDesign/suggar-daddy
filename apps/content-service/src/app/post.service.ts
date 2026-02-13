@@ -13,6 +13,15 @@ const POSTS_CREATOR = (creatorId: string) => `posts:creator:${creatorId}`;
 const POST_LIKES = (postId: string) => `post:${postId}:likes`;
 const POST_COMMENTS = (postId: string) => `post:${postId}:comments`;
 
+export interface VideoMeta {
+  mediaId: string;
+  s3Key: string;
+  thumbnailUrl: string | null;
+  previewUrl: string | null;
+  duration: number | null;
+  processingStatus: 'pending' | 'processing' | 'ready' | 'failed';
+}
+
 export interface Post {
   id: string;
   creatorId: string;
@@ -29,6 +38,7 @@ export interface Post {
   moderationStatus?: string;
   moderationActionBy?: string;
   moderationActionAt?: string;
+  videoMeta?: VideoMeta;
 }
 
 export interface PostComment {
@@ -66,12 +76,26 @@ export class PostService {
       likeCount: 0,
       commentCount: 0,
       createdAt: now,
+      videoMeta: createDto.videoMeta
+        ? {
+            mediaId: createDto.videoMeta.mediaId,
+            s3Key: createDto.videoMeta.s3Key,
+            thumbnailUrl: createDto.videoMeta.thumbnailUrl ?? null,
+            previewUrl: createDto.videoMeta.previewUrl ?? null,
+            duration: createDto.videoMeta.duration ?? null,
+            processingStatus: 'pending',
+          }
+        : undefined,
     };
     await this.redis.set(POST_KEY(postId), JSON.stringify(post));
     if ((createDto.visibility || 'public') === 'public') {
       await this.redis.lPush(POSTS_PUBLIC_IDS, postId);
     }
     await this.redis.lPush(POSTS_CREATOR(createDto.creatorId), postId);
+    // Create reverse index for media → post lookup (used by video processed consumer)
+    if (post.videoMeta?.mediaId) {
+      await this.redis.set(`media:post:${post.videoMeta.mediaId}`, postId);
+    }
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_CREATED, {
       postId,
       creatorId: createDto.creatorId,
@@ -194,11 +218,22 @@ export class PostService {
   async findOneWithAccess(id: string, viewerId?: string | null): Promise<Post & { locked?: boolean }> {
     const post = await this.findOne(id);
     const isPpv = post.ppvPrice != null && Number(post.ppvPrice) > 0;
-    const stripLocked = () => ({
+    const stripLocked = (): Post & { locked: boolean } => ({
       ...post,
       locked: true,
       mediaUrls: [],
       caption: post.caption ? '(Purchase to view)' : null,
+      // For video posts: expose preview info even when locked (hide s3Key/mediaId)
+      videoMeta: post.videoMeta
+        ? {
+            mediaId: '',
+            s3Key: '',
+            thumbnailUrl: post.videoMeta.thumbnailUrl,
+            previewUrl: post.videoMeta.previewUrl,
+            duration: post.videoMeta.duration,
+            processingStatus: post.videoMeta.processingStatus,
+          }
+        : undefined,
     });
 
     if (!viewerId) {

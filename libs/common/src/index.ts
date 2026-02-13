@@ -6,6 +6,8 @@ export * from "./stripe";
 export * from "./swagger";
 export * from "./sharding";
 export * from "./filters";
+export * from "./s3";
+export * from "./cloudfront";
 
 // Exception handling exports
 export * from "./lib/error-codes.enum";
@@ -15,10 +17,6 @@ export * from "./lib/exceptions.module";
 
 // Request tracking and interceptors
 export * from "./lib/request-tracking.interceptor";
-
-// API versioning
-export * from "./lib/api-version.decorator";
-export * from "./lib/api-version.middleware";
 
 // Error testing (development only)
 export * from "./lib/error-testing.controller";

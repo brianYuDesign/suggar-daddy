@@ -9,6 +9,7 @@ import {
   JwtStrategy,
   EnvConfigModule,
   AppConfigService,
+  S3Module,
 } from "@suggar-daddy/common";
 
 import { AppController } from "./app.controller";
@@ -16,6 +17,7 @@ import { AppService } from "./app.service";
 import { MediaController } from "./media.controller";
 import { MediaService } from "./media.service";
 import { UploadController } from "./upload/upload.controller";
+import { VideoProcessorService } from "./video/video-processor";
 
 @Module({
   imports: [
@@ -42,8 +44,9 @@ import { UploadController } from "./upload/upload.controller";
       inject: [AppConfigService],
     }),
     UploadModule.forRoot(),
+    S3Module.forRoot(),
   ],
   controllers: [AppController, MediaController, UploadController],
-  providers: [AppService, MediaService, JwtStrategy],
+  providers: [AppService, MediaService, JwtStrategy, VideoProcessorService],
 })
 export class AppModule {}

@@ -182,6 +182,36 @@ export class AppConfigService {
     return this.configService.get<string>("CLOUDINARY_API_SECRET") ?? null;
   }
 
+  // ─── AWS / S3 Configuration ───
+  get awsRegion(): string {
+    return this.configService.get<string>('AWS_REGION', 'ap-northeast-1');
+  }
+
+  get awsAccessKeyId(): string {
+    return this.configService.get<string>('AWS_ACCESS_KEY_ID', '');
+  }
+
+  get awsSecretAccessKey(): string {
+    return this.configService.get<string>('AWS_SECRET_ACCESS_KEY', '');
+  }
+
+  get s3Bucket(): string {
+    return this.configService.get<string>('S3_BUCKET', 'suggar-daddy-videos');
+  }
+
+  // ─── CloudFront Configuration ───
+  get cloudfrontDomain(): string {
+    return this.configService.get<string>('CLOUDFRONT_DOMAIN', '');
+  }
+
+  get cloudfrontKeyPairId(): string {
+    return this.configService.get<string>('CLOUDFRONT_KEY_PAIR_ID', '');
+  }
+
+  get cloudfrontPrivateKey(): string {
+    return this.configService.get<string>('CLOUDFRONT_PRIVATE_KEY', '');
+  }
+
   // ─── Frontend Configuration ───
   get nextPublicApiUrl(): string {
     return this.configService.get<string>(

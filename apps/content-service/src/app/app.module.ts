@@ -8,6 +8,7 @@ import {
   JwtStrategy,
   EnvConfigModule,
   AppConfigService,
+  CloudFrontModule,
 } from "@suggar-daddy/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -17,6 +18,8 @@ import { ModerationController } from "./moderation.controller";
 import { ModerationService } from "./moderation.service";
 import { SubscriptionServiceClient } from "./subscription-service.client";
 import { PostPurchaseConsumer } from "./events/post-purchase.consumer";
+import { VideoController } from "./video.controller";
+import { VideoProcessedConsumer } from "./events/video-processed.consumer";
 
 @Module({
   imports: [
@@ -42,8 +45,9 @@ import { PostPurchaseConsumer } from "./events/post-purchase.consumer";
       }),
       inject: [AppConfigService],
     }),
+    CloudFrontModule.forRoot(),
   ],
-  controllers: [AppController, PostController, ModerationController],
+  controllers: [AppController, PostController, ModerationController, VideoController],
   providers: [
     AppService,
     PostService,
@@ -51,6 +55,7 @@ import { PostPurchaseConsumer } from "./events/post-purchase.consumer";
     SubscriptionServiceClient,
     JwtStrategy,
     PostPurchaseConsumer,
+    VideoProcessedConsumer,
   ],
 })
 export class AppModule {}
