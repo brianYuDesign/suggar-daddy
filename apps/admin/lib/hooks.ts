@@ -42,7 +42,6 @@ export function useAdminQuery<T>(
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trigger, ...deps]);
 
   return { data, loading, error, refetch };

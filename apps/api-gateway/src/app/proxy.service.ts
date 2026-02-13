@@ -20,27 +20,31 @@ export class ProxyService {
     });
     this.targets = [
       {
-        prefix: '/api/v1/auth',
+        prefix: '/api/auth',
         baseUrl: this.config.get<string>('AUTH_SERVICE_URL', 'http://localhost:3002'),
       },
       {
-        prefix: '/api/v1/users',
+        prefix: '/api/users',
         baseUrl: this.config.get<string>('USER_SERVICE_URL', 'http://localhost:3001'),
       },
       {
-        prefix: '/api/v1/matching',
+        prefix: '/api/matching',
         baseUrl: this.config.get<string>('MATCHING_SERVICE_URL', 'http://localhost:3003'),
       },
       {
-        prefix: '/api/v1/notifications',
+        prefix: '/api/notifications',
         baseUrl: this.config.get<string>('NOTIFICATION_SERVICE_URL', 'http://localhost:3004'),
       },
       {
-        prefix: '/api/v1/messaging',
+        prefix: '/api/messaging',
         baseUrl: this.config.get<string>('MESSAGING_SERVICE_URL', 'http://localhost:3005'),
       },
       {
         prefix: '/api/moderation',
+        baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
+      },
+      {
+        prefix: '/api/stories',
         baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
       },
       {
@@ -53,6 +57,10 @@ export class ProxyService {
       },
       {
         prefix: '/api/tips',
+        baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
+      },
+      {
+        prefix: '/api/dm-purchases',
         baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
       },
       {
@@ -88,7 +96,7 @@ export class ProxyService {
         baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3008'),
       },
       {
-        prefix: '/api/v1/admin',
+        prefix: '/api/admin',
         baseUrl: this.config.get<string>('ADMIN_SERVICE_URL', 'http://localhost:3011'),
       },
     ].sort((a, b) => b.prefix.length - a.prefix.length);

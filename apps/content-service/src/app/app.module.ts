@@ -1,15 +1,13 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { JwtModule } from "@nestjs/jwt";
-import { PassportModule } from "@nestjs/passport";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import {
-  JwtStrategy,
   EnvConfigModule,
   AppConfigService,
   CloudFrontModule,
 } from "@suggar-daddy/common";
+import { AuthModule } from "@suggar-daddy/auth";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { PostController } from "./post.controller";
@@ -20,6 +18,14 @@ import { SubscriptionServiceClient } from "./subscription-service.client";
 import { PostPurchaseConsumer } from "./events/post-purchase.consumer";
 import { VideoController } from "./video.controller";
 import { VideoProcessedConsumer } from "./events/video-processed.consumer";
+import { FeedController } from "./feed.controller";
+import { FeedService } from "./feed.service";
+import { DiscoveryController } from "./discovery.controller";
+import { DiscoveryService } from "./discovery.service";
+import { StoryController } from "./story.controller";
+import { StoryService } from "./story.service";
+import { FeedConsumer } from "./consumers/feed.consumer";
+import { TrendingConsumer } from "./consumers/trending.consumer";
 
 @Module({
   imports: [
@@ -28,14 +34,7 @@ import { VideoProcessedConsumer } from "./events/video-processed.consumer";
       envFilePath: ".env",
     }),
     EnvConfigModule,
-    PassportModule.register({ defaultStrategy: "jwt" }),
-    JwtModule.registerAsync({
-      inject: [AppConfigService],
-      useFactory: (config: AppConfigService) => ({
-        secret: config.jwtSecret,
-        signOptions: { expiresIn: config.jwtExpiresIn },
-      }),
-    }),
+    AuthModule,
     RedisModule.forRoot(),
     KafkaModule.forRootAsync({
       useFactory: (config: AppConfigService) => ({
@@ -47,15 +46,27 @@ import { VideoProcessedConsumer } from "./events/video-processed.consumer";
     }),
     CloudFrontModule.forRoot(),
   ],
-  controllers: [AppController, PostController, ModerationController, VideoController],
+  controllers: [
+    AppController,
+    FeedController,
+    DiscoveryController,
+    PostController,
+    ModerationController,
+    VideoController,
+    StoryController,
+  ],
   providers: [
     AppService,
     PostService,
     ModerationService,
     SubscriptionServiceClient,
-    JwtStrategy,
     PostPurchaseConsumer,
     VideoProcessedConsumer,
+    FeedService,
+    DiscoveryService,
+    StoryService,
+    FeedConsumer,
+    TrendingConsumer,
   ],
 })
 export class AppModule {}

@@ -78,6 +78,16 @@ export class RedisService implements OnModuleDestroy {
     return this.client.llen(key);
   }
 
+  /** Remove count occurrences of value from list */
+  async lRem(key: string, count: number, value: string): Promise<number> {
+    return this.client.lrem(key, count, value);
+  }
+
+  /** Append value to the end of a list */
+  async rPush(key: string, ...values: (string | number)[]): Promise<number> {
+    return this.client.rpush(key, ...values.map(String));
+  }
+
   /** Safely parse JSON from a raw Redis string, returning null on failure */
   static tryParseJson<T>(raw: string | null): T | null {
     if (!raw) return null;
@@ -86,6 +96,94 @@ export class RedisService implements OnModuleDestroy {
     } catch {
       return null;
     }
+  }
+
+  // ── Set commands ─────────────────────────────────────────────
+
+  /** Check if member exists in a Set */
+  async sIsMember(key: string, member: string): Promise<boolean> {
+    return (await this.client.sismember(key, member)) === 1;
+  }
+
+  /** Get Set cardinality (member count) */
+  async sCard(key: string): Promise<number> {
+    return this.client.scard(key);
+  }
+
+  /** Return union of multiple sets */
+  async sUnion(...keys: string[]): Promise<string[]> {
+    if (keys.length === 0) return [];
+    return this.client.sunion(...keys);
+  }
+
+  // ── Sorted Set commands ─────────────────────────────────────
+
+  /** Add member with score to Sorted Set */
+  async zAdd(key: string, score: number, member: string): Promise<number> {
+    return this.client.zadd(key, score, member);
+  }
+
+  /** Remove member from Sorted Set */
+  async zRem(key: string, ...members: string[]): Promise<number> {
+    return this.client.zrem(key, ...members);
+  }
+
+  /** Get range by rank in reverse order (highest score first) */
+  async zRevRange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.client.zrevrange(key, start, stop);
+  }
+
+  /** Get range by score in reverse order with LIMIT */
+  async zRevRangeByScore(
+    key: string,
+    max: number | string,
+    min: number | string,
+    offset?: number,
+    count?: number,
+  ): Promise<string[]> {
+    if (offset !== undefined && count !== undefined) {
+      return this.client.zrevrangebyscore(key, max, min, 'LIMIT', offset, count);
+    }
+    return this.client.zrevrangebyscore(key, max, min);
+  }
+
+  /** Get Sorted Set cardinality */
+  async zCard(key: string): Promise<number> {
+    return this.client.zcard(key);
+  }
+
+  /** Get score of member in Sorted Set */
+  async zScore(key: string, member: string): Promise<number | null> {
+    const score = await this.client.zscore(key, member);
+    return score !== null ? parseFloat(score) : null;
+  }
+
+  /** Increment score of member in Sorted Set */
+  async zIncrBy(key: string, increment: number, member: string): Promise<number> {
+    const result = await this.client.zincrby(key, increment, member);
+    return parseFloat(result);
+  }
+
+  /** Remove members by rank range (for trimming sorted sets) */
+  async zRemRangeByRank(key: string, start: number, stop: number): Promise<number> {
+    return this.client.zremrangebyrank(key, start, stop);
+  }
+
+  /** Remove members by score range */
+  async zRemRangeByScore(key: string, min: number | string, max: number | string): Promise<number> {
+    return this.client.zremrangebyscore(key, min, max);
+  }
+
+  // ── Key expiry ──────────────────────────────────────────────
+
+  /** Set TTL on an existing key (seconds) */
+  async expire(key: string, seconds: number): Promise<boolean> {
+    return (await this.client.expire(key, seconds)) === 1;
+  }
+
+  /** Check if key exists */
+  async exists(key: string): Promise<boolean> {
+    return (await this.client.exists(key)) === 1;
   }
 
   // ── GEO commands ──────────────────────────────────────────────

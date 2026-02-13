@@ -6,7 +6,7 @@ import { NotFoundException } from "@nestjs/common";
 import { PAYMENT_EVENTS } from "@suggar-daddy/common";
 
 // Mock implementations to match actual Redis methods
-const createMockRedisClient = () => ({
+const _createMockRedisClient = () => ({
   get: jest.fn(),
   set: jest.fn(),
   lpush: jest.fn(),
@@ -27,8 +27,8 @@ const createMockRedisClient = () => ({
 
 describe("TransactionService", () => {
   let service: TransactionService;
-  let redisService: jest.Mocked<RedisService>;
-  let kafkaProducer: jest.Mocked<KafkaProducerService>;
+  let _redisService: jest.Mocked<RedisService>;
+  let _kafkaProducer: jest.Mocked<KafkaProducerService>;
 
   const mockRedisClient = {
     get: jest.fn(),
@@ -77,8 +77,8 @@ describe("TransactionService", () => {
     }).compile();
 
     service = module.get<TransactionService>(TransactionService);
-    redisService = module.get(RedisService);
-    kafkaProducer = module.get(KafkaProducerService);
+    _redisService = module.get(RedisService);
+    _kafkaProducer = module.get(KafkaProducerService);
   });
 
   afterEach(() => {

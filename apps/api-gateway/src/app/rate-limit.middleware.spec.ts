@@ -104,9 +104,9 @@ describe("RateLimitMiddleware", () => {
       ).rejects.toThrow(HttpException);
     });
 
-    it("should apply strict limits to /api/v1/auth/login", async () => {
-      mockRequest.originalUrl = "/api/v1/auth/login";
-      mockRequest.path = "/api/v1/auth/login";
+    it("should apply strict limits to /api/auth/login", async () => {
+      mockRequest.originalUrl = "/api/auth/login";
+      mockRequest.path = "/api/auth/login";
       redisService.getClient().incr.mockResolvedValue(5);
       redisService.getClient().ttl.mockResolvedValue(60);
 
@@ -119,9 +119,9 @@ describe("RateLimitMiddleware", () => {
       );
     });
 
-    it("should apply strict limits to /api/v1/auth/register", async () => {
-      mockRequest.originalUrl = "/api/v1/auth/register";
-      mockRequest.path = "/api/v1/auth/register";
+    it("should apply strict limits to /api/auth/register", async () => {
+      mockRequest.originalUrl = "/api/auth/register";
+      mockRequest.path = "/api/auth/register";
       redisService.getClient().incr.mockResolvedValue(5);
       redisService.getClient().ttl.mockResolvedValue(60);
 
@@ -248,7 +248,7 @@ describe("RateLimitMiddleware", () => {
 
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
         "X-RateLimit-Limit",
-        "60",
+        60,
       );
     });
 
@@ -330,8 +330,8 @@ describe("RateLimitMiddleware", () => {
 
       const authRequest = {
         ip: "127.0.0.1",
-        originalUrl: "/api/v1/auth/login",
-        path: "/api/v1/auth/login",
+        originalUrl: "/api/auth/login",
+        path: "/api/auth/login",
       } as any;
 
       const postsRequest = {

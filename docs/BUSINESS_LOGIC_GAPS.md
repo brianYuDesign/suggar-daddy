@@ -107,7 +107,7 @@
 | 項目 | 現狀 |
 |------|------|
 | API Gateway | ✅ 統一入口（:3000），依路徑前綴代理至各服務 |
-| Matching 推薦 | ✅ getCards 呼叫 user-service GET /api/v1/users/cards |
+| Matching 推薦 | ✅ getCards 呼叫 user-service GET /api/users/cards |
 | Messaging 持久化 | ✅ 對話與訊息存 Redis + Kafka message.created |
 | Notification 持久化 | ✅ 通知存 Redis + Kafka notification.created |
 | Admin 管理後台 | ✅ admin-service (:3011) + admin 前端 (:4300) |

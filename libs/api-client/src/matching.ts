@@ -11,15 +11,15 @@ export class MatchingApi {
 
   getCards(cursor?: string) {
     const params = cursor ? { cursor } : undefined;
-    return this.client.get<CardsResponseDto>('/api/v1/matching/cards', { params });
+    return this.client.get<CardsResponseDto>('/api/matching/cards', { params });
   }
 
   swipe(dto: SwipeRequestDto) {
-    return this.client.post<SwipeResponseDto>('/api/v1/matching/swipe', dto);
+    return this.client.post<SwipeResponseDto>('/api/matching/swipe', dto);
   }
 
   getMatches(cursor?: string) {
     const params = cursor ? { cursor } : undefined;
-    return this.client.get<MatchesResponseDto>('/api/v1/matching/matches', { params });
+    return this.client.get<MatchesResponseDto>('/api/matching/matches', { params });
   }
 }

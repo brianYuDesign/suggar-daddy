@@ -29,6 +29,9 @@ export interface UserProfileDto {
   country?: string;
   latitude?: number;
   longitude?: number;
+  followerCount?: number;
+  followingCount?: number;
+  dmPrice?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { ProxyService, ProxyTarget } from "./proxy.service";
+import { ProxyService } from "./proxy.service";
 import axios from "axios";
 
 jest.mock("axios");
@@ -8,9 +8,20 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("ProxyService", () => {
   let service: ProxyService;
-  let configService: ConfigService;
+  let _configService: ConfigService;
+  let mockAxiosInstance: { request: jest.Mock };
 
   beforeEach(async () => {
+    // Clear mocks first
+    jest.clearAllMocks();
+    
+    // Setup mock axios instance
+    mockAxiosInstance = {
+      request: jest.fn(),
+    };
+
+    mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProxyService,
@@ -24,16 +35,14 @@ describe("ProxyService", () => {
     }).compile();
 
     service = module.get<ProxyService>(ProxyService);
-    configService = module.get<ConfigService>(ConfigService);
-
-    jest.clearAllMocks();
+    _configService = module.get<ConfigService>(ConfigService);
   });
 
   describe("getTarget", () => {
-    it("should return correct target for /api/v1/auth path", () => {
-      const target = service.getTarget("/api/v1/auth/login");
+    it("should return correct target for /api/auth path", () => {
+      const target = service.getTarget("/api/auth/login");
       expect(target).toBeDefined();
-      expect(target?.prefix).toBe("/api/v1/auth");
+      expect(target?.prefix).toBe("/api/auth");
     });
 
     it("should return correct target for /api/posts path", () => {
@@ -42,10 +51,10 @@ describe("ProxyService", () => {
       expect(target?.prefix).toBe("/api/posts");
     });
 
-    it("should return correct target for /api/v1/users path", () => {
-      const target = service.getTarget("/api/v1/users/profile");
+    it("should return correct target for /api/users path", () => {
+      const target = service.getTarget("/api/users/profile");
       expect(target).toBeDefined();
-      expect(target?.prefix).toBe("/api/v1/users");
+      expect(target?.prefix).toBe("/api/users");
     });
 
     it("should return correct target for /api/subscriptions path", () => {
@@ -81,10 +90,10 @@ describe("ProxyService", () => {
       );
     });
 
-    it("should handle /api/v1/admin routes", () => {
-      const target = service.getTarget("/api/v1/admin/dashboard");
+    it("should handle /api/admin routes", () => {
+      const target = service.getTarget("/api/admin/dashboard");
       expect(target).toBeDefined();
-      expect(target?.prefix).toBe("/api/v1/admin");
+      expect(target?.prefix).toBe("/api/admin");
     });
 
     it("should match /api/subscription-tiers before /api/subscriptions", () => {
@@ -128,12 +137,6 @@ describe("ProxyService", () => {
   });
 
   describe("forward", () => {
-    beforeEach(() => {
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn(),
-      } as any);
-    });
-
     it("should return 404 for unknown routes", async () => {
       const result = await service.forward(
         "GET",
@@ -153,9 +156,7 @@ describe("ProxyService", () => {
         headers: { "content-type": "application/json" },
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const result = await service.forward(
         "GET",
@@ -175,9 +176,7 @@ describe("ProxyService", () => {
         headers: { "content-type": "application/json" },
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const body = { title: "New Post" };
       const result = await service.forward(
@@ -199,9 +198,7 @@ describe("ProxyService", () => {
         headers: { "content-type": "application/json" },
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const result = await service.forward(
         "PUT",
@@ -221,9 +218,7 @@ describe("ProxyService", () => {
         headers: {},
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const result = await service.forward(
         "DELETE",
@@ -242,9 +237,7 @@ describe("ProxyService", () => {
         headers: { "content-type": "application/json" },
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const result = await service.forward(
         "PATCH",
@@ -258,20 +251,16 @@ describe("ProxyService", () => {
     });
 
     it("should forward authorization headers", async () => {
-      const mockRequest = jest.fn().mockResolvedValue({
+      mockAxiosInstance.request.mockResolvedValueOnce({
         status: 200,
         data: {},
         headers: {},
       });
 
-      mockedAxios.create.mockReturnValue({
-        request: mockRequest,
-      } as any);
-
       const headers = { authorization: "Bearer token123" };
       await service.forward("GET", "/api/posts", "", headers, undefined);
 
-      expect(mockRequest).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
         expect.objectContaining({
           headers: expect.objectContaining({
             authorization: "Bearer token123",
@@ -281,20 +270,16 @@ describe("ProxyService", () => {
     });
 
     it("should forward content-type headers", async () => {
-      const mockRequest = jest.fn().mockResolvedValue({
+      mockAxiosInstance.request.mockResolvedValueOnce({
         status: 200,
         data: {},
         headers: {},
       });
 
-      mockedAxios.create.mockReturnValue({
-        request: mockRequest,
-      } as any);
-
       const headers = { "content-type": "application/json" };
       await service.forward("POST", "/api/posts", "", headers, {});
 
-      expect(mockRequest).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
         expect.objectContaining({
           headers: expect.objectContaining({
             "content-type": "application/json",
@@ -304,15 +289,11 @@ describe("ProxyService", () => {
     });
 
     it("should handle query parameters", async () => {
-      const mockRequest = jest.fn().mockResolvedValue({
+      mockAxiosInstance.request.mockResolvedValueOnce({
         status: 200,
         data: {},
         headers: {},
       });
-
-      mockedAxios.create.mockReturnValue({
-        request: mockRequest,
-      } as any);
 
       await service.forward(
         "GET",
@@ -322,7 +303,7 @@ describe("ProxyService", () => {
         undefined,
       );
 
-      expect(mockRequest).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
         expect.objectContaining({
           url: expect.stringContaining("limit=10&offset=0"),
         }),
@@ -330,9 +311,9 @@ describe("ProxyService", () => {
     });
 
     it("should handle connection errors with 502", async () => {
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockRejectedValue(new Error("Connection refused")),
-      } as any);
+      mockAxiosInstance.request.mockRejectedValueOnce(
+        new Error("Connection refused"),
+      );
 
       const result = await service.forward(
         "GET",
@@ -349,9 +330,7 @@ describe("ProxyService", () => {
       const error = new Error("timeout");
       (error as any).code = "ECONNABORTED";
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockRejectedValue(error),
-      } as any);
+      mockAxiosInstance.request.mockRejectedValueOnce(error);
 
       const result = await service.forward(
         "GET",
@@ -371,9 +350,7 @@ describe("ProxyService", () => {
         headers: { "content-type": "application/json" },
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const result = await service.forward(
         "GET",
@@ -392,9 +369,7 @@ describe("ProxyService", () => {
         headers: {},
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const largeBody = { content: "x".repeat(100000) };
       const result = await service.forward(
@@ -415,9 +390,7 @@ describe("ProxyService", () => {
         headers: {},
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const complexBody = {
         user: { name: "John", profile: { age: 30 } },
@@ -442,9 +415,7 @@ describe("ProxyService", () => {
         headers: {},
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const result = await service.forward("GET", "/api/posts", "", {}, null);
       expect(result.status).toBe(200);
@@ -457,9 +428,7 @@ describe("ProxyService", () => {
         headers: {},
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-      } as any);
+      mockAxiosInstance.request.mockResolvedValueOnce(mockResponse);
 
       const result = await service.forward(
         "GET",
@@ -472,19 +441,15 @@ describe("ProxyService", () => {
     });
 
     it("should construct correct URL with baseUrl and path", async () => {
-      const mockRequest = jest.fn().mockResolvedValue({
+      mockAxiosInstance.request.mockResolvedValueOnce({
         status: 200,
         data: {},
         headers: {},
       });
 
-      mockedAxios.create.mockReturnValue({
-        request: mockRequest,
-      } as any);
-
       await service.forward("GET", "/api/posts/123", "", {}, undefined);
 
-      expect(mockRequest).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
         expect.objectContaining({
           url: expect.stringContaining("/api/posts/123"),
         }),
@@ -492,19 +457,15 @@ describe("ProxyService", () => {
     });
 
     it("should lowercase HTTP method", async () => {
-      const mockRequest = jest.fn().mockResolvedValue({
+      mockAxiosInstance.request.mockResolvedValueOnce({
         status: 200,
         data: {},
         headers: {},
       });
 
-      mockedAxios.create.mockReturnValue({
-        request: mockRequest,
-      } as any);
-
       await service.forward("get", "/api/posts", "", {}, undefined);
 
-      expect(mockRequest).toHaveBeenCalledWith(
+      expect(mockAxiosInstance.request).toHaveBeenCalledWith(
         expect.objectContaining({
           method: "GET",
         }),
@@ -515,13 +476,11 @@ describe("ProxyService", () => {
       const testCases = [200, 201, 400, 401, 403, 404, 500];
 
       for (const statusCode of testCases) {
-        mockedAxios.create.mockReturnValue({
-          request: jest.fn().mockResolvedValue({
-            status: statusCode,
-            data: { status: statusCode },
-            headers: {},
-          }),
-        } as any);
+        mockAxiosInstance.request.mockResolvedValueOnce({
+          status: statusCode,
+          data: { status: statusCode },
+          headers: {},
+        });
 
         const result = await service.forward(
           "GET",
@@ -538,13 +497,13 @@ describe("ProxyService", () => {
   describe("target configuration", () => {
     it("should have all required service targets", () => {
       const requiredPrefixes = [
-        "/api/v1/auth",
-        "/api/v1/users",
-        "/api/v1/matching",
+        "/api/auth",
+        "/api/users",
+        "/api/matching",
         "/api/posts",
         "/api/subscriptions",
         "/api/upload",
-        "/api/v1/admin",
+        "/api/admin",
       ];
 
       requiredPrefixes.forEach((prefix) => {
@@ -555,13 +514,13 @@ describe("ProxyService", () => {
 
     it("should have valid base URLs for all targets", () => {
       const prefixes = [
-        "/api/v1/auth",
-        "/api/v1/users",
-        "/api/v1/matching",
+        "/api/auth",
+        "/api/users",
+        "/api/matching",
         "/api/posts",
         "/api/subscriptions",
         "/api/upload",
-        "/api/v1/admin",
+        "/api/admin",
       ];
 
       prefixes.forEach((prefix) => {

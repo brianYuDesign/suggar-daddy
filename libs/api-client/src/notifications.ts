@@ -5,14 +5,14 @@ export class NotificationsApi {
   constructor(private readonly client: ApiClient) {}
 
   getAll() {
-    return this.client.get<NotificationItemDto[]>('/api/v1/notifications');
+    return this.client.get<NotificationItemDto[]>('/api/notifications');
   }
 
   markAsRead(notificationId: string) {
-    return this.client.patch<void>(`/api/v1/notifications/${notificationId}/read`);
+    return this.client.patch<void>(`/api/notifications/${notificationId}/read`);
   }
 
   markAllAsRead() {
-    return this.client.patch<void>('/api/v1/notifications/read-all');
+    return this.client.patch<void>('/api/notifications/read-all');
   }
 }

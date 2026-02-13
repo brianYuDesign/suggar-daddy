@@ -10,7 +10,8 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { USER_EVENTS } from '@suggar-daddy/common';
+import { USER_EVENTS, EmailService, AppConfigService } from '@suggar-daddy/common';
+import { TokenRevocationService } from '@suggar-daddy/auth';
 import type {
   LoginDto,
   RegisterDto,
@@ -61,6 +62,9 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly redis: RedisService,
     private readonly kafkaProducer: KafkaProducerService,
+    private readonly tokenRevocation: TokenRevocationService,
+    private readonly emailService: EmailService,
+    private readonly appConfig: AppConfigService,
   ) {}
 
   // ── Validation ─────────────────────────────────────────────────────
@@ -236,10 +240,16 @@ export class AuthService {
     return this.issueTokens(stored.userId, stored.email);
   }
 
-  async logout(refreshToken: string): Promise<{ success: boolean }> {
+  async logout(refreshToken: string, jti?: string): Promise<{ success: boolean }> {
     const key = AUTH_REFRESH_PREFIX + refreshToken;
     const existed = (await this.redis.get(key)) !== null;
     await this.redis.del(key);
+
+    // Revoke the current access token if jti is provided
+    if (jti) {
+      await this.tokenRevocation.revokeToken(jti, ACCESS_EXPIRES_SEC);
+    }
+
     return { success: !!existed };
   }
 
@@ -250,7 +260,7 @@ export class AuthService {
     const key = EMAIL_VERIFY_PREFIX + token;
     await this.redis.setex(key, EMAIL_VERIFY_TTL, JSON.stringify({ userId, email }));
     this.logger.log(`Email verification token created userId=${userId}`);
-    // TODO: Integrate email service to send verification link
+    await this.emailService.sendEmailVerification(email, token, this.appConfig.appBaseUrl);
     return token;
   }
 
@@ -290,7 +300,7 @@ export class AuthService {
     await this.redis.setex(key, PASSWORD_RESET_TTL, JSON.stringify({ userId, email: normalizedEmail }));
 
     this.logger.log(`Password reset token created email=${normalizedEmail}`);
-    // TODO: Integrate email service to send reset link
+    await this.emailService.sendPasswordReset(normalizedEmail, token, this.appConfig.appBaseUrl);
     return { success: true };
   }
 
@@ -337,6 +347,9 @@ export class AuthService {
     user.passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
     await this.redis.set(`user:${userId}`, JSON.stringify(user));
 
+    // Revoke all existing tokens after password change
+    await this.tokenRevocation.revokeAllUserTokens(userId, ACCESS_EXPIRES_SEC);
+
     this.logger.log(`Password changed userId=${userId}`);
     return { success: true };
   }
@@ -368,6 +381,11 @@ export class AuthService {
     user.accountStatus = status;
     await this.redis.set(`user:${userId}`, JSON.stringify(user));
 
+    // Revoke all tokens when account is suspended or banned
+    if (status === 'suspended' || status === 'banned') {
+      await this.tokenRevocation.revokeAllUserTokens(userId, ACCESS_EXPIRES_SEC);
+    }
+
     this.logger.log(`Account status updated userId=${userId} status=${status}`);
     return { success: true };
   }
@@ -379,7 +397,8 @@ export class AuthService {
     email: string,
     role?: string,
   ): Promise<TokenResponseDto> {
-    const payload: Record<string, string> = { sub: userId, email };
+    const jti = `${userId}:${Date.now()}:${Math.random().toString(36).slice(2, 9)}`;
+    const payload: Record<string, string> = { sub: userId, email, jti };
     if (role) payload.role = role;
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: ACCESS_EXPIRES_SEC });

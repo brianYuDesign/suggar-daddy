@@ -47,9 +47,9 @@ Services do NOT write to PostgreSQL directly. `db-writer-service` is the sole Ka
 | Service | Port | Route prefix |
 |---------|------|--------------|
 | api-gateway | 3000 | Proxies all `/api/*` routes |
-| user-service | 3001 | `/api/v1/users` |
-| auth-service | 3002 | `/api/v1/auth` |
-| matching-service | 3003 | `/api/v1/matching` |
+| user-service | 3001 | `/api/users` |
+| auth-service | 3002 | `/api/auth` |
+| matching-service | 3003 | `/api/matching` |
 | subscription-service | 3005 | `/api/subscription-tiers`, `/api/subscriptions` |
 | content-service | 3006 | `/api/posts` |
 | payment-service | 3007 | `/api/tips`, `/api/post-purchases`, `/api/transactions`, `/api/stripe` |

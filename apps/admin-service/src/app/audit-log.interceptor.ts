@@ -71,7 +71,7 @@ export class AuditLogInterceptor implements NestInterceptor {
   private deriveAction(method: string, path: string): string {
     // Extract meaningful action from path: e.g. POST /users/:id/disable -> users.disable
     const segments = path
-      .replace(/^\/api\/v1\/admin\//, '')
+      .replace(/^\/api\/admin\//, '')
       .split('/')
       .filter(Boolean);
 
@@ -87,7 +87,7 @@ export class AuditLogInterceptor implements NestInterceptor {
   }
 
   private extractTarget(path: string): { targetType?: string; targetId?: string } {
-    const segments = path.replace(/^\/api\/v1\/admin\//, '').split('/').filter(Boolean);
+    const segments = path.replace(/^\/api\/admin\//, '').split('/').filter(Boolean);
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
     for (let i = 0; i < segments.length; i++) {

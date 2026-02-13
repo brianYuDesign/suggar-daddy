@@ -6,16 +6,15 @@
   "tags": ["scope:web", "type:frontend"],
   "targets": {
     "build": {
-      "executor": "@nx/next:build",
-      "outputs": ["{options.outputPath}"],
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/.next"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/web"
+        "command": "npx next build",
+        "cwd": "apps/web"
       },
       "configurations": {
-        "development": {
-          "outputPath": "apps/web"
-        },
+        "development": {},
         "production": {}
       }
     },

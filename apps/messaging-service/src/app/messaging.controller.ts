@@ -9,9 +9,8 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { SendMessageDto } from '@suggar-daddy/dto';
-import { JwtAuthGuard, CurrentUser } from '@suggar-daddy/common';
-import type { CurrentUserData } from '@suggar-daddy/common';
+import { SendMessageDto, SendBroadcastDto } from '@suggar-daddy/dto';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/common';
 import { MessagingService } from './messaging.service';
 
 @Controller()
@@ -25,20 +24,26 @@ export class MessagingController {
   @UseGuards(JwtAuthGuard)
   async send(
     @CurrentUser() user: CurrentUserData,
-    @Body() body: SendMessageDto
+    @Body() body: SendMessageDto,
   ) {
     const senderId = user.userId;
-    const canSend = await this.messagingService.isParticipant(body.conversationId, senderId);
+    const canSend = await this.messagingService.isParticipant(
+      body.conversationId,
+      senderId,
+    );
     if (!canSend) {
-      throw new ForbiddenException('You are not a participant of this conversation');
+      throw new ForbiddenException(
+        'You are not a participant of this conversation',
+      );
     }
     this.logger.log(
-      `send senderId=${senderId} conversationId=${body.conversationId}`
+      `send senderId=${senderId} conversationId=${body.conversationId}`,
     );
     return this.messagingService.send(
       senderId,
       body.conversationId,
-      body.content
+      body.content,
+      body.attachments,
     );
   }
 
@@ -58,17 +63,48 @@ export class MessagingController {
     @CurrentUser() user: CurrentUserData,
     @Param('conversationId') conversationId: string,
     @Query('limit') limit = '50',
-    @Query('cursor') cursor?: string
+    @Query('cursor') cursor?: string,
   ) {
     const uid = user.userId;
     this.logger.log(
-      `messages userId=${uid} conversationId=${conversationId} limit=${limit}`
+      `messages userId=${uid} conversationId=${conversationId} limit=${limit}`,
     );
     return this.messagingService.getMessages(
       uid,
       conversationId,
       parseInt(limit, 10) || 50,
-      cursor
+      cursor,
+    );
+  }
+
+  /** 發送廣播訊息（創作者專用） */
+  @Post('broadcast')
+  @UseGuards(JwtAuthGuard)
+  async sendBroadcast(
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: SendBroadcastDto,
+  ) {
+    this.logger.log(`broadcast creatorId=${user.userId}`);
+    return this.messagingService.sendBroadcast(
+      user.userId,
+      body.content,
+      body.audience,
+    );
+  }
+
+  /** 取得用戶收到的廣播訊息 */
+  @Get('broadcasts')
+  @UseGuards(JwtAuthGuard)
+  async getBroadcasts(
+    @CurrentUser() user: CurrentUserData,
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
+  ) {
+    this.logger.log(`getBroadcasts userId=${user.userId}`);
+    return this.messagingService.getBroadcasts(
+      user.userId,
+      parseInt(page, 10) || 1,
+      parseInt(limit, 10) || 20,
     );
   }
 }

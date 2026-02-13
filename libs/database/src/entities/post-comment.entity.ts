@@ -16,6 +16,12 @@ export class PostCommentEntity {
   @Column('text')
   content!: string;
 
+  @Column('uuid', { nullable: true })
+  parentCommentId!: string | null;
+
+  @Column('int', { default: 0 })
+  replyCount!: number;
+
   @CreateDateColumn()
   createdAt!: Date;
 }

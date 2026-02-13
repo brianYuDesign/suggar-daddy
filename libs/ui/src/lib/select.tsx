@@ -1,5 +1,6 @@
 import { cn } from './utils';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {}
 
 export function Select({ className, children, ...props }: SelectProps) {

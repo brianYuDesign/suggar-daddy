@@ -143,8 +143,12 @@ export class MatchingService {
 
     // 取得已滑過的用戶
     const userSwipesKey = `${this.USER_SWIPES_PREFIX}${userId}`;
-    const swipedIdsArray = await this.redisService.sMembers(userSwipesKey);
-    const excludeSet = new Set([userId, ...swipedIdsArray]);
+    const [swipedIdsArray, blockedIds, blockedByIds] = await Promise.all([
+      this.redisService.sMembers(userSwipesKey),
+      this.redisService.sMembers(`user:blocks:${userId}`),
+      this.redisService.sMembers(`user:blocked-by:${userId}`),
+    ]);
+    const excludeSet = new Set([userId, ...swipedIdsArray, ...blockedIds, ...blockedByIds]);
 
     // 如果用戶有座標，使用 GEO 篩選
     if (userPos) {

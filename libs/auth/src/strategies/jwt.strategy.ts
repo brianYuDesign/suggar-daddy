@@ -5,6 +5,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 export interface JwtPayload {
   sub: string;
   email: string;
+  role?: string;
+  jti?: string;
   iat?: number;
   exp?: number;
 }
@@ -12,7 +14,13 @@ export interface JwtPayload {
 export interface JwtUser {
   userId: string;
   email: string;
+  role: string;
+  jti?: string;
+  iat?: number;
 }
+
+/** Alias for backward compatibility with libs/common */
+export type CurrentUserData = JwtUser;
 
 function getJwtSecret(): string {
   const secret = process.env['JWT_SECRET'];
@@ -22,6 +30,7 @@ function getJwtSecret(): string {
       throw new Error('JWT_SECRET environment variable is required in production');
     }
     logger.warn('JWT_SECRET is not set — using a random ephemeral secret. Tokens will NOT survive restarts.');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require('crypto').randomBytes(32).toString('hex');
   }
   return secret;
@@ -44,6 +53,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     return {
       userId: payload.sub,
       email: payload.email,
+      role: payload.role ?? 'subscriber',
+      jti: payload.jti,
+      iat: payload.iat,
     };
   }
 }

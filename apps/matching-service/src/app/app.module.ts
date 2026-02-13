@@ -1,14 +1,12 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { JwtModule } from "@nestjs/jwt";
-import { PassportModule } from "@nestjs/passport";
+import { ConfigModule } from "@nestjs/config";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import {
-  JwtStrategy,
   EnvConfigModule,
   AppConfigService,
 } from "@suggar-daddy/common";
+import { AuthModule } from "@suggar-daddy/auth";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { MatchingController } from "./matching.controller";
@@ -21,14 +19,7 @@ import { UserServiceClient } from "./user-service.client";
       isGlobal: true,
     }),
     EnvConfigModule,
-    PassportModule.register({ defaultStrategy: "jwt" }),
-    JwtModule.registerAsync({
-      inject: [AppConfigService],
-      useFactory: (config: AppConfigService) => ({
-        secret: config.jwtSecret,
-        signOptions: { expiresIn: config.jwtExpiresIn },
-      }),
-    }),
+    AuthModule,
     RedisModule.forRootAsync({
       inject: [AppConfigService],
       useFactory: (config: AppConfigService) => ({
@@ -46,6 +37,6 @@ import { UserServiceClient } from "./user-service.client";
     }),
   ],
   controllers: [AppController, MatchingController],
-  providers: [AppService, MatchingService, UserServiceClient, JwtStrategy],
+  providers: [AppService, MatchingService, UserServiceClient],
 })
 export class AppModule {}

@@ -30,7 +30,7 @@
         "../../libs/common/src/index.ts"
       ],
       "@suggar-daddy/dto": [
-        "../../libs/dto/src/index.ts"
+        "../../libs/dto/src/types.ts"
       ],
       "@suggar-daddy/database": [
         "../../libs/database/src/index.ts"
@@ -68,6 +68,7 @@
     "node_modules",
     "jest.config.ts",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "../../libs/dto/src/**/*.dto.ts"
   ]
 }

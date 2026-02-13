@@ -1,20 +1,19 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { JwtModule } from "@nestjs/jwt";
-import { PassportModule } from "@nestjs/passport";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import {
-  JwtStrategy,
   EnvConfigModule,
   AppConfigService,
 } from "@suggar-daddy/common";
+import { AuthModule } from "@suggar-daddy/auth";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { MessagingController } from "./messaging.controller";
 import { MessagingService } from "./messaging.service";
 import { MatchingEventConsumer } from "./matching-event.consumer";
 import { MessagingGateway } from "./messaging.gateway";
+import { SubscriptionServiceClient } from "./subscription-service.client";
 
 @Module({
   imports: [
@@ -22,14 +21,7 @@ import { MessagingGateway } from "./messaging.gateway";
       isGlobal: true,
     }),
     EnvConfigModule,
-    PassportModule.register({ defaultStrategy: "jwt" }),
-    JwtModule.registerAsync({
-      inject: [AppConfigService],
-      useFactory: (config: AppConfigService) => ({
-        secret: config.jwtSecret,
-        signOptions: { expiresIn: config.jwtExpiresIn },
-      }),
-    }),
+    AuthModule,
     RedisModule.forRoot(),
     KafkaModule.forRootAsync({
       useFactory: (config: AppConfigService) => ({
@@ -46,7 +38,7 @@ import { MessagingGateway } from "./messaging.gateway";
     MessagingService,
     MatchingEventConsumer,
     MessagingGateway,
-    JwtStrategy,
+    SubscriptionServiceClient,
   ],
 })
 export class AppModule {}

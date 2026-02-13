@@ -369,77 +369,77 @@ export class AdminApi {
 
   listUsers(page = 1, limit = 20, role?: string, status?: string, search?: string) {
     return this.client.get<PaginatedResponse<AdminUser>>(
-      '/api/v1/admin/users',
+      '/api/admin/users',
       { params: this.buildParams({ page, limit, role, status, search }) },
     );
   }
 
   getUserStats() {
-    return this.client.get<UserStats>('/api/v1/admin/users/stats');
+    return this.client.get<UserStats>('/api/admin/users/stats');
   }
 
   getUserDetail(userId: string) {
-    return this.client.get<AdminUserDetail>(`/api/v1/admin/users/${userId}`);
+    return this.client.get<AdminUserDetail>(`/api/admin/users/${userId}`);
   }
 
   disableUser(userId: string) {
     return this.client.post<{ success: boolean; message: string }>(
-      `/api/v1/admin/users/${userId}/disable`,
+      `/api/admin/users/${userId}/disable`,
     );
   }
 
   enableUser(userId: string) {
     return this.client.post<{ success: boolean; message: string }>(
-      `/api/v1/admin/users/${userId}/enable`,
+      `/api/admin/users/${userId}/enable`,
     );
   }
 
   changeUserRole(userId: string, role: string) {
     return this.client.post<{ success: boolean; message: string }>(
-      `/api/v1/admin/users/${userId}/role`,
+      `/api/admin/users/${userId}/role`,
       { role },
     );
   }
 
   getUserActivity(userId: string) {
-    return this.client.get<UserActivity>(`/api/v1/admin/users/${userId}/activity`);
+    return this.client.get<UserActivity>(`/api/admin/users/${userId}/activity`);
   }
 
   // -- Content --
 
   listReports(page = 1, limit = 20, status?: string) {
     return this.client.get<PaginatedResponse<ReportRecord>>(
-      '/api/v1/admin/content/reports',
+      '/api/admin/content/reports',
       { params: this.buildParams({ page, limit, status }) },
     );
   }
 
   getReportDetail(reportId: string) {
     return this.client.get<ReportDetail>(
-      `/api/v1/admin/content/reports/${reportId}`,
+      `/api/admin/content/reports/${reportId}`,
     );
   }
 
   takeDownPost(postId: string, reason: string) {
     return this.client.post<{ success: boolean; message: string }>(
-      `/api/v1/admin/content/posts/${postId}/take-down`,
+      `/api/admin/content/posts/${postId}/take-down`,
       { reason },
     );
   }
 
   reinstatePost(postId: string) {
     return this.client.post<{ success: boolean; message: string }>(
-      `/api/v1/admin/content/posts/${postId}/reinstate`,
+      `/api/admin/content/posts/${postId}/reinstate`,
     );
   }
 
   getContentStats() {
-    return this.client.get<ContentStats>('/api/v1/admin/content/stats');
+    return this.client.get<ContentStats>('/api/admin/content/stats');
   }
 
   listPosts(page = 1, limit = 20, visibility?: string, search?: string) {
     return this.client.get<PaginatedResponse<PostRecord>>(
-      '/api/v1/admin/content/posts',
+      '/api/admin/content/posts',
       { params: this.buildParams({ page, limit, visibility, search }) },
     );
   }
@@ -448,46 +448,46 @@ export class AdminApi {
 
   getRevenueReport(startDate: string, endDate: string) {
     return this.client.get<RevenueReport>(
-      '/api/v1/admin/payments/revenue',
+      '/api/admin/payments/revenue',
       { params: this.buildParams({ startDate, endDate }) },
     );
   }
 
   getTopCreators(limit = 10) {
     return this.client.get<TopCreator[]>(
-      '/api/v1/admin/payments/top-creators',
+      '/api/admin/payments/top-creators',
       { params: this.buildParams({ limit }) },
     );
   }
 
   getDailyRevenue(days = 30) {
     return this.client.get<DailyRevenue[]>(
-      '/api/v1/admin/payments/daily-revenue',
+      '/api/admin/payments/daily-revenue',
       { params: this.buildParams({ days }) },
     );
   }
 
   getPaymentStats() {
-    return this.client.get<PaymentStats>('/api/v1/admin/payments/stats');
+    return this.client.get<PaymentStats>('/api/admin/payments/stats');
   }
 
   // -- System --
 
   getSystemHealth() {
-    return this.client.get<SystemHealth>('/api/v1/admin/system/health');
+    return this.client.get<SystemHealth>('/api/admin/system/health');
   }
 
   getKafkaStatus() {
-    return this.client.get<KafkaStatus>('/api/v1/admin/system/kafka');
+    return this.client.get<KafkaStatus>('/api/admin/system/kafka');
   }
 
   getDlqStats() {
-    return this.client.get<DlqStats>('/api/v1/admin/system/dlq');
+    return this.client.get<DlqStats>('/api/admin/system/dlq');
   }
 
   getConsistencyMetrics() {
     return this.client.get<ConsistencyMetrics>(
-      '/api/v1/admin/system/consistency',
+      '/api/admin/system/consistency',
     );
   }
 
@@ -495,64 +495,64 @@ export class AdminApi {
 
   getDauMau(days = 7) {
     return this.client.get<DauMau>(
-      '/api/v1/admin/analytics/dau-mau',
+      '/api/admin/analytics/dau-mau',
       { params: this.buildParams({ days }) },
     );
   }
 
   getCreatorRevenueRanking(limit = 10) {
     return this.client.get<CreatorRevenue[]>(
-      '/api/v1/admin/analytics/creator-revenue',
+      '/api/admin/analytics/creator-revenue',
       { params: this.buildParams({ limit }) },
     );
   }
 
   getPopularContent(limit = 10) {
     return this.client.get<PopularContent[]>(
-      '/api/v1/admin/analytics/popular-content',
+      '/api/admin/analytics/popular-content',
       { params: this.buildParams({ limit }) },
     );
   }
 
   getSubscriptionChurnRate(period = 'month') {
     return this.client.get<ChurnRate>(
-      '/api/v1/admin/analytics/churn-rate',
+      '/api/admin/analytics/churn-rate',
       { params: this.buildParams({ period }) },
     );
   }
 
   getMatchingStats() {
-    return this.client.get<MatchingStats>('/api/v1/admin/analytics/matching');
+    return this.client.get<MatchingStats>('/api/admin/analytics/matching');
   }
 
   // -- Withdrawals --
 
   listWithdrawals(page = 1, limit = 20, status?: string) {
     return this.client.get<PaginatedResponse<WithdrawalRecord>>(
-      '/api/v1/admin/withdrawals',
+      '/api/admin/withdrawals',
       { params: this.buildParams({ page, limit, status }) },
     );
   }
 
   getWithdrawalStats() {
-    return this.client.get<WithdrawalStats>('/api/v1/admin/withdrawals/stats');
+    return this.client.get<WithdrawalStats>('/api/admin/withdrawals/stats');
   }
 
   getWithdrawalDetail(withdrawalId: string) {
     return this.client.get<WithdrawalDetail>(
-      `/api/v1/admin/withdrawals/${withdrawalId}`,
+      `/api/admin/withdrawals/${withdrawalId}`,
     );
   }
 
   approveWithdrawal(withdrawalId: string) {
     return this.client.post<{ success: boolean; message: string }>(
-      `/api/v1/admin/withdrawals/${withdrawalId}/approve`,
+      `/api/admin/withdrawals/${withdrawalId}/approve`,
     );
   }
 
   rejectWithdrawal(withdrawalId: string, reason?: string) {
     return this.client.post<{ success: boolean; message: string }>(
-      `/api/v1/admin/withdrawals/${withdrawalId}/reject`,
+      `/api/admin/withdrawals/${withdrawalId}/reject`,
       { reason },
     );
   }
@@ -561,25 +561,25 @@ export class AdminApi {
 
   listSubscriptions(page = 1, limit = 20, status?: string) {
     return this.client.get<PaginatedResponse<SubscriptionRecord>>(
-      '/api/v1/admin/subscriptions',
+      '/api/admin/subscriptions',
       { params: this.buildParams({ page, limit, status }) },
     );
   }
 
   getSubscriptionStats() {
-    return this.client.get<SubscriptionStats>('/api/v1/admin/subscriptions/stats');
+    return this.client.get<SubscriptionStats>('/api/admin/subscriptions/stats');
   }
 
   listTiers(page = 1, limit = 20, creatorId?: string) {
     return this.client.get<PaginatedResponse<TierRecord>>(
-      '/api/v1/admin/subscriptions/tiers',
+      '/api/admin/subscriptions/tiers',
       { params: this.buildParams({ page, limit, creatorId }) },
     );
   }
 
   toggleTierActive(tierId: string) {
     return this.client.post<{ success: boolean; message: string; isActive: boolean }>(
-      `/api/v1/admin/subscriptions/tiers/${tierId}/toggle`,
+      `/api/admin/subscriptions/tiers/${tierId}/toggle`,
     );
   }
 
@@ -587,42 +587,42 @@ export class AdminApi {
 
   listTransactions(page = 1, limit = 20, type?: string, status?: string) {
     return this.client.get<PaginatedResponse<TransactionRecord>>(
-      '/api/v1/admin/transactions',
+      '/api/admin/transactions',
       { params: this.buildParams({ page, limit, type, status }) },
     );
   }
 
   getTransactionTypeStats() {
-    return this.client.get<TransactionTypeStats>('/api/v1/admin/transactions/type-stats');
+    return this.client.get<TransactionTypeStats>('/api/admin/transactions/type-stats');
   }
 
   // -- DLQ Management --
 
   getDlqMessages() {
-    return this.client.get<{ messages: DlqMessage[] }>('/api/v1/admin/system/dlq/messages');
+    return this.client.get<{ messages: DlqMessage[] }>('/api/admin/system/dlq/messages');
   }
 
   retryDlqMessage(messageId: string) {
     return this.client.post<{ success: boolean; message?: string }>(
-      `/api/v1/admin/system/dlq/retry/${messageId}`,
+      `/api/admin/system/dlq/retry/${messageId}`,
     );
   }
 
   retryAllDlqMessages() {
     return this.client.post<{ success: boolean; retriedCount?: number }>(
-      '/api/v1/admin/system/dlq/retry-all',
+      '/api/admin/system/dlq/retry-all',
     );
   }
 
   deleteDlqMessage(messageId: string) {
     return this.client.delete<{ success: boolean }>(
-      `/api/v1/admin/system/dlq/messages/${messageId}`,
+      `/api/admin/system/dlq/messages/${messageId}`,
     );
   }
 
   purgeDlqMessages() {
     return this.client.delete<{ success: boolean; deletedCount?: number }>(
-      '/api/v1/admin/system/dlq/purge',
+      '/api/admin/system/dlq/purge',
     );
   }
 
@@ -630,27 +630,27 @@ export class AdminApi {
 
   listAuditLogs(page = 1, limit = 20, action?: string, adminId?: string, targetType?: string) {
     return this.client.get<PaginatedResponse<AuditLogRecord>>(
-      '/api/v1/admin/audit-logs',
+      '/api/admin/audit-logs',
       { params: this.buildParams({ page, limit, action, adminId, targetType }) },
     );
   }
 
   getAuditLog(logId: string) {
-    return this.client.get<AuditLogRecord>(`/api/v1/admin/audit-logs/${logId}`);
+    return this.client.get<AuditLogRecord>(`/api/admin/audit-logs/${logId}`);
   }
 
   // -- Batch Operations --
 
   batchDisableUsers(userIds: string[]) {
     return this.client.post<{ success: boolean; disabledCount: number }>(
-      '/api/v1/admin/users/batch/disable',
+      '/api/admin/users/batch/disable',
       { userIds },
     );
   }
 
   batchResolveReports(reportIds: string[]) {
     return this.client.post<{ success: boolean; resolvedCount: number }>(
-      '/api/v1/admin/content/reports/batch/resolve',
+      '/api/admin/content/reports/batch/resolve',
       { reportIds },
     );
   }

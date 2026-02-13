@@ -27,7 +27,7 @@ export class WithdrawalManagementController {
   ) {}
 
   /**
-   * GET /api/v1/admin/withdrawals
+  * GET /api/admin/withdrawals
    * 分頁查詢提款列表，支援狀態篩選
    */
   @Get()
@@ -40,7 +40,7 @@ export class WithdrawalManagementController {
   }
 
   /**
-   * GET /api/v1/admin/withdrawals/stats
+  * GET /api/admin/withdrawals/stats
    * 提款統計概覽
    */
   @Get('stats')
@@ -49,7 +49,7 @@ export class WithdrawalManagementController {
   }
 
   /**
-   * GET /api/v1/admin/withdrawals/:withdrawalId
+  * GET /api/admin/withdrawals/:withdrawalId
    * 取得單筆提款詳情（含用戶資訊）
    */
   @Get(':withdrawalId')
@@ -58,7 +58,7 @@ export class WithdrawalManagementController {
   }
 
   /**
-   * POST /api/v1/admin/withdrawals/:withdrawalId/approve
+  * POST /api/admin/withdrawals/:withdrawalId/approve
    * 批准提款申請
    */
   @Post(':withdrawalId/approve')
@@ -68,7 +68,7 @@ export class WithdrawalManagementController {
   }
 
   /**
-   * POST /api/v1/admin/withdrawals/:withdrawalId/reject
+  * POST /api/admin/withdrawals/:withdrawalId/reject
    * 拒絕提款申請（需填理由）
    */
   @Post(':withdrawalId/reject')

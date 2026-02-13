@@ -18,8 +18,8 @@ import {
   Public,
   Roles,
   UserRole,
+  type CurrentUserData,
 } from '@suggar-daddy/common';
-import type { CurrentUserData } from '@suggar-daddy/common';
 
 @Controller('subscription-tiers')
 export class SubscriptionTierController {

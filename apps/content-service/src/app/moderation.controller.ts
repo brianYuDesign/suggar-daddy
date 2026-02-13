@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Put, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ModerationService } from './moderation.service';
-import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole } from '@suggar-daddy/common';
-import type { CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole, type CurrentUserData } from '@suggar-daddy/common';
 
 @Controller('moderation')
 export class ModerationController {

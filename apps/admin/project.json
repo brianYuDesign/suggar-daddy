@@ -6,16 +6,15 @@
   "tags": ["scope:admin", "type:frontend"],
   "targets": {
     "build": {
-      "executor": "@nx/next:build",
-      "outputs": ["{options.outputPath}"],
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/.next"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/admin"
+        "command": "npx next build",
+        "cwd": "apps/admin"
       },
       "configurations": {
-        "development": {
-          "outputPath": "apps/admin"
-        },
+        "development": {},
         "production": {}
       }
     },

@@ -1,8 +1,7 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { TipService } from './tip.service';
 import { CreateTipDto } from './dto/tip.dto';
-import { JwtAuthGuard, CurrentUser } from '@suggar-daddy/common';
-import type { CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/common';
 
 @Controller('tips')
 export class TipController {

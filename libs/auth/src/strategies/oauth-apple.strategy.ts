@@ -14,33 +14,6 @@ interface AppleProfile {
   };
 }
 
-/**
- * Apple Sign-In Strategy
- * 
- * 使用方式：
- * 1. 設定環境變數：
- *    - APPLE_CLIENT_ID (Service ID from Apple Developer)
- *    - APPLE_TEAM_ID (Apple Developer Team ID)
- *    - APPLE_KEY_ID (Key ID for the private key)
- *    - APPLE_PRIVATE_KEY_PATH (Path to .p8 private key file)
- *    - APPLE_CALLBACK_URL (例如：http://localhost:3002/api/auth/apple/callback)
- * 
- * 2. 在 Controller 中使用：
- *    @Post('apple')
- *    @UseGuards(AuthGuard('apple'))
- *    async appleAuth() {}
- * 
- *    @Post('apple/callback')
- *    @UseGuards(AuthGuard('apple'))
- *    async appleAuthCallback(@Request() req) {
- *      return this.authService.handleOAuthLogin(req.user);
- *    }
- * 
- * 注意：
- * - Apple Sign-In 需要使用 POST 而非 GET
- * - 需要在 Apple Developer Console 配置 Service ID 和 Return URLs
- * - 首次登入時會提供用戶名稱，之後不會再提供（需要存儲）
- */
 @Injectable()
 export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
   constructor(private readonly configService: ConfigService) {

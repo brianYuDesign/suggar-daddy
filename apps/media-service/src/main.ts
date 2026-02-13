@@ -2,9 +2,11 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { AllExceptionsFilter, setupSwagger } from '@suggar-daddy/common';
+const helmet = require('helmet');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(helmet());
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 

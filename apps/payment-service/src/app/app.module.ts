@@ -1,15 +1,13 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { JwtModule } from "@nestjs/jwt";
-import { PassportModule } from "@nestjs/passport";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import {
   StripeModule as CommonStripeModule,
-  JwtStrategy,
   EnvConfigModule,
   AppConfigService,
 } from "@suggar-daddy/common";
+import { AuthModule } from "@suggar-daddy/auth";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { TransactionController } from "./transaction.controller";
@@ -23,6 +21,8 @@ import { WalletService } from "./wallet.service";
 import { StripeWebhookController } from "./stripe/stripe-webhook.controller";
 import { StripeWebhookService } from "./stripe/stripe-webhook.service";
 import { StripePaymentService } from "./stripe/stripe-payment.service";
+import { DmPurchaseController } from "./dm-purchase.controller";
+import { DmPurchaseService } from "./dm-purchase.service";
 
 @Module({
   imports: [
@@ -31,14 +31,7 @@ import { StripePaymentService } from "./stripe/stripe-payment.service";
       envFilePath: ".env",
     }),
     EnvConfigModule,
-    PassportModule.register({ defaultStrategy: "jwt" }),
-    JwtModule.registerAsync({
-      inject: [AppConfigService],
-      useFactory: (config: AppConfigService) => ({
-        secret: config.jwtSecret,
-        signOptions: { expiresIn: config.jwtExpiresIn },
-      }),
-    }),
+    AuthModule,
     RedisModule.forRoot(),
     KafkaModule.forRootAsync({
       useFactory: (config: AppConfigService) => ({
@@ -57,6 +50,7 @@ import { StripePaymentService } from "./stripe/stripe-payment.service";
     TipController,
     WalletController,
     StripeWebhookController,
+    DmPurchaseController,
   ],
   providers: [
     AppService,
@@ -66,7 +60,7 @@ import { StripePaymentService } from "./stripe/stripe-payment.service";
     WalletService,
     StripeWebhookService,
     StripePaymentService,
-    JwtStrategy,
+    DmPurchaseService,
   ],
 })
 export class AppModule {}

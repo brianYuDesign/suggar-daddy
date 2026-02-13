@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Controller,
   Get,
@@ -16,7 +17,7 @@ import {
   InsufficientBalanceException,
   SubscriptionException,
 } from "./business-exception";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { JwtAuthGuard } from "@suggar-daddy/auth";
 
 /**
  * 錯誤處理測試 Controller

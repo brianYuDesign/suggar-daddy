@@ -25,7 +25,7 @@ export class SubscriptionManagementController {
     private readonly subscriptionService: SubscriptionManagementService,
   ) {}
 
-  /** GET /api/v1/admin/subscriptions — 分頁查詢訂閱列表 */
+  /** GET /api/admin/subscriptions — 分頁查詢訂閱列表 */
   @Get()
   listSubscriptions(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -35,13 +35,13 @@ export class SubscriptionManagementController {
     return this.subscriptionService.listSubscriptions(page, limit, status);
   }
 
-  /** GET /api/v1/admin/subscriptions/stats — 訂閱統計 */
+  /** GET /api/admin/subscriptions/stats — 訂閱統計 */
   @Get('stats')
   getSubscriptionStats() {
     return this.subscriptionService.getSubscriptionStats();
   }
 
-  /** GET /api/v1/admin/subscriptions/tiers — 方案列表 */
+  /** GET /api/admin/subscriptions/tiers — 方案列表 */
   @Get('tiers')
   listTiers(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -51,7 +51,7 @@ export class SubscriptionManagementController {
     return this.subscriptionService.listTiers(page, limit, creatorId);
   }
 
-  /** POST /api/v1/admin/subscriptions/tiers/:tierId/toggle — 切換方案狀態 */
+  /** POST /api/admin/subscriptions/tiers/:tierId/toggle — 切換方案狀態 */
   @Post('tiers/:tierId/toggle')
   @HttpCode(200)
   toggleTierActive(@Param('tierId') tierId: string) {

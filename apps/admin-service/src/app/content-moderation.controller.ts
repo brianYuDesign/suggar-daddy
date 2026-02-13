@@ -26,7 +26,7 @@ export class ContentModerationController {
     private readonly contentModerationService: ContentModerationService,
   ) {}
 
-  /** GET /api/v1/admin/content/reports - 分頁查詢檢舉紀錄 */
+  /** GET /api/admin/content/reports - 分頁查詢檢舉紀錄 */
   @Get('reports')
   listReports(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -36,20 +36,20 @@ export class ContentModerationController {
     return this.contentModerationService.listReports(page, limit, status);
   }
 
-  /** POST /api/v1/admin/content/reports/batch/resolve — 批量處理檢舉 */
+  /** POST /api/admin/content/reports/batch/resolve — 批量處理檢舉 */
   @Post('reports/batch/resolve')
   @HttpCode(200)
   batchResolveReports(@Body('reportIds') reportIds: string[]) {
     return this.contentModerationService.batchResolveReports(reportIds);
   }
 
-  /** GET /api/v1/admin/content/reports/:reportId - 取得單一檢舉詳情 */
+  /** GET /api/admin/content/reports/:reportId - 取得單一檢舉詳情 */
   @Get('reports/:reportId')
   getReportDetail(@Param('reportId') reportId: string) {
     return this.contentModerationService.getReportDetail(reportId);
   }
 
-  /** POST /api/v1/admin/content/posts/:postId/take-down - 下架費文 */
+  /** POST /api/admin/content/posts/:postId/take-down - 下架費文 */
   @Post('posts/:postId/take-down')
   @HttpCode(200)
   takeDownPost(
@@ -59,20 +59,20 @@ export class ContentModerationController {
     return this.contentModerationService.takeDownPost(postId, reason);
   }
 
-  /** POST /api/v1/admin/content/posts/:postId/reinstate - 恢復已下架費文 */
+  /** POST /api/admin/content/posts/:postId/reinstate - 恢復已下架費文 */
   @Post('posts/:postId/reinstate')
   @HttpCode(200)
   reinstatePost(@Param('postId') postId: string) {
     return this.contentModerationService.reinstatePost(postId);
   }
 
-  /** GET /api/v1/admin/content/stats - 取得內容統計 */
+  /** GET /api/admin/content/stats - 取得內容統計 */
   @Get('stats')
   getContentStats() {
     return this.contentModerationService.getContentStats();
   }
 
-  /** GET /api/v1/admin/content/posts — 分頁查詢所有貼文 */
+  /** GET /api/admin/content/posts — 分頁查詢所有貼文 */
   @Get('posts')
   listPosts(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

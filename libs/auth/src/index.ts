@@ -1,7 +1,24 @@
+// Module
 export { AuthModule } from './auth.module';
-export { CurrentUser } from './decorators/current-user.decorator';
+export { OAuthModule } from './oauth.module';
+
+// Services
+export { TokenRevocationService } from './services/token-revocation.service';
+export { OAuthService } from './services/oauth.service';
+
+// Strategy & types
+export { JwtStrategy } from './strategies/jwt.strategy';
+export type { JwtPayload, JwtUser, CurrentUserData } from './strategies/jwt.strategy';
+export { GoogleStrategy } from './strategies/oauth-google.strategy';
+export type { OAuthUser } from './strategies/oauth-google.strategy';
+export { AppleStrategy } from './strategies/oauth-apple.strategy';
+
+// Guards
 export { JwtAuthGuard } from './guards/jwt-auth.guard';
-export type { JwtUser } from './strategies/jwt.strategy';
-export * from './jwt-auth.guard';
-export * from './jwt.strategy';
-export { Roles, RolesGuard, UserRole } from '@suggar-daddy/common';
+export { OptionalJwtGuard } from './guards/optional-jwt.guard';
+export { RolesGuard, UserRole } from './guards/roles.guard';
+
+// Decorators
+export { CurrentUser } from './decorators/current-user.decorator';
+export { Public, IS_PUBLIC_KEY } from './decorators/public.decorator';
+export { Roles, ROLES_KEY } from './decorators/roles.decorator';

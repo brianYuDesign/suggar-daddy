@@ -1,15 +1,19 @@
-import { Body, Controller, Get, Logger, Param, Post, UseGuards } from '@nestjs/common';
-import { LoginDto, RegisterDto, RefreshTokenDto } from '@suggar-daddy/dto';
-import type { TokenResponseDto } from '@suggar-daddy/dto';
-import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole } from '@suggar-daddy/auth';
-import type { JwtUser } from '@suggar-daddy/auth';
+import { Body, Controller, Get, Logger, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { LoginDto, RegisterDto, RefreshTokenDto, type TokenResponseDto } from '@suggar-daddy/dto';
+import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole, type JwtUser } from '@suggar-daddy/auth';
+import { OAuthService } from '@suggar-daddy/auth';
 import { AuthService } from './auth.service';
+import type { Request } from 'express';
 
 @Controller()
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly oauthService: OAuthService,
+  ) {}
 
   @Post('register')
   async register(@Body() body: RegisterDto): Promise<TokenResponseDto> {
@@ -29,8 +33,12 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(@Body() body: RefreshTokenDto): Promise<{ success: boolean }> {
-    return this.authService.logout(body.refreshToken);
+  @UseGuards(JwtAuthGuard)
+  async logout(
+    @Body() body: RefreshTokenDto,
+    @CurrentUser() user: JwtUser,
+  ): Promise<{ success: boolean }> {
+    return this.authService.logout(body.refreshToken, user.jti);
   }
 
   @Get('me')
@@ -96,5 +104,33 @@ export class AuthController {
   @Roles(UserRole.ADMIN)
   async reactivateAccount(@Param('userId') userId: string) {
     return this.authService.reactivateAccount(userId);
+  }
+
+  // ── OAuth (Google) ───────────────────────────────────────────────
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleAuth() {
+    // Passport redirects to Google
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthCallback(@Req() req: Request) {
+    return this.oauthService.handleOAuthLogin(req.user as any);
+  }
+
+  // ── OAuth (Apple) ────────────────────────────────────────────────
+
+  @Post('apple')
+  @UseGuards(AuthGuard('apple'))
+  appleAuth() {
+    // Passport redirects to Apple
+  }
+
+  @Post('apple/callback')
+  @UseGuards(AuthGuard('apple'))
+  async appleAuthCallback(@Req() req: Request) {
+    return this.oauthService.handleOAuthLogin(req.user as any);
   }
 }

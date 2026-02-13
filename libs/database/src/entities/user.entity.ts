@@ -48,6 +48,9 @@ export class UserEntity {
   @Column('timestamp', { nullable: true })
   locationUpdatedAt!: Date | null;
 
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  dmPrice!: number | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 

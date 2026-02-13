@@ -1,16 +1,15 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { StripeWebhookController } from "./stripe/stripe-webhook.controller";
 import { StripeWebhookService } from "./stripe/stripe-webhook.service";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, type RawBodyRequest } from "@nestjs/common";
 import Stripe from "stripe";
-import { RawBodyRequest } from "@nestjs/common";
 import { Request } from "express";
 import { StripeService } from "@suggar-daddy/common";
 
 describe("StripeWebhookController", () => {
   let controller: StripeWebhookController;
-  let webhookService: jest.Mocked<StripeWebhookService>;
-  let stripeService: jest.Mocked<StripeService>;
+  let _webhookService: jest.Mocked<StripeWebhookService>;
+  let _stripeService: jest.Mocked<StripeService>;
 
   const mockWebhookService = {
     handleEvent: jest.fn(),
@@ -36,8 +35,8 @@ describe("StripeWebhookController", () => {
     }).compile();
 
     controller = module.get<StripeWebhookController>(StripeWebhookController);
-    webhookService = module.get(StripeWebhookService);
-    stripeService = module.get(StripeService);
+    _webhookService = module.get(StripeWebhookService);
+    _stripeService = module.get(StripeService);
   });
 
   afterEach(() => {

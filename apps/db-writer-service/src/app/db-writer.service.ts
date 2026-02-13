@@ -13,6 +13,11 @@ import {
   TransactionEntity,
   TipEntity,
   PostPurchaseEntity,
+  FollowEntity,
+  BookmarkEntity,
+  DmPurchaseEntity,
+  StoryEntity,
+  StoryViewEntity,
 } from "@suggar-daddy/database";
 
 const USER_KEY = (id: string) => `user:${id}`;
@@ -48,6 +53,16 @@ export class DbWriterService {
     private readonly tipRepo: Repository<TipEntity>,
     @InjectRepository(PostPurchaseEntity)
     private readonly postPurchaseRepo: Repository<PostPurchaseEntity>,
+    @InjectRepository(FollowEntity)
+    private readonly followRepo: Repository<FollowEntity>,
+    @InjectRepository(BookmarkEntity)
+    private readonly bookmarkRepo: Repository<BookmarkEntity>,
+    @InjectRepository(DmPurchaseEntity)
+    private readonly dmPurchaseRepo: Repository<DmPurchaseEntity>,
+    @InjectRepository(StoryEntity)
+    private readonly storyRepo: Repository<StoryEntity>,
+    @InjectRepository(StoryViewEntity)
+    private readonly storyViewRepo: Repository<StoryViewEntity>,
     private readonly redis: RedisService,
   ) {}
 
@@ -183,6 +198,7 @@ export class DbWriterService {
   async handlePostUpdated(payload: Record<string, unknown>): Promise<void> {
     const { postId, ...data } = payload;
     if (!postId) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await this.postRepo.update({ id: postId as string }, data as any);
     const post = await this.postRepo.findOne({
       where: { id: postId as string },
@@ -439,5 +455,82 @@ export class DbWriterService {
       createdAt: new Date(),
     });
     this.logger.log(`subscription.tier.created tierId=${tierId}`);
+  }
+
+  async handleUserFollowed(payload: Record<string, unknown>): Promise<void> {
+    const { followerId, followedId, followedAt } = payload;
+    if (!followerId || !followedId) return;
+    await this.followRepo.insert({
+      followerId: followerId as string,
+      followedId: followedId as string,
+      createdAt: followedAt ? new Date(followedAt as string) : new Date(),
+    });
+    this.logger.log(`social.user.followed persisted follower=${followerId} followed=${followedId}`);
+  }
+
+  async handleUserUnfollowed(payload: Record<string, unknown>): Promise<void> {
+    const { followerId, followedId } = payload;
+    if (!followerId || !followedId) return;
+    await this.followRepo.delete({
+      followerId: followerId as string,
+      followedId: followedId as string,
+    });
+    this.logger.log(`social.user.unfollowed persisted follower=${followerId} followed=${followedId}`);
+  }
+
+  async handlePostBookmarked(payload: Record<string, unknown>): Promise<void> {
+    const { userId, postId, bookmarkedAt } = payload;
+    if (!userId || !postId) return;
+    await this.bookmarkRepo.insert({
+      userId: userId as string,
+      postId: postId as string,
+      createdAt: bookmarkedAt ? new Date(bookmarkedAt as string) : new Date(),
+    });
+    this.logger.log(`content.post.bookmarked userId=${userId} postId=${postId}`);
+  }
+
+  async handlePostUnbookmarked(payload: Record<string, unknown>): Promise<void> {
+    const { userId, postId } = payload;
+    if (!userId || !postId) return;
+    await this.bookmarkRepo.delete({ userId: userId as string, postId: postId as string });
+    this.logger.log(`content.post.unbookmarked userId=${userId} postId=${postId}`);
+  }
+
+  async handleCommentDeleted(payload: Record<string, unknown>): Promise<void> {
+    const { postId, commentId } = payload;
+    if (!postId || !commentId) return;
+    await this.postCommentRepo.delete({ id: commentId as string });
+    await this.postRepo.decrement({ id: postId as string }, 'commentCount', 1);
+    this.logger.log(`content.comment.deleted postId=${postId} commentId=${commentId}`);
+  }
+
+  async handleStoryCreated(payload: Record<string, unknown>): Promise<void> {
+    const { storyId, creatorId, contentType, mediaUrl, caption, expiresAt, createdAt } = payload;
+    if (!storyId || !creatorId) return;
+    await this.storyRepo.insert({
+      id: storyId as string,
+      creatorId: creatorId as string,
+      contentType: (contentType as string) || 'image',
+      mediaUrl: mediaUrl as string,
+      caption: (caption as string) || null,
+      viewCount: 0,
+      expiresAt: expiresAt ? new Date(expiresAt as string) : new Date(Date.now() + 86400000),
+      createdAt: createdAt ? new Date(createdAt as string) : new Date(),
+    });
+    this.logger.log(`content.story.created storyId=${storyId}`);
+  }
+
+  async handleDmPurchased(payload: Record<string, unknown>): Promise<void> {
+    const { purchaseId, buyerId, creatorId, amount, createdAt } = payload;
+    if (!purchaseId || !buyerId || !creatorId) return;
+    await this.dmPurchaseRepo.insert({
+      id: purchaseId as string,
+      buyerId: buyerId as string,
+      creatorId: creatorId as string,
+      amount: (amount as number) || 0,
+      stripePaymentId: null,
+      createdAt: createdAt ? new Date(createdAt as string) : new Date(),
+    });
+    this.logger.log(`messaging.dm.purchased purchaseId=${purchaseId}`);
   }
 }

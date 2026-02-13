@@ -57,7 +57,7 @@ describe('AuditLogService', () => {
         targetId: 'u-1',
         details: '{}',
         method: 'POST',
-        path: '/api/v1/admin/users/u-1/disable',
+        path: '/api/admin/users/u-1/disable',
         statusCode: 200,
       };
 
@@ -82,7 +82,7 @@ describe('AuditLogService', () => {
         action: 'post.dlq.retry-all',
         adminId: 'admin-1',
         method: 'POST',
-        path: '/api/v1/admin/dlq/retry-all',
+        path: '/api/admin/dlq/retry-all',
       };
 
       await service.createLog(logData);

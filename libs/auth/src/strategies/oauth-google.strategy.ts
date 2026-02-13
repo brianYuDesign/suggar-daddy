@@ -26,26 +26,6 @@ export interface OAuthUser {
   photoUrl?: string;
 }
 
-/**
- * Google OAuth 2.0 Strategy
- * 
- * 使用方式：
- * 1. 設定環境變數：
- *    - GOOGLE_CLIENT_ID
- *    - GOOGLE_CLIENT_SECRET
- *    - GOOGLE_CALLBACK_URL (例如：http://localhost:3002/api/auth/google/callback)
- * 
- * 2. 在 Controller 中使用：
- *    @Get('google')
- *    @UseGuards(AuthGuard('google'))
- *    async googleAuth() {}
- * 
- *    @Get('google/callback')
- *    @UseGuards(AuthGuard('google'))
- *    async googleAuthCallback(@Request() req) {
- *      return this.authService.handleOAuthLogin(req.user);
- *    }
- */
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private readonly configService: ConfigService) {
@@ -62,7 +42,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     refreshToken: string,
     profile: GoogleProfile,
     done: VerifyCallback,
-  ): Promise<any> {
+  ): Promise<void> {
     if (!profile.emails || profile.emails.length === 0) {
       return done(new UnauthorizedException('No email found in Google profile'), undefined);
     }

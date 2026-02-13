@@ -1,13 +1,17 @@
 import { Injectable, Logger, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { USER_EVENTS } from '@suggar-daddy/common';
+import { USER_EVENTS, SOCIAL_EVENTS } from '@suggar-daddy/common';
 import type {
   UserProfileDto,
   CreateUserDto,
   UpdateProfileDto,
   UserCardDto,
   LocationUpdateDto,
+  FollowerDto,
+  FollowCountsDto,
+  FollowStatusDto,
+  RecommendedCreatorDto,
 } from '@suggar-daddy/dto';
 
 /**
@@ -31,9 +35,16 @@ interface UserRecord {
   preferences: Record<string, unknown>;
   verificationStatus: string;
   lastActiveAt: Date;
+  followerCount: number;
+  followingCount: number;
+  dmPrice?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Follow Redis key patterns
+const FOLLOWING_SET = (userId: string) => `user:following:${userId}`;
+const FOLLOWERS_SET = (userId: string) => `user:followers:${userId}`;
 
 // Block/Report Redis key patterns
 const BLOCK_SET = (userId: string) => `user:blocks:${userId}`;
@@ -153,6 +164,9 @@ export class UserService {
       preferences: {},
       verificationStatus: 'unverified',
       lastActiveAt: now,
+      followerCount: 0,
+      followingCount: 0,
+      dmPrice: null,
       createdAt: now,
       updatedAt: now,
     };
@@ -245,6 +259,221 @@ export class UserService {
     });
 
     return { success: true };
+  }
+
+  // ── Follow / Unfollow ───────────────────────────────────────────
+
+  async follow(followerId: string, targetId: string): Promise<{ success: boolean }> {
+    if (followerId === targetId) {
+      throw new BadRequestException('Cannot follow yourself');
+    }
+    const target = await this.getUserFromRedis(targetId);
+    if (!target) {
+      throw new NotFoundException(`User not found: ${targetId}`);
+    }
+
+    // Check if blocked
+    const blocked = await this.redisService.sIsMember(BLOCK_SET(targetId), followerId);
+    const blockedBy = await this.redisService.sIsMember(BLOCK_SET(followerId), targetId);
+    if (blocked || blockedBy) {
+      throw new BadRequestException('Cannot follow this user');
+    }
+
+    const added = await this.redisService.sAdd(FOLLOWING_SET(followerId), targetId);
+    if (added === 0) {
+      throw new ConflictException('Already following this user');
+    }
+    await this.redisService.sAdd(FOLLOWERS_SET(targetId), followerId);
+
+    // Update counters in user JSON
+    const follower = await this.getUserFromRedis(followerId);
+    if (follower) {
+      follower.followingCount = await this.redisService.sCard(FOLLOWING_SET(followerId));
+      follower.updatedAt = new Date();
+      await this.saveUserToRedis(follower);
+    }
+    target.followerCount = await this.redisService.sCard(FOLLOWERS_SET(targetId));
+    target.updatedAt = new Date();
+    await this.saveUserToRedis(target);
+
+    this.logger.log(`user followed follower=${followerId} target=${targetId}`);
+    await this.kafkaProducer.sendEvent(SOCIAL_EVENTS.USER_FOLLOWED, {
+      followerId,
+      followedId: targetId,
+      followedAt: new Date().toISOString(),
+    });
+    return { success: true };
+  }
+
+  async unfollow(followerId: string, targetId: string): Promise<{ success: boolean }> {
+    const removed = await this.redisService.sRem(FOLLOWING_SET(followerId), targetId);
+    if (removed === 0) {
+      throw new BadRequestException('Not following this user');
+    }
+    await this.redisService.sRem(FOLLOWERS_SET(targetId), followerId);
+
+    // Update counters in user JSON
+    const follower = await this.getUserFromRedis(followerId);
+    if (follower) {
+      follower.followingCount = await this.redisService.sCard(FOLLOWING_SET(followerId));
+      follower.updatedAt = new Date();
+      await this.saveUserToRedis(follower);
+    }
+    const target = await this.getUserFromRedis(targetId);
+    if (target) {
+      target.followerCount = await this.redisService.sCard(FOLLOWERS_SET(targetId));
+      target.updatedAt = new Date();
+      await this.saveUserToRedis(target);
+    }
+
+    this.logger.log(`user unfollowed follower=${followerId} target=${targetId}`);
+    await this.kafkaProducer.sendEvent(SOCIAL_EVENTS.USER_UNFOLLOWED, {
+      followerId,
+      followedId: targetId,
+      unfollowedAt: new Date().toISOString(),
+    });
+    return { success: true };
+  }
+
+  async getFollowers(userId: string, page = 1, limit = 20): Promise<{ data: FollowerDto[]; total: number }> {
+    const followerIds = await this.redisService.sMembers(FOLLOWERS_SET(userId));
+    const total = followerIds.length;
+    const start = (page - 1) * limit;
+    const pageIds = followerIds.slice(start, start + limit);
+
+    const data: FollowerDto[] = [];
+    for (const id of pageIds) {
+      const user = await this.getUserFromRedis(id);
+      if (user) {
+        data.push({
+          id: user.id,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+          role: user.role,
+        });
+      }
+    }
+    return { data, total };
+  }
+
+  async getFollowing(userId: string, page = 1, limit = 20): Promise<{ data: FollowerDto[]; total: number }> {
+    const followingIds = await this.redisService.sMembers(FOLLOWING_SET(userId));
+    const total = followingIds.length;
+    const start = (page - 1) * limit;
+    const pageIds = followingIds.slice(start, start + limit);
+
+    const data: FollowerDto[] = [];
+    for (const id of pageIds) {
+      const user = await this.getUserFromRedis(id);
+      if (user) {
+        data.push({
+          id: user.id,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+          role: user.role,
+        });
+      }
+    }
+    return { data, total };
+  }
+
+  async getFollowStatus(followerId: string, targetId: string): Promise<FollowStatusDto> {
+    const isFollowing = await this.redisService.sIsMember(FOLLOWING_SET(followerId), targetId);
+    return { isFollowing };
+  }
+
+  async getFollowCounts(userId: string): Promise<FollowCountsDto> {
+    const [followerCount, followingCount] = await Promise.all([
+      this.redisService.sCard(FOLLOWERS_SET(userId)),
+      this.redisService.sCard(FOLLOWING_SET(userId)),
+    ]);
+    return { followerCount, followingCount };
+  }
+
+  // ── DM Price ──────────────────────────────────────────────────
+
+  async setDmPrice(userId: string, price: number | null): Promise<{ success: boolean; dmPrice: number | null }> {
+    const user = await this.getUserFromRedis(userId);
+    if (!user) {
+      throw new NotFoundException(`User not found: ${userId}`);
+    }
+
+    if (price !== null && price < 0) {
+      throw new BadRequestException('DM price must be non-negative');
+    }
+
+    user.dmPrice = price;
+    user.updatedAt = new Date();
+    await this.saveUserToRedis(user);
+
+    this.logger.log(`dm price updated userId=${userId} price=${price}`);
+    await this.kafkaProducer.sendEvent('user.dm_price.updated', {
+      userId,
+      dmPrice: price,
+      updatedAt: user.updatedAt.toISOString(),
+    });
+    return { success: true, dmPrice: price };
+  }
+
+  // ── Discovery: Recommended Creators & Search ──────────────────
+
+  async getRecommendedCreators(userId: string, limit = 10): Promise<RecommendedCreatorDto[]> {
+    const keys = await this.redisService.scan(`${this.USER_PREFIX}*`);
+    const userIds = keys
+      .map((k) => k.replace(this.USER_PREFIX, ''))
+      .filter((id) => id && !id.includes(':'));
+
+    // Get users the requester already follows + blocked users
+    const [followingIds, blockedIds, blockedByIds] = await Promise.all([
+      this.redisService.sMembers(FOLLOWING_SET(userId)),
+      this.redisService.sMembers(BLOCK_SET(userId)),
+      this.redisService.sMembers(BLOCKED_BY_SET(userId)),
+    ]);
+    const excludeSet = new Set([userId, ...followingIds, ...blockedIds, ...blockedByIds]);
+
+    const creators: RecommendedCreatorDto[] = [];
+    for (const id of userIds) {
+      if (excludeSet.has(id)) continue;
+      const user = await this.getUserFromRedis(id);
+      if (!user || user.role !== 'creator') continue;
+      creators.push({
+        id: user.id,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio,
+        followerCount: user.followerCount ?? 0,
+        role: user.role,
+      });
+    }
+
+    // Sort by followerCount descending
+    creators.sort((a, b) => b.followerCount - a.followerCount);
+    return creators.slice(0, limit);
+  }
+
+  async searchUsers(query: string, limit = 20): Promise<FollowerDto[]> {
+    if (!query || query.trim().length === 0) return [];
+    const lowerQuery = query.toLowerCase();
+    const keys = await this.redisService.scan(`${this.USER_PREFIX}*`);
+    const userIds = keys
+      .map((k) => k.replace(this.USER_PREFIX, ''))
+      .filter((id) => id && !id.includes(':'));
+
+    const results: FollowerDto[] = [];
+    for (const id of userIds) {
+      if (results.length >= limit) break;
+      const user = await this.getUserFromRedis(id);
+      if (!user) continue;
+      if (user.displayName.toLowerCase().includes(lowerQuery)) {
+        results.push({
+          id: user.id,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+          role: user.role,
+        });
+      }
+    }
+    return results;
   }
 
   // ── Block / Unblock ──────────────────────────────────────────────
@@ -398,6 +627,9 @@ export class UserService {
       country: user.country,
       latitude: user.latitude,
       longitude: user.longitude,
+      followerCount: user.followerCount ?? 0,
+      followingCount: user.followingCount ?? 0,
+      dmPrice: user.dmPrice,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

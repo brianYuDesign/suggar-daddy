@@ -20,10 +20,27 @@
         "name": "next"
       }
     ],
-    "types": [
-      "jest",
+    "types": ["jest",
       "node"
-    ]
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@suggar-daddy/common": [
+        "../../libs/common/src/index.ts"
+      ],
+      "@suggar-daddy/dto": [
+        "../../libs/dto/src/types.ts"
+      ],
+      "@suggar-daddy/ui": [
+        "../../libs/ui/src/index.ts"
+      ],
+      "@suggar-daddy/api-client": [
+        "../../libs/api-client/src/index.ts"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    }
   },
   "include": [
     "**/*.ts",

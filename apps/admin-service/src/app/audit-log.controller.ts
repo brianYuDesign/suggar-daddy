@@ -17,7 +17,7 @@ import { AuditLogService } from './audit-log.service';
 export class AuditLogController {
   constructor(private readonly auditLogService: AuditLogService) {}
 
-  /** GET /api/v1/admin/audit-logs */
+  /** GET /api/admin/audit-logs */
   @Get()
   listLogs(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -29,7 +29,7 @@ export class AuditLogController {
     return this.auditLogService.listLogs(page, limit, action, adminId, targetType);
   }
 
-  /** GET /api/v1/admin/audit-logs/:logId */
+  /** GET /api/admin/audit-logs/:logId */
   @Get(':logId')
   async getLog(@Param('logId') logId: string) {
     const log = await this.auditLogService.getLog(logId);

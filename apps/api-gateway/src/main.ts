@@ -5,7 +5,9 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
  
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const helmet = require('helmet');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const compression = require('compression');
 import { AllExceptionsFilter } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';

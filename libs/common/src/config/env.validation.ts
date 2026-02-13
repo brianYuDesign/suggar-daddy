@@ -95,6 +95,7 @@ export const envValidationSchema = Joi.object({
  * 驗證環境變數
  * 在應用啟動時調用此函數
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateEnvironment(envConfig: Record<string, any>) {
   const { error, value } = envValidationSchema.validate(envConfig, {
     abortEarly: false, // 收集所有錯誤，不只第一個

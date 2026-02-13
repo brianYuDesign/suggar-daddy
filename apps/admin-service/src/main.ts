@@ -7,6 +7,7 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
  
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const helmet = require('helmet');
 import { AllExceptionsFilter } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';
@@ -15,7 +16,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // 全域路由前綴
-  app.setGlobalPrefix('api/v1/admin');
+  app.setGlobalPrefix('api/admin');
 
   // Security headers
   app.use(helmet());
@@ -39,7 +40,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3011;
   await app.listen(port);
-  Logger.log(`Admin Service running on: http://localhost:${port}/api/v1/admin`);
+  Logger.log(`Admin Service running on: http://localhost:${port}/api/admin`);
 }
 
 bootstrap();

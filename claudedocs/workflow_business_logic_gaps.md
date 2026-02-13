@@ -71,7 +71,7 @@
 | 1.2.3 配對列表 | 已配對用戶清單，點擊進入聊天 | `apps/web/app/matches/page.tsx` (新) |
 | 1.2.4 配對動畫 | 雙向 like 配對成功動畫 | `apps/web/components/match-modal.tsx` (新) |
 
-**依賴**: matching-service API (`/api/v1/matching/cards`, `/swipe`, `/matches`)
+**依賴**: matching-service API (`/api/matching/cards`, `/swipe`, `/matches`)
 
 ### Phase 1.3 — 訊息系統
 

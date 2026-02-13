@@ -1,16 +1,14 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { JwtModule } from "@nestjs/jwt";
-import { PassportModule } from "@nestjs/passport";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import {
   UploadModule,
-  JwtStrategy,
   EnvConfigModule,
   AppConfigService,
   S3Module,
 } from "@suggar-daddy/common";
+import { AuthModule } from "@suggar-daddy/auth";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -26,14 +24,7 @@ import { VideoProcessorService } from "./video/video-processor";
       envFilePath: ".env",
     }),
     EnvConfigModule,
-    PassportModule.register({ defaultStrategy: "jwt" }),
-    JwtModule.registerAsync({
-      inject: [AppConfigService],
-      useFactory: (config: AppConfigService) => ({
-        secret: config.jwtSecret,
-        signOptions: { expiresIn: config.jwtExpiresIn },
-      }),
-    }),
+    AuthModule,
     RedisModule.forRoot(),
     KafkaModule.forRootAsync({
       useFactory: (config: AppConfigService) => ({
@@ -47,6 +38,6 @@ import { VideoProcessorService } from "./video/video-processor";
     S3Module.forRoot(),
   ],
   controllers: [AppController, MediaController, UploadController],
-  providers: [AppService, MediaService, JwtStrategy, VideoProcessorService],
+  providers: [AppService, MediaService, VideoProcessorService],
 })
 export class AppModule {}

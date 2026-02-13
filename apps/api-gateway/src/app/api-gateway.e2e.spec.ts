@@ -65,24 +65,24 @@ describe("API Gateway (e2e)", () => {
   });
 
   describe("Route Matching", () => {
-    it("should identify target for /api/v1/auth", () => {
-      const target = proxyService.getTarget("/api/v1/auth/login");
+    it("should identify target for /api/auth", () => {
+      const target = proxyService.getTarget("/api/auth/login");
       expect(target).toBeTruthy();
-      expect(target?.prefix).toBe("/api/v1/auth");
+      expect(target?.prefix).toBe("/api/auth");
       expect(target?.baseUrl).toContain("3002");
     });
 
-    it("should identify target for /api/v1/users", () => {
-      const target = proxyService.getTarget("/api/v1/users/profile");
+    it("should identify target for /api/users", () => {
+      const target = proxyService.getTarget("/api/users/profile");
       expect(target).toBeTruthy();
-      expect(target?.prefix).toBe("/api/v1/users");
+      expect(target?.prefix).toBe("/api/users");
       expect(target?.baseUrl).toContain("3001");
     });
 
-    it("should identify target for /api/v1/matching", () => {
-      const target = proxyService.getTarget("/api/v1/matching/cards");
+    it("should identify target for /api/matching", () => {
+      const target = proxyService.getTarget("/api/matching/cards");
       expect(target).toBeTruthy();
-      expect(target?.prefix).toBe("/api/v1/matching");
+      expect(target?.prefix).toBe("/api/matching");
       expect(target?.baseUrl).toContain("3003");
     });
 
@@ -114,10 +114,10 @@ describe("API Gateway (e2e)", () => {
       expect(target?.baseUrl).toContain("3008");
     });
 
-    it("should identify target for /api/v1/admin", () => {
-      const target = proxyService.getTarget("/api/v1/admin/dashboard");
+    it("should identify target for /api/admin", () => {
+      const target = proxyService.getTarget("/api/admin/dashboard");
       expect(target).toBeTruthy();
-      expect(target?.prefix).toBe("/api/v1/admin");
+      expect(target?.prefix).toBe("/api/admin");
       expect(target?.baseUrl).toContain("3011");
     });
 
@@ -151,12 +151,12 @@ describe("API Gateway (e2e)", () => {
       expect(postTarget?.prefix).toBe("/api/posts");
     });
 
-    it("should match /api/v1/admin before other /api routes", () => {
-      const adminTarget = proxyService.getTarget("/api/v1/admin/users");
-      const userTarget = proxyService.getTarget("/api/v1/users/123");
+    it("should match /api/admin before other /api routes", () => {
+      const adminTarget = proxyService.getTarget("/api/admin/users");
+      const userTarget = proxyService.getTarget("/api/users/123");
 
-      expect(adminTarget?.prefix).toBe("/api/v1/admin");
-      expect(userTarget?.prefix).toBe("/api/v1/users");
+      expect(adminTarget?.prefix).toBe("/api/admin");
+      expect(userTarget?.prefix).toBe("/api/users");
       expect(adminTarget?.baseUrl).not.toBe(userTarget?.baseUrl);
     });
   });
@@ -182,7 +182,7 @@ describe("API Gateway (e2e)", () => {
       const mockToken = "Bearer test-token";
       const result = await proxyService.forward(
         "GET",
-        "/api/v1/auth/me",
+        "/api/auth/me",
         "",
         { authorization: mockToken },
         undefined,
@@ -208,7 +208,7 @@ describe("API Gateway (e2e)", () => {
       const body = { email: "test@example.com", password: "password" };
       const result = await proxyService.forward(
         "POST",
-        "/api/v1/auth/login",
+        "/api/auth/login",
         "",
         { "content-type": "application/json" },
         body,
@@ -794,16 +794,16 @@ describe("API Gateway (e2e)", () => {
   });
 
   describe("Route Mapping Coverage", () => {
-    it("should handle /api/v1/messaging routes", () => {
-      const target = proxyService.getTarget("/api/v1/messaging/conversations");
+    it("should handle /api/messaging routes", () => {
+      const target = proxyService.getTarget("/api/messaging/conversations");
       expect(target).toBeTruthy();
-      expect(target?.prefix).toBe("/api/v1/messaging");
+      expect(target?.prefix).toBe("/api/messaging");
     });
 
-    it("should handle /api/v1/notifications routes", () => {
-      const target = proxyService.getTarget("/api/v1/notifications");
+    it("should handle /api/notifications routes", () => {
+      const target = proxyService.getTarget("/api/notifications");
       expect(target).toBeTruthy();
-      expect(target?.prefix).toBe("/api/v1/notifications");
+      expect(target?.prefix).toBe("/api/notifications");
     });
 
     it("should handle /api/transactions routes", () => {
@@ -879,14 +879,14 @@ describe("API Gateway (e2e)", () => {
   describe("Service Address Coverage", () => {
     it("should have valid port numbers for all routes", () => {
       const routes = [
-        "/api/v1/auth/login",
-        "/api/v1/users/profile",
-        "/api/v1/matching/cards",
+        "/api/auth/login",
+        "/api/users/profile",
+        "/api/matching/cards",
         "/api/posts",
         "/api/tips",
         "/api/subscriptions",
         "/api/upload",
-        "/api/v1/admin/dashboard",
+        "/api/admin/dashboard",
       ];
 
       routes.forEach((route) => {

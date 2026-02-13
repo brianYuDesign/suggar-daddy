@@ -205,7 +205,6 @@
 | Stripe Connect | ✅ | 創作者分潤（Direct Charges 模式） |
 | Swagger 文件 | ✅ | Content/Payment/Media/Subscription |
 | Correlation ID 追踪 | ✅ | 請求鏈追踪（RequestTrackingInterceptor） |
-| API 版本控制 | ✅ | v1/v2 支持 + 版本棄用流程 |
 | OAuth 第三方登入 | ✅ | Google + Apple Sign-In |
 | 整合測試框架 | ✅ | TestAppHelper + Fixtures + Mock 策略 |
 

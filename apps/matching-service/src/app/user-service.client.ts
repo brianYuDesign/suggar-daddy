@@ -19,7 +19,7 @@ export class UserServiceClient {
     excludeIds: string[],
     limit: number
   ): Promise<UserCardDto[]> {
-    const url = `${this.baseUrl}/api/v1/users/cards`;
+    const url = `${this.baseUrl}/api/users/cards`;
     const params = new URLSearchParams();
     if (excludeIds.length) params.set('exclude', excludeIds.join(','));
     params.set('limit', String(limit));
@@ -34,7 +34,7 @@ export class UserServiceClient {
   /** 根據指定 userId 列表取得卡片（供地理篩選後使用） */
   async getCardsByIds(userIds: string[]): Promise<UserCardDto[]> {
     if (userIds.length === 0) return [];
-    const url = `${this.baseUrl}/api/v1/users/cards/by-ids`;
+    const url = `${this.baseUrl}/api/users/cards/by-ids`;
     this.logger.debug(`getCardsByIds count=${userIds.length}`);
     const res = await axios.post<UserCardDto[]>(url, { userIds }, { timeout: 10000 });
     const data = Array.isArray(res.data) ? res.data : [];

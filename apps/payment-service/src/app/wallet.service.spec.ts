@@ -7,8 +7,8 @@ import { PAYMENT_EVENTS } from "@suggar-daddy/common";
 
 describe("WalletService", () => {
   let service: WalletService;
-  let redisService: jest.Mocked<RedisService>;
-  let kafkaProducer: jest.Mocked<KafkaProducerService>;
+  let _redisService: jest.Mocked<RedisService>;
+  let _kafkaProducer: jest.Mocked<KafkaProducerService>;
 
   const mockRedisClient = {
     get: jest.fn(),
@@ -63,8 +63,8 @@ describe("WalletService", () => {
     }).compile();
 
     service = module.get<WalletService>(WalletService);
-    redisService = module.get(RedisService);
-    kafkaProducer = module.get(KafkaProducerService);
+    _redisService = module.get(RedisService);
+    _kafkaProducer = module.get(KafkaProducerService);
 
     // Configure Kafka producer mock to return resolved Promise for sendEvent
     mockKafkaProducer.sendEvent = jest.fn().mockResolvedValue(undefined);
@@ -101,7 +101,7 @@ describe("WalletService", () => {
   describe("creditWallet", () => {
     it("should credit wallet with tip received", async () => {
       const grossAmount = 100;
-      const platformFee = 20; // 20%
+      const _platformFee = 20; // 20%
       const netAmount = 80;
 
       mockRedisClient.eval.mockResolvedValue([

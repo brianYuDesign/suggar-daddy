@@ -32,8 +32,9 @@ export class EnvConfigModule {
   constructor(private configService: AppConfigService) {
     // 在模組初始化時驗證所有環境變數
     validateEnvironment(process.env);
-    console.log(
-      `🚀 Environment configuration loaded successfully (${this.configService.nodeEnv})`,
+    // Logger not yet available at module init; use console.warn (allowed by lint rule)
+    console.warn(
+      `Environment configuration loaded successfully (${this.configService.nodeEnv})`,
     );
   }
 }

@@ -25,7 +25,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   private readonly maxRequests = 60;
 
   // 敏感路由（登入/註冊）更嚴格：每分鐘 10 次
-  private readonly strictPaths = ['/api/v1/auth/login', '/api/v1/auth/register'];
+  private readonly strictPaths = ['/api/auth/login', '/api/auth/register'];
   private readonly strictMax = 10;
 
   constructor(@Optional() private readonly redisService?: RedisService) {

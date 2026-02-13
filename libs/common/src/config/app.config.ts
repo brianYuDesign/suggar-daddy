@@ -212,6 +212,31 @@ export class AppConfigService {
     return this.configService.get<string>('CLOUDFRONT_PRIVATE_KEY', '');
   }
 
+  // ─── Email / SMTP Configuration ───
+  get smtpHost(): string {
+    return this.configService.get<string>('SMTP_HOST', 'localhost');
+  }
+
+  get smtpPort(): number {
+    return this.configService.get<number>('SMTP_PORT', 587);
+  }
+
+  get smtpUser(): string {
+    return this.configService.get<string>('SMTP_USER', '');
+  }
+
+  get smtpPassword(): string {
+    return this.configService.get<string>('SMTP_PASSWORD', '');
+  }
+
+  get emailFrom(): string {
+    return this.configService.get<string>('EMAIL_FROM', 'noreply@suggar-daddy.com');
+  }
+
+  get appBaseUrl(): string {
+    return this.configService.get<string>('APP_BASE_URL', 'http://localhost:4200');
+  }
+
   // ─── Frontend Configuration ───
   get nextPublicApiUrl(): string {
     return this.configService.get<string>(

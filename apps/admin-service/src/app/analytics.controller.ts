@@ -20,7 +20,7 @@ import { AnalyticsService } from './analytics.service';
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
-  /** GET /api/v1/admin/analytics/dau-mau - 取得 DAU/MAU 指標 */
+  /** GET /api/admin/analytics/dau-mau - 取得 DAU/MAU 指標 */
   @Get('dau-mau')
   getDauMau(
     @Query('days', new DefaultValuePipe(7), ParseIntPipe) days: number,
@@ -28,7 +28,7 @@ export class AnalyticsController {
     return this.analyticsService.getDauMau(days);
   }
 
-  /** GET /api/v1/admin/analytics/creator-revenue - 創作者營收排行 */
+  /** GET /api/admin/analytics/creator-revenue - 創作者營收排行 */
   @Get('creator-revenue')
   getCreatorRevenueRanking(
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -36,7 +36,7 @@ export class AnalyticsController {
     return this.analyticsService.getCreatorRevenueRanking(limit);
   }
 
-  /** GET /api/v1/admin/analytics/popular-content - 熱門內容排行 */
+  /** GET /api/admin/analytics/popular-content - 熱門內容排行 */
   @Get('popular-content')
   getPopularContent(
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -44,7 +44,7 @@ export class AnalyticsController {
     return this.analyticsService.getPopularContent(limit);
   }
 
-  /** GET /api/v1/admin/analytics/churn-rate - 訂閱流失率 */
+  /** GET /api/admin/analytics/churn-rate - 訂閱流失率 */
   @Get('churn-rate')
   getSubscriptionChurnRate(
     @Query('period', new DefaultValuePipe('month')) period: string,
@@ -52,7 +52,7 @@ export class AnalyticsController {
     return this.analyticsService.getSubscriptionChurnRate(period);
   }
 
-  /** GET /api/v1/admin/analytics/matching - 匹配統計 */
+  /** GET /api/admin/analytics/matching - 匹配統計 */
   @Get('matching')
   getMatchingStats() {
     return this.analyticsService.getMatchingStats();

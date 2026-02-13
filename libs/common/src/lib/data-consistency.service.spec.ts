@@ -3,8 +3,20 @@ import {
   DataConsistencyService,
   InconsistencyType,
 } from "./data-consistency.service";
-import { RedisService } from "@suggar-daddy/redis";
 import { DataSource, Repository } from "typeorm";
+
+// Mock the entire @suggar-daddy/redis module
+jest.mock("@suggar-daddy/redis", () => ({
+  RedisService: jest.fn().mockImplementation(() => ({
+    getClient: jest.fn(() => ({})),
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  })),
+}));
+
+// Import after mock
+import { RedisService } from "@suggar-daddy/redis";
 
 // Mock Entity
 class MockUser {
@@ -80,19 +92,18 @@ describe("DataConsistencyService", () => {
           id: "1",
           username: "alice",
           email: "alice@example.com",
-          status: "active",
         },
       ];
       mockRepository.find.mockResolvedValue(dbUsers as any);
 
       // Redis 中有兩個用戶
-      mockScanFn
+      (mockScanFn as jest.Mock)
         .mockResolvedValueOnce(["0", ["user:1", "user:2"]])
         .mockResolvedValueOnce(["0", []]);
 
       redisService.get
-        .mockResolvedValueOnce(JSON.stringify({ id: "1", username: "alice" }))
-        .mockResolvedValueOnce(JSON.stringify({ id: "2", username: "bob" }));
+        .mockResolvedValueOnce(JSON.stringify({ id: "1", username: "alice", email: "alice@example.com" }))
+        .mockResolvedValueOnce(JSON.stringify({ id: "2", username: "bob", email: "bob@example.com" }));
 
       // Act
       const inconsistencies = await service.checkConsistency(config);
@@ -107,6 +118,7 @@ describe("DataConsistencyService", () => {
       expect(inconsistencies[0].redisValue).toEqual({
         id: "2",
         username: "bob",
+        email: "bob@example.com",
       });
       expect(inconsistencies[0].dbValue).toBeNull();
     });
@@ -127,12 +139,12 @@ describe("DataConsistencyService", () => {
       mockRepository.find.mockResolvedValue(dbUsers as any);
 
       // Redis 中只有一個用戶
-      mockScanFn
+      (mockScanFn as jest.Mock)
         .mockResolvedValueOnce(["0", ["user:1"]])
         .mockResolvedValueOnce(["0", []]);
 
       redisService.get.mockResolvedValueOnce(
-        JSON.stringify({ id: "1", username: "alice" }),
+        JSON.stringify({ id: "1", username: "alice", email: "alice@example.com" }),
       );
 
       // Act

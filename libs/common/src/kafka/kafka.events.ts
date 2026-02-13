@@ -36,6 +36,12 @@ export const PAYMENT_EVENTS = {
   WITHDRAWAL_COMPLETED: 'payment.withdrawal.completed',
 } as const;
 
+// Social Events (follow system)
+export const SOCIAL_EVENTS = {
+  USER_FOLLOWED: 'social.user.followed',
+  USER_UNFOLLOWED: 'social.user.unfollowed',
+} as const;
+
 // Content Events
 export const CONTENT_EVENTS = {
   POST_CREATED: 'content.post.created',
@@ -44,10 +50,16 @@ export const CONTENT_EVENTS = {
   POST_LIKED: 'content.post.liked',
   POST_UNLIKED: 'content.post.unliked',
   COMMENT_CREATED: 'content.comment.created',
+  COMMENT_DELETED: 'content.comment.deleted',
+  POST_BOOKMARKED: 'content.post.bookmarked',
+  POST_UNBOOKMARKED: 'content.post.unbookmarked',
   POST_REPORTED: 'content.post.reported',
   POST_TAKEN_DOWN: 'content.post.taken_down',
   POST_REINSTATED: 'content.post.reinstated',
   COMMENT_REPORTED: 'content.comment.reported',
+  STORY_CREATED: 'content.story.created',
+  STORY_DELETED: 'content.story.deleted',
+  STORY_VIEWED: 'content.story.viewed',
 } as const;
 
 // Media Events
@@ -56,6 +68,12 @@ export const MEDIA_EVENTS = {
   MEDIA_DELETED: 'media.deleted',
   MEDIA_PROCESSED: 'media.processed',
   VIDEO_PROCESSED: 'media.video.processed',
+} as const;
+
+// Messaging Events (paid DM, broadcast)
+export const MESSAGING_EVENTS = {
+  DM_PURCHASED: 'messaging.dm.purchased',
+  BROADCAST_SENT: 'messaging.broadcast.sent',
 } as const;
 
 // 系統事件（DLQ、監控）
@@ -127,4 +145,55 @@ export interface UserUpdatedEvent {
   bio?: string;
   avatarUrl?: string;
   updatedAt: string;
+}
+
+export interface UserFollowedEvent {
+  followerId: string;
+  followedId: string;
+  followedAt: string;
+}
+
+export interface UserUnfollowedEvent {
+  followerId: string;
+  followedId: string;
+  unfollowedAt: string;
+}
+
+export interface PostBookmarkedEvent {
+  userId: string;
+  postId: string;
+  bookmarkedAt: string;
+}
+
+export interface CommentDeletedEvent {
+  postId: string;
+  commentId: string;
+  deletedBy: string;
+  deletedAt: string;
+}
+
+export interface StoryCreatedEvent {
+  storyId: string;
+  creatorId: string;
+  contentType: string;
+  mediaUrl: string;
+  caption?: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface DmPurchasedEvent {
+  purchaseId: string;
+  buyerId: string;
+  creatorId: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface BroadcastSentEvent {
+  broadcastId: string;
+  creatorId: string;
+  content: string;
+  recipientCount: number;
+  createdAt: string;
 }

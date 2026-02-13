@@ -35,7 +35,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  DollarSign,
 } from 'lucide-react';
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'destructive'> = {

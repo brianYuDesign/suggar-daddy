@@ -38,7 +38,7 @@ describe('AuditLogInterceptor', () => {
   });
 
   it('GET 請求不應記錄審計日誌', (done) => {
-    const context = createMockContext('GET', '/api/v1/admin/users');
+    const context = createMockContext('GET', '/api/admin/users');
     const handler = createMockHandler();
 
     interceptor.intercept(context, handler).subscribe({
@@ -52,7 +52,7 @@ describe('AuditLogInterceptor', () => {
   it('POST 請求應記錄審計日誌', (done) => {
     const context = createMockContext(
       'POST',
-      '/api/v1/admin/users/550e8400-e29b-41d4-a716-446655440000/disable',
+      '/api/admin/users/550e8400-e29b-41d4-a716-446655440000/disable',
       { userId: 'admin-1' },
       { reason: 'test' },
     );
@@ -79,7 +79,7 @@ describe('AuditLogInterceptor', () => {
   it('DELETE 請求應記錄審計日誌', (done) => {
     const context = createMockContext(
       'DELETE',
-      '/api/v1/admin/dlq/messages/msg-1',
+      '/api/admin/dlq/messages/msg-1',
       { userId: 'admin-2' },
     );
     const handler = createMockHandler();
@@ -101,7 +101,7 @@ describe('AuditLogInterceptor', () => {
   });
 
   it('PUT 請求應記錄審計日誌', (done) => {
-    const context = createMockContext('PUT', '/api/v1/admin/users/550e8400-e29b-41d4-a716-446655440000/role', { userId: 'admin-1' }, { role: 'CREATOR' });
+    const context = createMockContext('PUT', '/api/admin/users/550e8400-e29b-41d4-a716-446655440000/role', { userId: 'admin-1' }, { role: 'CREATOR' });
     const handler = createMockHandler();
 
     interceptor.intercept(context, handler).subscribe({
@@ -123,7 +123,7 @@ describe('AuditLogInterceptor', () => {
   });
 
   it('請求錯誤時應記錄 error statusCode', (done) => {
-    const context = createMockContext('POST', '/api/v1/admin/users/batch/disable', { userId: 'admin-1' });
+    const context = createMockContext('POST', '/api/admin/users/batch/disable', { userId: 'admin-1' });
     const handler = createErrorHandler({ message: 'Not Found', status: 404 });
 
     interceptor.intercept(context, handler).subscribe({
@@ -141,11 +141,11 @@ describe('AuditLogInterceptor', () => {
   });
 
   it('user 不存在時 adminId 應為 unknown', (done) => {
-    const context = createMockContext('POST', '/api/v1/admin/dlq/retry-all', undefined);
+    const context = createMockContext('POST', '/api/admin/dlq/retry-all', undefined);
     // 覆蓋 user 為空
     (context.switchToHttp().getRequest as any) = () => ({
       method: 'POST',
-      url: '/api/v1/admin/dlq/retry-all',
+      url: '/api/admin/dlq/retry-all',
       user: null,
       body: null,
     });
@@ -155,7 +155,7 @@ describe('AuditLogInterceptor', () => {
       switchToHttp: () => ({
         getRequest: () => ({
           method: 'POST',
-          url: '/api/v1/admin/dlq/retry-all',
+          url: '/api/admin/dlq/retry-all',
           user: null,
           body: null,
         }),
@@ -179,7 +179,7 @@ describe('AuditLogInterceptor', () => {
   it('deriveAction 應從路徑產生有意義的 action', (done) => {
     const context = createMockContext(
       'POST',
-      '/api/v1/admin/reports/batch/resolve',
+      '/api/admin/reports/batch/resolve',
       { userId: 'admin-1' },
     );
     const handler = createMockHandler();
@@ -201,7 +201,7 @@ describe('AuditLogInterceptor', () => {
   it('createLog 失敗不應影響請求處理', (done) => {
     auditLogService.createLog.mockRejectedValue(new Error('DB write failed'));
 
-    const context = createMockContext('POST', '/api/v1/admin/users/batch/disable', { userId: 'admin-1' });
+    const context = createMockContext('POST', '/api/admin/users/batch/disable', { userId: 'admin-1' });
     const handler = createMockHandler({ success: true });
 
     interceptor.intercept(context, handler).subscribe({

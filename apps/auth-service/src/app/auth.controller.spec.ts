@@ -1,9 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { JwtAuthGuard } from "@suggar-daddy/auth";
+import { JwtAuthGuard, UserRole } from "@suggar-daddy/auth";
 import { LoginDto, RegisterDto, RefreshTokenDto } from "@suggar-daddy/dto";
-import { UserRole } from "@suggar-daddy/auth";
 
 describe("AuthController", () => {
   let controller: AuthController;

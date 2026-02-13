@@ -22,6 +22,7 @@ describe('ModerationService', () => {
     ppvPrice: null,
     likeCount: 0,
     commentCount: 0,
+    bookmarkCount: 0,
     createdAt: '2025-01-01T00:00:00.000Z',
   };
 

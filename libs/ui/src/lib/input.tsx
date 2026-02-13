@@ -1,5 +1,6 @@
 import { cn } from './utils';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 export function Input({ className, type, ...props }: InputProps) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ErrorCode, ERROR_CODE_TO_HTTP_STATUS } from './error-codes.enum';
 

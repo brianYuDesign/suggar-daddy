@@ -66,7 +66,6 @@ export default function SystemPage() {
       fetchDlqMessages();
     }, 30000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRetry = async (messageId: string) => {

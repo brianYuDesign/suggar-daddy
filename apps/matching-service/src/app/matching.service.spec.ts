@@ -140,7 +140,7 @@ describe('MatchingService', () => {
     });
 
     it('應在雙向 like 時建立配對並發送 Kafka', async () => {
-      const matchRecord = {
+      const _matchRecord = {
         id: 'match-1',
         userAId: 'user-2',
         userBId: 'user-1',

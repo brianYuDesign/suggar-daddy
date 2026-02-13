@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { CONTENT_EVENTS } from '@suggar-daddy/common';
@@ -12,6 +12,11 @@ const POSTS_PUBLIC_IDS = 'posts:public:ids';
 const POSTS_CREATOR = (creatorId: string) => `posts:creator:${creatorId}`;
 const POST_LIKES = (postId: string) => `post:${postId}:likes`;
 const POST_COMMENTS = (postId: string) => `post:${postId}:comments`;
+const COMMENT_KEY = (commentId: string) => `comment:${commentId}`;
+const COMMENT_REPLIES = (commentId: string) => `comment:${commentId}:replies`;
+const USER_BOOKMARKS = (userId: string) => `user:bookmarks:${userId}`;
+const USER_BLOCKS = (userId: string) => `user:blocks:${userId}`;
+const USER_BLOCKED_BY = (userId: string) => `user:blocked-by:${userId}`;
 
 export interface VideoMeta {
   mediaId: string;
@@ -33,6 +38,7 @@ export interface Post {
   ppvPrice: number | null;
   likeCount: number;
   commentCount: number;
+  bookmarkCount: number;
   createdAt: string;
   updatedAt?: string;
   moderationStatus?: string;
@@ -46,6 +52,8 @@ export interface PostComment {
   postId: string;
   userId: string;
   content: string;
+  parentCommentId: string | null;
+  replyCount: number;
   createdAt: string;
 }
 
@@ -61,6 +69,16 @@ export class PostService {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
+  // ── Block integration helpers ─────────────────────────────────
+
+  /** Get the union of user:blocks:{userId} and user:blocked-by:{userId} */
+  private async getBlockedUserIds(userId: string): Promise<Set<string>> {
+    const ids = await this.redis.sUnion(USER_BLOCKS(userId), USER_BLOCKED_BY(userId));
+    return new Set(ids);
+  }
+
+  // ── Post CRUD ─────────────────────────────────────────────────
+
   async create(createDto: CreatePostDto): Promise<Post> {
     const postId = this.genId('post');
     const now = new Date().toISOString();
@@ -75,6 +93,7 @@ export class PostService {
       ppvPrice: createDto.ppvPrice ?? null,
       likeCount: 0,
       commentCount: 0,
+      bookmarkCount: 0,
       createdAt: now,
       videoMeta: createDto.videoMeta
         ? {
@@ -92,7 +111,7 @@ export class PostService {
       await this.redis.lPush(POSTS_PUBLIC_IDS, postId);
     }
     await this.redis.lPush(POSTS_CREATOR(createDto.creatorId), postId);
-    // Create reverse index for media → post lookup (used by video processed consumer)
+    // Create reverse index for media -> post lookup (used by video processed consumer)
     if (post.videoMeta?.mediaId) {
       await this.redis.set(`media:post:${post.videoMeta.mediaId}`, postId);
     }
@@ -109,13 +128,22 @@ export class PostService {
     return post;
   }
 
-  async findAll(page = 1, limit = 20): Promise<PaginatedResponse<Post>> {
+  async findAll(page = 1, limit = 20, currentUserId?: string): Promise<PaginatedResponse<Post>> {
     const total = await this.redis.lLen(POSTS_PUBLIC_IDS);
     const skip = (page - 1) * limit;
     const ids = await this.redis.lRange(POSTS_PUBLIC_IDS, skip, skip + limit - 1);
     const keys = ids.map((id) => POST_KEY(id));
     const values = await this.redis.mget(...keys);
-    const data = values.filter(Boolean).map((raw) => JSON.parse(raw!));
+    let data: Post[] = values.filter(Boolean).map((raw) => JSON.parse(raw!));
+
+    // Filter out blocked users' posts
+    if (currentUserId) {
+      const blocked = await this.getBlockedUserIds(currentUserId);
+      if (blocked.size > 0) {
+        data = data.filter((p) => !blocked.has(p.creatorId));
+      }
+    }
+
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
@@ -130,28 +158,23 @@ export class PostService {
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
-  /** 依創作者取得貼文，並依 viewerId 過濾訂閱牆可見性（僅回傳 viewer 有權看到的） */
+  /** Get posts by creator with subscription access control */
   async findByCreatorWithAccess(
     creatorId: string,
     viewerId?: string | null,
     page = 1,
     limit = 20,
   ): Promise<PaginatedResponse<Post>> {
-    // Must fetch all then filter — access check can't be done at Redis level
     const ids = await this.redis.lRange(POSTS_CREATOR(creatorId), 0, -1);
     const postKeys = ids.map((id) => POST_KEY(id));
     const postValues = await this.redis.mget(...postKeys);
     const allPosts = postValues.filter(Boolean).map((raw) => JSON.parse(raw!));
 
-    // Pre-compute subscription access once (all posts belong to same creator)
     let hasBaseSubscription = false;
     const tierAccessCache = new Map<string, boolean>();
 
     if (viewerId && viewerId !== creatorId) {
-      // Single HTTP call to check base subscription
       hasBaseSubscription = await this.subscriptionClient.hasActiveSubscription(viewerId, creatorId);
-
-      // Collect unique tier IDs needed and check them
       const uniqueTierIds = [
         ...new Set(
           allPosts
@@ -159,7 +182,6 @@ export class PostService {
             .map((p) => p.requiredTierId as string)
         ),
       ];
-      // Check tier-specific access in parallel
       const tierChecks = await Promise.all(
         uniqueTierIds.map((tierId) =>
           this.subscriptionClient.hasActiveSubscription(viewerId, creatorId, tierId)
@@ -207,14 +229,6 @@ export class PostService {
     return JSON.parse(raw);
   }
 
-  /**
-   * 取得貼文，依 viewerId 與付費/訂閱狀態決定是否回傳完整內容。
-   * - 創作者本人：一律完整
-   * - visibility subscribers：僅訂閱者可見，否則鎖定版
-   * - visibility tier_specific：僅訂閱該方案者可見，否則鎖定版
-   * - PPV：已購買則完整；未解鎖則鎖定版
-   * - 無 viewerId 且 PPV/訂閱牆：回傳鎖定版
-   */
   async findOneWithAccess(id: string, viewerId?: string | null): Promise<Post & { locked?: boolean }> {
     const post = await this.findOne(id);
     const isPpv = post.ppvPrice != null && Number(post.ppvPrice) > 0;
@@ -223,7 +237,6 @@ export class PostService {
       locked: true,
       mediaUrls: [],
       caption: post.caption ? '(Purchase to view)' : null,
-      // For video posts: expose preview info even when locked (hide s3Key/mediaId)
       videoMeta: post.videoMeta
         ? {
             mediaId: '',
@@ -287,6 +300,8 @@ export class PostService {
     });
   }
 
+  // ── Likes ─────────────────────────────────────────────────────
+
   async likePost(postId: string, userId: string): Promise<Post> {
     const post = await this.findOne(postId);
     const added = await this.redis.sAdd(POST_LIKES(postId), userId);
@@ -316,36 +331,222 @@ export class PostService {
     return post;
   }
 
+  // ── Bookmarks ─────────────────────────────────────────────────
+
+  async bookmarkPost(postId: string, userId: string): Promise<{ bookmarked: boolean }> {
+    const post = await this.findOne(postId);
+    const score = await this.redis.zScore(USER_BOOKMARKS(userId), postId);
+    if (score !== null) {
+      throw new ConflictException('Already bookmarked this post');
+    }
+    await this.redis.zAdd(USER_BOOKMARKS(userId), Date.now(), postId);
+    post.bookmarkCount = (post.bookmarkCount || 0) + 1;
+    await this.redis.set(POST_KEY(postId), JSON.stringify(post));
+    await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_BOOKMARKED, {
+      postId,
+      userId,
+      bookmarkedAt: new Date().toISOString(),
+    });
+    return { bookmarked: true };
+  }
+
+  async unbookmarkPost(postId: string, userId: string): Promise<{ bookmarked: boolean }> {
+    const post = await this.findOne(postId);
+    const removed = await this.redis.zRem(USER_BOOKMARKS(userId), postId);
+    if (removed === 0) {
+      throw new NotFoundException('Bookmark not found');
+    }
+    post.bookmarkCount = Math.max(0, (post.bookmarkCount || 1) - 1);
+    await this.redis.set(POST_KEY(postId), JSON.stringify(post));
+    await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_UNBOOKMARKED, {
+      postId,
+      userId,
+      unbookmarkedAt: new Date().toISOString(),
+    });
+    return { bookmarked: false };
+  }
+
+  async getBookmarks(userId: string, page = 1, limit = 20): Promise<PaginatedResponse<Post>> {
+    const total = await this.redis.zCard(USER_BOOKMARKS(userId));
+    const skip = (page - 1) * limit;
+    const ids = await this.redis.zRevRange(USER_BOOKMARKS(userId), skip, skip + limit - 1);
+    if (ids.length === 0) {
+      return { data: [], total, page, limit };
+    }
+    const keys = ids.map((id) => POST_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const data: Post[] = values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!))
+      .filter((p) => p.visibility === 'public' || p.creatorId === userId);
+    return { data, total, page, limit };
+  }
+
+  // ── Comments (enhanced with nesting) ──────────────────────────
+
   async createComment(postId: string, createDto: CreatePostCommentDto): Promise<PostComment> {
     const post = await this.findOne(postId);
     const commentId = this.genId('comment');
     const now = new Date().toISOString();
+    const parentCommentId = createDto.parentCommentId || null;
+
     const comment: PostComment = {
       id: commentId,
       postId,
       userId: createDto.userId,
       content: createDto.content,
+      parentCommentId,
+      replyCount: 0,
       createdAt: now,
     };
-    await this.redis.lPush(POST_COMMENTS(postId), JSON.stringify(comment));
+
+    // Store comment JSON at its own key
+    await this.redis.set(COMMENT_KEY(commentId), JSON.stringify(comment));
+
+    if (parentCommentId) {
+      // It's a reply: push to parent's reply list, increment parent replyCount
+      await this.redis.rPush(COMMENT_REPLIES(parentCommentId), commentId);
+      const parentRaw = await this.redis.get(COMMENT_KEY(parentCommentId));
+      if (parentRaw) {
+        const parent: PostComment = JSON.parse(parentRaw);
+        parent.replyCount = (parent.replyCount || 0) + 1;
+        await this.redis.set(COMMENT_KEY(parentCommentId), JSON.stringify(parent));
+      }
+    } else {
+      // Top-level comment
+      await this.redis.rPush(POST_COMMENTS(postId), commentId);
+    }
+
+    // Increment post comment count
     post.commentCount = (post.commentCount || 0) + 1;
     await this.redis.set(POST_KEY(postId), JSON.stringify(post));
+
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.COMMENT_CREATED, {
       postId,
       commentId,
       userId: createDto.userId,
       content: createDto.content,
+      parentCommentId,
       createdAt: now,
     });
     return comment;
   }
 
-  async getComments(postId: string, page = 1, limit = 20): Promise<PaginatedResponse<PostComment>> {
+  async deleteComment(postId: string, commentId: string, requesterId: string): Promise<void> {
+    const post = await this.findOne(postId);
+    const commentRaw = await this.redis.get(COMMENT_KEY(commentId));
+    if (!commentRaw) {
+      throw new NotFoundException('Comment not found');
+    }
+    const comment: PostComment = JSON.parse(commentRaw);
+
+    // Permission check: comment author or post creator
+    if (comment.userId !== requesterId && post.creatorId !== requesterId) {
+      throw new ForbiddenException('You do not have permission to delete this comment');
+    }
+
+    // Remove from parent list
+    if (comment.parentCommentId) {
+      await this.redis.lRem(COMMENT_REPLIES(comment.parentCommentId), 1, commentId);
+      // Decrement parent replyCount
+      const parentRaw = await this.redis.get(COMMENT_KEY(comment.parentCommentId));
+      if (parentRaw) {
+        const parent: PostComment = JSON.parse(parentRaw);
+        parent.replyCount = Math.max(0, (parent.replyCount || 1) - 1);
+        await this.redis.set(COMMENT_KEY(comment.parentCommentId), JSON.stringify(parent));
+      }
+    } else {
+      await this.redis.lRem(POST_COMMENTS(postId), 1, commentId);
+    }
+
+    // Delete the comment key
+    await this.redis.del(COMMENT_KEY(commentId));
+
+    // Decrement post comment count
+    post.commentCount = Math.max(0, (post.commentCount || 1) - 1);
+    await this.redis.set(POST_KEY(postId), JSON.stringify(post));
+
+    await this.kafkaProducer.sendEvent(CONTENT_EVENTS.COMMENT_DELETED, {
+      postId,
+      commentId,
+      deletedBy: requesterId,
+      deletedAt: new Date().toISOString(),
+    });
+  }
+
+  async getComments(postId: string, page = 1, limit = 20, currentUserId?: string): Promise<PaginatedResponse<PostComment>> {
     await this.findOne(postId);
     const key = POST_COMMENTS(postId);
     const total = await this.redis.lLen(key);
     const skip = (page - 1) * limit;
-    const list = await this.redis.lRange(key, skip, skip + limit - 1);
-    return { data: list.map((s) => JSON.parse(s)).reverse(), total, page, limit };
+    const items = await this.redis.lRange(key, skip, skip + limit - 1);
+
+    // Load comments - handle both new format (comment ID strings) and old format (JSON strings)
+    const comments: PostComment[] = [];
+    const commentIds: string[] = [];
+
+    for (const item of items) {
+      // Try to detect if item is a JSON string (old format) or a comment ID (new format)
+      if (item.startsWith('{')) {
+        // Old format: direct JSON
+        try {
+          const parsed = JSON.parse(item);
+          comments.push({
+            ...parsed,
+            parentCommentId: parsed.parentCommentId || null,
+            replyCount: parsed.replyCount || 0,
+          });
+        } catch {
+          // Malformed, skip
+        }
+      } else {
+        commentIds.push(item);
+      }
+    }
+
+    // Batch load new-format comment IDs
+    if (commentIds.length > 0) {
+      const keys = commentIds.map((id) => COMMENT_KEY(id));
+      const values = await this.redis.mget(...keys);
+      for (const raw of values) {
+        if (raw) {
+          comments.push(JSON.parse(raw));
+        }
+      }
+    }
+
+    // Filter blocked users if current user
+    let filtered = comments;
+    if (currentUserId) {
+      const blocked = await this.getBlockedUserIds(currentUserId);
+      if (blocked.size > 0) {
+        filtered = comments.filter((c) => !blocked.has(c.userId));
+      }
+    }
+
+    return { data: filtered, total, page, limit };
+  }
+
+  async getCommentReplies(
+    postId: string,
+    commentId: string,
+    page = 1,
+    limit = 20,
+  ): Promise<PaginatedResponse<PostComment>> {
+    await this.findOne(postId); // verify post exists
+    const key = COMMENT_REPLIES(commentId);
+    const total = await this.redis.lLen(key);
+    const skip = (page - 1) * limit;
+    const replyIds = await this.redis.lRange(key, skip, skip + limit - 1);
+
+    if (replyIds.length === 0) {
+      return { data: [], total, page, limit };
+    }
+
+    const keys = replyIds.map((id) => COMMENT_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const data: PostComment[] = values.filter(Boolean).map((raw) => JSON.parse(raw!));
+
+    return { data, total, page, limit };
   }
 }

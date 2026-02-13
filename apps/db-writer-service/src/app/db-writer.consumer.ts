@@ -6,6 +6,8 @@ import {
   MEDIA_EVENTS,
   SUBSCRIPTION_EVENTS,
   PAYMENT_EVENTS,
+  SOCIAL_EVENTS,
+  MESSAGING_EVENTS,
 } from '@suggar-daddy/common';
 import { DbWriterService } from './db-writer.service';
 import { DlqService } from './dlq.service';
@@ -37,6 +39,13 @@ export class DbWriterConsumer implements OnModuleInit {
       { topic: PAYMENT_EVENTS.TIP_SENT, handler: (p) => this.dbWriter.handleTipSent(p) },
       { topic: PAYMENT_EVENTS.POST_PURCHASED, handler: (p) => this.dbWriter.handlePostPurchased(p) },
       { topic: SUBSCRIPTION_EVENTS.TIER_CREATED, handler: (p) => this.dbWriter.handleTierCreated(p) },
+      { topic: SOCIAL_EVENTS.USER_FOLLOWED, handler: (p) => this.dbWriter.handleUserFollowed(p) },
+      { topic: SOCIAL_EVENTS.USER_UNFOLLOWED, handler: (p) => this.dbWriter.handleUserUnfollowed(p) },
+      { topic: CONTENT_EVENTS.POST_BOOKMARKED, handler: (p) => this.dbWriter.handlePostBookmarked(p) },
+      { topic: CONTENT_EVENTS.POST_UNBOOKMARKED, handler: (p) => this.dbWriter.handlePostUnbookmarked(p) },
+      { topic: CONTENT_EVENTS.COMMENT_DELETED, handler: (p) => this.dbWriter.handleCommentDeleted(p) },
+      { topic: CONTENT_EVENTS.STORY_CREATED, handler: (p) => this.dbWriter.handleStoryCreated(p) },
+      { topic: MESSAGING_EVENTS.DM_PURCHASED, handler: (p) => this.dbWriter.handleDmPurchased(p) },
     ];
 
     const maxRetries = 3;

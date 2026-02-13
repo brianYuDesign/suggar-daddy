@@ -7,14 +7,12 @@ import { Module } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { PassportModule } from "@nestjs/passport";
-import { JwtModule } from "@nestjs/jwt";
 import {
   getDatabaseConfig,
-  JwtStrategy,
   EnvConfigModule,
   AppConfigService,
 } from "@suggar-daddy/common";
+import { AuthModule } from "@suggar-daddy/auth";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import {
@@ -96,14 +94,7 @@ const ALL_ENTITIES = [
     }),
 
     // JWT 認證
-    PassportModule.register({ defaultStrategy: "jwt" }),
-    JwtModule.registerAsync({
-      inject: [AppConfigService],
-      useFactory: (config: AppConfigService) => ({
-        secret: config.jwtSecret,
-        signOptions: { expiresIn: "24h" },
-      }),
-    }),
+    AuthModule,
   ],
   controllers: [
     AppController,
@@ -119,7 +110,6 @@ const ALL_ENTITIES = [
   ],
   providers: [
     AppService,
-    JwtStrategy,
     AuditLogService,
     {
       provide: APP_INTERCEPTOR,

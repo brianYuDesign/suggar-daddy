@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole } from '@suggar-daddy/common';
-import type { CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole, type CurrentUserData } from '@suggar-daddy/common';
 import { RequestWithdrawalDto, ProcessWithdrawalDto } from './dto/wallet.dto';
 
 @Controller('wallet')

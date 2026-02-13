@@ -144,7 +144,7 @@ describe('User Service (e2e)', () => {
 
   describe('POST /', () => {
     it('should be public endpoint for user creation', async () => {
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/')
         .send({
           email: 'test@example.com',

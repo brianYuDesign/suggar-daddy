@@ -13,8 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CreateUserDto, UpdateProfileDto, LocationUpdateDto } from '@suggar-daddy/dto';
-import { CurrentUser, Public, Roles, RolesGuard, UserRole, JwtAuthGuard } from '@suggar-daddy/common';
-import type { CurrentUserData } from '@suggar-daddy/common';
+import { CurrentUser, Public, Roles, RolesGuard, UserRole, JwtAuthGuard, type CurrentUserData } from '@suggar-daddy/common';
 import { UserService } from './user.service';
 
 @Controller()
@@ -45,6 +44,89 @@ export class UserController {
     const exclude = excludeStr ? excludeStr.split(',').map((s) => s.trim()).filter(Boolean) : [];
     const limit = Math.min(100, Math.max(1, parseInt(limitStr || '20', 10) || 20));
     return this.userService.getCardsForRecommendation(exclude, limit);
+  }
+
+  // ── Follow / Unfollow ──────────────────────────────────────────
+
+  @Get('follow/:targetId/status')
+  async getFollowStatus(
+    @CurrentUser() user: CurrentUserData,
+    @Param('targetId') targetId: string,
+  ) {
+    return this.userService.getFollowStatus(user.userId, targetId);
+  }
+
+  @Post('follow/:targetId')
+  async follow(
+    @CurrentUser() user: CurrentUserData,
+    @Param('targetId') targetId: string,
+  ) {
+    return this.userService.follow(user.userId, targetId);
+  }
+
+  @Delete('follow/:targetId')
+  async unfollow(
+    @CurrentUser() user: CurrentUserData,
+    @Param('targetId') targetId: string,
+  ) {
+    return this.userService.unfollow(user.userId, targetId);
+  }
+
+  // ── Settings ───────────────────────────────────────────────────
+
+  @Put('settings/dm-price')
+  async setDmPrice(
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: { price: number | null },
+  ) {
+    return this.userService.setDmPrice(user.userId, body.price);
+  }
+
+  // ── Discovery ──────────────────────────────────────────────────
+
+  @Get('recommended')
+  async getRecommended(
+    @CurrentUser() user: CurrentUserData,
+    @Query('limit') limitStr?: string,
+  ) {
+    const limit = Math.min(50, Math.max(1, parseInt(limitStr || '10', 10) || 10));
+    return this.userService.getRecommendedCreators(user.userId, limit);
+  }
+
+  @Public()
+  @Get('search')
+  async searchUsers(
+    @Query('q') query: string,
+    @Query('limit') limitStr?: string,
+  ) {
+    const limit = Math.min(50, Math.max(1, parseInt(limitStr || '20', 10) || 20));
+    return this.userService.searchUsers(query, limit);
+  }
+
+  // ── Followers / Following (parameterized routes must come after specific routes) ──
+
+  @Public()
+  @Get(':userId/followers')
+  async getFollowers(
+    @Param('userId') userId: string,
+    @Query('page') page?: string,
+    @Query('limit') limitStr?: string,
+  ) {
+    const p = Math.max(1, parseInt(page || '1', 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(limitStr || '20', 10) || 20));
+    return this.userService.getFollowers(userId, p, limit);
+  }
+
+  @Public()
+  @Get(':userId/following')
+  async getFollowing(
+    @Param('userId') userId: string,
+    @Query('page') page?: string,
+    @Query('limit') limitStr?: string,
+  ) {
+    const p = Math.max(1, parseInt(page || '1', 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(limitStr || '20', 10) || 20));
+    return this.userService.getFollowing(userId, p, limit);
   }
 
   /** 取得指定用戶對外資料 */

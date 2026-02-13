@@ -9,7 +9,6 @@ import { In, Repository } from 'typeorm';
 import { RedisService } from '@suggar-daddy/redis';
 import { UserEntity } from '@suggar-daddy/database';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
 import { safeJsonParse } from './safe-json-parse';
 
 /** 提款紀錄結構（與 wallet.service.ts 的 WithdrawalRecord 對齊） */

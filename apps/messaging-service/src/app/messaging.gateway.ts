@@ -103,7 +103,7 @@ export class MessagingGateway
   /**
    * WebSocket 伺服器初始化完成回呼
    */
-  afterInit(server: Server) {
+  afterInit(_server: Server) {
     this.logger.log("WebSocket Gateway 已初始化");
   }
 

@@ -368,7 +368,7 @@ export class StripeConnectService {
 
     // 獲取 Price 資訊以計算平台費用
     const price = await stripe.prices.retrieve(priceId);
-    const amount = typeof price.unit_amount === 'number' ? price.unit_amount : 0;
+    const _amount = typeof price.unit_amount === 'number' ? price.unit_amount : 0;
     const applicationFeePercent = this.platformFeePercent;
 
     const subscription = await stripe.subscriptions.create({

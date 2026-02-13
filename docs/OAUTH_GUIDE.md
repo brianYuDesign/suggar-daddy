@@ -719,7 +719,6 @@ import { GoogleLogin } from '@react-oauth/google';
 ## 相關文檔
 
 - [ERROR_HANDLING_GUIDE.md](./ERROR_HANDLING_GUIDE.md) - 錯誤處理標準化
-- [API_VERSIONING_GUIDE.md](./API_VERSIONING_GUIDE.md) - API 版本控制
 - [STRIPE.md](./STRIPE.md) - Stripe 支付整合
 
 ---

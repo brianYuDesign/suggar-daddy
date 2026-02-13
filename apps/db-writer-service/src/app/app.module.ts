@@ -21,6 +21,11 @@ import {
   PostPurchaseEntity,
   SwipeEntity,
   MatchEntity,
+  FollowEntity,
+  BookmarkEntity,
+  DmPurchaseEntity,
+  StoryEntity,
+  StoryViewEntity,
 } from "@suggar-daddy/database";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -44,6 +49,11 @@ const ALL_ENTITIES = [
   PostPurchaseEntity,
   SwipeEntity,
   MatchEntity,
+  FollowEntity,
+  BookmarkEntity,
+  DmPurchaseEntity,
+  StoryEntity,
+  StoryViewEntity,
 ];
 
 @Module({

@@ -1,7 +1,19 @@
-export * from './jwt.strategy';
-export * from './guards/jwt-auth.guard';
-export * from './guards/optional-jwt.guard';
-export * from './guards/roles.guard';
-export * from './decorators/public.decorator';
-export * from './decorators/roles.decorator';
-export * from './decorators/current-user.decorator';
+// Backward compatibility: re-export everything from @suggar-daddy/auth
+export {
+  JwtStrategy,
+  JwtAuthGuard,
+  OptionalJwtGuard,
+  RolesGuard,
+  UserRole,
+  CurrentUser,
+  Public,
+  IS_PUBLIC_KEY,
+  Roles,
+  ROLES_KEY,
+} from '@suggar-daddy/auth';
+
+export type {
+  JwtPayload,
+  JwtUser,
+  CurrentUserData,
+} from '@suggar-daddy/auth';

@@ -9,11 +9,11 @@ import {
 } from "@suggar-daddy/common";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
+import { AuthModule } from "@suggar-daddy/auth";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
-import { AuthModule } from "./auth/auth.module";
 
 @Module({
   imports: [
@@ -22,6 +22,7 @@ import { AuthModule } from "./auth/auth.module";
       envFilePath: ".env",
     }),
     EnvConfigModule,
+    AuthModule,
     RedisModule.forRoot(),
     KafkaModule.forRootAsync({
       useFactory: (config: AppConfigService) => ({
@@ -31,7 +32,6 @@ import { AuthModule } from "./auth/auth.module";
       }),
       inject: [AppConfigService],
     }),
-    AuthModule,
   ],
   controllers: [AppController, UserController],
   providers: [

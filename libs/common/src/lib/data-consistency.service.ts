@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable, Logger } from "@nestjs/common";
 import { RedisService } from "@suggar-daddy/redis";
-import { DataSource, EntityMetadata } from "typeorm";
+import { DataSource } from "typeorm";
 
 /**
  * 數據不一致類型

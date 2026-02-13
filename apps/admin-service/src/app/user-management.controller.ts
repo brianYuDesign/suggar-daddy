@@ -25,7 +25,7 @@ export class UserManagementController {
   constructor(private readonly userManagementService: UserManagementService) {}
 
   /**
-   * GET /api/v1/admin/users
+  * GET /api/admin/users
    * 分頁查詢用戶列表
    */
   @Get()
@@ -40,7 +40,7 @@ export class UserManagementController {
   }
 
   /**
-   * GET /api/v1/admin/users/stats
+  * GET /api/admin/users/stats
    * 取得用戶統計資料
    */
   @Get('stats')
@@ -48,7 +48,7 @@ export class UserManagementController {
     return this.userManagementService.getUserStats();
   }
 
-  /** POST /api/v1/admin/users/batch/disable — 批量停用用戶 */
+  /** POST /api/admin/users/batch/disable — 批量停用用戶 */
   @Post('batch/disable')
   @HttpCode(200)
   batchDisableUsers(@Body('userIds') userIds: string[]) {
@@ -56,7 +56,7 @@ export class UserManagementController {
   }
 
   /**
-   * GET /api/v1/admin/users/:userId
+  * GET /api/admin/users/:userId
    * 取得單一用戶詳情
    */
   @Get(':userId')
@@ -65,7 +65,7 @@ export class UserManagementController {
   }
 
   /**
-   * POST /api/v1/admin/users/:userId/disable
+  * POST /api/admin/users/:userId/disable
    * 停用用戶帳號
    */
   @Post(':userId/disable')
@@ -75,7 +75,7 @@ export class UserManagementController {
   }
 
   /**
-   * POST /api/v1/admin/users/:userId/enable
+  * POST /api/admin/users/:userId/enable
    * 啟用用戶帳號
    */
   @Post(':userId/enable')
@@ -84,7 +84,7 @@ export class UserManagementController {
     return this.userManagementService.enableUser(userId);
   }
 
-  /** POST /api/v1/admin/users/:userId/role — 變更用戶角色 */
+  /** POST /api/admin/users/:userId/role — 變更用戶角色 */
   @Post(':userId/role')
   @HttpCode(200)
   changeUserRole(
@@ -94,7 +94,7 @@ export class UserManagementController {
     return this.userManagementService.changeUserRole(userId, role);
   }
 
-  /** GET /api/v1/admin/users/:userId/activity — 取得用戶活動摘要 */
+  /** GET /api/admin/users/:userId/activity — 取得用戶活動摘要 */
   @Get(':userId/activity')
   getUserActivity(@Param('userId') userId: string) {
     return this.userManagementService.getUserActivity(userId);

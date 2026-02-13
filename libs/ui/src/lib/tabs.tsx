@@ -19,6 +19,7 @@ export function Tabs({ value, onValueChange, children, className }: TabsProps) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface TabsListProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function TabsList({ className, ...props }: TabsListProps) {
@@ -38,7 +39,7 @@ interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
   active?: boolean;
 }
 
-export function TabsTrigger({ className, value, active, ...props }: TabsTriggerProps) {
+export function TabsTrigger({ className, value: _value, active, ...props }: TabsTriggerProps) {
   return (
     <button
       className={cn(

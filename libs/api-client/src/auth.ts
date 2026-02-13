@@ -10,18 +10,18 @@ export class AuthApi {
   constructor(private readonly client: ApiClient) {}
 
   login(dto: LoginDto) {
-    return this.client.post<TokenResponseDto>('/api/v1/auth/login', dto);
+    return this.client.post<TokenResponseDto>('/api/auth/login', dto);
   }
 
   register(dto: RegisterDto) {
-    return this.client.post<TokenResponseDto>('/api/v1/auth/register', dto);
+    return this.client.post<TokenResponseDto>('/api/auth/register', dto);
   }
 
   refresh(dto: RefreshTokenDto) {
-    return this.client.post<TokenResponseDto>('/api/v1/auth/refresh', dto);
+    return this.client.post<TokenResponseDto>('/api/auth/refresh', dto);
   }
 
   logout(refreshToken?: string) {
-    return this.client.post<void>('/api/v1/auth/logout', refreshToken ? { refreshToken } : undefined);
+    return this.client.post<void>('/api/auth/logout', refreshToken ? { refreshToken } : undefined);
   }
 }

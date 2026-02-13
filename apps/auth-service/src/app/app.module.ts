@@ -1,7 +1,8 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "@suggar-daddy/auth";
-import { EnvConfigModule, AppConfigService } from "@suggar-daddy/common";
+import { OAuthModule } from "@suggar-daddy/auth";
+import { EnvConfigModule, AppConfigService, EmailModule } from "@suggar-daddy/common";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import { AppController } from "./app.controller";
@@ -26,6 +27,8 @@ import { AuthService } from "./auth.service";
       inject: [AppConfigService],
     }),
     AuthModule,
+    OAuthModule.forRoot(),
+    EmailModule.forRoot(),
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService],

@@ -53,16 +53,16 @@
 - ✅ Header 轉發（3 個測試）- Authorization、Content-Type、其他 headers 過濾
 
 **服務路由覆蓋**:
-- `/api/v1/auth` → auth-service:3002
-- `/api/v1/users` → user-service:3001
-- `/api/v1/matching` → matching-service:3003
-- `/api/v1/notifications` → notification-service:3004
-- `/api/v1/messaging` → messaging-service:3005
+- `/api/auth` → auth-service:3002
+- `/api/users` → user-service:3001
+- `/api/matching` → matching-service:3003
+- `/api/notifications` → notification-service:3004
+- `/api/messaging` → messaging-service:3005
 - `/api/moderation`, `/api/posts` → content-service:3006
 - `/api/tips`, `/api/post-purchases`, `/api/transactions`, `/api/stripe`, `/api/wallet` → payment-service:3007
 - `/api/upload`, `/api/media` → media-service:3008
 - `/api/subscription-tiers`, `/api/subscriptions` → subscription-service:3009
-- `/api/v1/admin` → admin-service:3011
+- `/api/admin` → admin-service:3011
 
 #### Payment Service (E2E) 🚧
 **測試檔案**: `apps/payment-service/src/app/payment.e2e.spec.ts`  

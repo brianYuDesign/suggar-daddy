@@ -1,8 +1,10 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UploadController } from './upload.controller';
-import { UploadService } from '@suggar-daddy/common';
+import { UploadService, S3Service } from '@suggar-daddy/common';
 import { MediaService } from '../media.service';
+import { VideoProcessorService } from '../video/video-processor';
+import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('UploadController', () => {
   let controller: UploadController;
@@ -29,18 +31,48 @@ describe('UploadController', () => {
     remove: jest.fn().mockResolvedValue(undefined),
   };
 
+  const s3Service = {
+    uploadFile: jest.fn(),
+    getSignedUrl: jest.fn(),
+    deleteFile: jest.fn(),
+  };
+
+  const videoProcessorService = {
+    processVideo: jest.fn(),
+  };
+
+  const kafkaProducerService = {
+    emit: jest.fn(),
+  };
+
   const mockUser = { userId: 'user-1', email: 'test@example.com', role: 'CREATOR' };
 
   beforeEach(async () => {
     jest.clearAllMocks();
 
-    const module: TestingModule = await Test.createTestingModule({
+    const moduleRef = Test.createTestingModule({
       controllers: [UploadController],
       providers: [
-        { provide: UploadService, useValue: uploadService },
-        { provide: MediaService, useValue: mediaService },
+        UploadService,
+        MediaService,
+        S3Service,
+        VideoProcessorService,
+        KafkaProducerService,
       ],
-    }).compile();
+    });
+
+    const module: TestingModule = await moduleRef
+      .overrideProvider(UploadService)
+      .useValue(uploadService)
+      .overrideProvider(MediaService)
+      .useValue(mediaService)
+      .overrideProvider(S3Service)
+      .useValue(s3Service)
+      .overrideProvider(VideoProcessorService)
+      .useValue(videoProcessorService)
+      .overrideProvider(KafkaProducerService)
+      .useValue(kafkaProducerService)
+      .compile();
 
     controller = module.get<UploadController>(UploadController);
   });

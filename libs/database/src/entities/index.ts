@@ -11,3 +11,8 @@ export * from './transaction.entity';
 export * from './tip.entity';
 export * from './post-purchase.entity';
 export * from './audit-log.entity';
+export * from './follow.entity';
+export * from './bookmark.entity';
+export * from './dm-purchase.entity';
+export * from './story.entity';
+export * from './story-view.entity';

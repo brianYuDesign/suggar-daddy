@@ -1,5 +1,6 @@
 import { cn } from './utils';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {}
 
 export function Label({ className, ...props }: LabelProps) {

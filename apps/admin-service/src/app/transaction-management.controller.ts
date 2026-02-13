@@ -22,7 +22,7 @@ export class TransactionManagementController {
     private readonly transactionService: TransactionManagementService,
   ) {}
 
-  /** GET /api/v1/admin/transactions — 分頁查詢交易列表 */
+  /** GET /api/admin/transactions — 分頁查詢交易列表 */
   @Get()
   listTransactions(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -33,7 +33,7 @@ export class TransactionManagementController {
     return this.transactionService.listTransactions(page, limit, type, status);
   }
 
-  /** GET /api/v1/admin/transactions/type-stats — 交易類型分佈 */
+  /** GET /api/admin/transactions/type-stats — 交易類型分佈 */
   @Get('type-stats')
   getTransactionTypeStats() {
     return this.transactionService.getTransactionTypeStats();
