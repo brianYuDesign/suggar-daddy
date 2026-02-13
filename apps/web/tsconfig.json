@@ -14,7 +14,8 @@
     "moduleResolution": "bundler",
     "module": "esnext",
     "emitDecoratorMetadata": false,
-    "experimentalDecorators": false,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
     "plugins": [
       {
         "name": "next"
