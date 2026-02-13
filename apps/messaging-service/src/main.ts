@@ -4,7 +4,7 @@
 
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AllExceptionsFilter } from '@suggar-daddy/common';
+import { AllExceptionsFilter, setupSwagger } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';
 const helmet = require('helmet');
 
@@ -15,10 +15,21 @@ async function bootstrap() {
   app.setGlobalPrefix(globalPrefix);
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+  
+  // Setup Swagger documentation
+  setupSwagger(app, {
+    title: 'Messaging Service API',
+    description: 'API documentation for Suggar Daddy Messaging Service - Private Messages, Conversations, DM',
+    version: '1.0',
+    tag: 'Messaging',
+    path: 'api/docs',
+  });
+  
   app.enableShutdownHooks();
   const port = process.env.PORT || 3005;
   await app.listen(port);
   Logger.log(`Messaging Service running on: http://localhost:${port}/${globalPrefix}`);
+  Logger.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();

@@ -9,7 +9,7 @@ import { NestFactory } from '@nestjs/core';
  
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const helmet = require('helmet');
-import { AllExceptionsFilter } from '@suggar-daddy/common';
+import { AllExceptionsFilter, setupSwagger } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
@@ -35,12 +35,22 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Setup Swagger documentation
+  setupSwagger(app, {
+    title: 'Admin Service API',
+    description: 'API documentation for Suggar Daddy Admin Service - User Management, Content Moderation, Analytics, System Monitoring',
+    version: '1.0',
+    tag: 'Admin',
+    path: 'api/docs',
+  });
+
   // Graceful shutdown
   app.enableShutdownHooks();
 
   const port = process.env.PORT || 3011;
   await app.listen(port);
   Logger.log(`Admin Service running on: http://localhost:${port}/api/admin`);
+  Logger.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();
