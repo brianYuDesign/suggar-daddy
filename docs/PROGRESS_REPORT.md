@@ -119,19 +119,6 @@
     - 使用指南和最佳實踐
     - 從 NestJS 標準異常遷移指南
     - 單元測試和 E2E 測試示例
-- **技術債：API 版本控制**：✅ 已完成
-  - ApiVersion 裝飾器 - 標記 Controller 版本
-  - ApiVersionMiddleware - 版本驗證中間件
-    - 支持 URI 版本控制（推薦，例如：`/v1/users`）
-    - 支持 Header 版本控制（例如：`X-API-Version: 1`）
-    - 支持 Query 參數版本控制（例如：`?version=1`）
-    - 版本棄用警告（響應頭：`X-API-Deprecated`）
-  - 完整文檔（`docs/API_VERSIONING_GUIDE.md`，600+ 行）
-    - 版本控制策略（語義化版本）
-    - 三種實施方式對比
-    - 版本棄用流程（宣布→棄用期→下線）
-    - 最佳實踐和示例
-    - User API v1→v2 完整遷移示例
 - **Redis ↔ DB 數據一致性策略**：✅ 已完成
   - DataConsistencyService - 核心一致性校驗邏輯
   - DataConsistencyScheduler - 定期任務調度（預設每天凌晨 3 點）
@@ -279,7 +266,6 @@ _所有高優先技術債已解決！🎉_
 _所有中優先技術債已解決！🎉_
 
 - ~~**錯誤處理標準化**~~：✅ 已完成（RequestTrackingInterceptor + HttpExceptionFilter 增強 + ErrorTestingController + 完整文檔）
-- ~~**API 版本控制**~~：✅ 已完成（ApiVersion 裝飾器 + ApiVersionMiddleware + 完整文檔）
 
 ### 🟢 低優先技術債
 

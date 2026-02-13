@@ -7,12 +7,15 @@ import type {
   CreateUserDto,
   UpdateProfileDto,
   UserCardDto,
+  LocationUpdateDto,
 } from '@suggar-daddy/dto';
 
 /**
  * 整合 Redis 和 Kafka
  * Phase 1：使用 Redis 儲存用戶資料，Kafka 發送事件
  */
+const GEO_KEY = 'geo:users';
+
 interface UserRecord {
   id: string;
   role: string;
@@ -20,6 +23,11 @@ interface UserRecord {
   bio?: string;
   avatarUrl?: string;
   birthDate?: Date;
+  latitude?: number;
+  longitude?: number;
+  city?: string;
+  country?: string;
+  locationUpdatedAt?: Date;
   preferences: Record<string, unknown>;
   verificationStatus: string;
   lastActiveAt: Date;
@@ -89,7 +97,18 @@ export class UserService {
       role: user.role,
       verificationStatus: user.verificationStatus,
       lastActiveAt: user.lastActiveAt,
+      city: user.city,
     };
+  }
+
+  /** 取得指定 userId 列表的卡片（供 matching-service 地理篩選後使用） */
+  async getCardsByIds(userIds: string[]): Promise<UserCardDto[]> {
+    const result: UserCardDto[] = [];
+    for (const id of userIds) {
+      const card = await this.getCard(id);
+      if (card) result.push(card);
+    }
+    return result;
   }
 
   /** 取得推薦用卡片列表（排除指定 ID + 被封鎖的用戶，供 matching-service 呼叫） */
@@ -161,26 +180,71 @@ export class UserService {
       this.logger.warn(`updateProfile user not found userId=${userId}`);
       throw new NotFoundException(`User not found: ${userId}`);
     }
-    
+
     if (dto.displayName !== undefined) user.displayName = dto.displayName;
     if (dto.bio !== undefined) user.bio = dto.bio;
     if (dto.avatarUrl !== undefined) user.avatarUrl = dto.avatarUrl;
     if (dto.birthDate !== undefined) user.birthDate = new Date(dto.birthDate);
+    if (dto.city !== undefined) user.city = dto.city;
+    if (dto.country !== undefined) user.country = dto.country;
+
+    // 位置更新：同步寫入 Redis GEO
+    if (dto.latitude !== undefined && dto.longitude !== undefined) {
+      user.latitude = dto.latitude;
+      user.longitude = dto.longitude;
+      user.locationUpdatedAt = new Date();
+      await this.redisService.geoAdd(GEO_KEY, dto.longitude, dto.latitude, userId);
+      this.logger.log(`user location updated via profile userId=${userId} lat=${dto.latitude} lng=${dto.longitude}`);
+    }
+
     user.updatedAt = new Date();
-    
+
     // 更新到 Redis
     await this.saveUserToRedis(user);
-    
+
     this.logger.log(`user profile updated userId=${userId}`);
-    
+
     // 發送 Kafka 事件
     await this.kafkaProducer.sendEvent('user.updated', {
       userId: user.id,
       displayName: user.displayName,
       updatedAt: user.updatedAt.toISOString(),
     });
-    
+
     return this.toProfileDto(user);
+  }
+
+  /** 更新用戶位置（專用端點，供前端定期 GPS 更新） */
+  async updateLocation(userId: string, dto: LocationUpdateDto): Promise<{ success: boolean }> {
+    const user = await this.getUserFromRedis(userId);
+    if (!user) {
+      throw new NotFoundException(`User not found: ${userId}`);
+    }
+
+    user.latitude = dto.latitude;
+    user.longitude = dto.longitude;
+    if (dto.city !== undefined) user.city = dto.city;
+    if (dto.country !== undefined) user.country = dto.country;
+    user.locationUpdatedAt = new Date();
+    user.updatedAt = new Date();
+
+    // 同步寫入 Redis GEO
+    await this.redisService.geoAdd(GEO_KEY, dto.longitude, dto.latitude, userId);
+    await this.saveUserToRedis(user);
+
+    this.logger.log(`user location updated userId=${userId} lat=${dto.latitude} lng=${dto.longitude}`);
+
+    // 發送 Kafka 事件
+    await this.kafkaProducer.sendEvent('user.updated', {
+      userId: user.id,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+      city: dto.city,
+      country: dto.country,
+      updatedAt: user.updatedAt.toISOString(),
+    });
+
+    return { success: true };
   }
 
   // ── Block / Unblock ──────────────────────────────────────────────
@@ -330,6 +394,10 @@ export class UserService {
       preferences: user.preferences,
       verificationStatus: user.verificationStatus,
       lastActiveAt: user.lastActiveAt,
+      city: user.city,
+      country: user.country,
+      latitude: user.latitude,
+      longitude: user.longitude,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

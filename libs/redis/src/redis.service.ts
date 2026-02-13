@@ -88,6 +88,59 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
+  // ── GEO commands ──────────────────────────────────────────────
+
+  /** Add a member's coordinates to a GEO sorted set */
+  async geoAdd(key: string, longitude: number, latitude: number, member: string): Promise<number> {
+    return this.client.geoadd(key, longitude, latitude, member);
+  }
+
+  /** Search members within a radius (km) from a given point, ordered by distance ASC */
+  async geoSearch(
+    key: string,
+    longitude: number,
+    latitude: number,
+    radiusKm: number,
+    count?: number,
+  ): Promise<Array<{ member: string; distance: number }>> {
+    const args: (string | number)[] = [
+      key,
+      'FROMLONLAT', longitude, latitude,
+      'BYRADIUS', radiusKm, 'km',
+      'ASC',
+      'WITHDIST',
+    ];
+    if (count) {
+      args.push('COUNT', count);
+    }
+    const results = await this.client.call('GEOSEARCH', ...args) as string[][];
+    return results.map((entry) => ({
+      member: entry[0],
+      distance: parseFloat(entry[1]),
+    }));
+  }
+
+  /** Get the distance between two members in km */
+  async geoDist(key: string, memberA: string, memberB: string): Promise<number | null> {
+    const dist = await this.client.call('GEODIST', key, memberA, memberB, 'km') as string | null;
+    return dist ? parseFloat(dist) : null;
+  }
+
+  /** Remove a member from a GEO sorted set */
+  async geoRemove(key: string, member: string): Promise<number> {
+    return this.client.zrem(key, member);
+  }
+
+  /** Get a member's coordinates from a GEO sorted set */
+  async geoPos(key: string, member: string): Promise<{ longitude: number; latitude: number } | null> {
+    const result = await this.client.geopos(key, member);
+    if (!result || !result[0]) return null;
+    return {
+      longitude: parseFloat(result[0][0]),
+      latitude: parseFloat(result[0][1]),
+    };
+  }
+
   getClient(): Redis {
     return this.client;
   }

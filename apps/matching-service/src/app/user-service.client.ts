@@ -27,11 +27,26 @@ export class UserServiceClient {
     this.logger.debug(`getCardsForRecommendation exclude=${excludeIds.length} limit=${limit}`);
     const res = await axios.get<UserCardDto[]>(fullUrl, { timeout: 10000 });
     const data = Array.isArray(res.data) ? res.data : [];
+    this.parseDates(data);
+    return data;
+  }
+
+  /** 根據指定 userId 列表取得卡片（供地理篩選後使用） */
+  async getCardsByIds(userIds: string[]): Promise<UserCardDto[]> {
+    if (userIds.length === 0) return [];
+    const url = `${this.baseUrl}/api/v1/users/cards/by-ids`;
+    this.logger.debug(`getCardsByIds count=${userIds.length}`);
+    const res = await axios.post<UserCardDto[]>(url, { userIds }, { timeout: 10000 });
+    const data = Array.isArray(res.data) ? res.data : [];
+    this.parseDates(data);
+    return data;
+  }
+
+  private parseDates(data: UserCardDto[]): void {
     data.forEach((c) => {
       if (c.lastActiveAt && typeof c.lastActiveAt === 'string') {
         (c as UserCardDto & { lastActiveAt: Date | string }).lastActiveAt = new Date(c.lastActiveAt);
       }
     });
-    return data;
   }
 }

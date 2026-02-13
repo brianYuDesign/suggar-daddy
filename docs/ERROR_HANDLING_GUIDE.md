@@ -642,7 +642,6 @@ this.logger.error(`[${req.correlationId}] Payment failed`, error.stack);
 
 ### 相關文檔
 
-- [API 版本控制指南](./API_VERSIONING_GUIDE.md)
 - [Redis 一致性策略](./REDIS_DB_CONSISTENCY_GUIDE.md)
 - [Kafka DLQ 指南](./KAFKA_DLQ_GUIDE.md)
 

@@ -123,26 +123,119 @@ export class MatchingService {
     return { matched: false };
   }
 
+  private readonly GEO_KEY = 'geo:users';
+  private readonly DEFAULT_RADIUS_KM = 50;
+  private readonly MAX_RADIUS_KM = 500;
+
   async getCards(
     userId: string,
     limit: number,
-    cursor?: string
+    cursor?: string,
+    radiusKm?: number,
   ): Promise<CardsResponseDto> {
+    const radius = Math.min(
+      Math.max(radiusKm ?? this.DEFAULT_RADIUS_KM, 1),
+      this.MAX_RADIUS_KM,
+    );
+
+    // 取得當前用戶座標
+    const userPos = await this.redisService.geoPos(this.GEO_KEY, userId);
+
+    // 取得已滑過的用戶
     const userSwipesKey = `${this.USER_SWIPES_PREFIX}${userId}`;
     const swipedIdsArray = await this.redisService.sMembers(userSwipesKey);
-    const excludeIds = [userId, ...swipedIdsArray];
+    const excludeSet = new Set([userId, ...swipedIdsArray]);
+
+    // 如果用戶有座標，使用 GEO 篩選
+    if (userPos) {
+      return this.getCardsByGeo(userId, userPos, radius, limit, excludeSet, cursor);
+    }
+
+    // 用戶無座標時 fallback 到原有邏輯
+    return this.getCardsFallback(userId, limit, excludeSet, cursor);
+  }
+
+  /** GEO-based 卡片推薦 */
+  private async getCardsByGeo(
+    userId: string,
+    userPos: { longitude: number; latitude: number },
+    radiusKm: number,
+    limit: number,
+    excludeSet: Set<string>,
+    cursor?: string,
+  ): Promise<CardsResponseDto> {
+    const buffer = Math.max(limit * 3, 100);
+    let nearbyUsers: Array<{ member: string; distance: number }>;
+    try {
+      nearbyUsers = await this.redisService.geoSearch(
+        this.GEO_KEY,
+        userPos.longitude,
+        userPos.latitude,
+        radiusKm,
+        buffer,
+      );
+    } catch (err) {
+      this.logger.warn('Redis GEOSEARCH failed, falling back', err);
+      return this.getCardsFallback(userId, limit, excludeSet, cursor);
+    }
+
+    // 過濾掉自己和已滑過的
+    const filtered = nearbyUsers.filter((u) => !excludeSet.has(u.member));
+    if (filtered.length === 0) {
+      return { cards: [], nextCursor: undefined };
+    }
+
+    // 取得卡片資訊
+    const candidateIds = filtered.map((u) => u.member);
+    let cards: UserCardDto[];
+    try {
+      cards = await this.userServiceClient.getCardsByIds(candidateIds);
+    } catch (err) {
+      this.logger.warn('user-service getCardsByIds failed, returning empty', err);
+      return { cards: [], nextCursor: undefined };
+    }
+
+    // 建立距離 map 並附加 distance 到每張卡片
+    const distMap = new Map(filtered.map((u) => [u.member, u.distance]));
+    cards = cards
+      .map((card) => ({
+        ...card,
+        distance: distMap.get(card.id) ?? undefined,
+      }))
+      .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+
+    // 分頁
+    let start = 0;
+    if (cursor) {
+      const idx = cards.findIndex((c) => c.id === cursor);
+      start = idx >= 0 ? idx + 1 : 0;
+    }
+    const slice = cards.slice(start, start + limit);
+    const nextCursor =
+      start + limit < cards.length ? slice[slice.length - 1]?.id : undefined;
+
+    return { cards: slice, nextCursor };
+  }
+
+  /** 無座標時 fallback：原有邏輯 */
+  private async getCardsFallback(
+    userId: string,
+    limit: number,
+    excludeSet: Set<string>,
+    cursor?: string,
+  ): Promise<CardsResponseDto> {
     const requestLimit = Math.max(limit * 2, 50);
     let available: UserCardDto[];
     try {
       available = await this.userServiceClient.getCardsForRecommendation(
-        excludeIds,
-        requestLimit
+        Array.from(excludeSet),
+        requestLimit,
       );
     } catch (err) {
       this.logger.warn('user-service getCards failed, returning empty', err);
       return { cards: [], nextCursor: undefined };
     }
-    available = available.filter((c) => c.id !== userId && !excludeIds.includes(c.id));
+    available = available.filter((c) => !excludeSet.has(c.id));
 
     let start = 0;
     if (cursor) {
@@ -153,10 +246,7 @@ export class MatchingService {
     const nextCursor =
       start + limit < available.length ? slice[slice.length - 1]?.id : undefined;
 
-    return {
-      cards: slice,
-      nextCursor,
-    };
+    return { cards: slice, nextCursor };
   }
 
   async getMatches(

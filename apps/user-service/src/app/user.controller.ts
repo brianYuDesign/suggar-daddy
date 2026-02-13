@@ -12,7 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto, UpdateProfileDto } from '@suggar-daddy/dto';
+import { CreateUserDto, UpdateProfileDto, LocationUpdateDto } from '@suggar-daddy/dto';
 import { CurrentUser, Public, Roles, RolesGuard, UserRole, JwtAuthGuard } from '@suggar-daddy/common';
 import type { CurrentUserData } from '@suggar-daddy/common';
 import { UserService } from './user.service';
@@ -79,6 +79,24 @@ export class UserController {
     const uid = user.userId;
     this.logger.log(`updateProfile request userId=${uid}`);
     return this.userService.updateProfile(uid, body);
+  }
+
+  /** 更新用戶位置（專用端點，供前端定期 GPS 更新） */
+  @Put('location')
+  async updateLocation(
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: LocationUpdateDto,
+  ) {
+    const uid = user.userId;
+    this.logger.log(`updateLocation request userId=${uid} lat=${body.latitude} lng=${body.longitude}`);
+    return this.userService.updateLocation(uid, body);
+  }
+
+  /** 取得指定 userId 列表的卡片（供 matching-service 內部呼叫） */
+  @Public()
+  @Post('cards/by-ids')
+  async getCardsByIds(@Body() body: { userIds: string[] }) {
+    return this.userService.getCardsByIds(body.userIds);
   }
 
   /** 創建用戶（註冊用；允許未登入，由 auth 或 gateway 呼叫） */

@@ -1,7 +1,7 @@
 /**
  * User 相關 DTO
  */
-import { IsString, IsNotEmpty, IsOptional, IsIn, MaxLength, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsIn, MaxLength, IsDateString, IsNumber, Min, Max } from 'class-validator';
 
 export interface UserCardDto {
   id: string;
@@ -11,6 +11,8 @@ export interface UserCardDto {
   role: string;
   verificationStatus: string;
   lastActiveAt: Date;
+  city?: string;
+  distance?: number;
 }
 
 export interface UserProfileDto {
@@ -23,6 +25,10 @@ export interface UserProfileDto {
   preferences?: Record<string, unknown>;
   verificationStatus: string;
   lastActiveAt?: Date;
+  city?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,4 +80,49 @@ export class UpdateProfileDto {
 
   @IsOptional()
   preferences?: Record<string, unknown>;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  country?: string;
+}
+
+/** 位置更新（專用端點） */
+export class LocationUpdateDto {
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude: number;
+
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  country?: string;
 }

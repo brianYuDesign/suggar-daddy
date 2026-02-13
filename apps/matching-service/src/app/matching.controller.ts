@@ -47,11 +47,13 @@ export class MatchingController {
   async getCards(
     @CurrentUser() user: CurrentUserData,
     @Query('limit') limit = '20',
-    @Query('cursor') cursor?: string
+    @Query('cursor') cursor?: string,
+    @Query('radius') radius?: string,
   ) {
     const uid = user.userId;
-    this.logger.log(`getCards userId=${uid} limit=${limit} cursor=${cursor ?? 'none'}`);
-    const result = await this.matchingService.getCards(uid, parseInt(limit, 10) || 20, cursor);
+    const radiusKm = radius ? parseInt(radius, 10) || undefined : undefined;
+    this.logger.log(`getCards userId=${uid} limit=${limit} radius=${radiusKm ?? 'default'} cursor=${cursor ?? 'none'}`);
+    const result = await this.matchingService.getCards(uid, parseInt(limit, 10) || 20, cursor, radiusKm);
     this.logger.log(`getCards result userId=${uid} cardsCount=${result.cards.length} nextCursor=${result.nextCursor ?? 'none'}`);
     return result;
   }

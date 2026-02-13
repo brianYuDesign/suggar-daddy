@@ -21,11 +21,15 @@ describe("DataConsistencyService", () => {
   let redisService: jest.Mocked<RedisService>;
   let dataSource: jest.Mocked<DataSource>;
   let mockRepository: jest.Mocked<Repository<MockUser>>;
+  let mockScanFn: jest.Mock;
 
   beforeEach(async () => {
+    // Mock Redis Client scan function
+    mockScanFn = jest.fn();
+
     // Mock Redis Client
     const mockRedisClient = {
-      scan: jest.fn(),
+      scan: mockScanFn,
     };
 
     // Mock RedisService
@@ -82,8 +86,7 @@ describe("DataConsistencyService", () => {
       mockRepository.find.mockResolvedValue(dbUsers as any);
 
       // Redis 中有兩個用戶
-      const mockRedisClient = redisService.getClient();
-      mockRedisClient.scan
+      mockScanFn
         .mockResolvedValueOnce(["0", ["user:1", "user:2"]])
         .mockResolvedValueOnce(["0", []]);
 
@@ -124,8 +127,7 @@ describe("DataConsistencyService", () => {
       mockRepository.find.mockResolvedValue(dbUsers as any);
 
       // Redis 中只有一個用戶
-      const mockRedisClient = redisService.getClient();
-      mockRedisClient.scan
+      mockScanFn
         .mockResolvedValueOnce(["0", ["user:1"]])
         .mockResolvedValueOnce(["0", []]);
 
@@ -163,8 +165,7 @@ describe("DataConsistencyService", () => {
       mockRepository.find.mockResolvedValue(dbUsers as any);
 
       // Redis 中的數據（舊數據）
-      const mockRedisClient = redisService.getClient();
-      mockRedisClient.scan
+      mockScanFn
         .mockResolvedValueOnce(["0", ["user:1"]])
         .mockResolvedValueOnce(["0", []]);
 
@@ -186,8 +187,8 @@ describe("DataConsistencyService", () => {
         entityId: "1",
         type: InconsistencyType.DATA_MISMATCH,
       });
-      expect(inconsistencies[0].redisValue.username).toBe("alice_old");
-      expect(inconsistencies[0].dbValue.username).toBe("alice_new");
+      expect((inconsistencies[0].redisValue as any).username).toBe("alice_old");
+      expect((inconsistencies[0].dbValue as any).username).toBe("alice_new");
     });
 
     it("應該在啟用 autoFix 時自動修復不一致", async () => {
@@ -204,8 +205,7 @@ describe("DataConsistencyService", () => {
       ];
       mockRepository.find.mockResolvedValue(dbUsers as any);
 
-      const mockRedisClient = redisService.getClient();
-      mockRedisClient.scan
+      mockScanFn
         .mockResolvedValueOnce(["0", ["user:2"]]) // Redis 有但 DB 沒有
         .mockResolvedValueOnce(["0", []]);
 
@@ -239,8 +239,7 @@ describe("DataConsistencyService", () => {
       ];
       mockRepository.find.mockResolvedValue(dbUsers as any);
 
-      const mockRedisClient = redisService.getClient();
-      mockRedisClient.scan
+      mockScanFn
         .mockResolvedValueOnce(["0", ["user:1"]])
         .mockResolvedValueOnce(["0", []]);
 
@@ -279,8 +278,7 @@ describe("DataConsistencyService", () => {
       ];
       mockRepository.find.mockResolvedValue(dbUsers as any);
 
-      const mockRedisClient = redisService.getClient();
-      mockRedisClient.scan
+      mockScanFn
         .mockResolvedValueOnce(["0", ["user:1"]])
         .mockResolvedValueOnce(["0", []]);
 
