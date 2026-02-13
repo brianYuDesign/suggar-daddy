@@ -12,6 +12,7 @@ import { NotificationService } from "./notification.service";
 import { MatchingEventConsumer } from "./matching-event.consumer";
 import { FcmService } from "./fcm.service";
 import { DeviceTokenController } from "./device-token.controller";
+import { NotificationGateway } from "./notification.gateway";
 
 @Module({
   imports: [
@@ -31,6 +32,6 @@ import { DeviceTokenController } from "./device-token.controller";
     }),
   ],
   controllers: [AppController, NotificationController, DeviceTokenController],
-  providers: [AppService, NotificationService, MatchingEventConsumer, FcmService, JwtStrategy],
+  providers: [AppService, NotificationService, MatchingEventConsumer, FcmService, NotificationGateway, JwtStrategy],
 })
 export class AppModule {}

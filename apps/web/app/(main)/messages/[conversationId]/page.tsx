@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Send } from 'lucide-react';
 import { Button, Input, Skeleton } from '@suggar-daddy/ui';
 import { messagingApi, ApiError } from '../../../../lib/api';
+import { getMessagingSocket } from '../../../../lib/socket';
 import { useAuth } from '../../../../providers/auth-provider';
 import { timeAgo } from '../../../../lib/utils';
 
@@ -34,16 +35,18 @@ export default function ChatRoomPage() {
   const [sending, setSending] = useState(false);
   const [oldestCursor, setOldestCursor] = useState<string | undefined>(undefined);
   const [loadingOlder, setLoadingOlder] = useState(false);
+  const [otherTyping, setOtherTyping] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---------- scroll helper ---------- */
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  /* ---------- fetch messages ---------- */
+  /* ---------- fetch initial messages via REST ---------- */
   const fetchMessages = useCallback(async () => {
     if (!conversationId) return;
     try {
@@ -54,18 +57,63 @@ export default function ChatRoomPage() {
         setOldestCursor(data.nextCursor);
       }
     } catch (err) {
-      if (!loading) return; // suppress poll errors after initial load
       setError(err instanceof ApiError ? err.message : '無法載入訊息');
     } finally {
       setLoading(false);
     }
-  }, [conversationId, loading]);
+  }, [conversationId]);
 
   /* Initial load */
   useEffect(() => {
     fetchMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId]);
+  }, [fetchMessages]);
+
+  /* ---------- WebSocket 連線 ---------- */
+  useEffect(() => {
+    if (!conversationId || !user?.id) return;
+
+    const socket = getMessagingSocket();
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    // 加入用戶房間 & 對話房間
+    socket.emit('join', { userId: user.id });
+
+    // 收到即時新訊息
+    function handleNewMessage(msg: Message) {
+      if (msg.conversationId !== conversationId) return;
+      setMessages((prev) => {
+        // 防止重複（自己送出的訊息可能已經樂觀添加）
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+    }
+
+    // 對方輸入中
+    function handleTyping(data: { userId: string; conversationId: string }) {
+      if (data.conversationId !== conversationId) return;
+      if (data.userId === user?.id) return;
+      setOtherTyping(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => setOtherTyping(false), 3000);
+    }
+
+    socket.on('new_message', handleNewMessage);
+    socket.on('user_typing', handleTyping);
+
+    return () => {
+      socket.off('new_message', handleNewMessage);
+      socket.off('user_typing', handleTyping);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, [conversationId, user?.id]);
+
+  /* Auto-scroll on new messages */
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   /* ---------- load older messages ---------- */
   async function loadOlderMessages() {
@@ -87,44 +135,40 @@ export default function ChatRoomPage() {
     }
   }
 
-  /* Poll every 5 seconds */
-  useEffect(() => {
-    if (!conversationId) return;
-    const interval = setInterval(async () => {
-      try {
-        const data = await messagingApi.getMessages(conversationId) as any;
-        const msgs = Array.isArray(data) ? data : data.messages || [];
-        setMessages(msgs as unknown as Message[]);
-      } catch {
-        /* silent */
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [conversationId]);
-
-  /* Auto-scroll on new messages */
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  /* ---------- send message ---------- */
+  /* ---------- send message via WebSocket ---------- */
   async function handleSend() {
     const trimmed = input.trim();
-    if (!trimmed || sending || !conversationId) return;
+    if (!trimmed || sending || !conversationId || !user?.id) return;
 
     setSending(true);
-    try {
-      const sent = (await messagingApi.sendMessage({
-        conversationId,
-        content: trimmed,
-      } as any)) as unknown as Message;
-      setMessages((prev) => [...prev, sent]);
-      setInput('');
-    } catch (err) {
-      /* optionally show toast */
-    } finally {
-      setSending(false);
-    }
+    const socket = getMessagingSocket();
+
+    // 透過 WebSocket 發送（gateway 會存到 Redis + Kafka + 廣播）
+    socket.emit('send_message', {
+      senderId: user.id,
+      conversationId,
+      content: trimmed,
+    });
+
+    // 樂觀更新：立即顯示在畫面
+    const optimistic: Message = {
+      id: `temp-${Date.now()}`,
+      conversationId,
+      senderId: user.id,
+      content: trimmed,
+      createdAt: new Date(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    setInput('');
+    setSending(false);
+  }
+
+  /* ---------- typing indicator ---------- */
+  function handleInputChange(value: string) {
+    setInput(value);
+    if (!conversationId || !user?.id) return;
+    const socket = getMessagingSocket();
+    socket.emit('typing', { userId: user.id, conversationId });
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -138,7 +182,6 @@ export default function ChatRoomPage() {
   if (loading) {
     return (
       <div className="flex h-[calc(100vh-8rem)] flex-col">
-        {/* Header skeleton */}
         <div className="flex items-center gap-3 border-b bg-white p-4">
           <Skeleton className="h-8 w-8 rounded-full" />
           <Skeleton className="h-4 w-24" />
@@ -230,6 +273,18 @@ export default function ChatRoomPage() {
             </div>
           );
         })}
+
+        {/* Typing indicator */}
+        {otherTyping && (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-1 rounded-2xl bg-gray-100 px-4 py-2">
+              <span className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '0ms' }} />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '150ms' }} />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
+        )}
+
         <div ref={bottomRef} />
       </div>
 
@@ -238,7 +293,7 @@ export default function ChatRoomPage() {
         <div className="flex items-center gap-2">
           <Input
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="輸入訊息..."
             className="flex-1 rounded-full"

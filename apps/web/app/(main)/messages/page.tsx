@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { MessageCircle } from 'lucide-react';
 import { Card } from '@suggar-daddy/ui';
 import { Avatar } from '@suggar-daddy/ui';
 import { Skeleton } from '@suggar-daddy/ui';
 import { messagingApi, usersApi, ApiError } from '../../../lib/api';
+import { getMessagingSocket } from '../../../lib/socket';
 import { useAuth } from '../../../providers/auth-provider';
 import { timeAgo } from '../../../lib/utils';
 
@@ -34,25 +35,44 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  /** 名稱快取，避免重複查詢 */
+  const [nameCache, setNameCache] = useState<Record<string, string>>({});
 
+  const enrichConversations = useCallback(
+    async (data: Conversation[]): Promise<ConversationWithName[]> => {
+      return Promise.all(
+        data.map(async (conv) => {
+          const otherId =
+            conv.participantIds.find((id) => id !== user?.id) ??
+            conv.participantIds[0] ??
+            '';
+
+          // 使用快取
+          if (nameCache[otherId]) {
+            return { ...conv, otherName: nameCache[otherId] };
+          }
+
+          try {
+            const profile = await usersApi.getProfile(otherId);
+            setNameCache((prev) => ({ ...prev, [otherId]: profile.displayName }));
+            return { ...conv, otherName: profile.displayName };
+          } catch {
+            return { ...conv, otherName: undefined };
+          }
+        })
+      );
+    },
+    [user?.id, nameCache]
+  );
+
+  /* ---------- 初始載入 ---------- */
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const data = await messagingApi.getConversations() as unknown as Conversation[];
-        const enriched = await Promise.all(
-          data.map(async (conv) => {
-            const otherId = conv.participantIds.find((id) => id !== user?.id) ?? conv.participantIds[0] ?? '';
-            try {
-              const profile = await usersApi.getProfile(otherId);
-              return { ...conv, otherName: profile.displayName };
-            } catch {
-              return { ...conv, otherName: undefined };
-            }
-          })
-        );
+        const data = (await messagingApi.getConversations()) as unknown as Conversation[];
+        const enriched = await enrichConversations(data);
         if (!cancelled) setConversations(enriched);
       } catch (err) {
         if (!cancelled) {
@@ -64,32 +84,41 @@ export default function MessagesPage() {
     }
 
     load();
-
-    // Poll every 10 seconds for new conversations
-    pollRef.current = setInterval(async () => {
-      try {
-        const data = await messagingApi.getConversations() as unknown as Conversation[];
-        const enriched = await Promise.all(
-          data.map(async (conv) => {
-            const otherId = conv.participantIds.find((id) => id !== user?.id) ?? conv.participantIds[0] ?? '';
-            try {
-              const profile = await usersApi.getProfile(otherId);
-              return { ...conv, otherName: profile.displayName };
-            } catch {
-              return { ...conv, otherName: undefined };
-            }
-          })
-        );
-        if (!cancelled) setConversations(enriched);
-      } catch {
-        /* silent poll error */
-      }
-    }, 10000);
-
     return () => {
       cancelled = true;
-      if (pollRef.current) clearInterval(pollRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  /* ---------- WebSocket：收到新訊息時刷新列表 ---------- */
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const socket = getMessagingSocket();
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.emit('join', { userId: user.id });
+
+    async function handleNewMessage() {
+      // 有新訊息 → 重新拉取對話列表以更新排序 / lastMessageAt
+      try {
+        const data = (await messagingApi.getConversations()) as unknown as Conversation[];
+        const enriched = await enrichConversations(data);
+        setConversations(enriched);
+      } catch {
+        /* silent */
+      }
+    }
+
+    socket.on('new_message', handleNewMessage);
+
+    return () => {
+      socket.off('new_message', handleNewMessage);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   /* ---------- helpers ---------- */
