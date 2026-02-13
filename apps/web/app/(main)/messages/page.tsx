@@ -3,9 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { MessageCircle } from 'lucide-react';
-import { Card } from '@suggar-daddy/ui';
-import { Avatar } from '@suggar-daddy/ui';
-import { Skeleton } from '@suggar-daddy/ui';
+import { Card, Avatar, Skeleton } from '@suggar-daddy/ui';
 import { messagingApi, usersApi, ApiError } from '../../../lib/api';
 import { getMessagingSocket } from '../../../lib/socket';
 import { useAuth } from '../../../providers/auth-provider';
@@ -87,7 +85,6 @@ export default function MessagesPage() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   /* ---------- WebSocket：收到新訊息時刷新列表 ---------- */
@@ -118,7 +115,6 @@ export default function MessagesPage() {
     return () => {
       socket.off('new_message', handleNewMessage);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   /* ---------- helpers ---------- */

@@ -33,6 +33,8 @@ const profileSchema = z.object({
     .string()
     .optional()
     .or(z.literal('')),
+  lookingFor: z.string().optional().or(z.literal('')),
+  interests: z.string().optional().or(z.literal('')),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -81,7 +83,7 @@ export default function EditProfilePage() {
       }
 
       const preferences: Record<string, unknown> = {};
-      const formValues = data as any;
+      const formValues = data;
       if (formValues.lookingFor) {
         preferences.lookingFor = formValues.lookingFor;
       }
@@ -95,7 +97,7 @@ export default function EditProfilePage() {
         payload.preferences = preferences;
       }
 
-      await usersApi.updateProfile(payload as any);
+      await usersApi.updateProfile(payload);
       await refreshUser();
       router.back();
     } catch (err: unknown) {
@@ -153,7 +155,7 @@ export default function EditProfilePage() {
                       setAvatarUploading(true);
                       try {
                         const result = await uploadMedia(file);
-                        await usersApi.updateProfile({ avatarUrl: result.url } as any);
+                        await usersApi.updateProfile({ avatarUrl: result.url });
                         await refreshUser();
                       } catch {
                         setServerError('頭像上傳失敗，請稍後再試');
@@ -224,7 +226,7 @@ export default function EditProfilePage() {
                 <select
                   id="lookingFor"
                   defaultValue={(user.preferences?.lookingFor as string) || ''}
-                  {...register('lookingFor' as any)}
+                  {...register('lookingFor')}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">不指定</option>
@@ -244,7 +246,7 @@ export default function EditProfilePage() {
                       ? (user.preferences.interests as string[]).join(', ')
                       : ''
                   }
-                  {...register('interests' as any)}
+                  {...register('interests')}
                 />
                 <p className="text-xs text-gray-400">多個興趣請以逗號分隔</p>
               </div>

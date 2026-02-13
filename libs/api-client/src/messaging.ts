@@ -14,7 +14,7 @@ export class MessagingApi {
 
   getMessages(conversationId: string, cursor?: string) {
     const params = cursor ? { cursor } : undefined;
-    return this.client.get<MessageDto[]>(
+    return this.client.get<{ messages: MessageDto[]; nextCursor?: string }>(
       `/api/v1/messaging/conversations/${conversationId}/messages`,
       { params }
     );

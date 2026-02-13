@@ -49,7 +49,7 @@ export default function WithdrawPage() {
   useEffect(() => {
     paymentsApi
       .getWallet()
-      .then((data: any) => setBalance(data.balance ?? 0))
+      .then((data) => setBalance(data.balance ?? 0))
       .catch(() => {})
       .finally(() => setBalanceLoading(false));
   }, []);
