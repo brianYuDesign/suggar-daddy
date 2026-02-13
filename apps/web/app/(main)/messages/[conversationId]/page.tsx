@@ -33,7 +33,6 @@ export default function ChatRoomPage() {
   const [error, setError] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [loadingOlder, setLoadingOlder] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -50,8 +49,7 @@ export default function ChatRoomPage() {
     if (!conversationId) return;
     try {
       const data = await messagingApi.getMessages(conversationId);
-      const msgs = Array.isArray(data) ? data : [];
-      setMessages(msgs as unknown as Message[]);
+      setMessages(data.messages as unknown as Message[]);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '無法載入訊息');
     } finally {
@@ -110,21 +108,6 @@ export default function ChatRoomPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
-
-  /* ---------- load older messages ---------- */
-  async function loadOlderMessages() {
-    if (!conversationId || loadingOlder) return;
-    setLoadingOlder(true);
-    try {
-      const data = await messagingApi.getMessages(conversationId);
-      const older = Array.isArray(data) ? data : [];
-      setMessages((prev) => [...(older as unknown as Message[]), ...prev]);
-    } catch {
-      /* silent */
-    } finally {
-      setLoadingOlder(false);
-    }
-  }
 
   /* ---------- send message via WebSocket ---------- */
   async function handleSend() {
