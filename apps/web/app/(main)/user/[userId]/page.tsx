@@ -303,7 +303,14 @@ export default function UserProfilePage() {
             <Button
               variant="outline"
               className="h-12 border-brand-200 text-brand-600 hover:bg-brand-50"
-              onClick={() => router.push('/messages')}
+              onClick={() => {
+                if (currentUser?.id && profile?.id) {
+                  const convId = [currentUser.id, profile.id].sort().join('::');
+                  router.push(`/messages/${convId}`);
+                } else {
+                  router.push('/messages');
+                }
+              }}
             >
               <MessageCircle className="mr-2 h-4 w-4" />
               傳訊息

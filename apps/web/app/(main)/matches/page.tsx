@@ -251,7 +251,15 @@ export default function MatchesPage() {
           <MatchCard
             key={match.id}
             match={match}
-            onClick={() => router.push('/messages')}
+            onClick={() => {
+              const otherId = match.otherUser?.id;
+              if (otherId && currentUser?.id) {
+                const convId = [currentUser.id, otherId].sort().join('::');
+                router.push(`/messages/${convId}`);
+              } else {
+                router.push('/messages');
+              }
+            }}
           />
         ))}
       </div>

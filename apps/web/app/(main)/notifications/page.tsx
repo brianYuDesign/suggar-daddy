@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Bell,
   Heart,
@@ -71,9 +72,32 @@ function getNotificationColor(type: string) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Navigation helper                                                  */
+/* ------------------------------------------------------------------ */
+function getNotificationHref(n: NotificationItem): string | null {
+  const data = n.data || {};
+  switch (n.type) {
+    case 'message':
+      return data.conversationId ? `/messages/${data.conversationId}` : '/messages';
+    case 'match':
+    case 'follow':
+      return data.userId ? `/user/${data.userId}` : '/matches';
+    case 'like':
+      return data.postId ? `/post/${data.postId}` : '/feed';
+    case 'payment':
+    case 'tip':
+    case 'subscription':
+      return '/wallet';
+    default:
+      return null;
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -212,6 +236,10 @@ export default function NotificationsPage() {
                 onClick={() => {
                   if (!notification.read) {
                     handleMarkAsRead(notification.id);
+                  }
+                  const href = getNotificationHref(notification);
+                  if (href) {
+                    router.push(href);
                   }
                 }}
               >

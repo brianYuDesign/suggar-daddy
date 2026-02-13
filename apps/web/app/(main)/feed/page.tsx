@@ -115,7 +115,7 @@ function PostCard({ post, currentUserId, onLikeToggle, likedPosts, authorName }:
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <Link
-                href={`/post/${post.id}`}
+                href={`/user/${post.authorId}`}
                 className="text-sm font-semibold text-gray-900 truncate hover:underline"
               >
                 {displayName}

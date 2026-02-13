@@ -368,7 +368,12 @@ export default function DiscoverPage() {
               className="w-full bg-brand-500 hover:bg-brand-600"
               onClick={() => {
                 setMatchModalOpen(false);
-                router.push('/messages');
+                if (matchedUser && user?.id) {
+                  const convId = [user.id, matchedUser.id].sort().join('::');
+                  router.push(`/messages/${convId}`);
+                } else {
+                  router.push('/messages');
+                }
               }}
             >
               <MessageCircle className="mr-2 h-4 w-4" />
