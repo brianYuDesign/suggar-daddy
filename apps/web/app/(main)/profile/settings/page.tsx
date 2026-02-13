@@ -9,9 +9,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Separator,
-} from '@suggar-daddy/ui';
-import {
   Dialog,
   DialogHeader,
   DialogTitle,
