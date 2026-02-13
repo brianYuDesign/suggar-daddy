@@ -11,6 +11,7 @@ import {
   User,
 } from 'lucide-react';
 import { cn } from '@suggar-daddy/ui';
+import { useNotifications } from '../../providers/notification-provider';
 
 const navItems = [
   { href: '/feed', icon: Home, label: '首頁' },
@@ -22,6 +23,7 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname();
+  const { unreadCount } = useNotifications();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur-sm pb-safe md:hidden">
@@ -48,12 +50,19 @@ export function MobileNav() {
                   <PlusSquare className="h-4 w-4" />
                 </div>
               ) : (
-                <item.icon
-                  className={cn(
-                    'h-5 w-5',
-                    isActive && 'fill-brand-100 stroke-brand-600'
+                <div className="relative">
+                  <item.icon
+                    className={cn(
+                      'h-5 w-5',
+                      isActive && 'fill-brand-100 stroke-brand-600'
+                    )}
+                  />
+                  {item.href === '/notifications' && unreadCount > 0 && (
+                    <span className="absolute -right-1.5 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
                   )}
-                />
+                </div>
               )}
               <span className={cn(isCreate && 'mt-0.5')}>{item.label}</span>
             </Link>
