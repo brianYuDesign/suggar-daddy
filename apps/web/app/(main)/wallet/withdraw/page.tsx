@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +15,7 @@ import {
   Input,
   Label,
   Select,
+  Skeleton,
 } from '@suggar-daddy/ui';
 import { paymentsApi, ApiError } from '../../../../lib/api';
 
@@ -29,6 +30,9 @@ const withdrawSchema = z.object({
   payoutMethod: z.enum(['bank_transfer', 'paypal'], {
     message: '請選擇提款方式',
   }),
+  payoutDetails: z
+    .string()
+    .min(1, '請輸入收款帳戶資訊'),
 });
 
 type WithdrawFormValues = z.infer<typeof withdrawSchema>;
@@ -39,23 +43,43 @@ type WithdrawFormValues = z.infer<typeof withdrawSchema>;
 export default function WithdrawPage() {
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(true);
+
+  useEffect(() => {
+    paymentsApi
+      .getWallet()
+      .then((data: any) => setBalance(data.balance ?? 0))
+      .catch(() => {})
+      .finally(() => setBalanceLoading(false));
+  }, []);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<WithdrawFormValues>({
     resolver: zodResolver(withdrawSchema),
     defaultValues: {
       amount: undefined,
       payoutMethod: 'bank_transfer',
+      payoutDetails: '',
     },
   });
 
   async function onSubmit(data: WithdrawFormValues) {
     setSubmitError(null);
+    if (balance !== null && data.amount > balance) {
+      setSubmitError(`餘額不足。目前可用餘額為 $${balance}`);
+      return;
+    }
     try {
-      await paymentsApi.requestWithdrawal(data.amount, data.payoutMethod);
+      await paymentsApi.requestWithdrawal(
+        data.amount,
+        data.payoutMethod,
+        data.payoutDetails
+      );
       router.push('/wallet');
     } catch (err) {
       setSubmitError(
@@ -84,6 +108,18 @@ export default function WithdrawPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Available balance */}
+            <div className="rounded-lg bg-brand-50 p-3 mb-2">
+              <p className="text-xs text-gray-500">可用餘額</p>
+              {balanceLoading ? (
+                <Skeleton className="h-6 w-24 mt-1" />
+              ) : (
+                <p className="text-lg font-bold text-brand-600">
+                  ${balance?.toLocaleString() ?? '—'}
+                </p>
+              )}
+            </div>
+
             {/* Amount */}
             <div className="space-y-2">
               <Label htmlFor="amount">提款金額</Label>
@@ -110,6 +146,26 @@ export default function WithdrawPage() {
                   {errors.payoutMethod.message}
                 </p>
               )}
+            </div>
+
+            {/* Payout details */}
+            <div className="space-y-2">
+              <Label htmlFor="payoutDetails">收款帳戶資訊</Label>
+              <Input
+                id="payoutDetails"
+                placeholder={watch('payoutMethod') === 'paypal' ? '輸入 PayPal 電子郵件' : '輸入銀行帳號'}
+                {...register('payoutDetails')}
+              />
+              {errors.payoutDetails && (
+                <p className="text-xs text-red-500">
+                  {errors.payoutDetails.message}
+                </p>
+              )}
+              <p className="text-xs text-gray-400">
+                {watch('payoutMethod') === 'paypal'
+                  ? '請輸入您的 PayPal 電子郵件地址'
+                  : '請輸入您的銀行帳號（含分行代碼）'}
+              </p>
             </div>
 
             {/* Submit error */}

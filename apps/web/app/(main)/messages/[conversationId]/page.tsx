@@ -32,6 +32,8 @@ export default function ChatRoomPage() {
   const [error, setError] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [oldestCursor, setOldestCursor] = useState<string | undefined>(undefined);
+  const [loadingOlder, setLoadingOlder] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -45,8 +47,12 @@ export default function ChatRoomPage() {
   const fetchMessages = useCallback(async () => {
     if (!conversationId) return;
     try {
-      const data = await messagingApi.getMessages(conversationId);
-      setMessages(data as unknown as Message[]);
+      const data = await messagingApi.getMessages(conversationId) as any;
+      const msgs = Array.isArray(data) ? data : data.messages || [];
+      setMessages(msgs as unknown as Message[]);
+      if (!Array.isArray(data) && data.nextCursor) {
+        setOldestCursor(data.nextCursor);
+      }
     } catch (err) {
       if (!loading) return; // suppress poll errors after initial load
       setError(err instanceof ApiError ? err.message : '無法載入訊息');
@@ -61,13 +67,34 @@ export default function ChatRoomPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
+  /* ---------- load older messages ---------- */
+  async function loadOlderMessages() {
+    if (!conversationId || !oldestCursor || loadingOlder) return;
+    setLoadingOlder(true);
+    try {
+      const data = await messagingApi.getMessages(conversationId, oldestCursor) as any;
+      const older = Array.isArray(data) ? data : data.messages || [];
+      setMessages((prev) => [...(older as unknown as Message[]), ...prev]);
+      if (!Array.isArray(data) && data.nextCursor) {
+        setOldestCursor(data.nextCursor);
+      } else {
+        setOldestCursor(undefined);
+      }
+    } catch {
+      /* silent */
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
+
   /* Poll every 5 seconds */
   useEffect(() => {
     if (!conversationId) return;
     const interval = setInterval(async () => {
       try {
-        const data = await messagingApi.getMessages(conversationId);
-        setMessages(data as unknown as Message[]);
+        const data = await messagingApi.getMessages(conversationId) as any;
+        const msgs = Array.isArray(data) ? data : data.messages || [];
+        setMessages(msgs as unknown as Message[]);
       } catch {
         /* silent */
       }
@@ -157,6 +184,20 @@ export default function ChatRoomPage() {
         ref={messagesContainerRef}
         className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
       >
+        {oldestCursor && (
+          <div className="flex justify-center py-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={loadOlderMessages}
+              disabled={loadingOlder}
+              className="text-xs text-gray-500"
+            >
+              {loadingOlder ? '載入中...' : '載入更多訊息'}
+            </Button>
+          </div>
+        )}
+
         {messages.length === 0 && (
           <p className="py-8 text-center text-sm text-gray-400">
             還沒有訊息，開始聊天吧！

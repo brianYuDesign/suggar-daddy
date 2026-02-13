@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@suggar-daddy/ui';
 import { useAuth } from '../../providers/auth-provider';
+import { useNotifications } from '../../providers/notification-provider';
 
 const mainNav = [
   { href: '/feed', icon: Home, label: '首頁' },
@@ -35,6 +36,7 @@ const secondaryNav = [
 export function DesktopSidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
 
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 md:left-0 md:border-r md:bg-white">
@@ -63,6 +65,11 @@ export function DesktopSidebar() {
             >
               <item.icon className="h-5 w-5" />
               {item.label}
+              {item.href === '/notifications' && unreadCount > 0 && (
+                <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}

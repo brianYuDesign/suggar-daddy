@@ -21,6 +21,7 @@ import {
   Lock,
   Calendar,
   DollarSign,
+  Flag,
 } from 'lucide-react';
 
 interface Post {
@@ -74,6 +75,11 @@ export default function PostDetailPage() {
   const [tipAmount, setTipAmount] = useState('');
   const [isTipping, setIsTipping] = useState(false);
   const [tipSuccess, setTipSuccess] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDescription, setReportDescription] = useState('');
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(false);
 
   const fetchPost = useCallback(async () => {
     try {
@@ -321,6 +327,18 @@ export default function PostDetailPage() {
                 <DollarSign className="h-4 w-4" />
                 {tipSuccess ? '已打賞' : '打賞'}
               </Button>
+
+              {!isOwner && (
+                <Button
+                  variant="outline"
+                  className="gap-2 text-gray-500 border-gray-200 hover:bg-gray-50"
+                  onClick={() => setShowReportDialog(true)}
+                  disabled={reportSuccess}
+                >
+                  <Flag className="h-4 w-4" />
+                  {reportSuccess ? '已檢舉' : '檢舉'}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -379,6 +397,76 @@ export default function PostDetailPage() {
                   }}
                 >
                   {isTipping ? '處理中...' : '確認打賞'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Report dialog */}
+      {showReportDialog && post && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <Card className="w-full max-w-sm">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 text-center">檢舉此貼文</h3>
+              <div className="space-y-2">
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                >
+                  <option value="">選擇檢舉原因</option>
+                  <option value="spam">垃圾內容</option>
+                  <option value="harassment">騷擾或霸凌</option>
+                  <option value="inappropriate">不當內容</option>
+                  <option value="fraud">詐騙</option>
+                  <option value="other">其他</option>
+                </select>
+              </div>
+              <textarea
+                value={reportDescription}
+                onChange={(e) => setReportDescription(e.target.value)}
+                placeholder="補充說明（選填）"
+                rows={3}
+                className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              />
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowReportDialog(false);
+                    setReportReason('');
+                    setReportDescription('');
+                  }}
+                  disabled={isReporting}
+                >
+                  取消
+                </Button>
+                <Button
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                  disabled={isReporting || !reportReason}
+                  onClick={async () => {
+                    setIsReporting(true);
+                    try {
+                      await contentApi.reportPost(
+                        post.id,
+                        reportReason,
+                        reportDescription || undefined
+                      );
+                      setReportSuccess(true);
+                      setShowReportDialog(false);
+                      setReportReason('');
+                      setReportDescription('');
+                    } catch (err) {
+                      setError(ApiError.getMessage(err, '檢舉失敗，請稍後再試'));
+                    } finally {
+                      setIsReporting(false);
+                    }
+                  }}
+                >
+                  {isReporting ? '提交中...' : '提交檢舉'}
                 </Button>
               </div>
             </CardContent>

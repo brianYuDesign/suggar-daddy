@@ -18,7 +18,10 @@ import {
   Send,
   Lock,
   AlertCircle,
+  Image,
+  X,
 } from 'lucide-react';
+import { uploadMedia } from '../../../../lib/upload';
 
 const MAX_CONTENT_LENGTH = 2000;
 
@@ -36,6 +39,9 @@ export default function CreatePostPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const {
     register,
@@ -55,12 +61,47 @@ export default function CreatePostPage() {
   const isPremiumValue = watch('isPremium');
   const charCount = contentValue?.length || 0;
 
+  function handleMediaSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (files.length + mediaFiles.length > 4) {
+      setSubmitError('最多只能上傳 4 張圖片');
+      return;
+    }
+    setMediaFiles((prev) => [...prev, ...files]);
+    const newPreviews = files.map((f) => URL.createObjectURL(f));
+    setMediaPreviews((prev) => [...prev, ...newPreviews]);
+  }
+
+  function removeMedia(index: number) {
+    setMediaFiles((prev) => prev.filter((_, i) => i !== index));
+    setMediaPreviews((prev) => {
+      URL.revokeObjectURL(prev[index]!);
+      return prev.filter((_, i) => i !== index);
+    });
+  }
+
   const onSubmit = async (data: CreatePostFormData) => {
     try {
       setSubmitError(null);
+
+      let mediaUrls: string[] | undefined;
+      if (mediaFiles.length > 0) {
+        setUploading(true);
+        try {
+          const results = await Promise.all(mediaFiles.map(uploadMedia));
+          mediaUrls = results.map((r) => r.url);
+        } catch {
+          setSubmitError('圖片上傳失敗，請稍後再試');
+          setUploading(false);
+          return;
+        }
+        setUploading(false);
+      }
+
       await contentApi.createPost({
         content: data.content,
         isPremium: data.isPremium,
+        mediaUrls,
       });
       router.push('/feed');
     } catch (err) {
@@ -94,7 +135,7 @@ export default function CreatePostPage() {
         <Button
           type="submit"
           form="create-post-form"
-          disabled={isSubmitting || charCount === 0}
+          disabled={isSubmitting || uploading || charCount === 0}
           className="bg-brand-500 hover:bg-brand-600 text-white gap-2"
         >
           {isSubmitting ? (
@@ -102,7 +143,7 @@ export default function CreatePostPage() {
           ) : (
             <Send className="h-4 w-4" />
           )}
-          {isSubmitting ? '發布中...' : '發布'}
+          {isSubmitting ? '發布中...' : uploading ? '上傳中...' : '發布'}
         </Button>
       </div>
 
@@ -177,6 +218,40 @@ export default function CreatePostPage() {
                   {charCount} / {MAX_CONTENT_LENGTH}
                 </span>
               </div>
+            </div>
+
+            {/* Media upload */}
+            <div className="space-y-3">
+              {mediaPreviews.length > 0 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {mediaPreviews.map((preview, idx) => (
+                    <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+                      <img src={preview} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeMedia(idx)}
+                        className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {mediaFiles.length < 4 && (
+                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 transition-colors hover:border-brand-400 hover:text-brand-600">
+                  <Image className="h-5 w-5" />
+                  <span>{mediaFiles.length === 0 ? '新增圖片 (最多 4 張)' : `新增更多圖片 (${mediaFiles.length}/4)`}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleMediaSelect}
+                    disabled={isSubmitting || uploading}
+                  />
+                </label>
+              )}
             </div>
 
             {/* Premium toggle */}

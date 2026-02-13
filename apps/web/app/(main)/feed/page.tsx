@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../providers/auth-provider';
-import { contentApi, ApiError } from '../../../lib/api';
+import { contentApi, usersApi, ApiError } from '../../../lib/api';
 import { timeAgo } from '../../../lib/utils';
 import {
   Avatar,
@@ -94,13 +94,15 @@ interface PostCardProps {
   currentUserId?: string;
   onLikeToggle: (postId: string) => void;
   likedPosts: Set<string>;
+  authorName?: string;
 }
 
-function PostCard({ post, currentUserId, onLikeToggle, likedPosts }: PostCardProps) {
+function PostCard({ post, currentUserId, onLikeToggle, likedPosts, authorName }: PostCardProps) {
   const isOwner = currentUserId === post.authorId;
   const isLocked = post.isPremium && !isOwner;
   const isLiked = likedPosts.has(post.id);
-  const authorInitials = post.authorId.slice(0, 2).toUpperCase();
+  const displayName = authorName || post.authorId.slice(0, 8);
+  const authorInitials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <Card className="relative overflow-hidden">
@@ -116,7 +118,7 @@ function PostCard({ post, currentUserId, onLikeToggle, likedPosts }: PostCardPro
                 href={`/post/${post.id}`}
                 className="text-sm font-semibold text-gray-900 truncate hover:underline"
               >
-                {post.authorId.slice(0, 8)}
+                {displayName}
               </Link>
               {post.isPremium && (
                 <Badge
@@ -208,6 +210,7 @@ export default function FeedPage() {
     error: null,
   });
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [authorNames, setAuthorNames] = useState<Record<string, string>>({});
 
   const fetchPosts = useCallback(async (cursor?: string) => {
     try {
@@ -237,6 +240,32 @@ export default function FeedPage() {
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
+
+  useEffect(() => {
+    const unknownIds = state.posts
+      .map((p) => p.authorId)
+      .filter((id) => !authorNames[id]);
+    const uniqueIds = [...new Set(unknownIds)];
+    if (uniqueIds.length === 0) return;
+
+    Promise.all(
+      uniqueIds.map(async (id) => {
+        try {
+          const profile = await usersApi.getProfile(id);
+          return [id, profile.displayName] as const;
+        } catch {
+          return [id, id.slice(0, 8)] as const;
+        }
+      })
+    ).then((entries) => {
+      setAuthorNames((prev) => {
+        const next = { ...prev };
+        for (const [id, name] of entries) next[id] = name;
+        return next;
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.posts]);
 
   const handleLoadMore = () => {
     if (!state.nextCursor || state.isLoadingMore) return;
@@ -334,6 +363,7 @@ export default function FeedPage() {
               currentUserId={user?.id}
               onLikeToggle={handleLikeToggle}
               likedPosts={likedPosts}
+              authorName={authorNames[post.authorId]}
             />
           ))}
 

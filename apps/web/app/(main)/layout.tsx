@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { MobileNav } from '../../components/layout/mobile-nav';
 import { DesktopSidebar } from '../../components/layout/desktop-sidebar';
+import { NotificationProvider } from '../../providers/notification-provider';
 
 export default function MainLayout({
   children,
@@ -31,17 +32,19 @@ export default function MainLayout({
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DesktopSidebar />
+    <NotificationProvider>
+      <div className="min-h-screen bg-gray-50">
+        <DesktopSidebar />
 
-      {/* Main content area */}
-      <div className="md:pl-60">
-        <main className="mx-auto max-w-2xl px-4 pb-20 pt-4 md:pb-8 md:pt-6">
-          {children}
-        </main>
+        {/* Main content area */}
+        <div className="md:pl-60">
+          <main className="mx-auto max-w-2xl px-4 pb-20 pt-4 md:pb-8 md:pt-6">
+            {children}
+          </main>
+        </div>
+
+        <MobileNav />
       </div>
-
-      <MobileNav />
-    </div>
+    </NotificationProvider>
   );
 }

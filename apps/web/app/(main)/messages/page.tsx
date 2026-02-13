@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { MessageCircle } from 'lucide-react';
 import { Card } from '@suggar-daddy/ui';
@@ -34,6 +34,8 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -62,8 +64,31 @@ export default function MessagesPage() {
     }
 
     load();
+
+    // Poll every 10 seconds for new conversations
+    pollRef.current = setInterval(async () => {
+      try {
+        const data = await messagingApi.getConversations() as unknown as Conversation[];
+        const enriched = await Promise.all(
+          data.map(async (conv) => {
+            const otherId = conv.participantIds.find((id) => id !== user?.id) ?? conv.participantIds[0] ?? '';
+            try {
+              const profile = await usersApi.getProfile(otherId);
+              return { ...conv, otherName: profile.displayName };
+            } catch {
+              return { ...conv, otherName: undefined };
+            }
+          })
+        );
+        if (!cancelled) setConversations(enriched);
+      } catch {
+        /* silent poll error */
+      }
+    }, 10000);
+
     return () => {
       cancelled = true;
+      if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [user?.id]);
 
