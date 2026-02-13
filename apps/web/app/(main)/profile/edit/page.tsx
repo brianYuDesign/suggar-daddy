@@ -33,8 +33,8 @@ const profileSchema = z.object({
     .string()
     .optional()
     .or(z.literal('')),
-  lookingFor: z.string().optional(),
-  interests: z.string().optional(),
+  lookingFor: z.string().optional().or(z.literal('')),
+  interests: z.string().optional().or(z.literal('')),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
