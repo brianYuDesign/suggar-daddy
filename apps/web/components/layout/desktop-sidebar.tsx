@@ -10,6 +10,8 @@ import {
   User,
   Bell,
   Wallet,
+  Heart,
+  Crown,
   LogOut,
 } from 'lucide-react';
 import { cn } from '@suggar-daddy/ui';
@@ -18,12 +20,14 @@ import { useAuth } from '../../providers/auth-provider';
 const mainNav = [
   { href: '/feed', icon: Home, label: '首頁' },
   { href: '/discover', icon: Compass, label: '探索' },
+  { href: '/matches', icon: Heart, label: '配對' },
   { href: '/post/create', icon: PlusSquare, label: '發文' },
   { href: '/messages', icon: MessageCircle, label: '訊息' },
   { href: '/notifications', icon: Bell, label: '通知' },
 ];
 
 const secondaryNav = [
+  { href: '/subscription', icon: Crown, label: '訂閱方案' },
   { href: '/wallet', icon: Wallet, label: '錢包' },
   { href: '/profile', icon: User, label: '個人檔案' },
 ];

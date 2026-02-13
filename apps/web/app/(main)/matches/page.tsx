@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../../../providers/auth-provider';
 import {
   Button,
   Card,
@@ -165,6 +166,7 @@ function MatchCard({ match, onClick }: MatchCardProps) {
 
 export default function MatchesPage() {
   const router = useRouter();
+  const { user: currentUser } = useAuth();
 
   const [matches, setMatches] = useState<MatchWithUser[]>([]);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
@@ -188,10 +190,8 @@ export default function MatchesPage() {
       const enriched: MatchWithUser[] = await Promise.all(
         res.matches.map(async (match: Match) => {
           try {
-            // We don't know which side is "us", so we try to fetch info
-            // for both user IDs. The backend should have populated these.
-            // For now we set otherUser based on userBId as a reasonable default.
-            const userProfile = await usersApi.getProfile(match.userBId);
+            const otherId = match.userAId === currentUser?.id ? match.userBId : match.userAId;
+            const userProfile = await usersApi.getProfile(otherId);
             return {
               ...match,
               otherUser: {

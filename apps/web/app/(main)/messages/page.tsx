@@ -6,17 +6,21 @@ import { MessageCircle } from 'lucide-react';
 import { Card } from '@suggar-daddy/ui';
 import { Avatar } from '@suggar-daddy/ui';
 import { Skeleton } from '@suggar-daddy/ui';
-import { messagingApi, ApiError } from '../../../lib/api';
+import { messagingApi, usersApi, ApiError } from '../../../lib/api';
 import { useAuth } from '../../../providers/auth-provider';
 import { timeAgo } from '../../../lib/utils';
 
 /* ------------------------------------------------------------------ */
-/*  Local types (not imported from @suggar-daddy/dto)                  */
+/*  Local types                                                        */
 /* ------------------------------------------------------------------ */
 interface Conversation {
   id: string;
   participantIds: string[];
   lastMessageAt?: Date;
+}
+
+interface ConversationWithName extends Conversation {
+  otherName?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -26,7 +30,7 @@ export default function MessagesPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<ConversationWithName[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,10 +39,19 @@ export default function MessagesPage() {
 
     async function load() {
       try {
-        const data = await messagingApi.getConversations();
-        if (!cancelled) {
-          setConversations(data as unknown as Conversation[]);
-        }
+        const data = await messagingApi.getConversations() as unknown as Conversation[];
+        const enriched = await Promise.all(
+          data.map(async (conv) => {
+            const otherId = conv.participantIds.find((id) => id !== user?.id) ?? conv.participantIds[0] ?? '';
+            try {
+              const profile = await usersApi.getProfile(otherId);
+              return { ...conv, otherName: profile.displayName };
+            } catch {
+              return { ...conv, otherName: undefined };
+            }
+          })
+        );
+        if (!cancelled) setConversations(enriched);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof ApiError ? err.message : '無法載入對話');
@@ -52,7 +65,7 @@ export default function MessagesPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user?.id]);
 
   /* ---------- helpers ---------- */
   function getOtherParticipantId(conv: Conversation): string {
@@ -107,16 +120,17 @@ export default function MessagesPage() {
       ) : (
         <div className="space-y-2">
           {conversations.map((conv) => {
-            const otherId = getOtherParticipantId(conv);
             return (
               <Card
                 key={conv.id}
                 className="flex cursor-pointer items-center gap-3 p-4 transition-colors hover:bg-gray-50 active:bg-gray-100"
                 onClick={() => router.push(`/messages/${conv.id}`)}
               >
-                <Avatar fallback={getInitials(otherId)} size="md" />
+                <Avatar fallback={getInitials(conv.otherName || getOtherParticipantId(conv))} size="md" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">對話</p>
+                  <p className="truncate text-sm font-medium text-gray-900">
+                    {conv.otherName || '使用者'}
+                  </p>
                   {conv.lastMessageAt && (
                     <p className="text-xs text-gray-500">
                       {timeAgo(conv.lastMessageAt)}

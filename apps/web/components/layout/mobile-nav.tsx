@@ -7,6 +7,7 @@ import {
   Compass,
   PlusSquare,
   MessageCircle,
+  Bell,
   User,
 } from 'lucide-react';
 import { cn } from '@suggar-daddy/ui';
@@ -16,7 +17,7 @@ const navItems = [
   { href: '/discover', icon: Compass, label: '探索' },
   { href: '/post/create', icon: PlusSquare, label: '發文' },
   { href: '/messages', icon: MessageCircle, label: '訊息' },
-  { href: '/profile', icon: User, label: '我的' },
+  { href: '/notifications', icon: Bell, label: '通知' },
 ];
 
 export function MobileNav() {
