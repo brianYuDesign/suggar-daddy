@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { apiClient, authApi, usersApi } from '../lib/api';
 import { isTokenExpired } from '../lib/utils';
+import { disconnectAll } from '../lib/socket';
 
 /** Mirrors UserProfile from @suggar-daddy/dto (avoids decorator compilation issues) */
 export interface UserProfile {
@@ -184,6 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const rt = localStorage.getItem(REFRESH_KEY);
     authApi.logout(rt || undefined).catch(() => {});
     clearTokens();
+    disconnectAll();
     setState({ user: null, isLoading: false, isAuthenticated: false });
     router.push('/');
   }, [clearTokens, router]);
