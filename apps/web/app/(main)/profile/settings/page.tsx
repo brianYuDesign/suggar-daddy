@@ -62,12 +62,6 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <p className="text-sm text-gray-500">電子郵件</p>
-            <p className="text-sm font-medium text-gray-900 mt-0.5">
-              {(user as any).email || '未設定'}
-            </p>
-          </div>
-          <div>
             <p className="text-sm text-gray-500">帳號 ID</p>
             <p className="text-sm font-mono text-gray-500 mt-0.5">
               {user.id}
@@ -81,18 +75,11 @@ export default function SettingsPage() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">隱私與安全</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          <button
-            type="button"
-            className="flex w-full items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
-            onClick={() => router.push('/profile/settings/blocked')}
-          >
-            <span className="flex items-center gap-3">
-              <ShieldBan className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-900">封鎖名單</span>
-            </span>
-            <ChevronRight className="h-4 w-4 text-gray-400" />
-          </button>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-3 text-sm text-gray-600">
+            <ShieldBan className="h-4 w-4 text-gray-500" />
+            <span>封鎖名單可在使用者檔案頁面管理</span>
+          </div>
         </CardContent>
       </Card>
 

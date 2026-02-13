@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../../../providers/auth-provider';
-import { usersApi, ApiError } from '../../../../lib/api';
+import { usersApi, paymentsApi, ApiError } from '../../../../lib/api';
 import {
   Avatar,
   Badge,
@@ -26,7 +26,9 @@ import {
   Gift,
   ShieldBan,
   Flag,
+  MessageCircle,
   Loader2,
+  Check,
 } from 'lucide-react';
 
 interface UserProfile {
@@ -84,6 +86,11 @@ export default function UserProfilePage() {
   const [reportReason, setReportReason] = useState('');
   const [isReporting, setIsReporting] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
+
+  const [showTipDialog, setShowTipDialog] = useState(false);
+  const [tipAmount, setTipAmount] = useState('');
+  const [isTipping, setIsTipping] = useState(false);
+  const [tipSuccess, setTipSuccess] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     setIsLoading(true);
@@ -284,17 +291,26 @@ export default function UserProfilePage() {
       {/* Action buttons (only for other users) */}
       {!isOwnProfile && !blockSuccess && (
         <div className="space-y-3">
-          {/* Tip button */}
-          <Button
-            className="w-full h-12 bg-brand-500 hover:bg-brand-600"
-            onClick={() => router.push(`/tip/${profile.id}`)}
-          >
-            <Gift className="mr-2 h-4 w-4" />
-            打賞
-          </Button>
+          {/* Tip + Message buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              className="h-12 bg-brand-500 hover:bg-brand-600"
+              onClick={() => setShowTipDialog(true)}
+            >
+              <Gift className="mr-2 h-4 w-4" />
+              打賞
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 border-brand-200 text-brand-600 hover:bg-brand-50"
+              onClick={() => router.push('/messages')}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />
+              傳訊息
+            </Button>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {/* Block button */}
             <Button
               variant="outline"
               className="h-12"
@@ -303,8 +319,6 @@ export default function UserProfilePage() {
               <ShieldBan className="mr-2 h-4 w-4" />
               封鎖
             </Button>
-
-            {/* Report button */}
             <Button
               variant="outline"
               className="h-12 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
@@ -314,6 +328,14 @@ export default function UserProfilePage() {
               檢舉
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* Tip success banner */}
+      {tipSuccess && (
+        <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
+          <Check className="h-4 w-4" />
+          打賞成功！
         </div>
       )}
 
@@ -345,6 +367,72 @@ export default function UserProfilePage() {
               </>
             ) : (
               '確認封鎖'
+            )}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      {/* Tip dialog */}
+      <Dialog open={showTipDialog} onClose={() => { setShowTipDialog(false); setTipAmount(''); }}>
+        <DialogHeader>
+          <DialogTitle>打賞 {profile.displayName}</DialogTitle>
+          <DialogDescription>
+            選擇或輸入打賞金額
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4 space-y-3">
+          <div className="grid grid-cols-3 gap-2">
+            {[5, 10, 20].map((amt) => (
+              <Button
+                key={amt}
+                variant={tipAmount === String(amt) ? 'default' : 'outline'}
+                className={tipAmount === String(amt) ? 'bg-brand-500 text-white' : ''}
+                onClick={() => setTipAmount(String(amt))}
+              >
+                ${amt}
+              </Button>
+            ))}
+          </div>
+          <input
+            type="number"
+            value={tipAmount}
+            onChange={(e) => setTipAmount(e.target.value)}
+            placeholder="自訂金額"
+            min="1"
+            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => { setShowTipDialog(false); setTipAmount(''); }}
+            disabled={isTipping}
+          >
+            取消
+          </Button>
+          <Button
+            className="bg-brand-500 hover:bg-brand-600 text-white"
+            onClick={async () => {
+              const amount = Number(tipAmount);
+              if (!amount || amount <= 0) return;
+              setIsTipping(true);
+              try {
+                await paymentsApi.sendTip(profile.id, amount);
+                setTipSuccess(true);
+                setShowTipDialog(false);
+                setTipAmount('');
+              } catch (err: unknown) {
+                setError(ApiError.getMessage(err, '打賞失敗，請稍後再試'));
+              } finally {
+                setIsTipping(false);
+              }
+            }}
+            disabled={isTipping || !tipAmount || Number(tipAmount) <= 0}
+          >
+            {isTipping ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />處理中...</>
+            ) : (
+              '確認打賞'
             )}
           </Button>
         </DialogFooter>

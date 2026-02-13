@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../../../providers/auth-provider';
-import { contentApi, ApiError } from '../../../../lib/api';
+import { contentApi, paymentsApi, ApiError } from '../../../../lib/api';
 import { timeAgo } from '../../../../lib/utils';
 import {
   Avatar,
@@ -69,6 +69,11 @@ export default function PostDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [showTipDialog, setShowTipDialog] = useState(false);
+  const [tipAmount, setTipAmount] = useState('');
+  const [isTipping, setIsTipping] = useState(false);
+  const [tipSuccess, setTipSuccess] = useState(false);
 
   const fetchPost = useCallback(async () => {
     try {
@@ -230,9 +235,23 @@ export default function PostDetailPage() {
                   <p className="text-sm text-gray-500 mb-4 max-w-xs text-center">
                     解鎖後即可查看完整內容
                   </p>
-                  <Button className="bg-brand-500 hover:bg-brand-600 text-white">
+                  <Button
+                    className="bg-brand-500 hover:bg-brand-600 text-white"
+                    disabled={isPurchasing}
+                    onClick={async () => {
+                      setIsPurchasing(true);
+                      try {
+                        await paymentsApi.purchasePost(postId);
+                        fetchPost();
+                      } catch (err) {
+                        setError(ApiError.getMessage(err, '購買失敗，請稍後再試'));
+                      } finally {
+                        setIsPurchasing(false);
+                      }
+                    }}
+                  >
                     <Lock className="mr-2 h-4 w-4" />
-                    解鎖此內容
+                    {isPurchasing ? '處理中...' : '解鎖此內容'}
                   </Button>
                 </div>
               </div>
@@ -297,13 +316,74 @@ export default function PostDetailPage() {
               <Button
                 variant="outline"
                 className="flex-1 gap-2 text-brand-600 border-brand-200 hover:bg-brand-50"
+                onClick={() => setShowTipDialog(true)}
               >
                 <DollarSign className="h-4 w-4" />
-                打賞
+                {tipSuccess ? '已打賞' : '打賞'}
               </Button>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Tip dialog */}
+      {showTipDialog && post && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <Card className="w-full max-w-sm">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 text-center">打賞創作者</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {[5, 10, 20].map((amt) => (
+                  <Button
+                    key={amt}
+                    variant={tipAmount === String(amt) ? 'default' : 'outline'}
+                    className={tipAmount === String(amt) ? 'bg-brand-500 text-white' : ''}
+                    onClick={() => setTipAmount(String(amt))}
+                  >
+                    ${amt}
+                  </Button>
+                ))}
+              </div>
+              <input
+                type="number"
+                value={tipAmount}
+                onChange={(e) => setTipAmount(e.target.value)}
+                placeholder="自訂金額"
+                min="1"
+                className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => { setShowTipDialog(false); setTipAmount(''); }}
+                  disabled={isTipping}
+                >
+                  取消
+                </Button>
+                <Button
+                  className="flex-1 bg-brand-500 hover:bg-brand-600 text-white"
+                  disabled={isTipping || !tipAmount || Number(tipAmount) <= 0}
+                  onClick={async () => {
+                    setIsTipping(true);
+                    try {
+                      await paymentsApi.sendTip(post.authorId, Number(tipAmount));
+                      setTipSuccess(true);
+                      setShowTipDialog(false);
+                      setTipAmount('');
+                    } catch (err) {
+                      setError(ApiError.getMessage(err, '打賞失敗'));
+                    } finally {
+                      setIsTipping(false);
+                    }
+                  }}
+                >
+                  {isTipping ? '處理中...' : '確認打賞'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Delete confirmation dialog */}
