@@ -49,7 +49,7 @@ export default function ChatRoomPage() {
     if (!conversationId) return;
     try {
       const data = await messagingApi.getMessages(conversationId);
-      setMessages(data.messages as unknown as Message[]);
+      setMessages(data as unknown as Message[]);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '無法載入訊息');
     } finally {

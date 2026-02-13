@@ -6,7 +6,7 @@ import {
   EnvConfigModule,
   AppConfigService,
 } from "@suggar-daddy/common";
-import { AuthModule } from "@suggar-daddy/auth";
+import { AuthModule, JwtStrategy } from "@suggar-daddy/auth";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { NotificationController } from "./notification.controller";
@@ -35,16 +35,14 @@ import { NotificationGateway } from "./notification.gateway";
     }),
   ],
   controllers: [AppController, NotificationController, DeviceTokenController],
-<<<<<<< HEAD
   providers: [
     AppService,
     NotificationService,
     MatchingEventConsumer,
     SocialEventConsumer,
     FcmService,
+    NotificationGateway,
+    JwtStrategy,
   ],
-=======
-  providers: [AppService, NotificationService, MatchingEventConsumer, FcmService, NotificationGateway, JwtStrategy],
->>>>>>> a0fdce05c026d8e1406983e3732cd83732cce969
 })
 export class AppModule {}
