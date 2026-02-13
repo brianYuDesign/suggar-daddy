@@ -1,0 +1,134 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { MessageCircle } from 'lucide-react';
+import { Card } from '@suggar-daddy/ui';
+import { Avatar } from '@suggar-daddy/ui';
+import { Skeleton } from '@suggar-daddy/ui';
+import { messagingApi, ApiError } from '../../../lib/api';
+import { useAuth } from '../../../providers/auth-provider';
+import { timeAgo } from '../../../lib/utils';
+
+/* ------------------------------------------------------------------ */
+/*  Local types (not imported from @suggar-daddy/dto)                  */
+/* ------------------------------------------------------------------ */
+interface Conversation {
+  id: string;
+  participantIds: string[];
+  lastMessageAt?: Date;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
+export default function MessagesPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const data = await messagingApi.getConversations();
+        if (!cancelled) {
+          setConversations(data as unknown as Conversation[]);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof ApiError ? err.message : '無法載入對話');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /* ---------- helpers ---------- */
+  function getOtherParticipantId(conv: Conversation): string {
+    return conv.participantIds.find((id) => id !== user?.id) ?? conv.participantIds[0] ?? '';
+  }
+
+  function getInitials(id: string): string {
+    return id.slice(0, 2).toUpperCase();
+  }
+
+  /* ---------- render ---------- */
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <h1 className="text-xl font-bold text-gray-900">訊息</h1>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3 rounded-xl bg-white p-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center py-16 text-center">
+        <p className="text-sm text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <h1 className="text-xl font-bold text-gray-900">訊息</h1>
+
+      {conversations.length === 0 ? (
+        /* Empty state */
+        <div className="flex flex-col items-center py-16 text-center">
+          <div className="mb-4 rounded-full bg-brand-50 p-4">
+            <MessageCircle className="h-8 w-8 text-brand-500" />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900">還沒有任何對話</h2>
+          <p className="mt-2 max-w-xs text-sm text-gray-500">
+            去探索頁面找到你感興趣的人，開始對話吧！
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {conversations.map((conv) => {
+            const otherId = getOtherParticipantId(conv);
+            return (
+              <Card
+                key={conv.id}
+                className="flex cursor-pointer items-center gap-3 p-4 transition-colors hover:bg-gray-50 active:bg-gray-100"
+                onClick={() => router.push(`/messages/${conv.id}`)}
+              >
+                <Avatar fallback={getInitials(otherId)} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900">對話</p>
+                  {conv.lastMessageAt && (
+                    <p className="text-xs text-gray-500">
+                      {timeAgo(conv.lastMessageAt)}
+                    </p>
+                  )}
+                </div>
+                <MessageCircle className="h-4 w-4 shrink-0 text-gray-400" />
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
