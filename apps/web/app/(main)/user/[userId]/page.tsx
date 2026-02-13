@@ -12,8 +12,6 @@ import {
   CardContent,
   Separator,
   Skeleton,
-} from '@suggar-daddy/ui';
-import {
   Dialog,
   DialogHeader,
   DialogTitle,

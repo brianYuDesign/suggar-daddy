@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const rt = localStorage.getItem(REFRESH_KEY);
         if (!rt) return;
         try {
-          const res = await authApi.refresh({ refreshToken: rt } as any);
+          const res = await authApi.refresh({ refreshToken: rt });
           setTokens(res.accessToken, res.refreshToken);
           scheduleRefresh(res.expiresIn);
         } catch {
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // If access token is expired, try refresh
       if (isTokenExpired(accessToken)) {
         try {
-          const res = await authApi.refresh({ refreshToken } as any);
+          const res = await authApi.refresh({ refreshToken });
           setTokens(res.accessToken, res.refreshToken);
           scheduleRefresh(res.expiresIn);
         } catch {
@@ -150,12 +150,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const res = await authApi.login({ email, password } as any);
+      const res = await authApi.login({ email, password });
       setTokens(res.accessToken, res.refreshToken);
       scheduleRefresh(res.expiresIn);
       const user = await fetchUser();
@@ -172,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       displayName: string;
       bio?: string;
     }) => {
-      const res = await authApi.register(data as any);
+      const res = await authApi.register(data);
       setTokens(res.accessToken, res.refreshToken);
       scheduleRefresh(res.expiresIn);
       const user = await fetchUser();

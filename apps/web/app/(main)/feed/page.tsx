@@ -264,7 +264,6 @@ export default function FeedPage() {
         return next;
       });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.posts]);
 
   const handleLoadMore = () => {
