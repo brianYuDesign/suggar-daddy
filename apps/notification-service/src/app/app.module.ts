@@ -15,6 +15,7 @@ import { MatchingEventConsumer } from "./matching-event.consumer";
 import { SocialEventConsumer } from "./social-event.consumer";
 import { FcmService } from "./fcm.service";
 import { DeviceTokenController } from "./device-token.controller";
+import { NotificationGateway } from "./notification.gateway";
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { DeviceTokenController } from "./device-token.controller";
     }),
   ],
   controllers: [AppController, NotificationController, DeviceTokenController],
+<<<<<<< HEAD
   providers: [
     AppService,
     NotificationService,
@@ -41,5 +43,8 @@ import { DeviceTokenController } from "./device-token.controller";
     SocialEventConsumer,
     FcmService,
   ],
+=======
+  providers: [AppService, NotificationService, MatchingEventConsumer, FcmService, NotificationGateway, JwtStrategy],
+>>>>>>> a0fdce05c026d8e1406983e3732cd83732cce969
 })
 export class AppModule {}
