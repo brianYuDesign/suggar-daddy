@@ -85,7 +85,7 @@ export default function SubscriptionPage() {
     try {
       const sub = (await subscriptionsApi.subscribe(tierId)) as unknown as Subscription;
       setCurrentSub(sub);
-    } catch (err) {
+    } catch (_err) {
       /* optionally show toast */
     } finally {
       setActionLoading(null);

@@ -138,7 +138,6 @@ export default function DiscoverPage() {
   }, [fetchCards]);
 
   const currentCard = cards[currentIndex] ?? null;
-  const hasMore = currentIndex < cards.length - 1 || !!nextCursor;
 
   const handleSwipe = useCallback(
     async (action: 'like' | 'pass' | 'super_like') => {
