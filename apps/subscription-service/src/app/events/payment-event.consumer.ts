@@ -12,6 +12,8 @@ export class PaymentEventConsumer implements OnModuleInit {
     private readonly subscriptionService: SubscriptionService,
   ) {}
 
+  private readonly maxRetries = 3;
+
   async onModuleInit() {
     try {
       await this.kafkaConsumer.subscribe(PAYMENT_EVENTS.PAYMENT_COMPLETED, async (payload) => {
@@ -23,14 +25,30 @@ export class PaymentEventConsumer implements OnModuleInit {
         }
         const subscriptionId = event.metadata.subscriptionId;
         this.logger.log(`Payment completed for subscription ${subscriptionId}, extending period`);
-        try {
-          const nextEnd = new Date();
-          nextEnd.setMonth(nextEnd.getMonth() + 1);
-          await this.subscriptionService.extendPeriod(subscriptionId, nextEnd.toISOString());
-          this.logger.log(`Subscription ${subscriptionId} period extended to ${nextEnd.toISOString()}`);
-        } catch (err) {
-          this.logger.error(`Failed to extend subscription ${subscriptionId}:`, err);
+
+        let lastErr: unknown;
+        for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+          try {
+            const nextEnd = new Date();
+            nextEnd.setMonth(nextEnd.getMonth() + 1);
+            await this.subscriptionService.extendPeriod(subscriptionId, nextEnd.toISOString());
+            this.logger.log(`Subscription ${subscriptionId} period extended to ${nextEnd.toISOString()}`);
+            return;
+          } catch (err) {
+            lastErr = err;
+            this.logger.warn(
+              `Error extending subscription ${subscriptionId} (attempt ${attempt + 1}/${this.maxRetries + 1}):`,
+              err,
+            );
+            if (attempt < this.maxRetries) {
+              await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 500));
+            }
+          }
         }
+        this.logger.error(
+          `Failed to extend subscription ${subscriptionId} after ${this.maxRetries + 1} attempts. Event: ${JSON.stringify(event)}`,
+          lastErr instanceof Error ? lastErr.stack : String(lastErr),
+        );
       });
       await this.kafkaConsumer.startConsuming();
       this.logger.log('Payment event consumer started');

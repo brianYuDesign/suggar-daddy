@@ -3,6 +3,8 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index } from 
 @Entity('transactions')
 @Index('idx_transactions_user', ['userId', 'createdAt'])
 @Index('idx_transactions_stripe', ['stripePaymentId'])
+@Index('idx_transactions_status', ['status'])
+@Index('idx_transactions_type', ['type'])
 export class TransactionEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

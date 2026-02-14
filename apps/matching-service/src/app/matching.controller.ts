@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { SwipeRequestDto, type SwipeAction } from '@suggar-daddy/dto';
+import { SwipeRequestDto, type SwipeAction, type SwipeResponseDto, type CardsResponseDto, type MatchesResponseDto } from '@suggar-daddy/dto';
 import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/common';
 import { MatchingService } from './matching.service';
 
@@ -24,7 +24,7 @@ export class MatchingController {
   async swipe(
     @CurrentUser() user: CurrentUserData,
     @Body() body: SwipeRequestDto
-  ) {
+  ): Promise<SwipeResponseDto> {
     const swiperId = user.userId;
     this.logger.log(
       `swipe request swiperId=${swiperId} targetUserId=${body.targetUserId} action=${body.action}`
@@ -47,7 +47,7 @@ export class MatchingController {
     @Query('limit') limit = '20',
     @Query('cursor') cursor?: string,
     @Query('radius') radius?: string,
-  ) {
+  ): Promise<CardsResponseDto> {
     const uid = user.userId;
     const radiusKm = radius ? parseInt(radius, 10) || undefined : undefined;
     this.logger.log(`getCards userId=${uid} limit=${limit} radius=${radiusKm ?? 'default'} cursor=${cursor ?? 'none'}`);
@@ -62,7 +62,7 @@ export class MatchingController {
     @CurrentUser() user: CurrentUserData,
     @Query('limit') limit = '20',
     @Query('cursor') cursor?: string
-  ) {
+  ): Promise<MatchesResponseDto> {
     const uid = user.userId;
     this.logger.log(`getMatches userId=${uid} limit=${limit} cursor=${cursor ?? 'none'}`);
     const result = await this.matchingService.getMatches(uid, parseInt(limit, 10) || 20, cursor);
@@ -75,7 +75,7 @@ export class MatchingController {
   async unmatch(
     @CurrentUser() user: CurrentUserData,
     @Param('matchId') matchId: string
-  ) {
+  ): Promise<{ success: boolean }> {
     const uid = user.userId;
     this.logger.log(`unmatch request userId=${uid} matchId=${matchId}`);
     const result = await this.matchingService.unmatch(uid, matchId);

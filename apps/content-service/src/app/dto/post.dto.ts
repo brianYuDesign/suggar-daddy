@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsArray, IsIn, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsArray, IsIn, Min, MaxLength, ArrayMaxSize, IsUrl } from 'class-validator';
 
 export interface VideoMetaInput {
   mediaId: string;
@@ -17,10 +17,13 @@ export class CreatePostDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   caption?: string;
 
   @IsArray()
   @IsString({ each: true })
+  @ArrayMaxSize(10)
+  @IsUrl({}, { each: true })
   mediaUrls: string[];
 
   @IsIn(['public', 'subscribers', 'tier_specific', 'ppv'])
@@ -42,6 +45,7 @@ export class CreatePostDto {
 export class UpdatePostDto {
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   caption?: string;
 
   @IsOptional()

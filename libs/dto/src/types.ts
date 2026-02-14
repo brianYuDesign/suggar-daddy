@@ -76,6 +76,11 @@ export interface UpdateProfileDto {
   bio?: string;
   avatarUrl?: string;
   birthDate?: string;
+  preferences?: Record<string, unknown>;
+  latitude?: number;
+  longitude?: number;
+  city?: string;
+  country?: string;
 }
 
 // Matching Types

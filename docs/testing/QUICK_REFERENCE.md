@@ -771,5 +771,46 @@ npx playwright test e2e/security/
 
 ---
 
-**最後更新**: 2026-02-14  
+## 快速修復清單
+
+> 整合自根目錄 `QUICK_FIX_CHECKLIST.md`，涵蓋後端效能與架構改進待辦事項。
+
+### Week 1: 緊急修復 (P0)
+
+- user-service N+1 優化：使用 `mget()` 替代循環 `get()`（`getCardsForRecommendation`, `getFollowers`, `getFollowing` 等）
+- matching-service 全表掃描優化：建立 `user:matches:{userId}` 索引，使用 ZSET，移除 SCAN
+- subscription-service 分頁優化：建立 `user:subscriptions:{userId}` 索引，使用 `lRange` 實現真正分頁
+- Redis 持久化配置：啟用 AOF (`appendonly yes`) + RDB
+
+### Week 2: 效能優化 (P1)
+
+- content-service 批量訂閱檢查：新增 `POST /batch-check`，實作訂閱狀態快取
+- notification-service 優化：使用 `mget()` 批量獲取，添加通知 TTL (7 天)
+- messaging-service 原子操作：Lua 腳本確保訊息添加和對話更新原子性
+- 所有臨時資料添加 TTL（通知 7 天、廣播 24 小時、登入嘗試 15 分鐘等）
+
+### Week 3: 架構改進 (P1)
+
+- 統一 Kafka 模組（`libs/kafka` vs `libs/common/kafka`）
+- 強制使用 `BusinessException` 替代 `throw new Error`
+- Stripe 退款機制：新增 `POST /transactions/:id/refund`
+- 全局 `ValidationPipe` 設置
+
+### Week 4: 補充功能 (P2)
+
+- 缺失 API 端點（軟刪除、撤銷滑動、收入分析、歸檔等）
+- db-writer-service 冪等性
+- 配對評分演算法
+- 性能測試（k6 / JMeter）
+
+### 驗證指標
+
+- API 響應時間 P95 < 200ms
+- 錯誤率 < 0.1%
+- Redis 快取命中率 > 90%
+- Kafka 消費延遲 < 1s
+
+---
+
+**最後更新**: 2026-02-14
 **維護者**: QA Team

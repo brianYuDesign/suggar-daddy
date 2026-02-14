@@ -16,7 +16,7 @@ import {
   Input,
   Label,
 } from '@suggar-daddy/ui';
-import { ArrowLeft, Camera, Loader2 } from 'lucide-react';
+import { ArrowLeft, Camera, Check, Loader2 } from 'lucide-react';
 import { uploadMedia } from '../../../../lib/upload';
 
 const profileSchema = z.object({
@@ -33,6 +33,11 @@ const profileSchema = z.object({
     .string()
     .optional()
     .or(z.literal('')),
+  city: z
+    .string()
+    .max(100, '城市名稱最多 100 個字')
+    .optional()
+    .or(z.literal('')),
   lookingFor: z.string().optional().or(z.literal('')),
   interests: z.string().optional().or(z.literal('')),
 });
@@ -43,6 +48,7 @@ export default function EditProfilePage() {
   const { user, refreshUser } = useAuth();
   const router = useRouter();
   const [serverError, setServerError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
@@ -50,6 +56,7 @@ export default function EditProfilePage() {
     register,
     handleSubmit,
     formState: { errors, isDirty },
+    reset,
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -58,6 +65,7 @@ export default function EditProfilePage() {
       birthDate: user?.birthDate
         ? new Date(user.birthDate).toISOString().split('T')[0]
         : '',
+      city: user?.city || '',
     },
   });
 
@@ -67,6 +75,7 @@ export default function EditProfilePage() {
 
   const onSubmit = async (data: ProfileFormValues) => {
     setServerError('');
+    setSuccessMessage('');
     setIsSubmitting(true);
 
     try {
@@ -82,13 +91,16 @@ export default function EditProfilePage() {
         payload.birthDate = data.birthDate;
       }
 
-      const preferences: Record<string, unknown> = {};
-      const formValues = data;
-      if (formValues.lookingFor) {
-        preferences.lookingFor = formValues.lookingFor;
+      if (data.city !== undefined) {
+        payload.city = data.city || null;
       }
-      if (formValues.interests) {
-        preferences.interests = formValues.interests
+
+      const preferences: Record<string, unknown> = {};
+      if (data.lookingFor) {
+        preferences.lookingFor = data.lookingFor;
+      }
+      if (data.interests) {
+        preferences.interests = data.interests
           .split(',')
           .map((s: string) => s.trim())
           .filter(Boolean);
@@ -99,7 +111,9 @@ export default function EditProfilePage() {
 
       await usersApi.updateProfile(payload);
       await refreshUser();
-      router.back();
+      setSuccessMessage('個人檔案已更新');
+      reset(data);
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: unknown) {
       const message = ApiError.getMessage(err, '更新失敗，請稍後再試');
       setServerError(message);
@@ -122,6 +136,14 @@ export default function EditProfilePage() {
         </button>
         <h1 className="text-xl font-bold text-gray-900">編輯個人檔案</h1>
       </div>
+
+      {/* Success toast */}
+      {successMessage && (
+        <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-700 flex items-center gap-2">
+          <Check className="h-4 w-4 flex-shrink-0" />
+          {successMessage}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Card>
@@ -217,6 +239,20 @@ export default function EditProfilePage() {
               )}
             </div>
 
+            {/* City / Location */}
+            <div className="space-y-2">
+              <Label htmlFor="city">所在城市</Label>
+              <Input
+                id="city"
+                placeholder="例如：台北、東京、紐約"
+                maxLength={100}
+                {...register('city')}
+              />
+              {errors.city && (
+                <p className="text-xs text-red-500">{errors.city.message}</p>
+              )}
+            </div>
+
             {/* Preferences */}
             <div className="space-y-4 border-t pt-4">
               <p className="text-sm font-medium text-gray-900">偏好設定</p>
@@ -279,7 +315,7 @@ export default function EditProfilePage() {
               type="button"
               variant="ghost"
               className="w-full"
-              onClick={() => router.back()}
+              onClick={() => router.push('/profile')}
             >
               取消
             </Button>

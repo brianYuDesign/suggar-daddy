@@ -3,6 +3,7 @@ import { MatchingService } from './matching.service';
 import { UserServiceClient } from './user-service.client';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import type { UserCardDto } from '@suggar-daddy/dto';
 
 describe('MatchingService', () => {
   let service: MatchingService;
@@ -55,10 +56,10 @@ describe('MatchingService', () => {
       redis.geoPos!.mockResolvedValue(null);
       redis.sMembers!.mockResolvedValue(['user-3', 'user-5']);
       userServiceClient.getCardsForRecommendation!.mockResolvedValue([
-        { id: 'user-1', displayName: 'A', avatarUrl: null },
-        { id: 'user-2', displayName: 'B', avatarUrl: null },
-        { id: 'user-3', displayName: 'C', avatarUrl: null },
-      ] as any);
+        { id: 'user-1', displayName: 'A', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
+        { id: 'user-2', displayName: 'B', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
+        { id: 'user-3', displayName: 'C', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
+      ] satisfies UserCardDto[]);
       const result = await service.getCards('user-0', 3);
       expect(result.cards.length).toBeLessThanOrEqual(3);
       expect(result.cards.every((c) => c.id !== 'user-0')).toBe(true);
@@ -75,7 +76,7 @@ describe('MatchingService', () => {
       userServiceClient.getCardsByIds!.mockResolvedValue([
         { id: 'user-1', displayName: 'A', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
         { id: 'user-2', displayName: 'B', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
-      ] as any);
+      ] satisfies UserCardDto[]);
 
       const result = await service.getCards('user-0', 10, undefined, 50);
 
@@ -96,7 +97,7 @@ describe('MatchingService', () => {
       userServiceClient.getCardsByIds!.mockResolvedValue([
         { id: 'user-1', displayName: 'A', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
         { id: 'user-3', displayName: 'C', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
-      ] as any);
+      ] satisfies UserCardDto[]);
 
       const result = await service.getCards('user-0', 10, undefined, 50);
 
@@ -195,6 +196,8 @@ describe('MatchingService', () => {
         matchedAt: new Date(),
         status: 'active',
       };
+      redis.sMembers!.mockResolvedValue(['match-1']);
+      redis.get!.mockResolvedValue(null);
       redis.scan!.mockResolvedValue(['match:user-1:user-2']);
       redis.mget!.mockResolvedValue([JSON.stringify(matchRecord)]);
       redis.set!.mockResolvedValue(undefined);
@@ -210,8 +213,7 @@ describe('MatchingService', () => {
     });
 
     it('應在非本人或找不到時回傳 success: false', async () => {
-      redis.scan!.mockResolvedValue([]);
-      redis.mget!.mockResolvedValue([]);
+      redis.sMembers!.mockResolvedValue([]);
 
       const result = await service.unmatch('user-1', 'match-999');
 

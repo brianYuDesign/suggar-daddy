@@ -1,14 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../../../providers/auth-provider';
+import { authApi } from '../../../../lib/api';
 import {
   Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
+  Input,
+  Label,
   Dialog,
   DialogHeader,
   DialogTitle,
@@ -21,24 +27,91 @@ import {
   LogOut,
   ShieldBan,
   Info,
+  Lock,
+  Loader2,
 } from 'lucide-react';
+import { Toast } from './components/Toast';
+import { NotificationSection } from './components/NotificationSection';
+import { PrivacySection } from './components/PrivacySection';
+import { CreatorSection } from './components/CreatorSection';
 
 const APP_VERSION = '1.0.0';
+
+// --- Zod schema for change password ---
+const changePasswordSchema = z
+  .object({
+    oldPassword: z.string().min(1, '請輸入舊密碼'),
+    newPassword: z.string().min(8, '密碼至少 8 個字元').max(128, '密碼最多 128 個字元'),
+    confirmPassword: z.string().min(1, '請確認新密碼'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: '兩次輸入的密碼不一致',
+    path: ['confirmPassword'],
+  });
+
+type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
-  if (!user) return null;
+  // Toast state
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
+
+  const showToast = useCallback(
+    (message: string, type: 'success' | 'error') => {
+      setToast({ message, type });
+      setTimeout(() => setToast(null), 3000);
+    },
+    []
+  );
+
+  // --- Change password form ---
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting: isPasswordSubmitting },
+    reset: resetPasswordForm,
+  } = useForm<ChangePasswordForm>({
+    resolver: zodResolver(changePasswordSchema),
+  });
+
+  const onChangePassword = async (data: ChangePasswordForm) => {
+    try {
+      await authApi.changePassword(data.oldPassword, data.newPassword);
+      showToast('密碼修改成功', 'success');
+      resetPasswordForm();
+    } catch {
+      showToast('密碼修改失敗，請確認舊密碼是否正確', 'error');
+    }
+  };
+
+  // --- Logout dialog ---
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
     setShowLogoutDialog(false);
     logout();
   };
 
+  if (!user) return null;
+
+  const isCreator = user.role === 'sugar_baby' || user.role === 'CREATOR';
+
   return (
     <div className="space-y-6">
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
@@ -52,7 +125,7 @@ export default function SettingsPage() {
         <h1 className="text-xl font-bold text-gray-900">設定</h1>
       </div>
 
-      {/* Account section */}
+      {/* Account info */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">帳號資訊</CardTitle>
@@ -67,7 +140,98 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Privacy section */}
+      {/* Account security - Change password */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Lock className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-base">帳號安全</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={handleSubmit(onChangePassword)}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="oldPassword">舊密碼</Label>
+              <Input
+                id="oldPassword"
+                type="password"
+                placeholder="請輸入舊密碼"
+                {...register('oldPassword')}
+              />
+              {errors.oldPassword && (
+                <p className="text-xs text-red-500">
+                  {errors.oldPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">新密碼</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                placeholder="至少 8 個字元"
+                {...register('newPassword')}
+              />
+              {errors.newPassword && (
+                <p className="text-xs text-red-500">
+                  {errors.newPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">確認新密碼</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="再次輸入新密碼"
+                {...register('confirmPassword')}
+              />
+              {errors.confirmPassword && (
+                <p className="text-xs text-red-500">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isPasswordSubmitting}
+            >
+              {isPasswordSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  修改中...
+                </>
+              ) : (
+                '修改密碼'
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Notification settings */}
+      <NotificationSection
+        preferences={user.preferences}
+        showToast={showToast}
+      />
+
+      {/* Privacy settings */}
+      <PrivacySection
+        preferences={user.preferences}
+        showToast={showToast}
+      />
+
+      {/* Creator settings - only for CREATOR role */}
+      {isCreator && <CreatorSection showToast={showToast} />}
+
+      {/* Privacy & security links */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">隱私與安全</CardTitle>
@@ -106,7 +270,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Logout confirmation dialog */}
-      <Dialog open={showLogoutDialog} onClose={() => setShowLogoutDialog(false)}>
+      <Dialog
+        open={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+      >
         <DialogHeader>
           <DialogTitle>確認登出</DialogTitle>
           <DialogDescription>
@@ -120,10 +287,7 @@ export default function SettingsPage() {
           >
             取消
           </Button>
-          <Button
-            variant="destructive"
-            onClick={handleLogout}
-          >
+          <Button variant="destructive" onClick={handleLogout}>
             確認登出
           </Button>
         </DialogFooter>

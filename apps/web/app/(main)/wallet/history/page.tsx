@@ -1,20 +1,23 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
-  ArrowUpRight,
   ArrowDownLeft,
   CreditCard,
   Gift,
   Loader2,
+  Filter,
+  ShoppingBag,
+  MessageCircle,
 } from 'lucide-react';
 import {
   Button,
   Card,
   Badge,
   Skeleton,
+  Select,
   Separator,
   cn,
 } from '@suggar-daddy/ui';
@@ -34,36 +37,77 @@ interface Transaction {
   createdAt: string;
 }
 
+type TransactionTypeFilter = 'all' | 'TIP' | 'SUBSCRIPTION' | 'POST_PURCHASE' | 'DM_PURCHASE' | 'WITHDRAWAL';
+
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 const typeConfig: Record<
   string,
-  { label: string; color: string; bgColor: string; icon: typeof Gift }
+  { label: string; color: string; bgColor: string; icon: typeof Gift; isExpense: boolean }
 > = {
+  TIP: {
+    label: '打賞',
+    color: 'text-green-700',
+    bgColor: 'bg-green-100',
+    icon: Gift,
+    isExpense: false,
+  },
   tip: {
     label: '打賞',
     color: 'text-green-700',
     bgColor: 'bg-green-100',
     icon: Gift,
+    isExpense: false,
+  },
+  SUBSCRIPTION: {
+    label: '訂閱',
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-100',
+    icon: CreditCard,
+    isExpense: false,
   },
   subscription: {
     label: '訂閱',
     color: 'text-blue-700',
     bgColor: 'bg-blue-100',
     icon: CreditCard,
+    isExpense: false,
+  },
+  POST_PURCHASE: {
+    label: '貼文購買',
+    color: 'text-purple-700',
+    bgColor: 'bg-purple-100',
+    icon: ShoppingBag,
+    isExpense: false,
   },
   purchase: {
     label: '購買',
     color: 'text-purple-700',
     bgColor: 'bg-purple-100',
-    icon: ArrowUpRight,
+    icon: ShoppingBag,
+    isExpense: false,
+  },
+  DM_PURCHASE: {
+    label: '私訊購買',
+    color: 'text-indigo-700',
+    bgColor: 'bg-indigo-100',
+    icon: MessageCircle,
+    isExpense: false,
+  },
+  WITHDRAWAL: {
+    label: '提款',
+    color: 'text-orange-700',
+    bgColor: 'bg-orange-100',
+    icon: ArrowDownLeft,
+    isExpense: true,
   },
   withdrawal: {
     label: '提款',
     color: 'text-orange-700',
     bgColor: 'bg-orange-100',
     icon: ArrowDownLeft,
+    isExpense: true,
   },
 };
 
@@ -74,6 +118,7 @@ function getTypeConfig(type: string) {
       color: 'text-gray-700',
       bgColor: 'bg-gray-100',
       icon: CreditCard,
+      isExpense: false,
     }
   );
 }
@@ -83,25 +128,40 @@ function formatAmount(amount: number, currency: string) {
     style: 'currency',
     currency: currency || 'TWD',
     minimumFractionDigits: 0,
-  }).format(amount);
+  }).format(Math.abs(amount));
 }
 
 function statusLabel(status: string) {
   const map: Record<string, string> = {
     completed: '完成',
+    COMPLETED: '完成',
     pending: '處理中',
+    PENDING: '處理中',
     failed: '失敗',
+    FAILED: '失敗',
     processing: '處理中',
     rejected: '已拒絕',
+    REFUNDED: '已退款',
+    CANCELLED: '已取消',
   };
   return map[status] ?? status;
 }
 
 function statusVariant(status: string) {
-  if (status === 'completed') return 'success' as const;
-  if (status === 'failed' || status === 'rejected') return 'destructive' as const;
+  const s = status.toLowerCase();
+  if (s === 'completed') return 'success' as const;
+  if (s === 'failed' || s === 'rejected' || s === 'cancelled') return 'destructive' as const;
   return 'warning' as const;
 }
+
+const filterOptions: { value: TransactionTypeFilter; label: string }[] = [
+  { value: 'all', label: '全部類型' },
+  { value: 'TIP', label: '打賞' },
+  { value: 'SUBSCRIPTION', label: '訂閱' },
+  { value: 'POST_PURCHASE', label: '貼文購買' },
+  { value: 'DM_PURCHASE', label: '私訊購買' },
+  { value: 'WITHDRAWAL', label: '提款' },
+];
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
@@ -114,6 +174,14 @@ export default function TransactionHistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  // Filters
+  const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  // Intersection Observer ref
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   /* ---------- initial load ---------- */
   useEffect(() => {
@@ -158,7 +226,53 @@ export default function TransactionHistoryPage() {
     }
   }, [nextCursor, loadingMore]);
 
-  /* ---------- render ---------- */
+  /* ---------- Intersection Observer for infinite scroll ---------- */
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loadMore]);
+
+  /* ---------- client-side filtering ---------- */
+  const filteredTransactions = transactions.filter((tx) => {
+    // Type filter
+    if (typeFilter !== 'all') {
+      const txType = tx.type.toUpperCase();
+      if (txType !== typeFilter && tx.type !== typeFilter.toLowerCase()) {
+        return false;
+      }
+    }
+
+    // Date range filter
+    if (dateFrom) {
+      const txDate = new Date(tx.createdAt);
+      const fromDate = new Date(dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      if (txDate < fromDate) return false;
+    }
+
+    if (dateTo) {
+      const txDate = new Date(tx.createdAt);
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      if (txDate > toDate) return false;
+    }
+
+    return true;
+  });
+
+  /* ---------- render: loading ---------- */
   if (loading) {
     return (
       <div className="space-y-3">
@@ -180,6 +294,7 @@ export default function TransactionHistoryPage() {
     );
   }
 
+  /* ---------- render: error ---------- */
   if (error) {
     return (
       <div className="flex flex-col items-center py-16 text-center">
@@ -202,21 +317,83 @@ export default function TransactionHistoryPage() {
         <h1 className="text-xl font-bold text-gray-900">交易記錄</h1>
       </div>
 
-      {transactions.length === 0 ? (
+      {/* Filters */}
+      <Card className="space-y-3 p-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <Filter className="h-4 w-4" />
+          篩選
+        </div>
+
+        <Select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value as TransactionTypeFilter)}
+          className="text-sm"
+        >
+          {filterOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </Select>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">開始日期</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-gray-500">結束日期</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+        </div>
+
+        {(typeFilter !== 'all' || dateFrom || dateTo) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-gray-500"
+            onClick={() => {
+              setTypeFilter('all');
+              setDateFrom('');
+              setDateTo('');
+            }}
+          >
+            清除篩選
+          </Button>
+        )}
+      </Card>
+
+      {/* Transaction list */}
+      {filteredTransactions.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
           <div className="mb-4 rounded-full bg-gray-100 p-4">
             <CreditCard className="h-8 w-8 text-gray-400" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900">沒有交易記錄</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {transactions.length === 0 ? '沒有交易記錄' : '沒有符合條件的交易'}
+          </h2>
           <p className="mt-2 max-w-xs text-sm text-gray-500">
-            你的交易記錄會顯示在這裡
+            {transactions.length === 0
+              ? '你的交易記錄會顯示在這裡'
+              : '請嘗試調整篩選條件'}
           </p>
         </div>
       ) : (
         <div className="space-y-2">
-          {transactions.map((tx, idx) => {
+          {filteredTransactions.map((tx, idx) => {
             const config = getTypeConfig(tx.type);
             const Icon = config.icon;
+            const isExpense = config.isExpense;
 
             return (
               <div key={tx.id}>
@@ -256,35 +433,27 @@ export default function TransactionHistoryPage() {
                   <p
                     className={cn(
                       'text-sm font-semibold',
-                      tx.type === 'withdrawal'
-                        ? 'text-orange-600'
-                        : 'text-gray-900'
+                      isExpense ? 'text-red-600' : 'text-green-600'
                     )}
                   >
-                    {tx.type === 'withdrawal' ? '-' : '+'}
-                    {formatAmount(Math.abs(tx.amount), tx.currency)}
+                    {isExpense ? '-' : '+'}
+                    {formatAmount(tx.amount, tx.currency)}
                   </p>
                 </Card>
 
-                {idx < transactions.length - 1 && <Separator className="my-1" />}
+                {idx < filteredTransactions.length - 1 && (
+                  <Separator className="my-1" />
+                )}
               </div>
             );
           })}
 
-          {/* Load more */}
+          {/* Infinite scroll sentinel */}
           {nextCursor && (
-            <div className="pt-2 text-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadMore}
-                disabled={loadingMore}
-              >
-                {loadingMore ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
-                載入更多
-              </Button>
+            <div ref={sentinelRef} className="flex justify-center py-4">
+              {loadingMore && (
+                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+              )}
             </div>
           )}
         </div>

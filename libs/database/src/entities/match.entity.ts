@@ -4,10 +4,15 @@ import {
   Column,
   CreateDateColumn,
   Unique,
+  Index,
 } from 'typeorm';
 
 @Entity('matches')
 @Unique(['userAId', 'userBId'])
+@Index('idx_matches_userA', ['userAId'])
+@Index('idx_matches_userB', ['userBId'])
+@Index('idx_matches_status', ['status'])
+@Index('idx_matches_created', ['createdAt'])
 export class MatchEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

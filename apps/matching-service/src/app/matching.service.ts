@@ -290,7 +290,7 @@ export class MatchingService {
           if (match.status === 'active') {
             userMatches.push({ ...match, matchedAt: new Date(match.matchedAt) });
           }
-        } catch (err) {
+        } catch (_err) {
           this.logger.warn(`Failed to parse match record for key ${matchKeys[i]}`);
         }
       }
@@ -329,8 +329,53 @@ export class MatchingService {
     };
   }
 
+  private async findMatchByWildcard(
+    pattern: string,
+    matchId: string,
+  ): Promise<{ record: MatchRecord; key: string } | null> {
+    const keys = await this.redisService.scan(pattern);
+    if (keys.length === 0) return null;
+    const values = await this.redisService.mget(...keys);
+    for (let i = 0; i < values.length; i++) {
+      if (!values[i]) continue;
+      const match = JSON.parse(values[i]!);
+      if (match.id === matchId) {
+        return { record: match, key: keys[i] };
+      }
+    }
+    return null;
+  }
+
+  private async findMatchByExactKey(
+    key: string,
+    matchId: string,
+  ): Promise<{ record: MatchRecord; key: string } | null> {
+    const raw = await this.redisService.get(key);
+    if (!raw) return null;
+    const match = JSON.parse(raw);
+    if (match.id === matchId) {
+      return { record: match, key };
+    }
+    return null;
+  }
+
+  private async findMatchRecord(
+    userId: string,
+    matchId: string,
+  ): Promise<{ record: MatchRecord; key: string } | null> {
+    const exactResult = await this.findMatchByExactKey(
+      `${this.MATCH_PREFIX}${matchId}`,
+      matchId,
+    );
+    if (exactResult) return exactResult;
+
+    return this.findMatchByWildcard(
+      `${this.MATCH_PREFIX}${userId}:*`,
+      matchId,
+    );
+  }
+
   async unmatch(userId: string, matchId: string): Promise<{ success: boolean }> {
-    // ✅ 優化：先檢查用戶是否有此配對，避免全表掃描
     const userMatchesKey = `${this.USER_MATCHES_PREFIX}${userId}`;
     const userMatchIds = await this.redisService.sMembers(userMatchesKey);
 
@@ -339,54 +384,15 @@ export class MatchingService {
       return { success: false };
     }
 
-    // ✅ 優化：直接構造 key 並取得配對記錄
-    // 從用戶配對列表中找到對應的 match key
-    const possibleKeys = [
-      `${this.MATCH_PREFIX}${matchId}`,
-      `${this.MATCH_PREFIX}${userId}:*`,
-    ];
+    const found = await this.findMatchRecord(userId, matchId);
 
-    let matchRecord: MatchRecord | null = null;
-    let matchKey: string | null = null;
-
-    // 嘗試直接取得 match 記錄
-    for (const key of possibleKeys) {
-      if (key.includes('*')) {
-        // 需要掃描，但範圍很小
-        const keys = await this.redisService.scan(key);
-        if (keys.length > 0) {
-          const values = await this.redisService.mget(...keys);
-          for (let i = 0; i < values.length; i++) {
-            if (values[i]) {
-              const match = JSON.parse(values[i]!);
-              if (match.id === matchId) {
-                matchRecord = match;
-                matchKey = keys[i];
-                break;
-              }
-            }
-          }
-        }
-      } else {
-        const raw = await this.redisService.get(key);
-        if (raw) {
-          const match = JSON.parse(raw);
-          if (match.id === matchId) {
-            matchRecord = match;
-            matchKey = key;
-            break;
-          }
-        }
-      }
-      if (matchRecord) break;
-    }
-
-    if (!matchRecord || !matchKey) {
+    if (!found) {
       this.logger.warn(`unmatch failed (match not found) userId=${userId} matchId=${matchId}`);
       return { success: false };
     }
 
-    // 檢查權限
+    const { record: matchRecord, key: matchKey } = found;
+
     if (matchRecord.userAId !== userId && matchRecord.userBId !== userId) {
       this.logger.warn(`unmatch failed (not owner) userId=${userId} matchId=${matchId}`);
       return { success: false };
@@ -397,19 +403,16 @@ export class MatchingService {
       return { success: false };
     }
 
-    // 更新狀態
     matchRecord.status = 'unmatched';
     await this.redisService.set(matchKey, JSON.stringify(matchRecord));
 
-    // 從兩個用戶的配對列表中移除
     await Promise.all([
       this.redisService.sRem(`${this.USER_MATCHES_PREFIX}${matchRecord.userAId}`, matchId),
       this.redisService.sRem(`${this.USER_MATCHES_PREFIX}${matchRecord.userBId}`, matchId),
     ]);
 
     this.logger.log(`unmatch applied userId=${userId} matchId=${matchId}`);
-    
-    // 發送 Kafka 事件
+
     await this.kafkaProducer.sendEvent(MATCHING_EVENTS.UNMATCHED, {
       matchId,
       unmatchedBy: userId,

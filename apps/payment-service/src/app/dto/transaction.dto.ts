@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, IsIn, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsIn, Min, Max } from 'class-validator';
 
 export class CreateTransactionDto {
   @IsString()
@@ -9,6 +9,7 @@ export class CreateTransactionDto {
 
   @IsNumber()
   @Min(0)
+  @Max(999999)
   amount!: number;
 
   @IsOptional()

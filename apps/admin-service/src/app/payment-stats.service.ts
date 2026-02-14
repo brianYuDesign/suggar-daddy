@@ -11,6 +11,10 @@ import {
   TipEntity,
   SubscriptionEntity,
 } from '@suggar-daddy/database';
+import { RedisService } from '@suggar-daddy/redis';
+
+/** Redis 快取 TTL（秒） */
+const PAYMENT_CACHE_TTL = 300; // 5 分鐘
 
 @Injectable()
 export class PaymentStatsService {
@@ -23,10 +27,15 @@ export class PaymentStatsService {
     private readonly tipRepo: Repository<TipEntity>,
     @InjectRepository(SubscriptionEntity)
     private readonly subscriptionRepo: Repository<SubscriptionEntity>,
+    private readonly redisService: RedisService,
   ) {}
 
   /** 取得營收報表 */
   async getRevenueReport(startDate: string, endDate: string) {
+    const cacheKey = `payment:revenue_report:${startDate}:${endDate}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) { try { return JSON.parse(cached); } catch { /* recompute */ } }
+
     const start = new Date(startDate);
     const end = new Date(endDate);
     const transactions = await this.transactionRepo.find({
@@ -39,16 +48,23 @@ export class PaymentStatsService {
       byType[t.type].count++;
       byType[t.type].amount += Number(t.amount);
     }
-    return {
+    const result = {
       startDate, endDate,
       totalRevenue: Math.round(totalRevenue * 100) / 100,
       transactionCount: transactions.length,
       byType,
     };
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), PAYMENT_CACHE_TTL);
+    return result;
   }
 
   /** 取得頂尖創作者排行（依營收） */
   async getTopCreators(limit: number) {
+    const cacheKey = `payment:top_creators:${limit}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) { try { return JSON.parse(cached); } catch { /* recompute */ } }
+
     const tipRanking = await this.tipRepo
       .createQueryBuilder('tip')
       .select('tip.toUserId', 'creatorId')
@@ -81,13 +97,20 @@ export class PaymentStatsService {
       creatorMap[s.creatorId].subscriberCount = parseInt(s.subscriberCount, 10) || 0;
     }
 
-    return Object.values(creatorMap)
+    const result = Object.values(creatorMap)
       .sort((a, b) => b.tipRevenue - a.tipRevenue)
       .slice(0, limit);
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), PAYMENT_CACHE_TTL);
+    return result;
   }
 
   /** 取得每日營收（過去 N 天） */
   async getDailyRevenue(days: number) {
+    const cacheKey = `payment:daily_revenue:${days}`;
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) { try { return JSON.parse(cached); } catch { /* recompute */ } }
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
     startDate.setHours(0, 0, 0, 0);
@@ -101,15 +124,22 @@ export class PaymentStatsService {
       .groupBy("DATE(tx.createdAt)")
       .orderBy('date', 'ASC')
       .getRawMany();
-    return dailyData.map((d) => ({
+    const result = dailyData.map((d) => ({
       date: d.date,
       revenue: Math.round(Number(d.revenue) * 100) / 100,
       count: parseInt(d.count, 10),
     }));
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), PAYMENT_CACHE_TTL);
+    return result;
   }
 
   /** 取得支付概覽統計 */
   async getPaymentStats() {
+    const cacheKey = 'payment:stats_overview';
+    const cached = await this.redisService.get(cacheKey);
+    if (cached) { try { return JSON.parse(cached); } catch { /* recompute */ } }
+
     const totalTransactions = await this.transactionRepo.count();
     const successfulTransactions = await this.transactionRepo.count({ where: { status: 'completed' } });
     const totalAmountResult = await this.transactionRepo
@@ -122,11 +152,14 @@ export class PaymentStatsService {
     const averageAmount = Number(avgAmountResult?.avg) || 0;
     const successRate = totalTransactions > 0
       ? Math.round((successfulTransactions / totalTransactions) * 10000) / 100 : 0;
-    return {
+    const result = {
       totalTransactions, successfulTransactions,
       totalAmount: Math.round(totalAmount * 100) / 100,
       averageAmount: Math.round(averageAmount * 100) / 100,
       successRate,
     };
+
+    await this.redisService.set(cacheKey, JSON.stringify(result), PAYMENT_CACHE_TTL);
+    return result;
   }
 }

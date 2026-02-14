@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, Min, Max } from 'class-validator';
 
 export class CreatePostPurchaseDto {
   @IsString()
@@ -9,6 +9,7 @@ export class CreatePostPurchaseDto {
 
   @IsNumber()
   @Min(0)
+  @Max(999999)
   amount!: number;
 
   @IsOptional()

@@ -3,6 +3,9 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index } from 
 @Entity('subscriptions')
 @Index('idx_subs_subscriber', ['subscriberId'])
 @Index('idx_subs_creator', ['creatorId'])
+@Index('idx_subs_subscriber_creator', ['subscriberId', 'creatorId'])
+@Index('idx_subs_status', ['status'])
+@Index('idx_subs_stripe', ['stripeSubscriptionId'])
 export class SubscriptionEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

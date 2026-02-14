@@ -6,12 +6,14 @@ import {
   TipEntity,
   SubscriptionEntity,
 } from '@suggar-daddy/database';
+import { RedisService } from '@suggar-daddy/redis';
 
 describe('PaymentStatsService', () => {
   let service: PaymentStatsService;
   let transactionRepo: Record<string, jest.Mock>;
   let tipRepo: Record<string, jest.Mock>;
   let subscriptionRepo: Record<string, jest.Mock>;
+  let redis: Record<string, jest.Mock>;
 
   const mockTxQb = {
     select: jest.fn().mockReturnThis(),
@@ -54,12 +56,18 @@ describe('PaymentStatsService', () => {
       createQueryBuilder: jest.fn().mockReturnValue(mockSubQb),
     };
 
+    redis = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PaymentStatsService,
         { provide: getRepositoryToken(TransactionEntity), useValue: transactionRepo },
         { provide: getRepositoryToken(TipEntity), useValue: tipRepo },
         { provide: getRepositoryToken(SubscriptionEntity), useValue: subscriptionRepo },
+        { provide: RedisService, useValue: redis },
       ],
     }).compile();
 

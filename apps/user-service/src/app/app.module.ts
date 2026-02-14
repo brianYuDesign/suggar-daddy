@@ -14,6 +14,7 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
+import { ReportService } from "./report.service";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { UserService } from "./user.service";
   providers: [
     AppService,
     UserService,
+    ReportService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

@@ -120,18 +120,24 @@ export class RedisModule {
       });
     } else {
       // 單機模式（向後兼容）
+      const host = options.host ?? process.env['REDIS_HOST'] ?? 'localhost';
+      const port = Number(options.port ?? process.env['REDIS_PORT'] ?? 6379);
       const url = options.url ?? process.env['REDIS_URL'];
-      const parsed = url
-        ? url
-        : `redis://${options.host ?? process.env['REDIS_HOST'] ?? 'localhost'}:${options.port ?? process.env['REDIS_PORT'] ?? 6379}`;
 
-      console.log(`[RedisModule] 📍 連接到單機 Redis: ${parsed}`);
+      console.log(`[RedisModule] 📍 連接到單機 Redis: ${url ?? `redis://${host}:${port}`}`);
 
-      return new Redis(parsed, {
+      const redisOptions: import('ioredis').RedisOptions = {
         maxRetriesPerRequest: 3,
+        connectTimeout: 10000,
+        keepAlive: 30000,
         retryStrategy: (times) =>
           times > 3 ? null : Math.min(times * 200, 2000),
-      });
+      };
+
+      if (url) {
+        return new Redis(url, redisOptions);
+      }
+      return new Redis({ ...redisOptions, host, port });
     }
   }
 }

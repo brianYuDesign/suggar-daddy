@@ -25,6 +25,8 @@ export interface UserProfile {
   preferences?: Record<string, unknown>;
   verificationStatus: string;
   lastActiveAt?: Date;
+  city?: string;
+  country?: string;
   createdAt: Date;
   updatedAt: Date;
 }

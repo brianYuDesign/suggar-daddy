@@ -12,19 +12,24 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto, UpdateProfileDto, LocationUpdateDto } from '@suggar-daddy/dto';
-import { CurrentUser, Public, Roles, RolesGuard, UserRole, JwtAuthGuard, type CurrentUserData } from '@suggar-daddy/common';
+import type { CreateUserDto, UpdateProfileDto, LocationUpdateDto, UserProfileDto, UserCardDto, FollowerDto, FollowStatusDto, RecommendedCreatorDto } from '@suggar-daddy/dto';
+import { CurrentUser, Public, Roles, RolesGuard, UserRole, JwtAuthGuard, OptionalJwtGuard, type CurrentUserData } from '@suggar-daddy/common';
 import { UserService } from './user.service';
+import { ReportService } from './report.service';
+import type { ReportRecord } from './user.types';
 
 @Controller()
 export class UserController {
   private readonly logger = new Logger(UserController.name);
 
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly reportService: ReportService,
+  ) {}
 
   /** 取得當前用戶完整資料（從 JWT 取 userId） */
   @Get('me')
-  async getMe(@CurrentUser() user: CurrentUserData) {
+  async getMe(@CurrentUser() user: CurrentUserData): Promise<UserProfileDto> {
     const uid = user.userId;
     this.logger.log(`getMe request userId=${uid}`);
     const profile = await this.userService.getMe(uid);
@@ -35,12 +40,12 @@ export class UserController {
   }
 
   /** 取得推薦用卡片（exclude 逗號分隔的 userId，供 matching-service 使用） */
-  @Public()
+  @UseGuards(OptionalJwtGuard)
   @Get('cards')
   async getCards(
     @Query('exclude') excludeStr?: string,
     @Query('limit') limitStr?: string
-  ) {
+  ): Promise<UserCardDto[]> {
     const exclude = excludeStr ? excludeStr.split(',').map((s) => s.trim()).filter(Boolean) : [];
     const limit = Math.min(100, Math.max(1, parseInt(limitStr || '20', 10) || 20));
     return this.userService.getCardsForRecommendation(exclude, limit);
@@ -52,7 +57,7 @@ export class UserController {
   async getFollowStatus(
     @CurrentUser() user: CurrentUserData,
     @Param('targetId') targetId: string,
-  ) {
+  ): Promise<FollowStatusDto> {
     return this.userService.getFollowStatus(user.userId, targetId);
   }
 
@@ -60,7 +65,7 @@ export class UserController {
   async follow(
     @CurrentUser() user: CurrentUserData,
     @Param('targetId') targetId: string,
-  ) {
+  ): Promise<{ success: boolean }> {
     return this.userService.follow(user.userId, targetId);
   }
 
@@ -68,7 +73,7 @@ export class UserController {
   async unfollow(
     @CurrentUser() user: CurrentUserData,
     @Param('targetId') targetId: string,
-  ) {
+  ): Promise<{ success: boolean }> {
     return this.userService.unfollow(user.userId, targetId);
   }
 
@@ -78,7 +83,7 @@ export class UserController {
   async setDmPrice(
     @CurrentUser() user: CurrentUserData,
     @Body() body: { price: number | null },
-  ) {
+  ): Promise<{ success: boolean; dmPrice: number | null }> {
     return this.userService.setDmPrice(user.userId, body.price);
   }
 
@@ -88,17 +93,17 @@ export class UserController {
   async getRecommended(
     @CurrentUser() user: CurrentUserData,
     @Query('limit') limitStr?: string,
-  ) {
+  ): Promise<RecommendedCreatorDto[]> {
     const limit = Math.min(50, Math.max(1, parseInt(limitStr || '10', 10) || 10));
     return this.userService.getRecommendedCreators(user.userId, limit);
   }
 
-  @Public()
+  @UseGuards(OptionalJwtGuard)
   @Get('search')
   async searchUsers(
     @Query('q') query: string,
     @Query('limit') limitStr?: string,
-  ) {
+  ): Promise<FollowerDto[]> {
     const limit = Math.min(50, Math.max(1, parseInt(limitStr || '20', 10) || 20));
     return this.userService.searchUsers(query, limit);
   }
@@ -111,7 +116,7 @@ export class UserController {
     @Param('userId') userId: string,
     @Query('page') page?: string,
     @Query('limit') limitStr?: string,
-  ) {
+  ): Promise<{ data: FollowerDto[]; total: number }> {
     const p = Math.max(1, parseInt(page || '1', 10) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(limitStr || '20', 10) || 20));
     return this.userService.getFollowers(userId, p, limit);
@@ -123,7 +128,7 @@ export class UserController {
     @Param('userId') userId: string,
     @Query('page') page?: string,
     @Query('limit') limitStr?: string,
-  ) {
+  ): Promise<{ data: FollowerDto[]; total: number }> {
     const p = Math.max(1, parseInt(page || '1', 10) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(limitStr || '20', 10) || 20));
     return this.userService.getFollowing(userId, p, limit);
@@ -135,7 +140,7 @@ export class UserController {
   async getProfile(
     @Param('userId') userId: string,
     @CurrentUser() currentUser?: CurrentUserData,
-  ) {
+  ): Promise<UserProfileDto> {
     this.logger.log(`getProfile request userId=${userId}`);
 
     // Check if blocked
@@ -158,7 +163,7 @@ export class UserController {
   async updateProfile(
     @CurrentUser() user: CurrentUserData,
     @Body() body: UpdateProfileDto
-  ) {
+  ): Promise<UserProfileDto> {
     const uid = user.userId;
     this.logger.log(`updateProfile request userId=${uid}`);
     return this.userService.updateProfile(uid, body);
@@ -169,7 +174,7 @@ export class UserController {
   async updateLocation(
     @CurrentUser() user: CurrentUserData,
     @Body() body: LocationUpdateDto,
-  ) {
+  ): Promise<{ success: boolean }> {
     const uid = user.userId;
     this.logger.log(`updateLocation request userId=${uid} lat=${body.latitude} lng=${body.longitude}`);
     return this.userService.updateLocation(uid, body);
@@ -178,14 +183,14 @@ export class UserController {
   /** 取得指定 userId 列表的卡片（供 matching-service 內部呼叫） */
   @Public()
   @Post('cards/by-ids')
-  async getCardsByIds(@Body() body: { userIds: string[] }) {
+  async getCardsByIds(@Body() body: { userIds: string[] }): Promise<UserCardDto[]> {
     return this.userService.getCardsByIds(body.userIds);
   }
 
   /** 創建用戶（註冊用；允許未登入，由 auth 或 gateway 呼叫） */
   @Public()
   @Post()
-  async create(@Body() body: CreateUserDto) {
+  async create(@Body() body: CreateUserDto): Promise<UserProfileDto> {
     this.logger.log(`create user request role=${body.role} displayName=${body.displayName}`);
     const user = await this.userService.create(body);
     this.logger.log(`create user result id=${user.id}`);
@@ -198,7 +203,7 @@ export class UserController {
   async blockUser(
     @CurrentUser() user: CurrentUserData,
     @Param('targetId') targetId: string,
-  ) {
+  ): Promise<{ success: boolean }> {
     return this.userService.blockUser(user.userId, targetId);
   }
 
@@ -206,12 +211,12 @@ export class UserController {
   async unblockUser(
     @CurrentUser() user: CurrentUserData,
     @Param('targetId') targetId: string,
-  ) {
+  ): Promise<{ success: boolean }> {
     return this.userService.unblockUser(user.userId, targetId);
   }
 
   @Get('blocked')
-  async getBlockedUsers(@CurrentUser() user: CurrentUserData) {
+  async getBlockedUsers(@CurrentUser() user: CurrentUserData): Promise<string[]> {
     return this.userService.getBlockedUsers(user.userId);
   }
 
@@ -221,8 +226,8 @@ export class UserController {
   async createReport(
     @CurrentUser() user: CurrentUserData,
     @Body() body: { targetType: 'user' | 'post' | 'comment'; targetId: string; reason: string; description?: string },
-  ) {
-    return this.userService.createReport(
+  ): Promise<ReportRecord> {
+    return this.reportService.createReport(
       user.userId,
       body.targetType,
       body.targetId,
@@ -236,8 +241,8 @@ export class UserController {
   @Get('admin/reports')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async getPendingReports() {
-    return this.userService.getPendingReports();
+  async getPendingReports(): Promise<ReportRecord[]> {
+    return this.reportService.getPendingReports();
   }
 
   @Put('admin/reports/:reportId')
@@ -246,7 +251,7 @@ export class UserController {
   async updateReportStatus(
     @Param('reportId') reportId: string,
     @Body() body: { status: 'reviewed' | 'actioned' | 'dismissed' },
-  ) {
-    return this.userService.updateReportStatus(reportId, body.status);
+  ): Promise<ReportRecord> {
+    return this.reportService.updateReportStatus(reportId, body.status);
   }
 }

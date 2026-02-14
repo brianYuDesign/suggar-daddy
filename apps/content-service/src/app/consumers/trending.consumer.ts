@@ -12,37 +12,45 @@ export class TrendingConsumer implements OnModuleInit {
     private readonly discoveryService: DiscoveryService,
   ) {}
 
+  private readonly maxRetries = 3;
+
   async onModuleInit() {
     try {
-      // Listen for likes
-      await this.kafkaConsumer.subscribe(CONTENT_EVENTS.POST_LIKED, async (payload) => {
-        const value = payload.message?.value;
-        if (!value) return;
-        const event = JSON.parse(value.toString());
-        if (event.postId) {
-          await this.discoveryService.updateTrendingScore(event.postId, 'like');
-        }
-      });
+      const trendingTopics: Array<{ topic: string; action: 'like' | 'comment' | 'bookmark' }> = [
+        { topic: CONTENT_EVENTS.POST_LIKED, action: 'like' },
+        { topic: CONTENT_EVENTS.COMMENT_CREATED, action: 'comment' },
+        { topic: CONTENT_EVENTS.POST_BOOKMARKED, action: 'bookmark' },
+      ];
 
-      // Listen for comments
-      await this.kafkaConsumer.subscribe(CONTENT_EVENTS.COMMENT_CREATED, async (payload) => {
-        const value = payload.message?.value;
-        if (!value) return;
-        const event = JSON.parse(value.toString());
-        if (event.postId) {
-          await this.discoveryService.updateTrendingScore(event.postId, 'comment');
-        }
-      });
+      for (const { topic, action } of trendingTopics) {
+        await this.kafkaConsumer.subscribe(topic, async (payload) => {
+          const value = payload.message?.value;
+          if (!value) return;
+          const event = JSON.parse(value.toString());
+          if (!event.postId) return;
 
-      // Listen for bookmarks
-      await this.kafkaConsumer.subscribe(CONTENT_EVENTS.POST_BOOKMARKED, async (payload) => {
-        const value = payload.message?.value;
-        if (!value) return;
-        const event = JSON.parse(value.toString());
-        if (event.postId) {
-          await this.discoveryService.updateTrendingScore(event.postId, 'bookmark');
-        }
-      });
+          let lastErr: unknown;
+          for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+            try {
+              await this.discoveryService.updateTrendingScore(event.postId, action);
+              return;
+            } catch (err) {
+              lastErr = err;
+              this.logger.warn(
+                `Error processing ${topic} (attempt ${attempt + 1}/${this.maxRetries + 1}):`,
+                err,
+              );
+              if (attempt < this.maxRetries) {
+                await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 500));
+              }
+            }
+          }
+          this.logger.error(
+            `Failed processing ${topic} after ${this.maxRetries + 1} attempts. Event: ${JSON.stringify(event)}`,
+            lastErr instanceof Error ? lastErr.stack : String(lastErr),
+          );
+        });
+      }
 
       await this.kafkaConsumer.startConsuming();
       this.logger.log('Trending consumer started');

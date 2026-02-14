@@ -13,56 +13,11 @@ import type {
   FollowStatusDto,
   RecommendedCreatorDto,
 } from '@suggar-daddy/dto';
-
-/**
- * 整合 Redis 和 Kafka
- * Phase 1：使用 Redis 儲存用戶資料，Kafka 發送事件
- */
-const GEO_KEY = 'geo:users';
-
-interface UserRecord {
-  id: string;
-  role: string;
-  displayName: string;
-  bio?: string;
-  avatarUrl?: string;
-  birthDate?: Date;
-  latitude?: number;
-  longitude?: number;
-  city?: string;
-  country?: string;
-  locationUpdatedAt?: Date;
-  preferences: Record<string, unknown>;
-  verificationStatus: string;
-  lastActiveAt: Date;
-  followerCount: number;
-  followingCount: number;
-  dmPrice?: number | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Follow Redis key patterns
-const FOLLOWING_SET = (userId: string) => `user:following:${userId}`;
-const FOLLOWERS_SET = (userId: string) => `user:followers:${userId}`;
-
-// Block/Report Redis key patterns
-const BLOCK_SET = (userId: string) => `user:blocks:${userId}`;
-const BLOCKED_BY_SET = (userId: string) => `user:blocked-by:${userId}`;
-const REPORT_KEY = (id: string) => `report:${id}`;
-const REPORTS_PENDING = 'reports:pending';
-const REPORTS_BY_USER = (userId: string) => `reports:by:${userId}`;
-
-interface ReportRecord {
-  id: string;
-  reporterId: string;
-  targetType: 'user' | 'post' | 'comment';
-  targetId: string;
-  reason: string;
-  description?: string;
-  status: 'pending' | 'reviewed' | 'actioned' | 'dismissed';
-  createdAt: string;
-}
+import {
+  type UserRecord, GEO_KEY,
+  FOLLOWING_SET, FOLLOWERS_SET,
+  BLOCK_SET, BLOCKED_BY_SET,
+} from './user.types';
 
 @Injectable()
 export class UserService {
@@ -146,7 +101,7 @@ export class UserService {
     limit: number,
     currentUserId?: string,
   ): Promise<UserCardDto[]> {
-    const keys = await this.redisService.keys(`${this.USER_PREFIX}*`);
+    const keys = await this.redisService.scan(`${this.USER_PREFIX}*`);
     const excludeSet = new Set(excludeIds);
 
     // Also exclude blocked users if currentUserId is provided
@@ -595,79 +550,6 @@ export class UserService {
   async isBlocked(blockerId: string, targetId: string): Promise<boolean> {
     const blockedIds = await this.redisService.sMembers(BLOCK_SET(blockerId));
     return blockedIds.includes(targetId);
-  }
-
-  // ── Report ──────────────────────────────────────────────────────
-
-  async createReport(
-    reporterId: string,
-    targetType: 'user' | 'post' | 'comment',
-    targetId: string,
-    reason: string,
-    description?: string,
-  ): Promise<ReportRecord> {
-    if (!reason || reason.trim().length < 3) {
-      throw new BadRequestException('Report reason must be at least 3 characters');
-    }
-
-    const id = `report-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const report: ReportRecord = {
-      id,
-      reporterId,
-      targetType,
-      targetId,
-      reason: reason.trim(),
-      description: description?.trim(),
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-
-    await this.redisService.set(REPORT_KEY(id), JSON.stringify(report));
-    await this.redisService.lPush(REPORTS_PENDING, id);
-    await this.redisService.lPush(REPORTS_BY_USER(reporterId), id);
-
-    this.logger.log(`report created id=${id} reporter=${reporterId} targetType=${targetType} targetId=${targetId}`);
-    await this.kafkaProducer.sendEvent(USER_EVENTS.USER_REPORTED, {
-      reportId: id,
-      reporterId,
-      targetType,
-      targetId,
-      reason: report.reason,
-      createdAt: report.createdAt,
-    });
-    return report;
-  }
-
-  async getPendingReports(): Promise<ReportRecord[]> {
-    const ids = await this.redisService.lRange(REPORTS_PENDING, 0, -1);
-    
-    if (ids.length === 0) return [];
-
-    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
-    const keys = ids.map(id => REPORT_KEY(id));
-    const values = await this.redisService.mget(...keys);
-
-    const out: ReportRecord[] = [];
-    for (const raw of values) {
-      if (raw) out.push(JSON.parse(raw));
-    }
-    
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
-  }
-
-  async updateReportStatus(
-    reportId: string,
-    status: 'reviewed' | 'actioned' | 'dismissed',
-  ): Promise<ReportRecord> {
-    const raw = await this.redisService.get(REPORT_KEY(reportId));
-    if (!raw) {
-      throw new NotFoundException(`Report not found: ${reportId}`);
-    }
-    const report = JSON.parse(raw) as ReportRecord;
-    report.status = status;
-    await this.redisService.set(REPORT_KEY(reportId), JSON.stringify(report));
-    this.logger.log(`report status updated id=${reportId} status=${status}`);
-    return report;
   }
 
   /** 從 Redis 取得用戶 */

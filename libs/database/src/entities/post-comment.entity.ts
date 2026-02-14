@@ -3,6 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index } from 
 @Entity('post_comments')
 @Index('idx_comments_post', ['postId', 'createdAt'])
 @Index('idx_comments_user', ['userId'])
+@Index('idx_comments_parent', ['parentCommentId'])
 export class PostCommentEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

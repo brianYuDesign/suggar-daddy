@@ -6,10 +6,10 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AllExceptionsFilter, setupSwagger, TracingService } from '@suggar-daddy/common';
+import helmet from 'helmet';
 import { AppModule } from './app/app.module';
-const helmet = require('helmet');
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   // Initialize tracing BEFORE creating the app
   const tracingService = new TracingService();
   tracingService.init('matching-service');

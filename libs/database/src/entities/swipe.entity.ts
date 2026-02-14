@@ -4,10 +4,13 @@ import {
   Column,
   CreateDateColumn,
   Unique,
+  Index,
 } from 'typeorm';
 
 @Entity('swipes')
 @Unique(['swiperId', 'swipedId'])
+@Index('idx_swipes_swiper_created', ['swiperId', 'createdAt'])
+@Index('idx_swipes_swiped_created', ['swipedId', 'createdAt'])
 export class SwipeEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

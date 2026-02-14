@@ -7,10 +7,12 @@ import {
   Unique,
   Index,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity('users')
 @Unique(['email'])
 @Index('idx_users_location', ['latitude', 'longitude'])
+@Index('idx_users_role', ['role'])
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -18,6 +20,7 @@ export class UserEntity {
   @Column('varchar', { length: 255 })
   email!: string;
 
+  @Exclude()
   @Column('varchar', { length: 255 })
   passwordHash!: string;
 
