@@ -1,29 +1,43 @@
 /**
  * Notification 相關 DTO
  */
-import { IsString, IsNotEmpty, IsOptional, IsObject } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsObject, IsIn, IsArray, IsDateString } from 'class-validator';
 
 export class SendNotificationDto {
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  @IsIn(['SYSTEM', 'ANNOUNCEMENT', 'PROMOTION', 'WARNING'])
+  type: 'SYSTEM' | 'ANNOUNCEMENT' | 'PROMOTION' | 'WARNING';
 
   @IsString()
   @IsNotEmpty()
-  type: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @IsOptional()
   title: string;
 
-  @IsOptional()
   @IsString()
-  body?: string;
+  @IsNotEmpty()
+  message: string;
 
   @IsOptional()
-  @IsObject()
-  data?: Record<string, unknown>;
+  @IsIn(['ALL', 'CREATORS', 'SUBSCRIBERS', 'SPECIFIC'])
+  targetUsers?: 'ALL' | 'CREATORS' | 'SUBSCRIBERS' | 'SPECIFIC';
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  userIds?: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(['LOW', 'NORMAL', 'HIGH', 'URGENT'])
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+
+  @IsOptional()
+  @IsString()
+  actionUrl?: string;
+
+  @IsOptional()
+  @IsDateString()
+  expiresAt?: string;
 }
 
 export interface NotificationItemDto {
@@ -34,4 +48,11 @@ export interface NotificationItemDto {
   data?: Record<string, unknown>;
   read: boolean;
   createdAt: Date;
+}
+
+export interface NotificationResultDto {
+  notificationId: string;
+  targetCount: number;
+  status: 'QUEUED' | 'SENDING' | 'SENT';
+  createdAt: string;
 }

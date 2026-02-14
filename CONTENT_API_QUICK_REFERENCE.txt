@@ -1,0 +1,220 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                   CONTENT API 快速參考卡                           ║
+╚════════════════════════════════════════════════════════════════════╝
+
+📦 導入方式
+─────────────────────────────────────────────────────────────────────
+import { 
+  ContentApi, 
+  StoriesApi, 
+  ApiClient 
+} from '@suggar-daddy/api-client';
+
+const client = new ApiClient({ 
+  baseURL: 'https://api.suggar-daddy.com',
+  getAccessToken: async () => localStorage.getItem('token')
+});
+
+const contentApi = new ContentApi(client);
+const storiesApi = new StoriesApi(client);
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💬 評論系統 API (P0)
+─────────────────────────────────────────────────────────────────────
+
+1️⃣ 新增留言
+   contentApi.addComment(postId, text, parentCommentId?)
+   
+   範例：
+   await contentApi.addComment('post123', '這個作品超讚！');
+   await contentApi.addComment('post123', '謝謝！', 'comment456');
+
+2️⃣ 取得留言列表
+   contentApi.getComments(postId, cursor?)
+   
+   範例：
+   const { data, nextCursor, hasMore } = 
+     await contentApi.getComments('post123');
+
+3️⃣ 刪除留言
+   contentApi.deleteComment(postId, commentId)
+   
+   範例：
+   await contentApi.deleteComment('post123', 'comment456');
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 Discovery 發現 API (P0)
+─────────────────────────────────────────────────────────────────────
+
+4️⃣ 取得熱門貼文
+   contentApi.getTrendingPosts(limit?)
+   
+   範例：
+   const trending = await contentApi.getTrendingPosts(20);
+
+5️⃣ 搜尋貼文
+   contentApi.searchPosts(query, cursor?)
+   
+   範例：
+   const { data, nextCursor, hasMore } = 
+     await contentApi.searchPosts('健身教學');
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📱 Stories 限時動態 API (P1)
+─────────────────────────────────────────────────────────────────────
+
+6️⃣ 創建限時動態
+   storiesApi.createStory(mediaId, duration?)
+   
+   範例：
+   await storiesApi.createStory('media123');        // 預設時長
+   await storiesApi.createStory('video456', 15);    // 15 秒
+
+7️⃣ 取得動態消息
+   storiesApi.getStoriesFeed()
+   
+   範例：
+   const feed = await storiesApi.getStoriesFeed();
+   // [{userId, username, stories: [...], hasUnviewed: true}, ...]
+
+8️⃣ 取得創作者限時動態
+   storiesApi.getCreatorStories(creatorId)
+   
+   範例：
+   const stories = await storiesApi.getCreatorStories('creator123');
+
+9️⃣ 標記為已檢視
+   storiesApi.markStoryAsViewed(storyId)
+   
+   範例：
+   await storiesApi.markStoryAsViewed('story123');
+
+🔟 取得檢視者列表
+   storiesApi.getStoryViewers(storyId)
+   
+   範例：
+   const viewers = await storiesApi.getStoryViewers('story123');
+   // [{userId, username, avatarUrl, viewedAt}, ...]
+
+1️⃣1️⃣ 刪除限時動態
+   storiesApi.deleteStory(storyId)
+   
+   範例：
+   await storiesApi.deleteStory('story123');
+
+1️⃣2️⃣ 取得影片串流 URL
+   storiesApi.getVideoStreamUrl(postId)
+   
+   範例：
+   const { streamUrl } = await storiesApi.getVideoStreamUrl('video789');
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📐 類型定義
+─────────────────────────────────────────────────────────────────────
+
+Comment {
+  commentId: string
+  postId: string
+  userId: string
+  username: string
+  avatarUrl?: string
+  text: string
+  parentCommentId?: string
+  createdAt: string
+  likesCount: number
+  repliesCount: number
+}
+
+PaginatedResponse<T> {
+  data: T[]
+  nextCursor?: string
+  hasMore: boolean
+}
+
+Story {
+  storyId: string
+  userId: string
+  username: string
+  avatarUrl?: string
+  mediaUrl: string
+  mediaType: 'IMAGE' | 'VIDEO'
+  duration: number
+  createdAt: string
+  expiresAt: string
+  viewsCount: number
+  isViewed?: boolean
+}
+
+StoryGroup {
+  userId: string
+  username: string
+  avatarUrl?: string
+  stories: Story[]
+  hasUnviewed: boolean
+}
+
+StoryViewer {
+  userId: string
+  username: string
+  avatarUrl?: string
+  viewedAt: string
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 常見使用情境
+─────────────────────────────────────────────────────────────────────
+
+▸ 留言區組件
+  1. 載入留言：getComments(postId)
+  2. 新增留言：addComment(postId, text)
+  3. 回覆留言：addComment(postId, text, parentCommentId)
+  4. 刪除留言：deleteComment(postId, commentId)
+  5. 載入更多：getComments(postId, nextCursor)
+
+▸ 首頁熱門
+  1. 載入熱門：getTrendingPosts(20)
+  2. 搜尋貼文：searchPosts(query)
+  3. 分頁載入：searchPosts(query, nextCursor)
+
+▸ Stories 功能
+  1. 首頁顯示：getStoriesFeed()
+  2. 檢視 Story：markStoryAsViewed(storyId)
+  3. 創作者頁面：getCreatorStories(creatorId)
+  4. 上傳 Story：createStory(mediaId, duration)
+  5. 檢視統計：getStoryViewers(storyId)
+  6. 刪除 Story：deleteStory(storyId)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 HTTP 端點對照
+─────────────────────────────────────────────────────────────────────
+
+POST   /api/posts/:postId/comments           → addComment
+GET    /api/posts/:postId/comments           → getComments
+DELETE /api/posts/:postId/comments/:id       → deleteComment
+GET    /api/posts/trending                   → getTrendingPosts
+GET    /api/posts/search                     → searchPosts
+POST   /api/stories                          → createStory
+GET    /api/stories/feed                     → getStoriesFeed
+GET    /api/stories/creator/:creatorId       → getCreatorStories
+POST   /api/stories/:storyId/view            → markStoryAsViewed
+GET    /api/stories/:storyId/viewers         → getStoryViewers
+DELETE /api/stories/:storyId                 → deleteStory
+GET    /api/videos/:postId/stream            → getVideoStreamUrl
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 備註
+─────────────────────────────────────────────────────────────────────
+• 所有 API 都支援 async/await
+• 分頁統一使用 cursor-based pagination
+• 錯誤處理透過 ApiClient 統一管理
+• 所有時間使用 ISO 8601 格式字串
+• Stories 預設 24 小時後過期
+
+╚════════════════════════════════════════════════════════════════════╝

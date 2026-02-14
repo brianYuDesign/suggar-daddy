@@ -4,6 +4,7 @@ export { ApiError } from './errors';
 export type { ApiErrorData } from './errors';
 
 export { AuthApi } from './auth';
+export type { SuccessResponse, VerifyEmailResponse, OAuthResponse } from './auth';
 export { UsersApi } from './users';
 export { MatchingApi } from './matching';
 export { MessagingApi } from './messaging';
@@ -12,14 +13,16 @@ export { ContentApi } from './content';
 export { SubscriptionsApi } from './subscriptions';
 export { PaymentsApi } from './payments';
 export { AdminApi } from './admin';
+export { StoriesApi } from './stories';
 
 // Re-export types from individual modules
-export type { Post, CreatePostDto, ContentReport } from './content';
-export type { SubscriptionTier, Subscription } from './subscriptions';
-export type { Tip, Transaction, PostPurchase, Wallet, Withdrawal } from './payments';
-export type { ReportDto } from './users';
+export type { Post, CreatePostDto, ContentReport, Comment, PaginatedResponse } from './content';
+export type { Story, StoryGroup, StoryViewer, CreateStoryDto } from './stories';
+export type { SubscriptionTier, Subscription, CreateTierDto, UpdateTierDto, SubscriptionTierDetail } from './subscriptions';
+export type { Tip, Transaction, TransactionDetail, TransactionStatus, TransactionType, PostPurchase, Wallet, Withdrawal, DmPurchase } from './payments';
+export type { ReportDto, UserCard, CreateUserDto, CursorPaginatedResponse, FollowStatus } from './users';
 export type {
-  PaginatedResponse,
+  PaginatedResponse as AdminPaginatedResponse,
   AdminUser,
   AdminUserDetail,
   UserStats,

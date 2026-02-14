@@ -42,11 +42,21 @@ export class SendBroadcastDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(5000)
-  content: string;
+  message: string;
 
   @IsOptional()
-  @IsIn(['followers', 'subscribers'])
-  audience?: 'followers' | 'subscribers';
+  @IsArray()
+  @IsString({ each: true })
+  mediaIds?: string[];
+
+  @IsOptional()
+  @IsIn(['ALL_SUBSCRIBERS', 'TIER_SPECIFIC'])
+  recipientFilter?: 'ALL_SUBSCRIBERS' | 'TIER_SPECIFIC';
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tierIds?: string[];
 }
 
 export interface MessageDto {
@@ -65,10 +75,21 @@ export interface ConversationDto {
 }
 
 export interface BroadcastDto {
-  id: string;
-  creatorId: string;
-  content: string;
-  audience: string;
+  broadcastId: string;
+  senderId: string;
+  senderUsername: string;
+  message: string;
+  mediaUrls?: string[];
   recipientCount: number;
+  deliveredCount: number;
+  readCount: number;
+  status: 'QUEUED' | 'SENDING' | 'SENT' | 'FAILED';
+  createdAt: string;
+}
+
+export interface BroadcastResultDto {
+  broadcastId: string;
+  recipientCount: number;
+  status: 'QUEUED' | 'SENDING' | 'SENT' | 'FAILED';
   createdAt: string;
 }
