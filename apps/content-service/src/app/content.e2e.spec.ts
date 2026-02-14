@@ -1,14 +1,32 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from './app.module';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 const mockRedisService = {
-  get: jest.fn(),
-  set: jest.fn(),
-  del: jest.fn(),
+  get: jest.fn().mockResolvedValue(null),
+  set: jest.fn().mockResolvedValue(undefined),
+  del: jest.fn().mockResolvedValue(0),
+  exists: jest.fn().mockResolvedValue(0),
+  incr: jest.fn().mockResolvedValue(1),
+  expire: jest.fn().mockResolvedValue(1),
+  ttl: jest.fn().mockResolvedValue(-1),
+  keys: jest.fn().mockResolvedValue([]),
+  scan: jest.fn().mockResolvedValue([]),
+  mget: jest.fn().mockResolvedValue([]),
+  sAdd: jest.fn().mockResolvedValue(0),
+  sMembers: jest.fn().mockResolvedValue([]),
+  sRem: jest.fn().mockResolvedValue(0),
+  lPush: jest.fn().mockResolvedValue(0),
+  lRange: jest.fn().mockResolvedValue([]),
+  lLen: jest.fn().mockResolvedValue(0),
+  geoAdd: jest.fn().mockResolvedValue(0),
+  geoSearch: jest.fn().mockResolvedValue([]),
+  geoDist: jest.fn().mockResolvedValue(null),
+  geoRemove: jest.fn().mockResolvedValue(0),
+  geoPos: jest.fn().mockResolvedValue(null),
   onModuleDestroy: jest.fn().mockResolvedValue(undefined),
 };
 
@@ -105,22 +123,22 @@ describe('Content Service (e2e)', () => {
   });
 
   describe('Moderation Endpoints', () => {
-    describe('POST /moderation/queue', () => {
+    describe('POST /moderation/report', () => {
       it('should reject request without authentication', async () => {
         await request(app.getHttpServer())
-          .post('/moderation/queue')
+          .post('/moderation/report')
           .send({
-            contentType: 'post',
-            contentId: 'post-123',
+            postId: 'post-123',
+            reason: 'spam',
           })
           .expect(401);
       });
     });
 
-    describe('GET /moderation/pending', () => {
+    describe('GET /moderation/queue', () => {
       it('should reject request without authentication', async () => {
         await request(app.getHttpServer())
-          .get('/moderation/pending')
+          .get('/moderation/queue')
           .expect(401);
       });
     });
@@ -129,7 +147,7 @@ describe('Content Service (e2e)', () => {
   describe('Health Check', () => {
     it('should return service health', async () => {
       await request(app.getHttpServer())
-        .get('/')
+        .get('/health')
         .expect(200);
     });
   });

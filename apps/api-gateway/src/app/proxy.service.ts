@@ -136,9 +136,20 @@ export class ProxyService {
       headers: forwardHeaders,
       data: body,
     };
-    this.logger.debug(`${method} ${path} -> ${url}`);
+    this.logger.log(`[PROXY] ${method} ${path} -> ${url}`);
+    this.logger.debug(`[PROXY] Headers: ${JSON.stringify(forwardHeaders)}`);
+    if (body) {
+      this.logger.debug(`[PROXY] Body: ${JSON.stringify(body)}`);
+    }
+    
     try {
       const res = await this.client.request(config);
+      this.logger.log(`[PROXY] Response: ${res.status} from ${url}`);
+      
+      if (res.status >= 400) {
+        this.logger.warn(`[PROXY] Error response: ${res.status} - ${JSON.stringify(res.data)}`);
+      }
+      
       const resHeaders: Record<string, string> = {};
       if (res.headers['content-type']) resHeaders['content-type'] = res.headers['content-type'] as string;
       return {
@@ -147,7 +158,10 @@ export class ProxyService {
         headers: resHeaders,
       };
     } catch (error: unknown) {
-      const err = error as { code?: string; message?: string };
+      const err = error as { code?: string; message?: string; stack?: string };
+      this.logger.error(`[PROXY] Request failed: ${method} ${path} -> ${url}`);
+      this.logger.error(`[PROXY] Error details:`, err.stack || err.message || String(err));
+      
       if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
         this.logger.error(`Gateway timeout: ${method} ${path}`, err.message);
         return { status: 504, data: { message: 'Gateway Timeout', path }, headers: {} };

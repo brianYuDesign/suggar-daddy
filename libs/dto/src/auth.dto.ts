@@ -44,6 +44,36 @@ export class RefreshTokenDto {
   refreshToken: string;
 }
 
+/** 忘記密碼請求 */
+export class ForgotPasswordDto {
+  @IsEmail()
+  email: string;
+}
+
+/** 重置密碼請求 */
+export class ResetPasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @IsString()
+  @MinLength(8)
+  @MaxLength(128)
+  newPassword: string;
+}
+
+/** 修改密碼請求 */
+export class ChangePasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  oldPassword: string;
+
+  @IsString()
+  @MinLength(8)
+  @MaxLength(128)
+  newPassword: string;
+}
+
 /** Token 回應（登入/註冊/刷新） */
 export interface TokenResponseDto {
   accessToken: string;

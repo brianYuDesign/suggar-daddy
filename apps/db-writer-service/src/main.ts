@@ -5,10 +5,14 @@
 
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AllExceptionsFilter } from '@suggar-daddy/common';
+import { AllExceptionsFilter, TracingService } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
+  // Initialize tracing BEFORE creating the app
+  const tracingService = new TracingService();
+  tracingService.init('db-writer-service');
+
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));

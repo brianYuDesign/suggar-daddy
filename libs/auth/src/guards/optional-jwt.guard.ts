@@ -1,6 +1,6 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Observable, of } from 'rxjs';
+import { Observable, of, from } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 /**
@@ -10,9 +10,21 @@ import { catchError, map } from 'rxjs/operators';
 @Injectable()
 export class OptionalJwtGuard extends AuthGuard('jwt') {
   override canActivate(context: ExecutionContext): Observable<boolean> {
-    return (super.canActivate(context) as Observable<boolean>).pipe(
+    const result = super.canActivate(context);
+    
+    // Convert Promise or boolean to Observable
+    const observable$ = result instanceof Observable 
+      ? result 
+      : from(Promise.resolve(result));
+    
+    return observable$.pipe(
       map((ok) => Boolean(ok)),
       catchError(() => of(true)),
     );
+  }
+
+  override handleRequest(err: any, user: any) {
+    // Return user if available, otherwise return undefined (don't throw)
+    return user || undefined;
   }
 }

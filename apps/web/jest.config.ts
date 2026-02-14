@@ -3,8 +3,18 @@ export default {
   preset: '../../jest.preset.js',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  testMatch: ['**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
   transform: {
-    '^.+\\.[tj]sx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
+    '^.+\\.[tj]sx?$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          jsx: 'react',
+          esModuleInterop: true,
+          allowSyntheticDefaultImports: true,
+        },
+      },
+    ],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'html'],
   moduleNameMapper: {
@@ -13,6 +23,8 @@ export default {
     '^../lib/api$': '<rootDir>/src/__mocks__/api.ts',
     '^../../lib/api$': '<rootDir>/src/__mocks__/api.ts',
     '^../../../lib/api$': '<rootDir>/src/__mocks__/api.ts',
+    '^../../../../lib/api$': '<rootDir>/src/__mocks__/api.ts',
+    '^@suggar-daddy/ui$': '<rootDir>/../../libs/ui/src/index.ts',
   },
   coverageDirectory: '../../coverage/apps/web',
   collectCoverageFrom: [

@@ -1,0 +1,121 @@
+# Docker Compose for PostgreSQL Monitoring
+# This file adds monitoring to the PostgreSQL HA setup
+
+version: '3.8'
+
+services:
+  # PostgreSQL Exporter for Master
+  postgres-exporter-master:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: suggar-daddy-postgres-exporter-master
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-master:5432/${POSTGRES_DB:-suggar_daddy}?sslmode=disable"
+      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres-exporter/queries.yml"
+      PG_EXPORTER_DISABLE_DEFAULT_METRICS: "false"
+      PG_EXPORTER_DISABLE_SETTINGS_METRICS: "false"
+    ports:
+      - "9187:9187"
+    volumes:
+      - ./monitoring/queries.yml:/etc/postgres-exporter/queries.yml:ro
+    depends_on:
+      - postgres-master
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    labels:
+      - "monitoring.type=postgres-exporter"
+      - "monitoring.target=master"
+
+  # PostgreSQL Exporter for Replica
+  postgres-exporter-replica:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: suggar-daddy-postgres-exporter-replica
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-replica:5432/${POSTGRES_DB:-suggar_daddy}?sslmode=disable"
+      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres-exporter/queries.yml"
+      PG_EXPORTER_DISABLE_DEFAULT_METRICS: "false"
+      PG_EXPORTER_DISABLE_SETTINGS_METRICS: "false"
+    ports:
+      - "9188:9187"
+    volumes:
+      - ./monitoring/queries.yml:/etc/postgres-exporter/queries.yml:ro
+    depends_on:
+      - postgres-replica
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    labels:
+      - "monitoring.type=postgres-exporter"
+      - "monitoring.target=replica"
+
+  # PgBouncer (Connection Pooler)
+  pgbouncer:
+    build:
+      context: ./pgbouncer
+      dockerfile: Dockerfile
+    container_name: suggar-daddy-pgbouncer
+    ports:
+      - "6432:6432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      postgres-replica:
+        condition: service_healthy
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "psql", "-h", "localhost", "-p", "6432", "-U", "postgres", "-d", "pgbouncer", "-c", "SHOW POOLS;"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "pgbouncer.role=connection-pool"
+
+  # Backup Scheduler (runs daily backups)
+  postgres-backup-scheduler:
+    image: postgres:16-alpine
+    container_name: suggar-daddy-postgres-backup-scheduler
+    environment:
+      POSTGRES_HOST: postgres-master
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      BACKUP_DIR: /backups
+      RETENTION_DAYS: 7
+    volumes:
+      - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
+      - ./backups:/backups
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+    networks:
+      - suggar-daddy-network
+    # Run backup daily at 2 AM
+    command: >
+      sh -c "
+        while true; do
+          echo 'Next backup scheduled at 02:00'
+          sleep $(( ($(date -d '02:00' +%s) - $(date +%s) + 86400) % 86400 ))
+          echo 'Starting scheduled backup...'
+          /usr/local/bin/backup.sh
+        done
+      "
+    restart: unless-stopped
+    labels:
+      - "backup.schedule=daily"
+      - "backup.retention=7d"
+
+networks:
+  suggar-daddy-network:
+    external: true
+
+volumes:
+  backups:
+    driver: local

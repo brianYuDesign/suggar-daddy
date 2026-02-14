@@ -78,6 +78,11 @@ export class RedisService implements OnModuleDestroy {
     return this.client.llen(key);
   }
 
+  /** Trim list to specified range */
+  async lTrim(key: string, start: number, stop: number): Promise<void> {
+    await this.client.ltrim(key, start, stop);
+  }
+
   /** Remove count occurrences of value from list */
   async lRem(key: string, count: number, value: string): Promise<number> {
     return this.client.lrem(key, count, value);
@@ -119,8 +124,27 @@ export class RedisService implements OnModuleDestroy {
   // ── Sorted Set commands ─────────────────────────────────────
 
   /** Add member with score to Sorted Set */
-  async zAdd(key: string, score: number, member: string): Promise<number> {
-    return this.client.zadd(key, score, member);
+  async zAdd(key: string, ...args: Array<{ score: number; member: string } | number | string>): Promise<number> {
+    // Support both single member and multiple members
+    if (args.length === 0) return 0;
+    
+    // If first arg is a number, use old signature: zAdd(key, score, member)
+    if (typeof args[0] === 'number') {
+      const score = args[0] as number;
+      const member = args[1] as string;
+      return this.client.zadd(key, score, member);
+    }
+    
+    // Otherwise, batch add: zAdd(key, {score, member}, {score, member}, ...)
+    const pairs: (number | string)[] = [];
+    for (const item of args) {
+      if (typeof item === 'object' && 'score' in item && 'member' in item) {
+        pairs.push(item.score, item.member);
+      }
+    }
+    
+    if (pairs.length === 0) return 0;
+    return this.client.zadd(key, ...pairs);
   }
 
   /** Remove member from Sorted Set */

@@ -62,3 +62,15 @@ out/
 # Misc
 .cache/
 *.local
+
+# Archive
+archive/
+
+# Test artifacts
+test-reports/
+test-results/
+screenshots/
+
+# Temporary work files
+claudedocs/
+backups/

@@ -62,38 +62,117 @@ export class SubscriptionService {
     return sub;
   }
 
-  async findAll(): Promise<Subscription[]> {
+  async findAll(page = 1, limit = 100): Promise<PaginatedResponse<Subscription>> {
+    // ⚠️ 警告：findAll 仍需使用 SCAN，但添加分頁限制
+    // 建議：生產環境應避免使用此方法，或使用專門的索引
     const scannedKeys = await this.redis.scan('subscription:sub-*');
+    
+    if (scannedKeys.length === 0) {
+      return { data: [], total: 0, page, limit };
+    }
+    
     const values = await this.redis.mget(...scannedKeys);
-    const out = values.filter(Boolean).map((raw) => JSON.parse(raw!));
-    return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    const allSubscriptions = values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!))
+      .sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    
+    // 應用分頁
+    const start = (page - 1) * limit;
+    const paginated = allSubscriptions.slice(start, start + limit);
+    
+    return {
+      data: paginated,
+      total: allSubscriptions.length,
+      page,
+      limit,
+    };
   }
 
   async findBySubscriber(subscriberId: string, page = 1, limit = 20): Promise<PaginatedResponse<Subscription>> {
-    // Must fetch all and filter by status — can't paginate at Redis level
-    const ids = await this.redis.lRange(SUBS_SUBSCRIBER(subscriberId), 0, -1);
+    // ✅ 優化：使用 Redis List 的範圍查詢實現真正的分頁
+    // 計算起始和結束索引
+    const start = (page - 1) * limit;
+    const end = start + limit - 1;
+    
+    // ✅ 只取當前頁需要的 ID，避免全表掃描
+    const ids = await this.redis.lRange(SUBS_SUBSCRIBER(subscriberId), start, end);
+    
+    if (ids.length === 0) {
+      const total = await this.redis.lLen(SUBS_SUBSCRIBER(subscriberId));
+      return { data: [], total, page, limit };
+    }
+    
+    // ✅ 批量獲取訂閱詳情
     const keys = ids.map((id) => SUB_KEY(id));
     const values = await this.redis.mget(...keys);
-    const active = values
+    
+    // 解析並過濾 active 訂閱
+    const now = new Date().toISOString();
+    const subscriptions = values
       .filter(Boolean)
       .map((raw) => JSON.parse(raw!))
-      .filter((s) => s.status === 'active');
-    active.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
-    const skip = (page - 1) * limit;
-    return { data: active.slice(skip, skip + limit), total: active.length, page, limit };
+      .filter((s) => {
+        // 檢查訂閱是否仍然有效
+        const isActive = s.status === 'active';
+        const notExpired = !s.currentPeriodEnd || s.currentPeriodEnd >= now;
+        return isActive && notExpired;
+      });
+    
+    // 排序（最新的在前）
+    subscriptions.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    
+    // 獲取總數（需要精確計算，因為有過期過濾）
+    const total = await this.redis.lLen(SUBS_SUBSCRIBER(subscriberId));
+    
+    return { 
+      data: subscriptions, 
+      total, 
+      page, 
+      limit 
+    };
   }
 
   async findByCreator(creatorId: string, page = 1, limit = 20): Promise<PaginatedResponse<Subscription>> {
-    const ids = await this.redis.lRange(SUBS_CREATOR(creatorId), 0, -1);
+    // ✅ 優化：使用 Redis List 的範圍查詢實現真正的分頁
+    const start = (page - 1) * limit;
+    const end = start + limit - 1;
+    
+    // ✅ 只取當前頁需要的 ID
+    const ids = await this.redis.lRange(SUBS_CREATOR(creatorId), start, end);
+    
+    if (ids.length === 0) {
+      const total = await this.redis.lLen(SUBS_CREATOR(creatorId));
+      return { data: [], total, page, limit };
+    }
+    
+    // ✅ 批量獲取訂閱詳情
     const keys = ids.map((id) => SUB_KEY(id));
     const values = await this.redis.mget(...keys);
-    const active = values
+    
+    // 解析並過濾 active 訂閱
+    const now = new Date().toISOString();
+    const subscriptions = values
       .filter(Boolean)
       .map((raw) => JSON.parse(raw!))
-      .filter((s) => s.status === 'active');
-    active.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
-    const skip = (page - 1) * limit;
-    return { data: active.slice(skip, skip + limit), total: active.length, page, limit };
+      .filter((s) => {
+        const isActive = s.status === 'active';
+        const notExpired = !s.currentPeriodEnd || s.currentPeriodEnd >= now;
+        return isActive && notExpired;
+      });
+    
+    // 排序
+    subscriptions.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    
+    // 獲取總數
+    const total = await this.redis.lLen(SUBS_CREATOR(creatorId));
+    
+    return { 
+      data: subscriptions, 
+      total, 
+      page, 
+      limit 
+    };
   }
 
   async findOne(id: string): Promise<Subscription> {

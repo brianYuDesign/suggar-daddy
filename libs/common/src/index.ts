@@ -19,6 +19,9 @@ export * from "./lib/exceptions.module";
 // Request tracking and interceptors
 export * from "./lib/request-tracking.interceptor";
 
+// Distributed tracing
+export * from "./lib/tracing";
+
 // Error testing (development only)
 export * from "./lib/error-testing.controller";
 

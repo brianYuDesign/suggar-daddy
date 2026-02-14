@@ -1,0 +1,236 @@
+# Custom PostgreSQL Exporter Queries
+# These queries provide additional metrics for monitoring
+
+# Replication Lag (Master)
+pg_replication_lag:
+  query: |
+    SELECT
+      client_addr,
+      application_name,
+      COALESCE(pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn), 0) as lag_bytes,
+      EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp())) as lag_seconds
+    FROM pg_stat_replication
+  metrics:
+    - client_addr:
+        usage: "LABEL"
+        description: "Client address"
+    - application_name:
+        usage: "LABEL"
+        description: "Application name"
+    - lag_bytes:
+        usage: "GAUGE"
+        description: "Replication lag in bytes"
+    - lag_seconds:
+        usage: "GAUGE"
+        description: "Replication lag in seconds"
+
+# Replication Slots Status
+pg_replication_slots:
+  query: |
+    SELECT
+      slot_name,
+      slot_type,
+      database,
+      active::int as active,
+      COALESCE(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn), 0) as retained_bytes
+    FROM pg_replication_slots
+  metrics:
+    - slot_name:
+        usage: "LABEL"
+        description: "Replication slot name"
+    - slot_type:
+        usage: "LABEL"
+        description: "Slot type"
+    - database:
+        usage: "LABEL"
+        description: "Database name"
+    - active:
+        usage: "GAUGE"
+        description: "Whether slot is active (1) or not (0)"
+    - retained_bytes:
+        usage: "GAUGE"
+        description: "Bytes retained in WAL"
+
+# Connection Statistics by State
+pg_stat_activity_by_state:
+  query: |
+    SELECT
+      COALESCE(state, 'unknown') as state,
+      COUNT(*) as count
+    FROM pg_stat_activity
+    WHERE pid != pg_backend_pid()
+    GROUP BY state
+  metrics:
+    - state:
+        usage: "LABEL"
+        description: "Connection state"
+    - count:
+        usage: "GAUGE"
+        description: "Number of connections in this state"
+
+# Long Running Queries
+pg_stat_activity_max_tx_duration:
+  query: |
+    SELECT
+      COALESCE(MAX(EXTRACT(EPOCH FROM (now() - xact_start))), 0) as max_tx_duration_seconds,
+      COALESCE(MAX(EXTRACT(EPOCH FROM (now() - query_start))), 0) as max_query_duration_seconds,
+      COUNT(*) FILTER (WHERE state = 'idle in transaction') as idle_in_transaction_count
+    FROM pg_stat_activity
+    WHERE pid != pg_backend_pid()
+      AND state IS NOT NULL
+  metrics:
+    - max_tx_duration_seconds:
+        usage: "GAUGE"
+        description: "Maximum transaction duration in seconds"
+    - max_query_duration_seconds:
+        usage: "GAUGE"
+        description: "Maximum query duration in seconds"
+    - idle_in_transaction_count:
+        usage: "GAUGE"
+        description: "Number of idle in transaction connections"
+
+# Table Bloat Statistics
+pg_table_bloat:
+  query: |
+    SELECT
+      schemaname || '.' || tablename as table_name,
+      n_live_tup,
+      n_dead_tup,
+      CASE WHEN n_live_tup + n_dead_tup > 0
+        THEN n_dead_tup::float / (n_live_tup + n_dead_tup)
+        ELSE 0
+      END as dead_tuple_ratio,
+      last_vacuum,
+      last_autovacuum,
+      last_analyze,
+      last_autoanalyze
+    FROM pg_stat_user_tables
+    WHERE n_live_tup + n_dead_tup > 100
+  metrics:
+    - table_name:
+        usage: "LABEL"
+        description: "Table name"
+    - n_live_tup:
+        usage: "GAUGE"
+        description: "Number of live tuples"
+    - n_dead_tup:
+        usage: "GAUGE"
+        description: "Number of dead tuples"
+    - dead_tuple_ratio:
+        usage: "GAUGE"
+        description: "Ratio of dead tuples"
+
+# Database Size Growth Rate
+pg_database_size_details:
+  query: |
+    SELECT
+      datname,
+      pg_database_size(datname) as size_bytes,
+      numbackends as active_connections
+    FROM pg_database
+    WHERE datname NOT IN ('template0', 'template1')
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - size_bytes:
+        usage: "GAUGE"
+        description: "Database size in bytes"
+    - active_connections:
+        usage: "GAUGE"
+        description: "Number of active connections"
+
+# Cache Hit Ratio per Database
+pg_cache_hit_ratio:
+  query: |
+    SELECT
+      datname,
+      CASE WHEN blks_hit + blks_read > 0
+        THEN blks_hit::float / (blks_hit + blks_read)
+        ELSE 1
+      END as cache_hit_ratio,
+      blks_hit,
+      blks_read
+    FROM pg_stat_database
+    WHERE datname NOT IN ('template0', 'template1')
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - cache_hit_ratio:
+        usage: "GAUGE"
+        description: "Cache hit ratio (0-1)"
+    - blks_hit:
+        usage: "COUNTER"
+        description: "Number of buffer hits"
+    - blks_read:
+        usage: "COUNTER"
+        description: "Number of disk reads"
+
+# WAL Statistics
+pg_wal_stats:
+  query: |
+    SELECT
+      pg_wal_lsn_diff(pg_current_wal_lsn(), '0/0') as current_wal_lsn_bytes,
+      (SELECT COUNT(*) FROM pg_ls_waldir()) as wal_file_count,
+      (SELECT SUM(size) FROM pg_ls_waldir()) as wal_total_size_bytes
+  metrics:
+    - current_wal_lsn_bytes:
+        usage: "COUNTER"
+        description: "Current WAL LSN position in bytes"
+    - wal_file_count:
+        usage: "GAUGE"
+        description: "Number of WAL files"
+    - wal_total_size_bytes:
+        usage: "GAUGE"
+        description: "Total size of WAL files in bytes"
+
+# Index Usage Statistics
+pg_index_usage:
+  query: |
+    SELECT
+      schemaname || '.' || tablename as table_name,
+      indexrelname as index_name,
+      idx_scan,
+      idx_tup_read,
+      idx_tup_fetch
+    FROM pg_stat_user_indexes
+    ORDER BY idx_scan DESC
+    LIMIT 20
+  metrics:
+    - table_name:
+        usage: "LABEL"
+        description: "Table name"
+    - index_name:
+        usage: "LABEL"
+        description: "Index name"
+    - idx_scan:
+        usage: "COUNTER"
+        description: "Number of index scans"
+    - idx_tup_read:
+        usage: "COUNTER"
+        description: "Number of index tuples read"
+    - idx_tup_fetch:
+        usage: "COUNTER"
+        description: "Number of tuples fetched"
+
+# Locks by Type
+pg_locks_by_type:
+  query: |
+    SELECT
+      locktype,
+      mode,
+      COUNT(*) as count
+    FROM pg_locks
+    WHERE pid != pg_backend_pid()
+    GROUP BY locktype, mode
+  metrics:
+    - locktype:
+        usage: "LABEL"
+        description: "Lock type"
+    - mode:
+        usage: "LABEL"
+        description: "Lock mode"
+    - count:
+        usage: "GAUGE"
+        description: "Number of locks"

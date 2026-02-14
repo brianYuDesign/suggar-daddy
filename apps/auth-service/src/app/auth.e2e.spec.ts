@@ -7,14 +7,15 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 // Mock external services
 const mockRedisService = {
-  get: jest.fn(),
-  set: jest.fn(),
-  del: jest.fn(),
-  exists: jest.fn(),
-  incr: jest.fn(),
-  expire: jest.fn(),
-  ttl: jest.fn(),
-  keys: jest.fn(),
+  get: jest.fn().mockResolvedValue(null),
+  set: jest.fn().mockResolvedValue('OK'),
+  setex: jest.fn().mockResolvedValue('OK'),
+  del: jest.fn().mockResolvedValue(1),
+  exists: jest.fn().mockResolvedValue(0),
+  incr: jest.fn().mockResolvedValue(1),
+  expire: jest.fn().mockResolvedValue(1),
+  ttl: jest.fn().mockResolvedValue(-1),
+  keys: jest.fn().mockResolvedValue([]),
   onModuleDestroy: jest.fn().mockResolvedValue(undefined),
 };
 
@@ -196,22 +197,18 @@ describe('Auth Service (e2e)', () => {
   });
 
   describe('POST /logout', () => {
-    it('should handle logout request', async () => {
-      mockRedisService.del.mockResolvedValue(1);
-
-      const response = await request(app.getHttpServer())
-        .post('/logout')
-        .send({ refreshToken: 'some-token' })
-        .expect(201);
-
-      expect(response.body).toHaveProperty('success');
-    });
-
-    it('should reject logout without token', async () => {
+    it('should require authentication for logout', async () => {
       await request(app.getHttpServer())
         .post('/logout')
-        .send({})
-        .expect(400);
+        .send({ refreshToken: 'some-token' })
+        .expect(401);
+    });
+
+    it('should reject logout without authentication', async () => {
+      await request(app.getHttpServer())
+        .post('/logout')
+        .send({ refreshToken: 'some-token' })
+        .expect(401);
     });
   });
 

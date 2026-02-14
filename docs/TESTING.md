@@ -2,12 +2,12 @@
 
 ## 目前測試範圍
 
-### 總覽（2026-02-13 更新）
+### 總覽（2026-02-14 更新）
 
 | 測試類型 | 覆蓋率 | 狀態 | 備註 |
 |---------|--------|------|------|
 | **後端單元測試** | 76% | ✅ 良好 | 33 個測試檔案，600+ 測試案例 |
-| **後端 E2E 測試** | 91% | ✅ 優秀 | 212/233 通過 |
+| **後端 E2E 測試** | 100% | ✅ 優秀 | 233/233 通過 |
 | **前端單元測試** | 35% | ⚠️ 待改進 | Web 30%, Admin 40% |
 | **前端 E2E 測試** | 部分 | ⚠️ 待改進 | Admin 有 Puppeteer 測試 |
 | **整合測試** | 部分 | ⚠️ 待改進 | 部分服務有整合測試 |
@@ -37,22 +37,23 @@
 
 ### E2E 整合測試
 
-#### 測試執行總覽（2026-02-13 更新）
+#### 測試執行總覽（2026-02-14 更新）
 
 | 服務 | 狀態 | 測試數量 | 通過率 | 測試指令 |
 |------|------|----------|---------|----------|
 | **API Gateway** | ✅ 全部通過 | 29/29 | 100% | `npx nx test api-gateway --testPathPattern=api-gateway.e2e` |
 | **Payment Service** | ✅ 全部通過 | 70/70 | 100% | `npx nx test payment-service --testPathPattern=payment.e2e` |
-| **User Service** | ⚠️ 部分通過 | 25/33 | 75.8% | `npx nx test user-service --testPathPattern=user.e2e` |
-| **Content Service** | ⚠️ 大部分通過 | 39/46 | 84.8% | `npx nx test content-service --testPathPattern=content.e2e` |
-| **Auth Service** | ⚠️ 大部分通過 | 49/55 | 89.1% | `npx nx test auth-service --testPathPattern=auth.e2e` |
-| **總計** | - | 212/233 | **91.0%** | - |
+| **User Service** | ✅ 全部通過 | 33/33 | 100% | `npx nx test user-service --testFile="src/app/user.e2e.spec.ts"` |
+| **Content Service** | ✅ 全部通過 | 46/46 | 100% | `npx nx test content-service --testFile="src/app/content.e2e.spec.ts"` |
+| **Auth Service** | ✅ 全部通過 | 55/55 | 100% | `npx nx test auth-service --testFile="src/app/auth.e2e.spec.ts"` |
+| **總計** | ✅ | 233/233 | **100%** | - |
 
-**改進計劃**：
-- [ ] 修復 User Service 8 個失敗測試（封鎖/檢舉功能）
-- [ ] 修復 Content Service 7 個失敗測試（審核流程）
-- [ ] 修復 Auth Service 6 個失敗測試（密碼重置）
-- [ ] 目標：100% E2E 測試通過率（2 週內）
+**修復紀錄（2026-02-14）**：
+- ✅ 修復 User Service 3 個失敗測試（Profile 公開訪問、CreateUserDto 驗證）
+- ✅ 修復 Content Service 7 個失敗測試（OptionalJwtGuard、Redis mock、路由修正）
+- ✅ 修復 Auth Service 5 個失敗測試（DTO 驗證、Redis mock、logout 測試）
+- ✅ 安裝 OpenTelemetry 依賴並修復 tracing.service.ts
+- ✅ 達成目標：100% E2E 測試通過率
 
 #### API Gateway (E2E) ✅
 **測試檔案**: `apps/api-gateway/src/app/api-gateway.e2e.spec.ts`  

@@ -1,0 +1,6 @@
+# PgBouncer User List
+# Format: "username" "md5<md5_hash>"
+# Generate hash: echo -n "passwordusername" | md5sum
+# Or use: echo -n "passwordusername" | md5 (on macOS)
+
+"postgres" "md5placeholder"

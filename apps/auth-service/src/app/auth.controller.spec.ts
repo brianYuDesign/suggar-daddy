@@ -156,13 +156,14 @@ describe("AuthController", () => {
       const refreshDto: RefreshTokenDto = {
         refreshToken: "valid-refresh-token",
       };
+      const mockUser = { userId: 'user-123', email: 'test@example.com', jti: 'jti-123' };
 
       mockAuthService.logout.mockResolvedValue({ success: true });
 
-      const result = await controller.logout(refreshDto);
+      const result = await controller.logout(refreshDto, mockUser);
 
       expect(result).toEqual({ success: true });
-      expect(authService.logout).toHaveBeenCalledWith(refreshDto.refreshToken);
+      expect(authService.logout).toHaveBeenCalledWith(refreshDto.refreshToken, mockUser.jti);
     });
   });
 

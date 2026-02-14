@@ -9,10 +9,14 @@ import { NestFactory } from '@nestjs/core';
  
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const helmet = require('helmet');
-import { AllExceptionsFilter, setupSwagger } from '@suggar-daddy/common';
+import { AllExceptionsFilter, setupSwagger, TracingService } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
+  // Initialize tracing BEFORE creating the app
+  const tracingService = new TracingService();
+  tracingService.init('admin-service');
+
   const app = await NestFactory.create(AppModule);
 
   // 全域路由前綴

@@ -130,6 +130,7 @@ export class UserController {
   }
 
   /** 取得指定用戶對外資料 */
+  @Public()
   @Get('profile/:userId')
   async getProfile(
     @Param('userId') userId: string,

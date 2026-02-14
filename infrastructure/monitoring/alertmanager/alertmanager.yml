@@ -1,21 +1,11 @@
 # Alertmanager 配置文件
 # Suggar Daddy 監控系統
-# Version: 1.0.0
+# Version: 1.0.0 (開發環境簡化版)
 
 # 全局配置
 global:
   # 解析超時
   resolve_timeout: 5m
-  
-  # SMTP 配置（Email 通知）
-  smtp_smarthost: '${SMTP_HOST:-smtp.gmail.com:587}'
-  smtp_from: '${SMTP_FROM:-alertmanager@suggar-daddy.com}'
-  smtp_auth_username: '${SMTP_USERNAME:-}'
-  smtp_auth_password: '${SMTP_PASSWORD:-}'
-  smtp_require_tls: true
-  
-  # Slack 全局配置
-  slack_api_url: '${SLACK_WEBHOOK_URL:-}'
 
 # 告警路由配置
 route:
@@ -36,32 +26,15 @@ route:
 
   # 子路由（根據不同條件路由到不同接收者）
   routes:
-    # ============================================
-    # Critical 告警（P0）- 立即通知所有渠道
-    # ============================================
+    # Critical 告警（P0）
     - match:
         severity: critical
       receiver: 'critical-alerts'
       group_wait: 5s
       group_interval: 2m
       repeat_interval: 30m
-      continue: false
-      routes:
-        # 支付相關 Critical 告警
-        - match:
-            category: business
-            service: payment-service
-          receiver: 'payment-critical'
-          group_wait: 0s
-        
-        # 資料庫 Critical 告警
-        - match:
-            category: database
-          receiver: 'database-critical'
 
-    # ============================================
-    # Warning 告警（P1）- 通知 Slack
-    # ============================================
+    # Warning 告警（P1）
     - match:
         severity: warning
       receiver: 'warning-alerts'
@@ -69,32 +42,13 @@ route:
       group_interval: 10m
       repeat_interval: 2h
 
-    # ============================================
-    # Info 告警（P2）- 僅通知 Slack
-    # ============================================
+    # Info 告警（P2）
     - match:
         severity: info
       receiver: 'info-alerts'
       group_wait: 5m
       group_interval: 30m
       repeat_interval: 12h
-
-    # ============================================
-    # 業務指標告警
-    # ============================================
-    - match:
-        category: business
-      receiver: 'business-alerts'
-      group_wait: 1m
-      repeat_interval: 1h
-
-    # ============================================
-    # 監控系統自身告警
-    # ============================================
-    - match:
-        category: monitoring
-      receiver: 'monitoring-alerts'
-      group_wait: 1m
 
 # 抑制規則（當某些告警觸發時，抑制其他相關告警）
 inhibit_rules:
@@ -113,237 +67,15 @@ inhibit_rules:
       severity: 'warning'
     equal: ['service']
 
-  # 資料庫不可用時，抑制資料庫連線相關告警
-  - source_match:
-      severity: 'critical'
-      category: 'database'
-    target_match:
-      category: 'database'
-    equal: ['instance']
-
-  # 容器崩潰循環時，抑制普通重啟告警
-  - source_match:
-      alertname: 'ContainerCrashLooping'
-    target_match:
-      alertname: 'ContainerRestartingFrequently'
-    equal: ['container', 'pod']
-
-# 接收者配置
+# 接收者配置（開發環境版本 - 僅記錄到日誌）
 receivers:
-  # ============================================
-  # 默認接收者
-  # ============================================
   - name: 'default'
-    slack_configs:
-      - channel: '#alerts-general'
-        title: '🔔 告警通知'
-        text: |
-          *告警名稱:* {{ .GroupLabels.alertname }}
-          *嚴重程度:* {{ .GroupLabels.severity }}
-          *服務:* {{ .GroupLabels.service }}
-          *詳細資訊:*
-          {{ range .Alerts }}
-          - {{ .Annotations.summary }}
-          {{ end }}
-
-  # ============================================
-  # Critical 告警（P0）- 多渠道通知
-  # ============================================
+  
   - name: 'critical-alerts'
-    # Slack 通知
-    slack_configs:
-      - channel: '#alerts-critical'
-        username: 'Alertmanager'
-        icon_emoji: ':rotating_light:'
-        title: '🚨 CRITICAL ALERT'
-        title_link: 'http://localhost:9093'
-        color: 'danger'
-        text: |
-          *告警:* {{ .GroupLabels.alertname }}
-          *服務:* {{ .GroupLabels.service }}
-          *優先級:* P0 - 需要立即處理
-          
-          *詳細資訊:*
-          {{ range .Alerts }}
-          ---
-          *Summary:* {{ .Annotations.summary }}
-          *Description:* {{ .Annotations.description }}
-          *Impact:* {{ .Annotations.impact }}
-          *Action:* {{ .Annotations.action }}
-          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
-          {{ end }}
-        send_resolved: true
-
-    # Email 通知
-    email_configs:
-      - to: '${ALERT_EMAIL_TO:-devops@suggar-daddy.com}'
-        headers:
-          Subject: '🚨 [CRITICAL] {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
-        html: |
-          <h2 style="color: red;">🚨 CRITICAL ALERT</h2>
-          <table style="border-collapse: collapse; width: 100%;">
-            <tr>
-              <td style="border: 1px solid #ddd; padding: 8px;"><strong>告警名稱</strong></td>
-              <td style="border: 1px solid #ddd; padding: 8px;">{{ .GroupLabels.alertname }}</td>
-            </tr>
-            <tr>
-              <td style="border: 1px solid #ddd; padding: 8px;"><strong>服務</strong></td>
-              <td style="border: 1px solid #ddd; padding: 8px;">{{ .GroupLabels.service }}</td>
-            </tr>
-            <tr>
-              <td style="border: 1px solid #ddd; padding: 8px;"><strong>嚴重程度</strong></td>
-              <td style="border: 1px solid #ddd; padding: 8px;">{{ .GroupLabels.severity }}</td>
-            </tr>
-          </table>
-          
-          <h3>詳細資訊:</h3>
-          {{ range .Alerts }}
-          <div style="background: #f9f9f9; padding: 10px; margin: 10px 0; border-left: 4px solid red;">
-            <p><strong>Summary:</strong> {{ .Annotations.summary }}</p>
-            <p><strong>Description:</strong> {{ .Annotations.description }}</p>
-            <p><strong>Impact:</strong> {{ .Annotations.impact }}</p>
-            <p><strong>Action:</strong></p>
-            <pre>{{ .Annotations.action }}</pre>
-            <p><strong>時間:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05" }}</p>
-          </div>
-          {{ end }}
-        send_resolved: true
-
-  # ============================================
-  # 支付系統 Critical 告警
-  # ============================================
-  - name: 'payment-critical'
-    slack_configs:
-      - channel: '#alerts-payment'
-        username: 'Payment Alert'
-        icon_emoji: ':credit_card:'
-        title: '💳 支付系統緊急告警'
-        color: 'danger'
-        text: |
-          *⚠️ 支付系統出現 Critical 問題，需要立即處理！*
-          
-          *告警:* {{ .GroupLabels.alertname }}
-          *服務:* {{ .GroupLabels.service }}
-          
-          {{ range .Alerts }}
-          *Summary:* {{ .Annotations.summary }}
-          *Impact:* {{ .Annotations.impact }}
-          {{ end }}
-          
-          @channel 請立即檢查支付系統！
-        send_resolved: true
-
-    email_configs:
-      - to: '${PAYMENT_ALERT_EMAIL:-payment-team@suggar-daddy.com}'
-        headers:
-          Subject: '💳 [URGENT] Payment System Alert'
-
-  # ============================================
-  # 資料庫 Critical 告警
-  # ============================================
-  - name: 'database-critical'
-    slack_configs:
-      - channel: '#alerts-database'
-        username: 'Database Alert'
-        icon_emoji: ':database:'
-        title: '🗄️ 資料庫緊急告警'
-        color: 'danger'
-        text: |
-          *⚠️ 資料庫出現 Critical 問題！*
-          
-          {{ range .Alerts }}
-          *Summary:* {{ .Annotations.summary }}
-          *Description:* {{ .Annotations.description }}
-          {{ end }}
-          
-          @channel 請立即檢查資料庫狀態！
-        send_resolved: true
-
-  # ============================================
-  # Warning 告警（P1）
-  # ============================================
+  
   - name: 'warning-alerts'
-    slack_configs:
-      - channel: '#alerts-warning'
-        username: 'Alertmanager'
-        icon_emoji: ':warning:'
-        title: '⚠️ WARNING ALERT'
-        color: 'warning'
-        text: |
-          *告警:* {{ .GroupLabels.alertname }}
-          *服務:* {{ .GroupLabels.service }}
-          
-          {{ range .Alerts }}
-          *Summary:* {{ .Annotations.summary }}
-          *Description:* {{ .Annotations.description }}
-          {{ end }}
-        send_resolved: true
-
-  # ============================================
-  # Info 告警（P2）
-  # ============================================
+  
   - name: 'info-alerts'
-    slack_configs:
-      - channel: '#alerts-info'
-        username: 'Alertmanager'
-        icon_emoji: ':information_source:'
-        title: 'ℹ️ INFO ALERT'
-        color: 'good'
-        text: |
-          *告警:* {{ .GroupLabels.alertname }}
-          *服務:* {{ .GroupLabels.service }}
-          
-          {{ range .Alerts }}
-          *Summary:* {{ .Annotations.summary }}
-          {{ end }}
-        send_resolved: false
 
-  # ============================================
-  # 業務指標告警
-  # ============================================
-  - name: 'business-alerts'
-    slack_configs:
-      - channel: '#alerts-business'
-        username: 'Business Metrics'
-        icon_emoji: ':chart_with_upwards_trend:'
-        title: '📊 業務指標告警'
-        color: 'warning'
-        text: |
-          *告警:* {{ .GroupLabels.alertname }}
-          
-          {{ range .Alerts }}
-          *Summary:* {{ .Annotations.summary }}
-          *Description:* {{ .Annotations.description }}
-          *Impact:* {{ .Annotations.impact }}
-          {{ end }}
-        send_resolved: true
-
-    email_configs:
-      - to: '${BUSINESS_ALERT_EMAIL:-business@suggar-daddy.com}'
-        headers:
-          Subject: '📊 [業務告警] {{ .GroupLabels.alertname }}'
-
-  # ============================================
-  # 監控系統自身告警
-  # ============================================
-  - name: 'monitoring-alerts'
-    slack_configs:
-      - channel: '#alerts-monitoring'
-        username: 'Monitoring System'
-        icon_emoji: ':mag:'
-        title: '🔍 監控系統告警'
-        color: 'danger'
-        text: |
-          *⚠️ 監控系統本身出現問題！*
-          
-          {{ range .Alerts }}
-          *Summary:* {{ .Annotations.summary }}
-          *Description:* {{ .Annotations.description }}
-          {{ end }}
-        send_resolved: true
-
-# ============================================
-# 模板配置（自定義告警格式）
-# ============================================
-templates:
-  - '/etc/alertmanager/templates/*.tmpl'
+# 註：生產環境請配置實際的通知渠道
+# 配置範例請參考 docs/MONITORING.md

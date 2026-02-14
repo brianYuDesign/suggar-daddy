@@ -1,0 +1,167 @@
+# PostgreSQL Monitoring with Prometheus
+# This configuration sets up monitoring for PostgreSQL HA
+
+# Prometheus PostgreSQL Exporter Alert Rules
+groups:
+  - name: postgresql_alerts
+    interval: 30s
+    rules:
+      # Database Down
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL instance {{ $labels.instance }} is down"
+          description: "PostgreSQL database at {{ $labels.instance }} has been down for more than 1 minute"
+
+      # High Replication Lag
+      - alert: PostgreSQLReplicationLagHigh
+        expr: pg_replication_lag_bytes > 10485760  # 10MB
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High replication lag on {{ $labels.instance }}"
+          description: "Replication lag is {{ $value | humanize }}bytes on {{ $labels.instance }}"
+
+      # Critical Replication Lag
+      - alert: PostgreSQLReplicationLagCritical
+        expr: pg_replication_lag_bytes > 104857600  # 100MB
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical replication lag on {{ $labels.instance }}"
+          description: "Replication lag is {{ $value | humanize }}bytes on {{ $labels.instance }}"
+
+      # Replication Slot Inactive
+      - alert: PostgreSQLReplicationSlotInactive
+        expr: pg_replication_slots_active == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL replication slot inactive"
+          description: "Replication slot {{ $labels.slot_name }} has been inactive for 5 minutes"
+
+      # No Active Replicas
+      - alert: PostgreSQLNoActiveReplicas
+        expr: pg_stat_replication_count == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No active replicas connected to master"
+          description: "Master at {{ $labels.instance }} has no active replicas"
+
+      # High Connection Usage
+      - alert: PostgreSQLConnectionsHigh
+        expr: (pg_stat_activity_count / pg_settings_max_connections) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High connection usage on {{ $labels.instance }}"
+          description: "Connection usage is at {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Connection Pool Exhausted
+      - alert: PostgreSQLConnectionsExhausted
+        expr: (pg_stat_activity_count / pg_settings_max_connections) > 0.95
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Connection pool nearly exhausted on {{ $labels.instance }}"
+          description: "Connection usage is at {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # High Transaction Duration
+      - alert: PostgreSQLLongRunningTransactions
+        expr: pg_stat_activity_max_tx_duration > 300  # 5 minutes
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Long running transactions detected"
+          description: "Transaction has been running for {{ $value }} seconds on {{ $labels.instance }}"
+
+      # Dead Tuples High
+      - alert: PostgreSQLDeadTuplesHigh
+        expr: (pg_stat_user_tables_n_dead_tup / (pg_stat_user_tables_n_live_tup + pg_stat_user_tables_n_dead_tup)) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High dead tuples ratio on table {{ $labels.table }}"
+          description: "Dead tuples ratio is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Database Size Growth
+      - alert: PostgreSQLDatabaseSizeGrowthHigh
+        expr: rate(pg_database_size_bytes[1h]) > 1073741824  # 1GB per hour
+        for: 2h
+        labels:
+          severity: info
+        annotations:
+          summary: "High database growth rate"
+          description: "Database {{ $labels.database }} is growing at {{ $value | humanize }}bytes/s"
+
+      # Disk Usage High
+      - alert: PostgreSQLDiskUsageHigh
+        expr: (pg_database_size_bytes / (1024^3)) > 80  # 80GB
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage on database {{ $labels.database }}"
+          description: "Database size is {{ $value | humanize }}GB"
+
+      # Checkpoint Frequency High
+      - alert: PostgreSQLCheckpointFrequencyHigh
+        expr: rate(pg_stat_bgwriter_checkpoints_timed[5m]) > 0.1  # More than 6 per minute
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High checkpoint frequency"
+          description: "Checkpoints are occurring too frequently on {{ $labels.instance }}"
+
+      # Cache Hit Ratio Low
+      - alert: PostgreSQLCacheHitRatioLow
+        expr: pg_stat_database_blks_hit / (pg_stat_database_blks_hit + pg_stat_database_blks_read) < 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low cache hit ratio on {{ $labels.database }}"
+          description: "Cache hit ratio is {{ $value | humanizePercentage }} (should be >90%)"
+
+      # Idle in Transaction
+      - alert: PostgreSQLIdleInTransaction
+        expr: pg_stat_activity_count{state="idle in transaction"} > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of idle in transaction connections"
+          description: "{{ $value }} connections are idle in transaction on {{ $labels.instance }}"
+
+      # WAL Archive Failing
+      - alert: PostgreSQLWALArchiveFailing
+        expr: pg_stat_archiver_failed_count > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "WAL archive failures detected"
+          description: "{{ $value }} WAL archive failures on {{ $labels.instance }}"
+
+      # Master/Replica Role Mismatch
+      - alert: PostgreSQLRoleMismatch
+        expr: pg_is_in_recovery != on(instance) pg_expected_recovery_state
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL role mismatch detected"
+          description: "Expected recovery state doesn't match actual state on {{ $labels.instance }}"

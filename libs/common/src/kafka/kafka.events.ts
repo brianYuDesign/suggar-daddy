@@ -14,6 +14,7 @@ export const USER_EVENTS = {
 // Matching Events (matching-service → notification / messaging)
 export const MATCHING_EVENTS = {
   MATCHED: 'matching.matched',
+  UNMATCHED: 'matching.unmatched',
 } as const;
 
 // Subscription Events

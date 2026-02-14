@@ -9,10 +9,14 @@ import { NestFactory } from '@nestjs/core';
 const helmet = require('helmet');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const compression = require('compression');
-import { AllExceptionsFilter } from '@suggar-daddy/common';
+import { AllExceptionsFilter, TracingService } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
+  // Initialize tracing BEFORE creating the app
+  const tracingService = new TracingService();
+  tracingService.init('api-gateway');
+
   const app = await NestFactory.create(AppModule);
 
   // Security headers

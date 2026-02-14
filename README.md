@@ -591,3 +591,10 @@ MIT
 ## Support
 
 For questions or issues, please contact the development team or open an issue on GitHub.
+
+## 📖 團隊工作流程
+
+新成員或需要了解開發流程？請閱讀：
+- **[團隊工作流程](./docs/TEAM-WORKFLOW.md)** - 完整的開發、測試、部署流程
+- [開發指南](./docs/02-開發指南.md) - API 開發參考
+- [文檔中心](./docs/INDEX.md) - 所有文檔導航

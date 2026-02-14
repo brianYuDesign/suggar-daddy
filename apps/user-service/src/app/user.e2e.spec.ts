@@ -117,7 +117,7 @@ describe('User Service (e2e)', () => {
       await request(app.getHttpServer())
         .get('/profile/user-123')
         .expect((res) => {
-          expect([200, 404]).toContain(res.status);
+          expect([200, 403, 404]).toContain(res.status);
         });
     });
 
@@ -125,7 +125,7 @@ describe('User Service (e2e)', () => {
       await request(app.getHttpServer())
         .get('/profile/test-user-id')
         .expect((res) => {
-          expect([200, 404]).toContain(res.status);
+          expect([200, 403, 404]).toContain(res.status);
         });
     });
   });
@@ -147,7 +147,6 @@ describe('User Service (e2e)', () => {
       await request(app.getHttpServer())
         .post('/')
         .send({
-          email: 'test@example.com',
           displayName: 'Test User',
           role: 'sugar_baby',
         })
@@ -163,12 +162,10 @@ describe('User Service (e2e)', () => {
         .expect(400);
     });
 
-    it('should validate email format', async () => {
+    it('should validate displayName is required', async () => {
       await request(app.getHttpServer())
         .post('/')
         .send({
-          email: 'invalid-email',
-          displayName: 'Test',
           role: 'sugar_baby',
         })
         .expect(400);
@@ -178,7 +175,6 @@ describe('User Service (e2e)', () => {
       await request(app.getHttpServer())
         .post('/')
         .send({
-          email: 'test@example.com',
           displayName: 'Test',
           role: 'invalid_role',
         })

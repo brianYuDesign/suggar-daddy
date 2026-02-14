@@ -4,11 +4,15 @@
 
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AllExceptionsFilter, setupSwagger } from '@suggar-daddy/common';
+import { AllExceptionsFilter, setupSwagger, TracingService } from '@suggar-daddy/common';
 import { AppModule } from './app/app.module';
 const helmet = require('helmet');
 
 async function bootstrap() {
+  // Initialize tracing BEFORE creating the app
+  const tracingService = new TracingService();
+  tracingService.init('messaging-service');
+
   const app = await NestFactory.create(AppModule);
   app.use(helmet());
   const globalPrefix = 'api/messaging';

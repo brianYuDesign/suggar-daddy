@@ -1,6 +1,14 @@
 import { Body, Controller, Get, Logger, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { LoginDto, RegisterDto, RefreshTokenDto, type TokenResponseDto } from '@suggar-daddy/dto';
+import { 
+  LoginDto, 
+  RegisterDto, 
+  RefreshTokenDto, 
+  ForgotPasswordDto, 
+  ResetPasswordDto, 
+  ChangePasswordDto,
+  type TokenResponseDto 
+} from '@suggar-daddy/dto';
 import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole, type JwtUser } from '@suggar-daddy/auth';
 import { OAuthService } from '@suggar-daddy/auth';
 import { AuthService } from './auth.service';
@@ -70,12 +78,12 @@ export class AuthController {
   // ── Password Reset ─────────────────────────────────────────────────
 
   @Post('forgot-password')
-  async forgotPassword(@Body() body: { email: string }) {
+  async forgotPassword(@Body() body: ForgotPasswordDto) {
     return this.authService.requestPasswordReset(body.email);
   }
 
   @Post('reset-password')
-  async resetPassword(@Body() body: { token: string; newPassword: string }) {
+  async resetPassword(@Body() body: ResetPasswordDto) {
     return this.authService.resetPassword(body.token, body.newPassword);
   }
 
@@ -85,7 +93,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async changePassword(
     @CurrentUser() user: JwtUser,
-    @Body() body: { oldPassword: string; newPassword: string },
+    @Body() body: ChangePasswordDto,
   ) {
     return this.authService.changePassword(user.userId, body.oldPassword, body.newPassword);
   }

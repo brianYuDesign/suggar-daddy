@@ -1,3 +1,108 @@
+# 📚 Sugar Daddy 平台測試文檔索引
+
+**快速導航** | 幫助您快速找到需要的測試資訊
+
+---
+
+## 🚀 快速開始
+
+### 我想要...
+
+| 需求 | 推薦文檔 | 閱讀時間 |
+|------|---------|---------|
+| 📊 **了解當前測試狀態** | [TEST_COVERAGE_ASSESSMENT.md](./TEST_COVERAGE_ASSESSMENT.md) | 10-30分鐘 |
+| ⚡ **執行測試命令** | [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) | 1-15分鐘 |
+| 🎯 **上線前測試策略** | [PRE_LAUNCH_TEST_STRATEGY.md](./PRE_LAUNCH_TEST_STRATEGY.md) | 15-45分鐘 |
+| 📅 **開始 2週衝刺** | [2_WEEK_SPRINT_ROADMAP.md](./2_WEEK_SPRINT_ROADMAP.md) | 20-40分鐘 |
+| 📖 **整體測試情況** | [測試策略完整指南](#測試策略完整指南) (本頁下方) | 30-60分鐘 |
+
+---
+
+## 📂 文檔結構
+
+### 新增文檔 (2026-02-14) ✨
+
+1. **[TEST_COVERAGE_ASSESSMENT.md](./TEST_COVERAGE_ASSESSMENT.md)** - 測試覆蓋率評估
+   - 📊 執行摘要與關鍵發現
+   - 🔍 詳細測試狀態分析
+   - 🎯 測試缺口與優先級
+   - 📋 上線前測試清單
+
+2. **[PRE_LAUNCH_TEST_STRATEGY.md](./PRE_LAUNCH_TEST_STRATEGY.md)** - 上線前測試策略
+   - 🏗️ Playwright E2E 架構設計
+   - 📄 Page Object Model 範例
+   - 📅 測試執行順序 (Week 1-2)
+   - 📈 成功指標 (KPI)
+
+3. **[2_WEEK_SPRINT_ROADMAP.md](./2_WEEK_SPRINT_ROADMAP.md)** - 2週衝刺 Roadmap
+   - 📅 每日任務清單
+   - 📊 進度追蹤儀表板
+   - 🎯 快速命令參考
+   - ✅ 最終驗收標準
+
+4. **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - 快速參考指南
+   - 🚀 一鍵執行命令
+   - 🐛 除錯技巧
+   - 🔧 常見問題排查
+   - 📝 測試撰寫範例
+
+### 現有文檔
+
+- **[../TESTING.md](../TESTING.md)** - 測試總覽
+- **[../TEST_ACTION_PLAN.md](../TEST_ACTION_PLAN.md)** - 8週測試計劃
+- **[../TEST_BEST_PRACTICES.md](../TEST_BEST_PRACTICES.md)** - 測試最佳實踐
+
+---
+
+## 🎭 根據角色選擇文檔
+
+### 🧑‍💼 產品經理 / 專案經理
+**目標**: 了解測試進度和風險
+
+1. [TEST_COVERAGE_ASSESSMENT.md](./TEST_COVERAGE_ASSESSMENT.md) - 執行摘要 ⭐
+2. [2_WEEK_SPRINT_ROADMAP.md](./2_WEEK_SPRINT_ROADMAP.md) - 進度追蹤
+
+### 👨‍💻 QA Engineer
+**目標**: 執行和撰寫測試
+
+1. [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) - 測試命令 ⭐
+2. [2_WEEK_SPRINT_ROADMAP.md](./2_WEEK_SPRINT_ROADMAP.md) - 每日任務
+3. [PRE_LAUNCH_TEST_STRATEGY.md](./PRE_LAUNCH_TEST_STRATEGY.md) - 測試架構
+
+### 🔧 後端開發
+**目標**: 修復後端測試
+
+1. [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) - 後端測試命令 ⭐
+2. [2_WEEK_SPRINT_ROADMAP.md](./2_WEEK_SPRINT_ROADMAP.md) - Week 1 任務
+
+### 🎨 前端開發
+**目標**: 補充前端測試
+
+1. [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) - 前端測試命令 ⭐
+2. [2_WEEK_SPRINT_ROADMAP.md](./2_WEEK_SPRINT_ROADMAP.md) - Week 2 Day 6-8
+
+### 🚀 DevOps Engineer
+**目標**: 設定 CI/CD 測試
+
+1. [PRE_LAUNCH_TEST_STRATEGY.md](./PRE_LAUNCH_TEST_STRATEGY.md) - CI/CD 整合 ⭐
+2. [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) - CI/CD 測試命令
+
+### 🏆 Tech Lead / Architect
+**目標**: 審查測試策略和架構
+
+1. [TEST_COVERAGE_ASSESSMENT.md](./TEST_COVERAGE_ASSESSMENT.md) - 完整評估 ⭐
+2. [PRE_LAUNCH_TEST_STRATEGY.md](./PRE_LAUNCH_TEST_STRATEGY.md) - 測試架構
+
+---
+
+## 📞 需要幫助？
+
+- **Slack**: #testing-sprint
+- **Email**: qa-team@sugardaddy.com
+- **緊急**: QA Lead
+
+---
+
 # 測試策略完整指南
 
 > **Sugar Daddy 專案測試策略、覆蓋率分析與最佳實踐**  

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, TEST_USERS, takeScreenshot, waitForAPIRequest } from '../utils/test-helpers';
+import { login, TEST_USERS, takeScreenshot, waitForAPIRequest } from './utils/test-helpers';
 
 test.describe('完整用戶旅程 - 創作者流程', () => {
   test('創作者完整工作流程', async ({ page, context }) => {

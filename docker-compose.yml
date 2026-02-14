@@ -80,10 +80,11 @@ services:
       - postgres_replica_data:/var/lib/postgresql/data
       - ./infrastructure/postgres/replica/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./infrastructure/postgres/replica/pg_hba.conf:/etc/postgresql/pg_hba.conf
-      - ./infrastructure/postgres/scripts/init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh
+      - ./infrastructure/postgres/replica/entrypoint.sh:/usr/local/bin/replica-entrypoint.sh
       - ./infrastructure/postgres/scripts/check-replication.sh:/usr/local/bin/check-replication.sh
       - ./backups:/backups
       - postgres_wal_archive:/var/lib/postgresql/wal_archive
+    entrypoint: ["/usr/local/bin/replica-entrypoint.sh"]
     command: >
       postgres
       -c config_file=/etc/postgresql/postgresql.conf
@@ -942,8 +943,25 @@ volumes:
   # Legacy volume (kept for backward compatibility)
   postgres_data:
     driver: local
+  
+  # Redis High Availability Volumes
+  redis_master_data:
+    driver: local
+  redis_replica_1_data:
+    driver: local
+  redis_replica_2_data:
+    driver: local
+  redis_sentinel_1_data:
+    driver: local
+  redis_sentinel_2_data:
+    driver: local
+  redis_sentinel_3_data:
+    driver: local
+  # Legacy volume (kept for backward compatibility)
   redis_data:
     driver: local
+  
+  # Kafka & Zookeeper Volumes
   kafka_data:
     driver: local
   zookeeper_data:
