@@ -5,6 +5,42 @@
   "projectType": "application",
   "tags": ["scope:subscription"],
   "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "webpack-cli build",
+        "args": [
+          "--node-env=production"
+        ],
+        "cwd": "apps/subscription-service"
+      },
+      "configurations": {
+        "development": {
+          "args": [
+            "--node-env=development"
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": [
+        "build"
+      ],
+      "options": {
+        "buildTarget": "subscription-service:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "subscription-service:build:development"
+        },
+        "production": {
+          "buildTarget": "subscription-service:build:production"
+        }
+      }
+    },
     "test": {
       "executor": "@nx/jest:jest",
       "options": {

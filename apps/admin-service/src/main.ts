@@ -47,7 +47,7 @@ async function bootstrap() {
   // Graceful shutdown
   app.enableShutdownHooks();
 
-  const port = process.env.PORT || 3011;
+  const port = process.env.ADMIN_SERVICE_PORT || process.env.PORT || 3011;
   await app.listen(port);
   Logger.log(`Admin Service running on: http://localhost:${port}/api/admin`);
   Logger.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);

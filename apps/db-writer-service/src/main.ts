@@ -13,7 +13,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   app.enableShutdownHooks();
-  const port = process.env.PORT || 3010;
+  const port = process.env.DB_WRITER_SERVICE_PORT || process.env.PORT || 3010;
   await app.listen(port);
   Logger.log(`DB Writer Service running on: http://localhost:${port}`);
 }

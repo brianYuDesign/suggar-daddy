@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { PAYMENT_EVENTS, PaymentCompletedEvent } from '@suggar-daddy/common';
-import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { SubscriptionService } from '../subscription.service';
 
 @Injectable()
 export class PaymentConsumer {
   private readonly logger = new Logger(PaymentConsumer.name);
 
-  constructor(private readonly subscriptionsService: SubscriptionsService) {}
+  constructor(private readonly subscriptionsService: SubscriptionService) {}
 
   @EventPattern(PAYMENT_EVENTS.PAYMENT_COMPLETED)
   async handlePaymentCompleted(@Payload() event: PaymentCompletedEvent) {

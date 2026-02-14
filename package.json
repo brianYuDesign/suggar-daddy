@@ -11,6 +11,8 @@
     "serve:notification-service": "nx serve notification-service",
     "serve:messaging-service": "nx serve messaging-service",
     "serve:db-writer-service": "nx serve db-writer-service",
+    "serve:payment-service": "nx serve payment-service",
+    "serve:subscription-service": "nx serve subscription-service",
     "test": "nx run-many -t test --all",
     "lint": "nx run-many -t lint --all",
     "serve:web": "nx serve web",
@@ -23,13 +25,10 @@
   },
   "private": true,
   "dependencies": {
-<<<<<<< HEAD
     "@aws-sdk/client-s3": "^3.989.0",
     "@aws-sdk/cloudfront-signer": "^3.988.0",
-    "@nestjs-modules/mailer": "^2.0.2",
-=======
     "@hookform/resolvers": "^5.2.2",
->>>>>>> a0fdce05c026d8e1406983e3732cd83732cce969
+    "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",

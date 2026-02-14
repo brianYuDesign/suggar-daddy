@@ -31,7 +31,8 @@ async function bootstrap() {
     path: 'api/docs',
   });
 
-  const port = process.env.PORT || 3007;
+  // Port 3007 - Payment Service
+  const port = process.env.PAYMENT_SERVICE_PORT || 3007;
   await app.listen(port);
   Logger.log(
     `🚀 Payment service is running on: http://localhost:${port}/${globalPrefix}`,

@@ -14,8 +14,7 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { SubscriptionTierController } from "./subscription-tier.controller";
 import { SubscriptionTierService } from "./subscription-tier.service";
-import { SubscriptionController } from "./subscription.controller";
-import { SubscriptionService } from "./subscription.service";
+import { SubscriptionModule } from "./subscription.module";
 import { StripeModule } from "./stripe/stripe.module";
 import { PaymentEventConsumer } from "./events/payment-event.consumer";
 
@@ -36,17 +35,16 @@ import { PaymentEventConsumer } from "./events/payment-event.consumer";
       }),
       inject: [AppConfigService],
     }),
+    SubscriptionModule,
     StripeModule,
   ],
   controllers: [
     AppController,
     SubscriptionTierController,
-    SubscriptionController,
   ],
   providers: [
     AppService,
     SubscriptionTierService,
-    SubscriptionService,
     PaymentEventConsumer,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },

@@ -33,7 +33,7 @@ export class ProxyService {
       },
       {
         prefix: '/api/notifications',
-        baseUrl: this.config.get<string>('NOTIFICATION_SERVICE_URL', 'http://localhost:3004'),
+        baseUrl: this.config.get<string>('NOTIFICATION_SERVICE_URL', 'http://localhost:3008'),
       },
       {
         prefix: '/api/messaging',
@@ -89,11 +89,11 @@ export class ProxyService {
       },
       {
         prefix: '/api/upload',
-        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3008'),
+        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3010'),
       },
       {
         prefix: '/api/media',
-        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3008'),
+        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3010'),
       },
       {
         prefix: '/api/admin',

@@ -43,11 +43,11 @@ export const envValidationSchema = Joi.object({
   // ─── Redis Configuration ───
   REDIS_HOST: Joi.string().default("localhost"),
   REDIS_PORT: Joi.number().default(6379),
-  REDIS_PASSWORD: Joi.string().optional(),
+  REDIS_PASSWORD: Joi.string().allow("").optional(),
   REDIS_DB: Joi.number().default(0),
 
   // ─── Kafka Configuration ───
-  KAFKA_BROKERS: Joi.string().default("localhost:9092"),
+  KAFKA_BROKERS: Joi.string().default("localhost:9094"),
   KAFKA_CLIENT_ID: Joi.string().optional(),
   KAFKA_GROUP_ID: Joi.string().optional(),
 
@@ -81,9 +81,9 @@ export const envValidationSchema = Joi.object({
   FIREBASE_PRIVATE_KEY: Joi.string().allow("").default(""),
 
   // ─── Cloudinary Configuration (File Uploads) ───
-  CLOUDINARY_CLOUD_NAME: Joi.string().optional(),
-  CLOUDINARY_API_KEY: Joi.string().optional(),
-  CLOUDINARY_API_SECRET: Joi.string().optional(),
+  CLOUDINARY_CLOUD_NAME: Joi.string().allow("").optional(),
+  CLOUDINARY_API_KEY: Joi.string().allow("").optional(),
+  CLOUDINARY_API_SECRET: Joi.string().allow("").optional(),
 
   // ─── Frontend Configuration ───
   NEXT_PUBLIC_API_URL: Joi.string().default("http://localhost:3000"),

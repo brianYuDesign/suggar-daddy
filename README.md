@@ -4,6 +4,7 @@ A microservices-based dating platform built with NestJS, Next.js, and PostgreSQL
 
 ## Table of Contents
 
+- [Documentation](#documentation)
 - [Architecture](#architecture)
 - [Quick Start with Docker](#quick-start-with-docker)
 - [Development](#development)
@@ -11,6 +12,68 @@ A microservices-based dating platform built with NestJS, Next.js, and PostgreSQL
 - [Recent Improvements](#recent-improvements)
 - [Services](#services)
 - [Tech Stack](#tech-stack)
+
+---
+
+## 📚 Documentation
+
+### 統一文檔中心
+
+所有專案文檔已整合至 `docs/` 目錄，請訪問 **[文檔索引 (docs/INDEX.md)](./docs/INDEX.md)** 查看完整導航。
+
+### 核心文檔快速鏈接
+
+| 文檔 | 描述 | 適合人員 |
+|------|------|---------|
+| **[DevOps 完整指南](./docs/devops/README.md)** | CI/CD、Docker、監控、安全性 | DevOps 工程師、系統管理員 |
+| **[基礎設施完整指南](./docs/infrastructure/README.md)** | 架構圖、運維操作、效能調優 | 架構師、後端開發者、DBA |
+| **[API 文檔指南](./docs/api/README.md)** | Swagger 配置、API 訪問 | 前後端開發者、QA 工程師 |
+| **[測試策略指南](./docs/testing/README.md)** | 測試覆蓋率、最佳實踐 | QA 工程師、後端開發者 |
+
+### 快速開始
+
+- **DevOps**: [30分鐘快速設置 CI/CD](./docs/devops/README.md#快速開始)
+- **基礎設施**: [Docker 快速啟動](./docs/infrastructure/README.md#快速開始)
+- **API**: [訪問所有 Swagger 文檔](./docs/api/README.md#訪問-swagger-文檔)
+- **測試**: [運行測試命令](./docs/testing/README.md#運行測試)
+
+### 按角色導航
+
+#### 👔 專案經理 / 管理層
+- [DevOps 評估總覽](./docs/devops/README.md#評估總覽) - ROI 和關鍵指標
+- [基礎設施優化總結](./docs/infrastructure/README.md#優化總結) - 已完成改進
+- [測試執行摘要](./docs/testing/README.md#執行摘要) - 測試覆蓋率
+
+#### 🔧 DevOps 工程師
+- [CI/CD 設置](./docs/devops/README.md#快速開始)
+- [基礎設施運維](./docs/infrastructure/README.md#運維操作)
+- [監控與告警](./docs/devops/README.md#監控與告警)
+
+#### 💻 後端開發者
+- [API 文檔配置](./docs/api/README.md#swagger-配置指南)
+- [資料庫連接](./docs/infrastructure/README.md#連接配置)
+- [測試最佳實踐](./docs/testing/README.md#測試最佳實踐)
+
+#### 🎨 前端開發者
+- [所有 API Swagger UI](./docs/api/README.md#訪問-swagger-文檔)
+- [API Gateway 文檔](http://localhost:3000/api/docs)
+
+#### 🧪 QA 工程師
+- [測試覆蓋率分析](./docs/testing/README.md#測試覆蓋率分析)
+- [E2E 測試狀態](./docs/testing/README.md#當前狀態)
+- [優先級改進計劃](./docs/testing/README.md#優先級改進計劃)
+
+### 關鍵指標概覽
+
+| 指標 | 數值 | 狀態 |
+|------|------|------|
+| DevOps 總體評分 | ⭐⭐⭐⭐☆ (3.5/5) | 🟢 良好 |
+| 基礎設施優化成功率 | 91.67% | 🟢 優秀 |
+| 測試覆蓋率 | ~25-35% | 🟡 改善中 |
+| API 文檔配置 | 80% | 🟢 良好 |
+| E2E 測試通過率 | 91% (212/233) | 🟢 優秀 |
+
+---
 
 ## Architecture
 

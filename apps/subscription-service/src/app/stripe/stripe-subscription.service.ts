@@ -66,7 +66,7 @@ export class StripeSubscriptionService {
               },
               unit_amount: Math.round(price * 100),
               recurring: { interval: 'month' },
-            },
+            } as unknown as Stripe.SubscriptionCreateParams.Item.PriceData,
           },
         ],
         payment_behavior: 'default_incomplete',

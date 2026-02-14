@@ -31,7 +31,8 @@ async function bootstrap() {
     path: 'api/docs',
   });
 
-  const port = process.env['PORT'] || 3006;
+  // Port 3006 - Content Service
+  const port = process.env['CONTENT_SERVICE_PORT'] || 3006;
   await app.listen(port);
   Logger.log(
     `🚀 Content service is running on: http://localhost:${port}/${globalPrefix}`,

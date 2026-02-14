@@ -21,6 +21,7 @@ import { NotificationGateway } from "./notification.gateway";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ".env",
     }),
     EnvConfigModule,
     AuthModule,

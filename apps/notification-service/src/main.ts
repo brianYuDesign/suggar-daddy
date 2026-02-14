@@ -1,5 +1,6 @@
 /**
  * Notification Service - 通知服務 (Phase 1)
+ * Port: 3004
  */
 
 import { Logger, ValidationPipe } from '@nestjs/common';
@@ -26,7 +27,8 @@ async function bootstrap() {
   });
   
   app.enableShutdownHooks();
-  const port = process.env.PORT || 3004;
+  // Port 3004 - Notification Service
+  const port = process.env.NOTIFICATION_SERVICE_PORT || 3004;
   await app.listen(port);
   Logger.log(`Notification Service running on: http://localhost:${port}/${globalPrefix}`);
   Logger.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);

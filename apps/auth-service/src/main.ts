@@ -26,7 +26,7 @@ async function bootstrap() {
   });
   
   app.enableShutdownHooks();
-  const port = process.env.PORT || 3002;
+  const port = process.env.AUTH_SERVICE_PORT || process.env.PORT || 3002;
   await app.listen(port);
   Logger.log(`Auth Service running on: http://localhost:${port}/${globalPrefix}`);
   Logger.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);

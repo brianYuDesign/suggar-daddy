@@ -26,7 +26,7 @@ async function bootstrap() {
   });
   
   app.enableShutdownHooks();
-  const port = process.env.PORT || 3001;
+  const port = process.env.USER_SERVICE_PORT || process.env.PORT || 3001;
   await app.listen(port);
   Logger.log(`User Service running on: http://localhost:${port}/${globalPrefix}`);
   Logger.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);

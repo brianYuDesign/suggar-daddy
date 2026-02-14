@@ -31,7 +31,7 @@ async function bootstrap() {
     path: 'api/docs',
   });
 
-  const port = process.env.PORT || 3009;
+  const port = process.env.SUBSCRIPTION_SERVICE_PORT || process.env.PORT || 3009;
   await app.listen(port);
   Logger.log(
     `🚀 Subscription service is running on: http://localhost:${port}/${globalPrefix}`,

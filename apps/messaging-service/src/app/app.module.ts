@@ -19,6 +19,7 @@ import { SubscriptionServiceClient } from "./subscription-service.client";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ".env",
     }),
     EnvConfigModule,
     AuthModule,

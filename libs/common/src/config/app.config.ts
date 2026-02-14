@@ -118,7 +118,7 @@ export class AppConfigService {
   get kafkaBrokers(): string[] {
     const brokers = this.configService.get<string>(
       "KAFKA_BROKERS",
-      "localhost:9092",
+      "localhost:9094",
     );
     return brokers.split(",").map((b) => b.trim());
   }

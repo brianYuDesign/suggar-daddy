@@ -31,7 +31,8 @@ async function bootstrap() {
     path: 'api/docs',
   });
 
-  const port = process.env.PORT || 3008;
+  // Port 3008 - Media Service
+  const port = process.env.MEDIA_SERVICE_PORT || 3008;
   await app.listen(port);
   Logger.log(
     `🚀 Media service is running on: http://localhost:${port}/${globalPrefix}`,

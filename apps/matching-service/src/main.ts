@@ -1,5 +1,6 @@
 /**
  * Matching Service - 配對服務 (Phase 1)
+ * Port: 3003
  */
 
 import { Logger, ValidationPipe } from '@nestjs/common';
@@ -26,7 +27,7 @@ async function bootstrap() {
   });
   
   app.enableShutdownHooks();
-  const port = process.env.PORT || 3003;
+  const port = process.env.MATCHING_SERVICE_PORT || process.env.PORT || 3003;
   await app.listen(port);
   Logger.log(`Matching Service running on: http://localhost:${port}/${globalPrefix}`);
   Logger.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);
