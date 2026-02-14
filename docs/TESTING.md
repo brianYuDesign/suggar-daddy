@@ -2,6 +2,16 @@
 
 ## 目前測試範圍
 
+### 總覽（2026-02-13 更新）
+
+| 測試類型 | 覆蓋率 | 狀態 | 備註 |
+|---------|--------|------|------|
+| **後端單元測試** | 76% | ✅ 良好 | 33 個測試檔案，600+ 測試案例 |
+| **後端 E2E 測試** | 91% | ✅ 優秀 | 212/233 通過 |
+| **前端單元測試** | 35% | ⚠️ 待改進 | Web 30%, Admin 40% |
+| **前端 E2E 測試** | 部分 | ⚠️ 待改進 | Admin 有 Puppeteer 測試 |
+| **整合測試** | 部分 | ⚠️ 待改進 | 部分服務有整合測試 |
+
 ### Libs
 
 - **libs/common**：單元測試
@@ -27,7 +37,7 @@
 
 ### E2E 整合測試
 
-#### 測試執行總覽
+#### 測試執行總覽（2026-02-13 更新）
 
 | 服務 | 狀態 | 測試數量 | 通過率 | 測試指令 |
 |------|------|----------|---------|----------|
@@ -36,7 +46,13 @@
 | **User Service** | ⚠️ 部分通過 | 25/33 | 75.8% | `npx nx test user-service --testPathPattern=user.e2e` |
 | **Content Service** | ⚠️ 大部分通過 | 39/46 | 84.8% | `npx nx test content-service --testPathPattern=content.e2e` |
 | **Auth Service** | ⚠️ 大部分通過 | 49/55 | 89.1% | `npx nx test auth-service --testPathPattern=auth.e2e` |
-| **總計** | - | 212/233 | 91.0% | - |
+| **總計** | - | 212/233 | **91.0%** | - |
+
+**改進計劃**：
+- [ ] 修復 User Service 8 個失敗測試（封鎖/檢舉功能）
+- [ ] 修復 Content Service 7 個失敗測試（審核流程）
+- [ ] 修復 Auth Service 6 個失敗測試（密碼重置）
+- [ ] 目標：100% E2E 測試通過率（2 週內）
 
 #### API Gateway (E2E) ✅
 **測試檔案**: `apps/api-gateway/src/app/api-gateway.e2e.spec.ts`  
@@ -204,12 +220,32 @@ describe('Service (e2e)', () => {
 
 ## 尚未覆蓋
 
-- ~~各 app 的 controller 層整合測試~~ ✅ **已完成 API Gateway E2E 測試（29 個測試通過）**
-- Auth Service E2E 測試（進行中，需要調整以匹配實際 API 結構）
-- 其他服務的 controller 層整合測試（user-service, payment-service, content-service 等）
+- User Service E2E 測試（進行中，8 個測試失敗）
+- Content Service E2E 測試（進行中，7 個測試失敗）
+- Auth Service E2E 測試（進行中，6 個測試失敗）
+- 其他服務的 E2E 測試（Notification, Messaging, Subscription, Admin）
 - Stripe / Kafka 的整合測試（需 mock 或 test 環境）
-- 前端元件測試（web / admin）
+- 前端元件測試（web / admin）- **P0 優先級，目標 60% 覆蓋率**
 - 跨服務的端到端測試（完整業務流程）
+- 壓力測試和效能測試
+- 安全性測試（滲透測試、漏洞掃描）
+
+## 測試改進計劃（2026-02-13 更新）
+
+### 短期（2 週內）
+- [ ] 修復所有失敗的 E2E 測試（21 個）
+- [ ] 達成 100% E2E 測試通過率
+- [ ] 增加關鍵服務的整合測試
+
+### 中期（1 個月內）
+- [ ] 提升前端測試覆蓋率至 60%（當前 35%）
+- [ ] 增加 Notification、Messaging 服務的 E2E 測試
+- [ ] 增加跨服務整合測試
+
+### 長期（3 個月內）
+- [ ] 實施壓力測試（K6 或 JMeter）
+- [ ] 實施安全性測試（OWASP ZAP、Snyk）
+- [ ] 達成 80% 代碼覆蓋率目標
 
 ## 已安裝的測試工具
 
