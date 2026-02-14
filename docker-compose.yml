@@ -1,14 +1,20 @@
 version: '3.8'
 
 services:
-  # Database Services
-  postgres:
-    image: postgres:15-alpine
-    container_name: suggar-daddy-postgres
+  # Database Services - High Availability Architecture
+  # =====================================================
+  # PostgreSQL Master-Replica Setup with Streaming Replication
+  
+  # PostgreSQL Master (Primary)
+  postgres-master:
+    image: postgres:16-alpine
+    container_name: suggar-daddy-postgres-master
+    hostname: postgres-master
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:-replicator_password}
       # Performance tuning
       POSTGRES_SHARED_BUFFERS: ${POSTGRES_SHARED_BUFFERS:-256MB}
       POSTGRES_EFFECTIVE_CACHE_SIZE: ${POSTGRES_EFFECTIVE_CACHE_SIZE:-1GB}
@@ -18,24 +24,20 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - postgres_master_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/master/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./infrastructure/postgres/master/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./infrastructure/postgres/scripts/init-master.sh:/docker-entrypoint-initdb.d/01-init-master.sh
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/02-init-db.sql
+      - ./infrastructure/postgres/scripts/check-replication.sh:/usr/local/bin/check-replication.sh
       - ./backups:/backups
+      - postgres_wal_archive:/var/lib/postgresql/wal_archive
     command: >
       postgres
-      -c shared_buffers=256MB
-      -c effective_cache_size=1GB
-      -c work_mem=8MB
-      -c maintenance_work_mem=128MB
-      -c max_connections=200
-      -c random_page_cost=1.1
-      -c effective_io_concurrency=200
-      -c checkpoint_completion_target=0.9
-      -c wal_buffers=16MB
-      -c default_statistics_target=100
-      -c log_min_duration_statement=200
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c hba_file=/etc/postgresql/pg_hba.conf
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres && psql -U postgres -c 'SELECT 1' > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,28 +57,92 @@ services:
         max-file: "3"
     networks:
       - suggar-daddy-network
+    labels:
+      - "postgres.role=master"
+      - "postgres.cluster=suggar-daddy"
 
-  # Redis Cache
-  redis:
+  # PostgreSQL Replica (Standby) - Read-Only
+  postgres-replica:
+    image: postgres:16-alpine
+    container_name: suggar-daddy-postgres-replica
+    hostname: postgres-replica
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      POSTGRES_MASTER_HOST: postgres-master
+      POSTGRES_MASTER_PORT: 5432
+      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:-replicator_password}
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_replica_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/replica/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./infrastructure/postgres/replica/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./infrastructure/postgres/scripts/init-replica.sh:/docker-entrypoint-initdb.d/init-replica.sh
+      - ./infrastructure/postgres/scripts/check-replication.sh:/usr/local/bin/check-replication.sh
+      - ./backups:/backups
+      - postgres_wal_archive:/var/lib/postgresql/wal_archive
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c hba_file=/etc/postgresql/pg_hba.conf
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres && psql -U postgres -c 'SELECT pg_is_in_recovery()' | grep -q 't'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - suggar-daddy-network
+    labels:
+      - "postgres.role=replica"
+      - "postgres.cluster=suggar-daddy"
+
+  # Legacy alias for backward compatibility
+  # Services can still connect to 'postgres'
+  postgres:
+    image: alpine:latest
+    container_name: suggar-daddy-postgres-proxy
+    command: /bin/sh -c "echo 'Legacy postgres service - use postgres-master or postgres-replica' && tail -f /dev/null"
+    depends_on:
+      - postgres-master
+    networks:
+      - suggar-daddy-network
+    profiles:
+      - legacy
+
+  # Redis Sentinel Architecture for High Availability
+  # =====================================================
+  
+  # Redis Master - 主節點，處理寫入操作
+  redis-master:
     image: redis:7-alpine
-    container_name: suggar-daddy-redis
+    container_name: suggar-daddy-redis-master
     ports:
       - "6379:6379"
-    command: >
-      redis-server
-      --appendonly yes
-      --maxmemory 512mb
-      --maxmemory-policy allkeys-lru
-      --save 900 1
-      --save 300 10
-      --save 60 10000
-      --tcp-backlog 511
-      --timeout 300
-      --tcp-keepalive 300
-      --loglevel notice
     volumes:
-      - redis_data:/data
+      - redis_master_data:/data
+      - ./infrastructure/redis/master/redis.conf:/usr/local/etc/redis/redis.conf:ro
       - ./backups:/backups
+    command: redis-server /usr/local/etc/redis/redis.conf
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -98,6 +164,205 @@ services:
         max-file: "3"
     networks:
       - suggar-daddy-network
+    restart: unless-stopped
+
+  # Redis Replica 1 - 從節點 1，處理讀取操作
+  redis-replica-1:
+    image: redis:7-alpine
+    container_name: suggar-daddy-redis-replica-1
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_replica_1_data:/data
+      - ./infrastructure/redis/replica/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./backups:/backups
+    command: >
+      sh -c "redis-server /usr/local/etc/redis/redis.conf
+      --replicaof redis-master 6379"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  # Redis Replica 2 - 從節點 2，處理讀取操作
+  redis-replica-2:
+    image: redis:7-alpine
+    container_name: suggar-daddy-redis-replica-2
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_replica_2_data:/data
+      - ./infrastructure/redis/replica/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./backups:/backups
+    command: >
+      sh -c "redis-server /usr/local/etc/redis/redis.conf
+      --replicaof redis-master 6379"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  # Redis Sentinel 1 - 哨兵節點 1
+  redis-sentinel-1:
+    image: redis:7-alpine
+    container_name: suggar-daddy-redis-sentinel-1
+    ports:
+      - "26379:26379"
+    volumes:
+      - redis_sentinel_1_data:/data
+      - ./infrastructure/redis/sentinel/sentinel.conf:/usr/local/etc/redis/sentinel.conf:rw
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-replica-1:
+        condition: service_healthy
+      redis-replica-2:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  # Redis Sentinel 2 - 哨兵節點 2
+  redis-sentinel-2:
+    image: redis:7-alpine
+    container_name: suggar-daddy-redis-sentinel-2
+    ports:
+      - "26380:26379"
+    volumes:
+      - redis_sentinel_2_data:/data
+      - ./infrastructure/redis/sentinel/sentinel.conf:/usr/local/etc/redis/sentinel.conf:rw
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-replica-1:
+        condition: service_healthy
+      redis-replica-2:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  # Redis Sentinel 3 - 哨兵節點 3
+  redis-sentinel-3:
+    image: redis:7-alpine
+    container_name: suggar-daddy-redis-sentinel-3
+    ports:
+      - "26381:26379"
+    volumes:
+      - redis_sentinel_3_data:/data
+      - ./infrastructure/redis/sentinel/sentinel.conf:/usr/local/etc/redis/sentinel.conf:rw
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-replica-1:
+        condition: service_healthy
+      redis-replica-2:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
 
   # Kafka & Zookeeper
   zookeeper:
@@ -216,7 +481,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
         condition: service_healthy
       kafka:
         condition: service_healthy
@@ -263,12 +528,23 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      # Redis (連接到 Sentinel)
+      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
+      REDIS_MASTER_NAME: mymaster
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CLIENT_ID: auth-service
+      KAFKA_GROUP_ID: auth-service-group
       # JWT
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      # Email / SMTP (optional, with defaults for dev)
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@suggar-daddy.com}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:4200}
       # Firebase (optional)
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
@@ -280,7 +556,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     command: npm run serve:auth-service
     networks:
@@ -306,9 +584,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      # Redis (連接到 Sentinel)
+      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
+      REDIS_MASTER_NAME: mymaster
       # Cloudinary (for file uploads)
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
@@ -320,7 +598,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
         condition: service_healthy
     command: npm run serve:user-service
     networks:
@@ -346,9 +624,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      # Redis (連接到 Sentinel)
+      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
+      REDIS_MASTER_NAME: mymaster
       # Kafka
       KAFKA_BROKERS: kafka:9092
       # Stripe
@@ -362,7 +640,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
         condition: service_healthy
       kafka:
         condition: service_healthy
@@ -390,9 +668,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      # Redis (連接到 Sentinel)
+      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
+      REDIS_MASTER_NAME: mymaster
       # Kafka
       KAFKA_BROKERS: kafka:9092
     volumes:
@@ -402,7 +680,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
         condition: service_healthy
       kafka:
         condition: service_healthy
@@ -430,9 +708,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      # Redis (連接到 Sentinel)
+      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
+      REDIS_MASTER_NAME: mymaster
       # Kafka
       KAFKA_BROKERS: kafka:9092
       KAFKA_GROUP_ID: db-writer-group
@@ -443,7 +721,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
         condition: service_healthy
       kafka:
         condition: service_healthy
@@ -480,7 +758,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
         condition: service_healthy
     command: npm run serve:matching-service
     networks:
@@ -517,7 +795,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
         condition: service_healthy
       kafka:
         condition: service_healthy
@@ -555,7 +833,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
         condition: service_healthy
     command: npm run serve:messaging-service
     networks:
@@ -591,7 +869,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      redis-master:
         condition: service_healthy
     command: npm run serve:admin-service
     networks:
@@ -654,6 +932,14 @@ networks:
     driver: bridge
 
 volumes:
+  # PostgreSQL High Availability Volumes
+  postgres_master_data:
+    driver: local
+  postgres_replica_data:
+    driver: local
+  postgres_wal_archive:
+    driver: local
+  # Legacy volume (kept for backward compatibility)
   postgres_data:
     driver: local
   redis_data:

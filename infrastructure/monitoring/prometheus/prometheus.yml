@@ -1,0 +1,276 @@
+# Prometheus 配置文件
+# Suggar Daddy 監控系統
+# Version: 1.0.0
+
+global:
+  # 抓取間隔
+  scrape_interval: 15s
+  # 評估規則間隔
+  evaluation_interval: 15s
+  # 抓取超時
+  scrape_timeout: 10s
+  
+  # 外部標籤（用於聯邦和遠端存儲）
+  external_labels:
+    cluster: 'suggar-daddy-production'
+    environment: 'docker'
+    region: 'local'
+
+# 告警規則文件
+rule_files:
+  - '/etc/prometheus/alerts.yml'
+
+# 告警管理器配置
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+      timeout: 10s
+
+# 抓取配置
+scrape_configs:
+  # ============================================
+  # Prometheus 自身監控
+  # ============================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          component: 'monitoring'
+
+  # ============================================
+  # Alertmanager 監控
+  # ============================================
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+        labels:
+          service: 'alertmanager'
+          component: 'monitoring'
+
+  # ============================================
+  # 系統指標（Node Exporter）
+  # ============================================
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          component: 'system'
+
+  # ============================================
+  # 容器指標（cAdvisor）
+  # ============================================
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'
+          component: 'container'
+
+  # ============================================
+  # 資料庫指標
+  # ============================================
+  
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgres'
+          component: 'database'
+          db_type: 'postgresql'
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'redis'
+          component: 'cache'
+          db_type: 'redis'
+
+  # ============================================
+  # API Gateway
+  # ============================================
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:3000']
+        labels:
+          service: 'api-gateway'
+          component: 'gateway'
+          tier: 'entry'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # ============================================
+  # 微服務 - 認證與用戶
+  # ============================================
+  
+  # Auth Service
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:3001']
+        labels:
+          service: 'auth-service'
+          component: 'backend'
+          domain: 'auth'
+          tier: 'core'
+    metrics_path: '/metrics'
+
+  # User Service
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:3002']
+        labels:
+          service: 'user-service'
+          component: 'backend'
+          domain: 'user'
+          tier: 'core'
+    metrics_path: '/metrics'
+
+  # ============================================
+  # 微服務 - 內容與媒體
+  # ============================================
+  
+  # Content Service
+  - job_name: 'content-service'
+    static_configs:
+      - targets: ['content-service:3003']
+        labels:
+          service: 'content-service'
+          component: 'backend'
+          domain: 'content'
+          tier: 'business'
+    metrics_path: '/metrics'
+
+  # Media Service
+  - job_name: 'media-service'
+    static_configs:
+      - targets: ['media-service:3004']
+        labels:
+          service: 'media-service'
+          component: 'backend'
+          domain: 'media'
+          tier: 'business'
+    metrics_path: '/metrics'
+
+  # ============================================
+  # 微服務 - 支付與訂閱
+  # ============================================
+  
+  # Payment Service
+  - job_name: 'payment-service'
+    static_configs:
+      - targets: ['payment-service:3005']
+        labels:
+          service: 'payment-service'
+          component: 'backend'
+          domain: 'payment'
+          tier: 'critical'
+    metrics_path: '/metrics'
+
+  # Subscription Service
+  - job_name: 'subscription-service'
+    static_configs:
+      - targets: ['subscription-service:3006']
+        labels:
+          service: 'subscription-service'
+          component: 'backend'
+          domain: 'subscription'
+          tier: 'business'
+    metrics_path: '/metrics'
+
+  # ============================================
+  # 微服務 - 社交功能
+  # ============================================
+  
+  # Matching Service
+  - job_name: 'matching-service'
+    static_configs:
+      - targets: ['matching-service:3007']
+        labels:
+          service: 'matching-service'
+          component: 'backend'
+          domain: 'matching'
+          tier: 'business'
+    metrics_path: '/metrics'
+
+  # Messaging Service
+  - job_name: 'messaging-service'
+    static_configs:
+      - targets: ['messaging-service:3008']
+        labels:
+          service: 'messaging-service'
+          component: 'backend'
+          domain: 'messaging'
+          tier: 'business'
+    metrics_path: '/metrics'
+
+  # Notification Service
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:3009']
+        labels:
+          service: 'notification-service'
+          component: 'backend'
+          domain: 'notification'
+          tier: 'support'
+    metrics_path: '/metrics'
+
+  # ============================================
+  # 微服務 - 管理與支援
+  # ============================================
+  
+  # Admin Service
+  - job_name: 'admin-service'
+    static_configs:
+      - targets: ['admin-service:3010']
+        labels:
+          service: 'admin-service'
+          component: 'backend'
+          domain: 'admin'
+          tier: 'management'
+    metrics_path: '/metrics'
+
+  # DB Writer Service
+  - job_name: 'db-writer-service'
+    static_configs:
+      - targets: ['db-writer-service:3011']
+        labels:
+          service: 'db-writer-service'
+          component: 'backend'
+          domain: 'data'
+          tier: 'infrastructure'
+    metrics_path: '/metrics'
+
+  # ============================================
+  # 訊息佇列（Kafka）
+  # ============================================
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:9092']
+        labels:
+          service: 'kafka'
+          component: 'message-queue'
+          tier: 'infrastructure'
+    metrics_path: '/metrics'
+
+# ============================================
+# 遠端寫入配置（可選 - 用於長期存儲）
+# ============================================
+# remote_write:
+#   - url: 'http://prometheus-remote-storage:9201/write'
+#     queue_config:
+#       capacity: 10000
+#       max_shards: 10
+#       min_shards: 1
+#       max_samples_per_send: 5000
+
+# ============================================
+# 遠端讀取配置（可選）
+# ============================================
+# remote_read:
+#   - url: 'http://prometheus-remote-storage:9201/read'

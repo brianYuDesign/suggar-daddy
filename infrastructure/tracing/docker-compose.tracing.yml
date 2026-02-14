@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # Jaeger All-in-One - 分散式追蹤系統
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: suggar-daddy-jaeger
+    restart: unless-stopped
+    
+    ports:
+      # Jaeger UI (查詢和視覺化)
+      - "16686:16686"
+      
+      # Collector gRPC (推薦使用)
+      - "4317:4317"
+      
+      # Collector HTTP
+      - "4318:4318"
+      
+      # Jaeger Collector (legacy)
+      - "14268:14268"
+      
+      # Jaeger Agent (legacy - UDP)
+      - "6831:6831/udp"
+      
+      # Admin port
+      - "14269:14269"
+    
+    environment:
+      # 存儲配置 (開發環境使用 memory，生產環境建議使用 Elasticsearch)
+      SPAN_STORAGE_TYPE: memory
+      
+      # 記憶體存儲配置
+      MEMORY_MAX_TRACES: 100000
+      
+      # 日誌級別
+      LOG_LEVEL: info
+      
+      # UI 配置
+      QUERY_BASE_PATH: /
+      
+      # 採樣配置
+      COLLECTOR_OTLP_ENABLED: true
+    
+    networks:
+      - suggar-daddy-network
+    
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:14269/"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    
+    labels:
+      - "com.suggar-daddy.service=jaeger"
+      - "com.suggar-daddy.description=Distributed tracing system"
+
+networks:
+  suggar-daddy-network:
+    external: true

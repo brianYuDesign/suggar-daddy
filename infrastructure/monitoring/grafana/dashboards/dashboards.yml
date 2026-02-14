@@ -1,0 +1,16 @@
+# Grafana Dashboard 配置
+# 自動載入 dashboards 目錄下的 JSON 文件
+
+apiVersion: 1
+
+providers:
+  - name: 'Suggar Daddy Dashboards'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: true

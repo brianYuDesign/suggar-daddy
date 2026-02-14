@@ -6,21 +6,61 @@ import { MatchEntity } from './entities/match.entity';
 @Module({})
 export class DatabaseModule {
   static forRoot(): DynamicModule {
+    // Determine if High Availability mode is enabled
+    const haEnabled = process.env.POSTGRES_HA_ENABLED === 'true';
+    const masterHost = process.env.POSTGRES_MASTER_HOST || process.env.DATABASE_HOST || 'postgres-master';
+    const replicaHost = process.env.POSTGRES_REPLICA_HOST || 'postgres-replica';
+    const port = parseInt(process.env.DATABASE_PORT || '5432', 10);
+    const username = process.env.DATABASE_USER || process.env.POSTGRES_USER || 'postgres';
+    const password = process.env.DATABASE_PASSWORD || process.env.POSTGRES_PASSWORD || 'postgres';
+    const database = process.env.DATABASE_NAME || process.env.POSTGRES_DB || 'suggar_daddy';
+
+    // Base configuration shared between master and replica
+    const baseConfig = {
+      username,
+      password,
+      database,
+      port,
+      entities: [SwipeEntity, MatchEntity],
+      synchronize: process.env.NODE_ENV !== 'production',
+      logging: process.env.NODE_ENV === 'development',
+      // Connection pool settings
+      extra: {
+        max: 20, // Maximum connections
+        min: 5,  // Minimum connections
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+      },
+    };
+
+    // Configuration with or without High Availability
+    const typeOrmConfig = haEnabled
+      ? {
+          type: 'postgres' as const,
+          replication: {
+            master: {
+              host: masterHost,
+              ...baseConfig,
+            },
+            slaves: [
+              {
+                host: replicaHost,
+                ...baseConfig,
+              },
+            ],
+          },
+        }
+      : {
+          type: 'postgres' as const,
+          host: masterHost,
+          ...baseConfig,
+        };
+
     return {
       module: DatabaseModule,
       global: true,
       imports: [
-        TypeOrmModule.forRoot({
-          type: 'postgres',
-          host: process.env.DATABASE_HOST || 'localhost',
-          port: parseInt(process.env.DATABASE_PORT || '5432', 10),
-          username: process.env.DATABASE_USER || 'postgres',
-          password: process.env.DATABASE_PASSWORD || 'postgres',
-          database: process.env.DATABASE_NAME || 'suggar_daddy',
-          entities: [SwipeEntity, MatchEntity],
-          synchronize: process.env.NODE_ENV !== 'production',
-          logging: process.env.NODE_ENV === 'development',
-        }),
+        TypeOrmModule.forRoot(typeOrmConfig as any),
         TypeOrmModule.forFeature([SwipeEntity, MatchEntity]),
       ],
       exports: [TypeOrmModule],

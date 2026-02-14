@@ -1,0 +1,459 @@
+# Prometheus 告警規則
+# Suggar Daddy 監控系統
+# Version: 1.0.0
+
+groups:
+  # ============================================
+  # 服務可用性告警（Critical - P0）
+  # ============================================
+  - name: service_availability
+    interval: 30s
+    rules:
+      # 服務不可用超過 1 分鐘
+      - alert: ServiceDown
+        expr: up{job=~".*-service|api-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+          priority: P0
+        annotations:
+          summary: "服務 {{ $labels.service }} 不可用"
+          description: "服務 {{ $labels.service }} 已經停止響應超過 1 分鐘。\n實例: {{ $labels.instance }}\n當前狀態: DOWN"
+          impact: "用戶無法訪問該服務的功能"
+          action: "1. 檢查容器狀態\n2. 查看服務日誌\n3. 檢查資源使用情況"
+
+      # 服務部分實例不可用
+      - alert: ServicePartiallyDown
+        expr: |
+          (count by (job) (up{job=~".*-service|api-gateway"} == 0) 
+          / count by (job) (up{job=~".*-service|api-gateway"})) > 0.3
+        for: 2m
+        labels:
+          severity: warning
+          category: availability
+          priority: P1
+        annotations:
+          summary: "服務 {{ $labels.job }} 部分實例不可用"
+          description: "超過 30% 的服務實例不可用"
+
+  # ============================================
+  # 錯誤率告警（Critical - P0）
+  # ============================================
+  - name: error_rate
+    interval: 1m
+    rules:
+      # 錯誤率 > 5%（5 分鐘）
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            / 
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          category: errors
+          priority: P0
+        annotations:
+          summary: "服務 {{ $labels.service }} 錯誤率過高"
+          description: "服務 {{ $labels.service }} 的 5xx 錯誤率超過 5%\n當前錯誤率: {{ $value | humanizePercentage }}"
+          impact: "大量用戶請求失敗，用戶體驗嚴重下降"
+          action: "1. 查看錯誤日誌\n2. 檢查資料庫連線\n3. 檢查依賴服務"
+
+      # 錯誤率 > 1%（5 分鐘）
+      - alert: ElevatedErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            / 
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          category: errors
+          priority: P1
+        annotations:
+          summary: "服務 {{ $labels.service }} 錯誤率升高"
+          description: "服務 {{ $labels.service }} 的 5xx 錯誤率超過 1%\n當前錯誤率: {{ $value | humanizePercentage }}"
+
+      # 4xx 錯誤率異常（可能是客戶端問題或 API 變更）
+      - alert: High4xxRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"4.."}[5m])) by (service)
+            / 
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: client_errors
+          priority: P2
+        annotations:
+          summary: "服務 {{ $labels.service }} 客戶端錯誤率過高"
+          description: "4xx 錯誤率超過 10%，可能是 API 使用不當或文檔問題"
+
+  # ============================================
+  # API 延遲告警（Warning - P1）
+  # ============================================
+  - name: api_latency
+    interval: 1m
+    rules:
+      # P95 延遲 > 500ms
+      - alert: HighP95Latency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          priority: P1
+        annotations:
+          summary: "服務 {{ $labels.service }} P95 延遲過高"
+          description: "P95 延遲超過 500ms\n當前 P95: {{ $value | humanizeDuration }}"
+          impact: "用戶體驗下降，頁面載入緩慢"
+          action: "1. 檢查資料庫查詢效能\n2. 檢查外部 API 調用\n3. 分析慢請求日誌"
+
+      # P99 延遲 > 1s
+      - alert: HighP99Latency
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          priority: P1
+        annotations:
+          summary: "服務 {{ $labels.service }} P99 延遲過高"
+          description: "P99 延遲超過 1 秒\n當前 P99: {{ $value | humanizeDuration }}"
+
+      # 平均延遲 > 200ms
+      - alert: HighAverageLatency
+        expr: |
+          sum(rate(http_request_duration_seconds_sum[5m])) by (service)
+          /
+          sum(rate(http_request_duration_seconds_count[5m])) by (service)
+          > 0.2
+        for: 10m
+        labels:
+          severity: info
+          category: performance
+          priority: P2
+        annotations:
+          summary: "服務 {{ $labels.service }} 平均延遲升高"
+          description: "平均延遲超過 200ms"
+
+  # ============================================
+  # 系統資源告警
+  # ============================================
+  - name: system_resources
+    interval: 1m
+    rules:
+      # CPU 使用率 > 80%
+      - alert: HighCPUUsage
+        expr: |
+          (
+            rate(container_cpu_usage_seconds_total{container!=""}[5m])
+            /
+            (container_spec_cpu_quota{container!=""} / 100000)
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+          priority: P1
+        annotations:
+          summary: "容器 {{ $labels.container }} CPU 使用率過高"
+          description: "CPU 使用率: {{ $value | humanizePercentage }}\nPod: {{ $labels.pod }}\nNamespace: {{ $labels.namespace }}"
+          action: "1. 檢查是否有 CPU 密集型操作\n2. 考慮擴展實例\n3. 優化程式碼效能"
+
+      # CPU 使用率 > 90%（Critical）
+      - alert: CriticalCPUUsage
+        expr: |
+          (
+            rate(container_cpu_usage_seconds_total{container!=""}[5m])
+            /
+            (container_spec_cpu_quota{container!=""} / 100000)
+          ) > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          category: resources
+          priority: P0
+        annotations:
+          summary: "容器 {{ $labels.container }} CPU 使用率危險"
+          description: "CPU 使用率超過 90%，服務可能受到影響"
+
+      # 記憶體使用率 > 80%
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            container_memory_working_set_bytes{container!=""}
+            /
+            container_spec_memory_limit_bytes{container!=""} 
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+          priority: P1
+        annotations:
+          summary: "容器 {{ $labels.container }} 記憶體使用率過高"
+          description: "記憶體使用率: {{ $value | humanizePercentage }}\n當前使用: {{ humanize $labels.container_memory_working_set_bytes }}B"
+          action: "1. 檢查記憶體洩漏\n2. 檢查快取大小\n3. 考慮增加記憶體限制"
+
+      # 記憶體使用率 > 90%（Critical）
+      - alert: CriticalMemoryUsage
+        expr: |
+          (
+            container_memory_working_set_bytes{container!=""}
+            /
+            container_spec_memory_limit_bytes{container!=""} 
+          ) > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          category: resources
+          priority: P0
+        annotations:
+          summary: "容器 {{ $labels.container }} 記憶體使用率危險"
+          description: "記憶體使用率超過 90%，可能發生 OOM"
+
+      # 磁碟使用率 > 85%
+      - alert: HighDiskUsage
+        expr: |
+          (
+            node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}
+          ) / node_filesystem_size_bytes{fstype!="tmpfs"} > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          category: resources
+          priority: P1
+        annotations:
+          summary: "磁碟空間不足"
+          description: "磁碟 {{ $labels.mountpoint }} 使用率: {{ $value | humanizePercentage }}"
+
+      # 磁碟使用率 > 95%（Critical）
+      - alert: CriticalDiskUsage
+        expr: |
+          (
+            node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}
+          ) / node_filesystem_size_bytes{fstype!="tmpfs"} > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          category: resources
+          priority: P0
+        annotations:
+          summary: "磁碟空間嚴重不足"
+          description: "磁碟 {{ $labels.mountpoint }} 使用率: {{ $value | humanizePercentage }}\n剩餘空間: {{ humanize1024 $labels.node_filesystem_free_bytes }}B"
+
+  # ============================================
+  # 資料庫告警
+  # ============================================
+  - name: database
+    interval: 1m
+    rules:
+      # PostgreSQL 連線數 > 80%
+      - alert: PostgresHighConnections
+        expr: |
+          (
+            pg_stat_database_numbackends{datname="suggar_daddy"}
+            /
+            pg_settings_max_connections
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+          priority: P1
+        annotations:
+          summary: "PostgreSQL 連線數過高"
+          description: "連線使用率: {{ $value | humanizePercentage }}\n當前連線數: {{ $labels.pg_stat_database_numbackends }}"
+          action: "1. 檢查連線池配置\n2. 查找長時間執行的查詢\n3. 考慮增加最大連線數"
+
+      # PostgreSQL 連線數 > 95%（Critical）
+      - alert: PostgresCriticalConnections
+        expr: |
+          (
+            pg_stat_database_numbackends{datname="suggar_daddy"}
+            /
+            pg_settings_max_connections
+          ) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+          priority: P0
+        annotations:
+          summary: "PostgreSQL 連線數危險"
+          description: "連線池即將耗盡，新連線可能被拒絕"
+
+      # PostgreSQL 複製延遲過高
+      - alert: PostgresReplicationLag
+        expr: pg_replication_lag_seconds > 60
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+          priority: P1
+        annotations:
+          summary: "PostgreSQL 複製延遲過高"
+          description: "複製延遲: {{ $value | humanizeDuration }}"
+
+      # Redis 記憶體使用率 > 80%
+      - alert: RedisHighMemory
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+          priority: P1
+        annotations:
+          summary: "Redis 記憶體使用率過高"
+          description: "記憶體使用率: {{ $value | humanizePercentage }}"
+
+      # Redis 連線數異常
+      - alert: RedisHighConnections
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+          priority: P2
+        annotations:
+          summary: "Redis 連線數異常"
+          description: "當前連線數: {{ $value }}"
+
+      # Redis 命中率低於 80%
+      - alert: RedisLowHitRate
+        expr: |
+          (
+            rate(redis_keyspace_hits_total[5m])
+            /
+            (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+          ) < 0.8
+        for: 15m
+        labels:
+          severity: info
+          category: cache
+          priority: P2
+        annotations:
+          summary: "Redis 快取命中率低"
+          description: "命中率: {{ $value | humanizePercentage }}\n可能需要優化快取策略"
+
+  # ============================================
+  # 容器重啟告警
+  # ============================================
+  - name: container_restarts
+    interval: 5m
+    rules:
+      # 容器頻繁重啟
+      - alert: ContainerRestartingFrequently
+        expr: rate(container_restart_count[15m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: stability
+          priority: P1
+        annotations:
+          summary: "容器 {{ $labels.container }} 頻繁重啟"
+          description: "容器在 15 分鐘內重啟超過 1 次\nPod: {{ $labels.pod }}"
+          action: "1. 查看容器日誌\n2. 檢查健康檢查配置\n3. 檢查資源限制"
+
+      # 容器持續重啟（Critical）
+      - alert: ContainerCrashLooping
+        expr: rate(container_restart_count[15m]) > 0.3
+        for: 5m
+        labels:
+          severity: critical
+          category: stability
+          priority: P0
+        annotations:
+          summary: "容器 {{ $labels.container }} 崩潰循環"
+          description: "容器持續崩潰重啟，服務不穩定"
+
+  # ============================================
+  # 業務指標告警
+  # ============================================
+  - name: business_metrics
+    interval: 5m
+    rules:
+      # 支付成功率 < 95%
+      - alert: LowPaymentSuccessRate
+        expr: |
+          (
+            sum(rate(payment_transactions_total{status="success"}[10m]))
+            /
+            sum(rate(payment_transactions_total[10m]))
+          ) < 0.95
+        for: 10m
+        labels:
+          severity: critical
+          category: business
+          priority: P0
+        annotations:
+          summary: "支付成功率過低"
+          description: "支付成功率: {{ $value | humanizePercentage }}\n直接影響營收"
+          impact: "用戶無法完成支付，營收損失"
+          action: "1. 檢查 Stripe 服務狀態\n2. 查看支付失敗原因\n3. 聯絡支付團隊"
+
+      # 註冊轉化率異常下降
+      - alert: LowRegistrationRate
+        expr: |
+          (
+            sum(rate(user_registrations_total[1h]))
+            /
+            sum(rate(user_registrations_total[1h] offset 24h))
+          ) < 0.7
+        for: 30m
+        labels:
+          severity: warning
+          category: business
+          priority: P2
+        annotations:
+          summary: "註冊轉化率下降"
+          description: "註冊率較昨日同期下降超過 30%"
+
+  # ============================================
+  # Prometheus 自身告警
+  # ============================================
+  - name: prometheus_alerts
+    interval: 1m
+    rules:
+      # Prometheus 抓取失敗
+      - alert: PrometheusTargetDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: monitoring
+          priority: P0
+        annotations:
+          summary: "Prometheus 目標不可用"
+          description: "監控系統本身出現問題"
+
+      # 告警管理器不可用
+      - alert: AlertmanagerDown
+        expr: up{job="alertmanager"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: monitoring
+          priority: P0
+        annotations:
+          summary: "Alertmanager 不可用"
+          description: "告警通知系統故障，告警可能無法發送"
