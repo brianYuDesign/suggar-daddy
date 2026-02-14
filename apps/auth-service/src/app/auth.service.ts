@@ -123,59 +123,110 @@ export class AuthService {
   // ── Core Auth Methods ──────────────────────────────────────────────
 
   async register(dto: RegisterDto): Promise<TokenResponseDto> {
-    this.validateEmail(dto.email);
-    this.validatePassword(dto.password);
+    try {
+      this.logger.log(`[REGISTER START] email=${dto.email} role=${dto.role}`);
+      
+      // Step 1: Validate input
+      this.logger.debug('[REGISTER] Step 1: Validating email');
+      this.validateEmail(dto.email);
+      
+      this.logger.debug('[REGISTER] Step 2: Validating password');
+      this.validatePassword(dto.password);
 
-    if (!dto.displayName || dto.displayName.trim().length < 2) {
-      throw new BadRequestException('Display name must be at least 2 characters');
+      this.logger.debug('[REGISTER] Step 3: Validating displayName');
+      if (!dto.displayName || dto.displayName.trim().length < 2) {
+        throw new BadRequestException('Display name must be at least 2 characters');
+      }
+      
+      this.logger.debug('[REGISTER] Step 4: Validating role');
+      if (!['sugar_baby', 'sugar_daddy'].includes(dto.role)) {
+        throw new BadRequestException('Role must be sugar_baby or sugar_daddy');
+      }
+
+      const normalizedEmail = dto.email.trim().toLowerCase();
+      this.logger.debug(`[REGISTER] Step 5: Checking for existing user: ${normalizedEmail}`);
+      
+      const key = USER_EMAIL_PREFIX + normalizedEmail;
+      const existing = await this.redis.get(key);
+      if (existing) {
+        this.logger.warn(`[REGISTER] Email already exists: ${normalizedEmail}`);
+        throw new ConflictException('Email already registered');
+      }
+
+      this.logger.debug('[REGISTER] Step 6: Generating userId and hashing password');
+      const userId = `user-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
+      
+      this.logger.debug('[REGISTER] Step 7: Creating user object');
+      const user: StoredUser = {
+        userId,
+        email: normalizedEmail,
+        passwordHash,
+        role: dto.role,
+        displayName: dto.displayName.trim(),
+        bio: dto.bio?.trim(),
+        accountStatus: 'active',
+        emailVerified: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      this.logger.debug('[REGISTER] Step 8: Storing user in Redis');
+      const userKey = `user:${userId}`;
+      const emailKey = USER_EMAIL_PREFIX + normalizedEmail;
+      
+      try {
+        await this.redis.set(userKey, JSON.stringify(user));
+        this.logger.debug(`[REGISTER] ✓ User stored: ${userKey}`);
+        
+        await this.redis.set(emailKey, userId);
+        this.logger.debug(`[REGISTER] ✓ Email mapping stored: ${emailKey}`);
+      } catch (redisError) {
+        this.logger.error(`[REGISTER] ✗ Redis error:`, redisError);
+        throw new Error(`Failed to store user data: ${redisError.message}`);
+      }
+
+      this.logger.log(`[REGISTER] Step 9: User created successfully - email=${normalizedEmail} userId=${userId} role=${dto.role}`);
+
+      // Step 10: Send Kafka event (non-blocking, log errors but don't fail)
+      this.logger.debug('[REGISTER] Step 10: Sending Kafka event');
+      try {
+        await this.kafkaProducer.sendEvent(USER_EVENTS.USER_CREATED, {
+          id: userId,
+          email: normalizedEmail,
+          displayName: user.displayName,
+          role: user.role,
+          bio: user.bio,
+          accountStatus: user.accountStatus,
+          emailVerified: user.emailVerified,
+          createdAt: user.createdAt,
+        });
+        this.logger.debug('[REGISTER] ✓ Kafka event sent');
+      } catch (kafkaError) {
+        this.logger.error(`[REGISTER] ✗ Kafka error (non-fatal):`, kafkaError);
+        // Don't fail registration if Kafka is down
+      }
+
+      // Step 11: Generate email verification token (non-blocking)
+      this.logger.debug('[REGISTER] Step 11: Creating email verification token');
+      try {
+        await this.createEmailVerificationToken(userId, normalizedEmail);
+        this.logger.debug('[REGISTER] ✓ Email verification token created');
+      } catch (emailError) {
+        this.logger.error(`[REGISTER] ✗ Email verification error (non-fatal):`, emailError);
+        // Don't fail registration if email service is down
+      }
+
+      // Step 12: Issue tokens
+      this.logger.debug('[REGISTER] Step 12: Issuing tokens');
+      const tokens = await this.issueTokens(userId, normalizedEmail, user.role);
+      
+      this.logger.log(`[REGISTER SUCCESS] userId=${userId} email=${normalizedEmail}`);
+      return tokens;
+      
+    } catch (error) {
+      this.logger.error(`[REGISTER FAILED] email=${dto.email}`, error.stack || error);
+      throw error;
     }
-    if (!['sugar_baby', 'sugar_daddy'].includes(dto.role)) {
-      throw new BadRequestException('Role must be sugar_baby or sugar_daddy');
-    }
-
-    const normalizedEmail = dto.email.trim().toLowerCase();
-    const key = USER_EMAIL_PREFIX + normalizedEmail;
-    const existing = await this.redis.get(key);
-    if (existing) {
-      throw new ConflictException('Email already registered');
-    }
-
-    const userId = `user-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
-    const user: StoredUser = {
-      userId,
-      email: normalizedEmail,
-      passwordHash,
-      role: dto.role,
-      displayName: dto.displayName.trim(),
-      bio: dto.bio?.trim(),
-      accountStatus: 'active',
-      emailVerified: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    const userKey = `user:${userId}`;
-    const emailKey = USER_EMAIL_PREFIX + normalizedEmail;
-    await this.redis.set(userKey, JSON.stringify(user));
-    await this.redis.set(emailKey, userId);
-
-    this.logger.log(`register email=${normalizedEmail} userId=${userId} role=${dto.role}`);
-
-    await this.kafkaProducer.sendEvent(USER_EVENTS.USER_CREATED, {
-      id: userId,
-      email: normalizedEmail,
-      displayName: user.displayName,
-      role: user.role,
-      bio: user.bio,
-      accountStatus: user.accountStatus,
-      emailVerified: user.emailVerified,
-      createdAt: user.createdAt,
-    });
-
-    // Generate email verification token
-    await this.createEmailVerificationToken(userId, normalizedEmail);
-
-    return this.issueTokens(userId, normalizedEmail, user.role);
   }
 
   async login(dto: LoginDto): Promise<TokenResponseDto> {

@@ -17,8 +17,15 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() body: RegisterDto): Promise<TokenResponseDto> {
-    this.logger.log(`register email=${body.email} role=${body.role}`);
-    return this.authService.register(body);
+    try {
+      this.logger.log(`[CONTROLLER] register email=${body.email} role=${body.role}`);
+      const result = await this.authService.register(body);
+      this.logger.log(`[CONTROLLER] register success email=${body.email}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`[CONTROLLER] register failed email=${body.email}`, error.stack || error);
+      throw error;
+    }
   }
 
   @Post('login')

@@ -21,7 +21,15 @@
     "build:admin": "nx build admin",
     "ci:check": "SKIP_NX=1 bash scripts/ci-check.sh",
     "commit": "bash scripts/commit.sh",
-    "serve:admin-service": "nx serve admin-service"
+    "serve:admin-service": "nx serve admin-service",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed",
+    "e2e:debug": "playwright test --debug",
+    "e2e:web": "playwright test e2e/web",
+    "e2e:admin": "playwright test e2e/admin",
+    "e2e:journeys": "playwright test e2e/user-journeys.spec.ts",
+    "e2e:report": "playwright show-report"
   },
   "private": true,
   "dependencies": {
