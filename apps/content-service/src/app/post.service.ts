@@ -174,7 +174,7 @@ export class PostService {
     const tierAccessCache = new Map<string, boolean>();
 
     if (viewerId && viewerId !== creatorId) {
-      hasBaseSubscription = await this.subscriptionClient.hasActiveSubscription(viewerId, creatorId);
+      // ✅ 優化：批量檢查所有訂閱狀態，避免多次 RPC 調用
       const uniqueTierIds = [
         ...new Set(
           allPosts
@@ -182,12 +182,20 @@ export class PostService {
             .map((p) => p.requiredTierId as string)
         ),
       ];
-      const tierChecks = await Promise.all(
-        uniqueTierIds.map((tierId) =>
+
+      // 檢查基本訂閱和所有 tier 訂閱（並行執行）
+      const subscriptionChecks = await Promise.all([
+        this.subscriptionClient.hasActiveSubscription(viewerId, creatorId),
+        ...uniqueTierIds.map((tierId) =>
           this.subscriptionClient.hasActiveSubscription(viewerId, creatorId, tierId)
-        )
-      );
-      uniqueTierIds.forEach((tierId, i) => tierAccessCache.set(tierId, tierChecks[i]));
+        ),
+      ]);
+
+      // 第一個結果是基本訂閱，其餘是 tier 訂閱
+      hasBaseSubscription = subscriptionChecks[0];
+      uniqueTierIds.forEach((tierId, i) => {
+        tierAccessCache.set(tierId, subscriptionChecks[i + 1]);
+      });
     }
 
     const filtered: Post[] = [];

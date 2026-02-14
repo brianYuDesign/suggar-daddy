@@ -36,8 +36,12 @@ export class NotificationService {
       read: false,
       createdAt: now.toISOString(),
     };
-    await this.redis.set(NOTIF_KEY(id), JSON.stringify(item));
+    
+    // ✅ 設定 TTL 為 7 天（604800 秒），避免 Redis 記憶體無限增長
+    const TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
+    await this.redis.setex(NOTIF_KEY(id), TTL_SECONDS, JSON.stringify(item));
     await this.redis.lPush(USER_NOTIFS(dto.userId), id);
+    
     this.logger.log(`notification sent id=${id} userId=${dto.userId} type=${dto.type}`);
     try {
       await this.kafkaProducer.sendEvent('notification.created', {
@@ -68,18 +72,26 @@ export class NotificationService {
     unreadOnly: boolean
   ): Promise<NotificationItemDto[]> {
     const ids = await this.redis.lRange(USER_NOTIFS(userId), 0, limit - 1);
+    
+    if (ids.length === 0) return [];
+
+    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
+    const keys = ids.map(id => NOTIF_KEY(id));
+    const values = await this.redis.mget(...keys);
+
     const list: StoredNotification[] = [];
-    for (const id of ids) {
-      const raw = await this.redis.get(NOTIF_KEY(id));
-      if (raw) {
-        const n = JSON.parse(raw) as StoredNotification;
-        if (unreadOnly && n.read) continue;
-        list.push(n);
-      }
+    for (const raw of values) {
+      if (!raw) continue;
+      
+      const n = JSON.parse(raw) as StoredNotification;
+      if (unreadOnly && n.read) continue;
+      list.push(n);
     }
+    
     if (unreadOnly) {
       list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
+    
     const slice = list.slice(0, limit);
     return slice.map((n) => ({
       id: n.id,
@@ -98,7 +110,11 @@ export class NotificationService {
     const item = JSON.parse(raw) as StoredNotification;
     if (item.userId !== userId) return { success: false };
     item.read = true;
-    await this.redis.set(NOTIF_KEY(id), JSON.stringify(item));
+    
+    // ✅ 保持 TTL，更新內容時重新設定過期時間
+    const TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
+    await this.redis.setex(NOTIF_KEY(id), TTL_SECONDS, JSON.stringify(item));
+    
     this.logger.log(`markRead userId=${userId} id=${id}`);
     return { success: true };
   }

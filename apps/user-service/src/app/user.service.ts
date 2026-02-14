@@ -114,11 +114,29 @@ export class UserService {
 
   /** 取得指定 userId 列表的卡片（供 matching-service 地理篩選後使用） */
   async getCardsByIds(userIds: string[]): Promise<UserCardDto[]> {
+    if (userIds.length === 0) return [];
+    
+    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
+    const keys = userIds.map(id => `${this.USER_PREFIX}${id}`);
+    const values = await this.redisService.mget(...keys);
+    
     const result: UserCardDto[] = [];
-    for (const id of userIds) {
-      const card = await this.getCard(id);
-      if (card) result.push(card);
+    for (let i = 0; i < values.length; i++) {
+      if (!values[i]) continue;
+      
+      const user = JSON.parse(values[i]!) as UserRecord;
+      result.push({
+        id: user.id,
+        displayName: user.displayName,
+        bio: user.bio,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+        verificationStatus: user.verificationStatus,
+        lastActiveAt: user.lastActiveAt,
+        city: user.city,
+      });
     }
+    
     return result;
   }
 
@@ -142,11 +160,33 @@ export class UserService {
     const userIds = keys
       .map((k) => k.replace(this.USER_PREFIX, ''))
       .filter((id) => id && !id.includes(':') && !excludeSet.has(id));
+    
+    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
+    // 取得需要的數量（略多一些以防部分資料無效）
+    const fetchCount = Math.min(userIds.length, limit * 2);
+    const userKeys = userIds.slice(0, fetchCount).map(id => `${this.USER_PREFIX}${id}`);
+    
+    if (userKeys.length === 0) return [];
+    
+    const values = await this.redisService.mget(...userKeys);
+    
     const result: UserCardDto[] = [];
-    for (let i = 0; i < userIds.length && result.length < limit; i++) {
-      const card = await this.getCard(userIds[i]);
-      if (card) result.push(card);
+    for (let i = 0; i < values.length && result.length < limit; i++) {
+      if (!values[i]) continue;
+      
+      const user = JSON.parse(values[i]!) as UserRecord;
+      result.push({
+        id: user.id,
+        displayName: user.displayName,
+        bio: user.bio,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+        verificationStatus: user.verificationStatus,
+        lastActiveAt: user.lastActiveAt,
+        city: user.city,
+      });
     }
+    
     return result;
   }
 
@@ -341,18 +381,25 @@ export class UserService {
     const start = (page - 1) * limit;
     const pageIds = followerIds.slice(start, start + limit);
 
+    if (pageIds.length === 0) return { data: [], total };
+
+    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
+    const keys = pageIds.map(id => `${this.USER_PREFIX}${id}`);
+    const values = await this.redisService.mget(...keys);
+
     const data: FollowerDto[] = [];
-    for (const id of pageIds) {
-      const user = await this.getUserFromRedis(id);
-      if (user) {
-        data.push({
-          id: user.id,
-          displayName: user.displayName,
-          avatarUrl: user.avatarUrl,
-          role: user.role,
-        });
-      }
+    for (const value of values) {
+      if (!value) continue;
+      
+      const user = JSON.parse(value) as UserRecord;
+      data.push({
+        id: user.id,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+      });
     }
+    
     return { data, total };
   }
 
@@ -362,18 +409,25 @@ export class UserService {
     const start = (page - 1) * limit;
     const pageIds = followingIds.slice(start, start + limit);
 
+    if (pageIds.length === 0) return { data: [], total };
+
+    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
+    const keys = pageIds.map(id => `${this.USER_PREFIX}${id}`);
+    const values = await this.redisService.mget(...keys);
+
     const data: FollowerDto[] = [];
-    for (const id of pageIds) {
-      const user = await this.getUserFromRedis(id);
-      if (user) {
-        data.push({
-          id: user.id,
-          displayName: user.displayName,
-          avatarUrl: user.avatarUrl,
-          role: user.role,
-        });
-      }
+    for (const value of values) {
+      if (!value) continue;
+      
+      const user = JSON.parse(value) as UserRecord;
+      data.push({
+        id: user.id,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+      });
     }
+    
     return { data, total };
   }
 
@@ -431,11 +485,22 @@ export class UserService {
     ]);
     const excludeSet = new Set([userId, ...followingIds, ...blockedIds, ...blockedByIds]);
 
+    // Filter excluded users first
+    const candidateIds = userIds.filter(id => !excludeSet.has(id));
+    
+    if (candidateIds.length === 0) return [];
+
+    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
+    const userKeys = candidateIds.map(id => `${this.USER_PREFIX}${id}`);
+    const values = await this.redisService.mget(...userKeys);
+
     const creators: RecommendedCreatorDto[] = [];
-    for (const id of userIds) {
-      if (excludeSet.has(id)) continue;
-      const user = await this.getUserFromRedis(id);
-      if (!user || user.role !== 'creator') continue;
+    for (const value of values) {
+      if (!value) continue;
+      
+      const user = JSON.parse(value) as UserRecord;
+      if (user.role !== 'creator') continue;
+      
       creators.push({
         id: user.id,
         displayName: user.displayName,
@@ -459,11 +524,18 @@ export class UserService {
       .map((k) => k.replace(this.USER_PREFIX, ''))
       .filter((id) => id && !id.includes(':'));
 
+    if (userIds.length === 0) return [];
+
+    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
+    const userKeys = userIds.map(id => `${this.USER_PREFIX}${id}`);
+    const values = await this.redisService.mget(...userKeys);
+
     const results: FollowerDto[] = [];
-    for (const id of userIds) {
+    for (const value of values) {
+      if (!value) continue;
       if (results.length >= limit) break;
-      const user = await this.getUserFromRedis(id);
-      if (!user) continue;
+      
+      const user = JSON.parse(value) as UserRecord;
       if (user.displayName.toLowerCase().includes(lowerQuery)) {
         results.push({
           id: user.id,
@@ -473,6 +545,7 @@ export class UserService {
         });
       }
     }
+    
     return results;
   }
 
@@ -567,11 +640,18 @@ export class UserService {
 
   async getPendingReports(): Promise<ReportRecord[]> {
     const ids = await this.redisService.lRange(REPORTS_PENDING, 0, -1);
+    
+    if (ids.length === 0) return [];
+
+    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
+    const keys = ids.map(id => REPORT_KEY(id));
+    const values = await this.redisService.mget(...keys);
+
     const out: ReportRecord[] = [];
-    for (const id of ids) {
-      const raw = await this.redisService.get(REPORT_KEY(id));
+    for (const raw of values) {
       if (raw) out.push(JSON.parse(raw));
     }
+    
     return out.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
   }
 
