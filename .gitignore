@@ -64,7 +64,7 @@ out/
 *.local
 
 # Archive
-archive/
+/archive/
 
 # Test artifacts
 test-reports/
@@ -74,3 +74,9 @@ screenshots/
 # Temporary work files
 claudedocs/
 backups/
+
+# Generated reports
+playwright-report/
+
+# Backup files
+*.backup
