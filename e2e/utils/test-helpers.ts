@@ -1,4 +1,12 @@
 import { Page, expect } from '@playwright/test';
+import {
+  smartWaitForAPI,
+  smartWaitForElement,
+  smartWaitForNavigation,
+  smartWaitForNetworkIdle,
+  smartScrollToLoadMore,
+  waitForElementToDisappear,
+} from './smart-wait';
 
 /**
  * 測試用的用戶憑證
@@ -42,9 +50,11 @@ export async function login(
       const redisHelper = getRedisTestHelper();
       await redisHelper.clearLoginAttempts(credentials.email);
       await redisHelper.clearLoginAttempts(); // Clear all
+      
+      // Wait a moment for rate limit to clear (智能等待：確保 Redis 更新完成)
+      await new Promise(resolve => setTimeout(resolve, 500));
     } catch { /* Redis may not be available */ }
-    // Wait a moment for rate limit to clear
-    await page.waitForTimeout(1000);
+    
     res = await page.request.post(`${apiBase}/api/auth/login`, {
       data: { email: credentials.email, password: credentials.password },
     });
@@ -64,7 +74,9 @@ export async function login(
 
   // 導航到 feed 讓 auth-provider 從 localStorage 讀取 token
   await page.goto(`${baseURL}/feed`);
-  await page.waitForURL(/\/(feed|dashboard)/, { timeout: 10000 });
+  
+  // 使用智能等待替代固定延遲
+  await smartWaitForNavigation(page, /\/(feed|dashboard)/, { timeout: 10000 });
 }
 
 /**
@@ -88,27 +100,21 @@ export async function takeScreenshot(
 
 /**
  * 等待 API 請求完成
+ * @deprecated 請使用 smartWaitForAPI 替代
  */
 export async function waitForAPIRequest(
   page: Page,
   urlPattern: string | RegExp
 ) {
-  return page.waitForResponse(
-    (response) =>
-      (typeof urlPattern === 'string'
-        ? response.url().includes(urlPattern)
-        : urlPattern.test(response.url())) && response.status() === 200
-  );
+  return smartWaitForAPI(page, { urlPattern });
 }
 
 /**
  * 模擬滾動載入更多內容
+ * 使用智能等待策略，等待實際內容載入而非固定延遲
  */
 export async function scrollToLoadMore(page: Page, times = 3) {
-  for (let i = 0; i < times; i++) {
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForTimeout(1000);
-  }
+  await smartScrollToLoadMore(page, { maxScrolls: times });
 }
 
 /**

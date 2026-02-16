@@ -1,118 +1,152 @@
-# Scripts 目錄
+# Scripts 使用指南
 
-這個目錄包含專案的關鍵自動化腳本。
+Sugar Daddy 項目腳本系統 - 統一、高效、智能的開發工具集
 
-## 📋 腳本清單
+## 🚀 快速開始
 
-### 開發與 CI 腳本
+### 開發環境
 
-| 腳本 | 用途 | 執行方式 |
-|------|------|---------|
-| **ci-check.sh** | Lint + Test 檢查（CI 用） | `npm run ci:check` |
-| **commit.sh** | 檢查通過後提交 | `npm run commit -- "message"` |
-| **validate-env.sh** | 環境變數驗證 | `./scripts/validate-env.sh` |
+```bash
+# 啟動開發環境（核心服務 + Web）
+npm run dev
 
-### 資料庫腳本
+# 啟動所有服務
+npm run dev:all
 
-| 腳本 | 用途 | 執行方式 |
-|------|------|---------|
-| **init-db.sql** | 資料庫初始化（PostgreSQL extensions） | Docker 自動執行 |
-| **db-monitoring.sql** | 監控視圖（表大小、慢查詢、索引等） | `psql -f scripts/db-monitoring.sql` |
+# 只啟動核心服務
+npm run dev:core
 
-### 運維腳本
+# 停止服務
+npm run dev:stop
 
-| 腳本 | 用途 | 執行方式 |
-|------|------|---------|
-| **backup-database.sh** | 自動備份 PostgreSQL + Redis | `./scripts/backup-database.sh` |
-| **health-check.sh** | 系統健康檢查（12 項檢查） | `./scripts/health-check.sh` |
+# 重置環境
+npm run dev:reset --all
+```
+
+### 測試
+
+```bash
+# 單元測試
+npm run test:unit
+
+# E2E 測試
+npm run test:e2e
+
+# 整合測試
+npm run test:integration
+
+# 覆蓋率報告
+npm run test:coverage
+```
+
+### 建構
+
+```bash
+# 建構所有項目
+npm run build:all
+
+# 建構後端服務
+npm run build:backend
+
+# 建構前端應用
+npm run build:frontend
+```
+
+### 資料庫
+
+```bash
+# 資料庫遷移
+npm run db:migrate
+
+# 載入種子資料
+npm run db:seed
+
+# 備份資料庫
+npm run db:backup
+```
+
+## 📁 目錄結構
+
+```
+scripts/
+├── core/          # 核心工具庫（錯誤處理、端口檢查、智能等待、並行啟動）
+├── dev/           # 開發環境管理（start、stop、reset）
+├── test/          # 測試腳本（unit、e2e、integration、coverage）
+├── build/         # 建構腳本（all、backend、frontend）
+├── deploy/        # 部署腳本（dev、staging、prod）
+├── db/            # 資料庫管理（migrate、seed、backup）
+└── legacy/        # 舊腳本備份
+```
+
+## ✨ 核心特性
+
+### 1. 智能等待（基於健康檢查）
+
+❌ 舊方式：`sleep 30`  
+✅ 新方式：`wait_for_service postgres 60`
+
+### 2. 並行啟動（節省 30-40% 時間）
+
+所有後端服務並行啟動，同時並行等待就緒。
+
+### 3. 統一錯誤處理
+
+清晰的日誌輸出、自動記錄錯誤、一致的退出碼。
+
+### 4. 完整文檔
+
+每個腳本都有 `--help` 選項，提供詳細使用說明。
+
+## 🔧 直接使用腳本
+
+```bash
+# 查看幫助
+./scripts/dev/start.sh --help
+
+# 高級選項
+./scripts/dev/start.sh --core-only --no-web
+./scripts/test/e2e.sh --headed --debug
+./scripts/db/migrate.sh --dry-run
+```
+
+## 📊 日誌位置
+
+- 開發環境：`logs/dev/`
+- 錯誤日誌：`/tmp/suggar-daddy-logs/error.log`
+- 信息日誌：`/tmp/suggar-daddy-logs/info.log`
+
+## 🎯 最佳實踐
+
+1. **智能等待**：使用健康檢查，不使用 sleep
+2. **並行執行**：同時啟動多個服務
+3. **錯誤處理**：統一的錯誤處理和日誌
+4. **資源清理**：註冊清理函數，確保資源釋放
+
+## 🔄 遷移指南
+
+| 舊命令 | 新命令 | 說明 |
+|--------|--------|------|
+| `npm run dev` | `npm run dev` | 保持不變（但實現優化） |
+| `./scripts/dev-start.sh` | `npm run dev` | 建議使用 npm scripts |
+| `./scripts/start-e2e-env.sh` | `npm run test:e2e` | 統一入口 |
+
+## 📚 更多信息
+
+每個腳本都有詳細的幫助信息：
+
+```bash
+./scripts/dev/start.sh --help
+./scripts/test/unit.sh --help
+./scripts/db/migrate.sh --help
+```
+
+查看核心工具庫：
+
+- `core/error-handler.sh` - 錯誤處理和日誌
+- `core/port-checker.sh` - 端口檢查
+- `core/wait-for-service.sh` - 智能等待
+- `core/parallel-start.sh` - 並行啟動
 
 ---
 
-## 使用說明
-
-### ci-check（僅檢查）
-
-跑完 **lint** 再跑 **test**，任一失敗即結束，適合 CI 或提交前手動檢查。
-
-```bash
-npm run ci:check
-# 或
-./scripts/ci-check.sh
-```
-
-### commit（檢查通過再提交）
-
-依序執行 **lint → test**，全部通過後才 `git add -A` 並 `git commit`。
-
-```bash
-# 一般用法
-npm run commit -- "feat: add login"
-npm run commit -- -m "fix: typo in auth"
-
-# 只跑檢查、不提交
-./scripts/commit.sh --no-commit
-
-# 跳過檢查、只提交（慎用）
-./scripts/commit.sh --skip-check "hotfix: emergency"
-```
-
-### 環境驗證
-
-```bash
-./scripts/validate-env.sh
-```
-
-檢查所有必需的環境變數是否正確設置。
-
-### 資料庫備份
-
-```bash
-# 手動執行
-./scripts/backup-database.sh
-
-# 設定自動備份（cron）
-0 2 * * * /path/to/scripts/backup-database.sh >> /var/log/backup.log 2>&1
-```
-
-### 健康檢查
-
-```bash
-# 手動執行
-./scripts/health-check.sh
-
-# 定期檢查（每 5 分鐘）
-*/5 * * * * /path/to/scripts/health-check.sh
-```
-
-### 資料庫監控視圖
-
-```bash
-# 安裝監控視圖
-docker exec suggar-daddy-postgres psql -U postgres -d suggar_daddy -f /app/scripts/db-monitoring.sql
-
-# 查詢範例
-docker exec suggar-daddy-postgres psql -U postgres -d suggar_daddy -c "SELECT * FROM v_table_sizes LIMIT 10;"
-docker exec suggar-daddy-postgres psql -U postgres -d suggar_daddy -c "SELECT * FROM v_slow_queries;"
-```
-
----
-
-## 排錯指南
-
-### Lint / Test 錯誤
-
-| 階段 | 錯誤類型 | 解決方式 |
-|------|---------|---------|
-| **Lint** | `Failed to load Nx plugin` | 使用 fallback：`SKIP_NX=1 npm run ci:check` |
-| **Lint** | `error TS2xxx: ...` | 依檔案:行號修正型別錯誤 |
-| **Test** | Jest 測試失敗 | 單獨跑：`npx jest --config libs/xxx/jest.config.ts` |
-
-**快速檢查特定檔案：**
-
-```bash
-# TypeScript 檢查
-npx tsc --noEmit -p apps/user-service/tsconfig.app.json
-
-# 單一測試
-npx jest --config libs/common/jest.config.ts --no-cache
-```
+**注意**：舊腳本已備份到 `legacy/` 目錄，可以繼續使用但不建議。

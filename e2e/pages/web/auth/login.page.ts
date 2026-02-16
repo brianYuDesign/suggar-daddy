@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { BasePage } from '../../base.page';
+import { smartWaitForAPI, smartWaitForNavigation } from '../../../utils/smart-wait';
 
 /**
  * 登入頁面 Page Object
@@ -27,9 +28,31 @@ export class LoginPage extends BasePage {
   async login(email: string, password: string) {
     await this.emailInput().fill(email);
     await this.passwordInput().fill(password);
+    
+    // 準備監聽登入 API 回應
+    const loginPromise = smartWaitForAPI(this.page, {
+      urlPattern: /\/api\/auth\/login/,
+      timeout: 10000,
+    });
+    
     await this.loginButton().click();
-    // 等待 API 回應而非 networkidle（登入成功會觸發 redirect 導致 networkidle 永不完成）
-    await this.page.waitForTimeout(1500);
+    
+    // 等待 API 回應（成功或失敗）
+    try {
+      await loginPromise;
+      // 如果登入成功，等待導航到 feed/dashboard
+      await smartWaitForNavigation(this.page, /\/(feed|dashboard)/, { timeout: 5000 }).catch(() => {
+        // 導航可能已經完成，忽略錯誤
+      });
+    } catch {
+      // 登入失敗，等待錯誤訊息出現
+      await this.page.waitForSelector('div.bg-red-50, p.text-red-500', {
+        state: 'visible',
+        timeout: 3000,
+      }).catch(() => {
+        // 錯誤訊息可能已經出現
+      });
+    }
   }
 
   /**

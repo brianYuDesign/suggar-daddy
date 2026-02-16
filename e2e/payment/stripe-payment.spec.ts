@@ -1,16 +1,29 @@
 import { test, expect } from '@playwright/test';
+import {
+  smartWaitForNetworkIdle,
+  smartWaitForElement,
+  smartWaitForAPI,
+} from '../utils/smart-wait';
 
 /**
  * 支付流程測試
  * 測試錢包頁面和交易記錄功能
  * 注意：前端無 /payment 路由，實際使用 /wallet 和 /wallet/history
+ * 
+ * 優化說明：
+ * - 移除所有 waitForTimeout
+ * - 使用 smartWaitForNetworkIdle 等待頁面載入
+ * - 使用 smartWaitForElement 等待特定元素
+ * - 使用 smartWaitForAPI 等待 API 回應
  */
 
 test.describe('錢包頁面', () => {
 
   test('應該能訪問錢包頁面', async ({ page }) => {
     await page.goto('/wallet');
-    await page.waitForTimeout(3000);
+    
+    // 使用智能等待替代固定延遲
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     // 錢包頁面應該載入成功（可能顯示餘額或錯誤/空狀態）
     const url = page.url();
@@ -19,6 +32,14 @@ test.describe('錢包頁面', () => {
     expect(isWalletOrLogin).toBeTruthy();
 
     if (url.includes('/wallet')) {
+      // 等待標題或錯誤訊息出現
+      await Promise.race([
+        smartWaitForElement(page, { selector: 'text=/我的錢包/', timeout: 3000 }),
+        smartWaitForElement(page, { selector: '.text-red-500', timeout: 3000 }),
+      ]).catch(() => {
+        // 至少其中一個應該出現
+      });
+
       // 頁面應包含「我的錢包」標題或錯誤訊息
       const hasTitle = await page.locator('text=/我的錢包/').isVisible();
       const hasError = await page.locator('.text-red-500').isVisible();
@@ -29,9 +50,15 @@ test.describe('錢包頁面', () => {
 
   test('應該顯示錢包餘額或錯誤狀態', async ({ page }) => {
     await page.goto('/wallet');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     if (page.url().includes('/wallet')) {
+      // 等待標題或錯誤訊息
+      await Promise.race([
+        smartWaitForElement(page, { selector: 'h1:has-text("我的錢包")', timeout: 3000 }),
+        smartWaitForElement(page, { selector: '.text-red-500', timeout: 3000 }),
+      ]).catch(() => {});
+
       // 應該看到「我的錢包」標題或錯誤訊息
       const hasWalletTitle = await page.locator('h1:has-text("我的錢包")').isVisible();
       const hasError = await page.locator('.text-red-500').isVisible();
@@ -56,10 +83,22 @@ test.describe('錢包頁面', () => {
       });
     });
 
+    // 等待 wallet API 回應
+    const walletApiPromise = smartWaitForAPI(page, {
+      urlPattern: '/api/wallet',
+      timeout: 10000,
+    }).catch(() => null);
+
     await page.goto('/wallet');
-    await page.waitForTimeout(3000);
+    await walletApiPromise;
 
     if (page.url().includes('/wallet')) {
+      // 等待標題出現
+      await smartWaitForElement(page, {
+        selector: 'text=/我的錢包/',
+        timeout: 5000,
+      }).catch(() => {});
+
       // 應看到快速操作按鈕（用 button 限定避免匹配到「已提款」卡片）
       const hasWithdraw = await page.locator('button:has-text("提款")').first().isVisible();
       const hasHistory = await page.locator('button:has-text("交易記錄")').first().isVisible();
@@ -89,10 +128,20 @@ test.describe('錢包頁面', () => {
       });
     });
 
+    const walletApiPromise = smartWaitForAPI(page, {
+      urlPattern: '/api/wallet',
+      timeout: 10000,
+    }).catch(() => null);
+
     await page.goto('/wallet');
-    await page.waitForTimeout(3000);
+    await walletApiPromise;
 
     if (page.url().includes('/wallet')) {
+      await smartWaitForElement(page, {
+        selector: 'text=/我的錢包/',
+        timeout: 5000,
+      }).catch(() => {});
+
       const hasStripeButton = await page.locator('text=/Stripe/').isVisible();
       const hasTitle = await page.locator('text=/我的錢包/').isVisible();
       if (hasTitle) {
@@ -106,7 +155,7 @@ test.describe('交易記錄', () => {
 
   test('應該能訪問交易記錄頁面', async ({ page }) => {
     await page.goto('/wallet/history');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const url = page.url();
     // 可能在 /wallet/history 或被重新導向到 /login
@@ -150,10 +199,22 @@ test.describe('交易記錄', () => {
       });
     });
 
+    const transactionsApiPromise = smartWaitForAPI(page, {
+      urlPattern: /api\/transactions/,
+      timeout: 10000,
+    }).catch(() => null);
+
     await page.goto('/wallet/history');
-    await page.waitForTimeout(3000);
+    await transactionsApiPromise;
 
     if (page.url().includes('/wallet/history')) {
+      // 等待內容載入
+      await Promise.race([
+        smartWaitForElement(page, { selector: 'text=/交易記錄/', timeout: 5000 }),
+        smartWaitForElement(page, { selector: 'text=/沒有交易記錄/', timeout: 5000 }),
+        smartWaitForElement(page, { selector: '.text-red-500', timeout: 5000 }),
+      ]).catch(() => {});
+
       // 應看到「交易記錄」標題或空狀態或錯誤
       const hasTitle = await page.locator('text=/交易記錄/').isVisible();
       const hasEmpty = await page.locator('text=/沒有交易記錄/').isVisible();
@@ -189,10 +250,20 @@ test.describe('交易記錄', () => {
       });
     });
 
+    const transactionsApiPromise = smartWaitForAPI(page, {
+      urlPattern: /api\/transactions/,
+      timeout: 10000,
+    }).catch(() => null);
+
     await page.goto('/wallet/history');
-    await page.waitForTimeout(3000);
+    await transactionsApiPromise;
 
     if (page.url().includes('/wallet/history')) {
+      await smartWaitForElement(page, {
+        selector: 'text=/交易記錄/',
+        timeout: 5000,
+      }).catch(() => {});
+
       // 應看到篩選相關元素
       const hasFilter = await page.locator('text=/篩選/').isVisible();
       const hasSelect = await page.locator('select').isVisible();
@@ -221,10 +292,21 @@ test.describe('交易記錄', () => {
       });
     });
 
+    const transactionsApiPromise = smartWaitForAPI(page, {
+      urlPattern: /api\/transactions/,
+      timeout: 10000,
+    }).catch(() => null);
+
     await page.goto('/wallet/history');
-    await page.waitForTimeout(3000);
+    await transactionsApiPromise;
 
     if (page.url().includes('/wallet/history')) {
+      await Promise.race([
+        smartWaitForElement(page, { selector: 'h1:has-text("交易記錄")', timeout: 5000 }),
+        smartWaitForElement(page, { selector: 'text=/沒有交易記錄/', timeout: 5000 }),
+        smartWaitForElement(page, { selector: '.text-red-500', timeout: 5000 }),
+      ]).catch(() => {});
+
       const hasTitle = await page.locator('h1:has-text("交易記錄")').isVisible();
       const hasEmpty = await page.locator('text=/沒有交易記錄/').isVisible();
       const hasError = await page.locator('.text-red-500').isVisible();
@@ -239,11 +321,22 @@ test.describe('支付安全性測試', () => {
   test('未登入用戶應該無法訪問錢包頁面', async ({ page }) => {
     // 不登入直接訪問錢包頁面
     await page.goto('/wallet');
-    await page.waitForTimeout(5000);
+    
+    // 使用智能等待，最多 10 秒
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     // 應該被導向到登入頁面，或停留在錢包頁但顯示錯誤
     const url = page.url();
     const redirectedToLogin = url.includes('/login');
+    
+    if (!redirectedToLogin) {
+      // 如果沒有重定向，等待錯誤訊息或內容出現
+      await Promise.race([
+        smartWaitForElement(page, { selector: '.text-red-500', timeout: 3000 }),
+        smartWaitForElement(page, { selector: 'text=/我的錢包/', timeout: 3000 }),
+      ]).catch(() => {});
+    }
+    
     const hasError = await page.locator('.text-red-500').isVisible();
 
     // 未登入時應該被導向登入頁或顯示錯誤
@@ -252,10 +345,18 @@ test.describe('支付安全性測試', () => {
 
   test('未登入用戶應該無法訪問交易記錄', async ({ page }) => {
     await page.goto('/wallet/history');
-    await page.waitForTimeout(5000);
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const url = page.url();
     const redirectedToLogin = url.includes('/login');
+    
+    if (!redirectedToLogin) {
+      await Promise.race([
+        smartWaitForElement(page, { selector: '.text-red-500', timeout: 3000 }),
+        smartWaitForElement(page, { selector: 'text=/交易記錄/', timeout: 3000 }),
+      ]).catch(() => {});
+    }
+    
     const hasError = await page.locator('.text-red-500').isVisible();
 
     // 未登入時應該被導向登入頁或顯示錯誤

@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { BasePage } from '../../base.page';
+import { smartWaitForAPI, smartWaitForAnimation, smartWaitForElement } from '../../../utils/smart-wait';
 
 /**
  * 探索頁面 Page Object
@@ -31,32 +32,76 @@ export class DiscoverPage extends BasePage {
    * 向右滑動（喜歡）
    */
   async swipeRight() {
+    // 等待下一張卡片的 API 請求
+    const nextCardPromise = smartWaitForAPI(this.page, {
+      urlPattern: /\/api\/(profiles|discover)/,
+      timeout: 5000,
+    }).catch(() => null); // 可能沒有更多卡片
+    
     await this.likeButton().click();
-    await this.page.waitForTimeout(500);
+    
+    // 等待動畫和新卡片載入
+    await Promise.race([
+      nextCardPromise,
+      smartWaitForAnimation(this.page, '[data-testid="profile-card"]').catch(() => null),
+      new Promise(resolve => setTimeout(resolve, 1000)), // 最大等待 1 秒
+    ]);
   }
 
   /**
    * 向左滑動（略過）
    */
   async swipeLeft() {
+    // 等待下一張卡片的 API 請求
+    const nextCardPromise = smartWaitForAPI(this.page, {
+      urlPattern: /\/api\/(profiles|discover)/,
+      timeout: 5000,
+    }).catch(() => null);
+    
     await this.passButton().click();
-    await this.page.waitForTimeout(500);
+    
+    // 等待動畫和新卡片載入
+    await Promise.race([
+      nextCardPromise,
+      smartWaitForAnimation(this.page, '[data-testid="profile-card"]').catch(() => null),
+      new Promise(resolve => setTimeout(resolve, 1000)),
+    ]);
   }
 
   /**
    * 超級喜歡
    */
   async superLike() {
+    const nextCardPromise = smartWaitForAPI(this.page, {
+      urlPattern: /\/api\/(profiles|discover)/,
+      timeout: 5000,
+    }).catch(() => null);
+    
     await this.superLikeButton().click();
-    await this.page.waitForTimeout(500);
+    
+    await Promise.race([
+      nextCardPromise,
+      smartWaitForAnimation(this.page, '[data-testid="profile-card"]').catch(() => null),
+      new Promise(resolve => setTimeout(resolve, 1000)),
+    ]);
   }
 
   /**
    * 復原上一個操作
    */
   async undo() {
+    const undoPromise = smartWaitForAPI(this.page, {
+      urlPattern: /\/api\/undo/,
+      timeout: 5000,
+    }).catch(() => null);
+    
     await this.undoButton().click();
-    await this.page.waitForTimeout(500);
+    
+    await Promise.race([
+      undoPromise,
+      smartWaitForAnimation(this.page, '[data-testid="profile-card"]').catch(() => null),
+      new Promise(resolve => setTimeout(resolve, 1000)),
+    ]);
   }
 
   /**
@@ -135,7 +180,7 @@ export class DiscoverPage extends BasePage {
       } else {
         await this.swipeRight();
       }
-      await this.page.waitForTimeout(300);
+      // 短暫延遲避免過快操作（已在 swipeLeft/swipeRight 中處理）
     }
   }
 
@@ -143,7 +188,10 @@ export class DiscoverPage extends BasePage {
    * 等待新的個人資料卡片載入
    */
   async waitForNewCard() {
-    await this.page.waitForTimeout(1000);
-    await this.waitForSelector('[data-testid="profile-card"]');
+    await smartWaitForElement(this.page, {
+      selector: '[data-testid="profile-card"]',
+      state: 'visible',
+      timeout: 5000,
+    });
   }
 }
