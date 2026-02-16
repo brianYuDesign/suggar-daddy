@@ -7,15 +7,16 @@ import { BasePage } from '../../base.page';
 export class DiscoverPage extends BasePage {
   // Locators
   private profileCard = () => this.page.locator('[data-testid="profile-card"]');
-  private profileName = () => this.profileCard().locator('h2, [data-testid="profile-name"]');
-  private profileBio = () => this.profileCard().locator('[data-testid="profile-bio"]');
-  private profileAge = () => this.profileCard().locator('[data-testid="profile-age"]');
-  private likeButton = () => this.page.locator('button:has-text("喜歡"), button[data-action="like"]');
-  private passButton = () => this.page.locator('button:has-text("略過"), button[data-action="pass"]');
-  private superLikeButton = () => this.page.locator('button:has-text("超級喜歡"), button[data-action="super-like"]');
+  private profileName = () => this.page.locator('[data-testid="profile-name"]');
+  private profileBio = () => this.page.locator('[data-testid="profile-bio"]');
+  private profileAge = () => this.page.locator('[data-testid="profile-age"]');
+  private likeButton = () => this.page.locator('button[data-action="like"]');
+  private passButton = () => this.page.locator('button[data-action="pass"]');
+  private superLikeButton = () => this.page.locator('button[data-action="super-like"]');
   private undoButton = () => this.page.locator('button:has-text("復原"), button[data-action="undo"]');
   private matchModal = () => this.page.locator('[data-testid="match-modal"]');
-  private noMoreProfilesMessage = () => this.page.locator('text=/沒有更多|沒有新的/');
+  private noMoreProfilesMessage = () => this.page.locator('[data-testid="no-more-profiles"]');
+  private errorState = () => this.page.locator('[data-testid="error-state"]');
   private toast = () => this.page.locator('[data-testid="toast"], .toast, .notification');
 
   /**
@@ -31,7 +32,7 @@ export class DiscoverPage extends BasePage {
    */
   async swipeRight() {
     await this.likeButton().click();
-    await this.page.waitForTimeout(500); // 等待動畫完成
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -102,10 +103,19 @@ export class DiscoverPage extends BasePage {
   }
 
   /**
-   * 檢查是否沒有更多個人資料
+   * 檢查是否沒有更多個人資料（包含空狀態和錯誤狀態）
    */
   async hasNoMoreProfiles(): Promise<boolean> {
-    return await this.noMoreProfilesMessage().isVisible();
+    const noMore = await this.noMoreProfilesMessage().isVisible();
+    const hasError = await this.errorState().isVisible();
+    return noMore || hasError;
+  }
+
+  /**
+   * 檢查是否顯示錯誤狀態
+   */
+  async hasErrorState(): Promise<boolean> {
+    return await this.errorState().isVisible();
   }
 
   /**

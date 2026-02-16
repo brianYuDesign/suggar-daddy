@@ -88,6 +88,13 @@ test.describe('認證與授權', () => {
   });
 
   test('不同角色應該有不同的權限', async ({ page }) => {
+    // Clear rate limits before API login
+    try {
+      const { getRedisTestHelper } = await import('../utils/redis-helper');
+      const redisHelper = getRedisTestHelper();
+      await redisHelper.clearLoginAttempts(TEST_USERS.subscriber.email);
+    } catch { /* Redis might not be available */ }
+
     // 使用 API 登入 (need explicit login since describe is unauthenticated)
     await login(page, TEST_USERS.subscriber);
 
@@ -220,6 +227,8 @@ test.describe('CSRF 防護', () => {
 });
 
 test.describe('SQL Injection 防護', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('搜尋功能應該防護 SQL Injection', async ({ page }) => {
     const sqlInjectionPayloads = [
       "' OR '1'='1",
@@ -302,6 +311,8 @@ test.describe('檔案上傳安全', () => {
 });
 
 test.describe('Rate Limiting', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('應該限制登入嘗試次數', async ({ page, context }) => {
     // Clear auth for login test
     await context.clearCookies();
@@ -349,6 +360,8 @@ test.describe('Rate Limiting', () => {
 });
 
 test.describe('敏感資料保護', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('密碼輸入應該被遮罩', async ({ page, context }) => {
     await context.clearCookies();
     await page.goto('/login');
@@ -403,6 +416,8 @@ test.describe('敏感資料保護', () => {
 });
 
 test.describe('Session 管理', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('登出後應該清除 Session', async ({ page, context }) => {
     const logoutButton = page.locator('button:has-text("登出"), a:has-text("登出"), button:has-text("Logout"), button:has-text("Sign out")').first();
     if (await logoutButton.isVisible()) {

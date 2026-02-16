@@ -29,11 +29,26 @@ export async function login(
   // 先導航到任意頁面以建立 origin context
   await page.goto(`${baseURL}/login`);
 
-  // 透過 API 直接登入取得 token
+  // 透過 API 直接登入取得 token（含 rate limit 重試）
   const apiBase = 'http://localhost:3000';
-  const res = await page.request.post(`${apiBase}/api/auth/login`, {
+  let res = await page.request.post(`${apiBase}/api/auth/login`, {
     data: { email: credentials.email, password: credentials.password },
   });
+
+  // If rate limited, clear Redis rate limit keys and retry
+  if (res.status() === 429) {
+    try {
+      const { getRedisTestHelper } = await import('./redis-helper');
+      const redisHelper = getRedisTestHelper();
+      await redisHelper.clearLoginAttempts(credentials.email);
+      await redisHelper.clearLoginAttempts(); // Clear all
+    } catch { /* Redis may not be available */ }
+    // Wait a moment for rate limit to clear
+    await page.waitForTimeout(1000);
+    res = await page.request.post(`${apiBase}/api/auth/login`, {
+      data: { email: credentials.email, password: credentials.password },
+    });
+  }
 
   if (!res.ok()) {
     throw new Error(`Login API failed: ${res.status()} ${await res.text()}`);

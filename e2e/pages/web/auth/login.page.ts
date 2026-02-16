@@ -28,7 +28,8 @@ export class LoginPage extends BasePage {
     await this.emailInput().fill(email);
     await this.passwordInput().fill(password);
     await this.loginButton().click();
-    await this.waitForLoading();
+    // 等待 API 回應而非 networkidle（登入成功會觸發 redirect 導致 networkidle 永不完成）
+    await this.page.waitForTimeout(1500);
   }
 
   /**

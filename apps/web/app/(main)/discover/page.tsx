@@ -64,7 +64,7 @@ function EmptyState() {
       <div className="mb-4 rounded-full bg-brand-50 p-4">
         <Users className="h-8 w-8 text-brand-500" />
       </div>
-      <h2 className="text-lg font-semibold text-gray-900">
+      <h2 className="text-lg font-semibold text-gray-900" data-testid="no-more-profiles">
         目前沒有更多推薦
       </h2>
       <p className="mt-2 max-w-xs text-sm text-gray-500">
@@ -80,7 +80,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
       <div className="mb-4 rounded-full bg-red-50 p-4">
         <X className="h-8 w-8 text-red-500" />
       </div>
-      <h2 className="text-lg font-semibold text-gray-900">載入失敗</h2>
+      <h2 className="text-lg font-semibold text-gray-900" data-testid="error-state">載入失敗</h2>
       <p className="mt-2 max-w-xs text-sm text-gray-500">{message}</p>
       <Button className="mt-4" onClick={onRetry}>
         重試
@@ -191,7 +191,7 @@ export default function DiscoverPage() {
       </div>
 
       {/* Profile card */}
-      <Card className="w-full max-w-sm overflow-hidden rounded-2xl border-0 shadow-lg">
+      <Card className="w-full max-w-sm overflow-hidden rounded-2xl border-0 shadow-lg" data-testid="profile-card">
         {/* Avatar area */}
         <div className="relative h-72 bg-gradient-to-br from-brand-100 to-brand-200 sm:h-80">
           {currentCard.avatarUrl ? (
@@ -213,7 +213,7 @@ export default function DiscoverPage() {
 
           {/* Name overlay */}
           <div className="absolute bottom-4 left-4 right-4">
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-xl font-bold text-white" data-testid="profile-name">
               {currentCard.displayName}
             </h2>
             <div className="mt-1 flex items-center gap-2">
@@ -235,11 +235,11 @@ export default function DiscoverPage() {
         {/* Bio section */}
         <CardContent className="p-4">
           {currentCard.bio ? (
-            <p className="text-sm leading-relaxed text-gray-600">
+            <p className="text-sm leading-relaxed text-gray-600" data-testid="profile-bio">
               {currentCard.bio}
             </p>
           ) : (
-            <p className="text-sm italic text-gray-400">
+            <p className="text-sm italic text-gray-400" data-testid="profile-bio">
               這位用戶還沒有填寫自我介紹
             </p>
           )}
@@ -259,6 +259,7 @@ export default function DiscoverPage() {
             'disabled:opacity-50 disabled:hover:scale-100'
           )}
           aria-label="跳過"
+          data-action="pass"
         >
           <X className="h-6 w-6 text-gray-400" />
         </button>
@@ -274,6 +275,7 @@ export default function DiscoverPage() {
             'disabled:opacity-50 disabled:hover:scale-100'
           )}
           aria-label="超級喜歡"
+          data-action="super-like"
         >
           <Star className="h-5 w-5 text-yellow-500" />
         </button>
@@ -289,13 +291,14 @@ export default function DiscoverPage() {
             'disabled:opacity-50 disabled:hover:scale-100'
           )}
           aria-label="喜歡"
+          data-action="like"
         >
           <Heart className="h-7 w-7 text-white" />
         </button>
       </div>
 
       {/* Match celebration modal */}
-      <Dialog open={matchModalOpen} onClose={() => setMatchModalOpen(false)}>
+      <Dialog open={matchModalOpen} onClose={() => setMatchModalOpen(false)} data-testid="match-modal">
         <div className="flex flex-col items-center py-4 text-center">
           <div className="mb-4 rounded-full bg-brand-50 p-3">
             <Sparkles className="h-10 w-10 text-brand-500" />

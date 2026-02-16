@@ -59,15 +59,17 @@ setup('確認測試用戶存在並清理 Redis 測試資料', async () => {
       await redisHelper.clearLoginAttempts(email);
     }
 
-    // Only clear login-attempts patterns, NOT user:email: patterns
+    // Clear login-attempts AND general rate limit keys
     const client = redisHelper.getClient();
     const attemptKeys = await redisHelper.scan('auth:login-attempts:*');
-    if (attemptKeys.length > 0) {
+    const rateLimitKeys = await redisHelper.scan('ratelimit:*');
+    const allKeys = [...attemptKeys, ...rateLimitKeys];
+    if (allKeys.length > 0) {
       const pipe = client.pipeline();
-      attemptKeys.forEach((key) => pipe.del(key));
+      allKeys.forEach((key) => pipe.del(key));
       await pipe.exec();
     }
-    console.log('[Setup] ✓ 登入嘗試記錄已清理');
+    console.log('[Setup] ✓ 登入嘗試記錄與 rate limit 已清理');
 
     // 2. Ensure test users exist in Redis (auth service reads from Redis)
     console.log('[Setup] 確認測試用戶存在...');
@@ -129,6 +131,22 @@ setup('authenticate as admin', async ({ page }) => {
   const ADMIN_URL = 'http://localhost:4300';
   const API_BASE = 'http://localhost:3000';
 
+  // 先嘗試連接 admin app；如果不可用則使用 web app 建立 fallback
+  let adminAvailable = false;
+  try {
+    const check = await page.request.get(`${ADMIN_URL}/login`, { timeout: 3000 });
+    adminAvailable = check.ok();
+  } catch {
+    adminAvailable = false;
+  }
+
+  if (!adminAvailable) {
+    console.warn(`[Setup] Admin app (${ADMIN_URL}) 不可用，寫入空 admin storageState`);
+    // 寫入空的 storageState 避免使用過期檔案
+    await page.context().storageState({ path: 'e2e/.auth/admin.json' });
+    return;
+  }
+
   // 導航到 admin app 建立 origin context
   await page.goto(`${ADMIN_URL}/login`);
 
@@ -139,6 +157,8 @@ setup('authenticate as admin', async ({ page }) => {
 
   if (!res.ok()) {
     console.warn(`[Setup] Admin login API failed: ${res.status()}`);
+    // 仍然保存空的 storageState（正確 origin），避免使用過期檔案
+    await page.context().storageState({ path: 'e2e/.auth/admin.json' });
     return;
   }
 

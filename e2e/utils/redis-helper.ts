@@ -33,8 +33,23 @@ export class RedisTestHelper {
    * 清除所有登入嘗試記錄
    */
   async clearLoginAttempts(email?: string): Promise<number> {
-    const pattern = email ? `auth:login-attempts:${email}` : 'auth:login-attempts:*';
-    return this.clearKeysByPattern(pattern);
+    let cleared = 0;
+    if (email) {
+      // Clear both email-based and common rate limit key patterns
+      const patterns = [
+        `auth:login-attempts:${email}`,
+        `rate-limit:login:${email}`,
+        `login-attempts:${email}`,
+      ];
+      for (const pattern of patterns) {
+        cleared += await this.clearKeysByPattern(pattern);
+      }
+    } else {
+      cleared += await this.clearKeysByPattern('auth:login-attempts:*');
+      cleared += await this.clearKeysByPattern('rate-limit:login:*');
+      cleared += await this.clearKeysByPattern('login-attempts:*');
+    }
+    return cleared;
   }
 
   /**

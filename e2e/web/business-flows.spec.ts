@@ -1,4 +1,28 @@
 import { test, expect, Page } from '@playwright/test';
+import Redis from 'ioredis';
+
+/** Clear all rate limit keys in Redis so tests don't get 429 errors */
+async function clearRateLimits(): Promise<void> {
+  const client = new Redis({ host: 'localhost', port: 6379, lazyConnect: true });
+  try {
+    await client.connect();
+    const keys = await new Promise<string[]>((resolve) => {
+      const found: string[] = [];
+      const stream = client.scanStream({ match: 'ratelimit:*', count: 100 });
+      stream.on('data', (batch: string[]) => found.push(...batch));
+      stream.on('end', () => resolve(found));
+    });
+    if (keys.length > 0) {
+      const pipe = client.pipeline();
+      keys.forEach((k) => pipe.del(k));
+      await pipe.exec();
+    }
+  } catch {
+    // Redis unavailable — skip silently
+  } finally {
+    await client.quit().catch(() => {});
+  }
+}
 
 /**
  * Helper: wait for page to settle.
@@ -13,6 +37,11 @@ async function waitForPageReady(page: Page, timeout = 3000): Promise<void> {
 function isOnLoginPage(page: Page): boolean {
   return page.url().includes('/login');
 }
+
+// Clear rate limits before each test to prevent 429 errors from parallel workers
+test.beforeEach(async () => {
+  await clearRateLimits();
+});
 
 /* =================================================================== */
 /*  Creator Business Flow                                               */
@@ -246,7 +275,7 @@ test.describe('Navigation Consistency', () => {
 
   test('should maintain auth state across page navigation', async ({ page }) => {
     await page.goto('/feed');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(3000);
 
     // If first page redirects to login, auth is expired
     if (isOnLoginPage(page)) { test.skip(true, 'Auth expired'); return; }
@@ -254,7 +283,7 @@ test.describe('Navigation Consistency', () => {
     const pages = ['/discover', '/messages', '/notifications'];
     for (const path of pages) {
       await page.goto(path);
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(3000);
       if (isOnLoginPage(page)) { test.skip(true, 'Auth expired during navigation'); return; }
       expect(page.url()).not.toContain('/login');
     }

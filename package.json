@@ -29,7 +29,7 @@
     "e2e:headed:chrome": "playwright test --headed --workers=1 --project=chromium",
     "e2e:debug": "playwright test --debug",
     "e2e:web": "playwright test e2e/web",
-    "e2e:admin": "PLAYWRIGHT_SKIP_WEBSERVER=1 playwright test --project=admin",
+    "e2e:admin": "PLAYWRIGHT_SKIP_WEBSERVER=1 playwright test --project=setup --project=admin",
     "e2e:admin:start": "bash scripts/e2e-admin-start.sh",
     "e2e:admin:test": "bash scripts/e2e-admin-start.sh --test",
     "e2e:journeys": "playwright test e2e/user-journeys.spec.ts",

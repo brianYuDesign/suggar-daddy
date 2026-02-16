@@ -1,12 +1,31 @@
 import { test, expect, Page } from '@playwright/test';
+import Redis from 'ioredis';
+
+/** Clear all rate limit keys in Redis so tests don't get 429 errors */
+async function clearRateLimits(): Promise<void> {
+  const client = new Redis({ host: 'localhost', port: 6379, lazyConnect: true });
+  try {
+    await client.connect();
+    const keys = await new Promise<string[]>((resolve) => {
+      const found: string[] = [];
+      const stream = client.scanStream({ match: 'ratelimit:*', count: 100 });
+      stream.on('data', (batch: string[]) => found.push(...batch));
+      stream.on('end', () => resolve(found));
+    });
+    if (keys.length > 0) {
+      const pipe = client.pipeline();
+      keys.forEach((k) => pipe.del(k));
+      await pipe.exec();
+    }
+  } catch {
+    // Redis unavailable — skip silently
+  } finally {
+    await client.quit().catch(() => {});
+  }
+}
 
 /**
  * Helper: wait for page to load content or settle into a stable state.
- * Handles three scenarios:
- *   1. Page loads successfully with expected content
- *   2. Page shows an API error state (e.g., "無法載入")
- *   3. Page shows a Next.js runtime error overlay (dev mode)
- *   4. Page redirects to /login (auth expired or service down)
  */
 async function waitForPageReady(page: Page, timeout = 3000): Promise<void> {
   await page.waitForTimeout(timeout);
@@ -18,6 +37,11 @@ async function waitForPageReady(page: Page, timeout = 3000): Promise<void> {
 function isOnLoginPage(page: Page): boolean {
   return page.url().includes('/login');
 }
+
+// Clear rate limits before each test to prevent 429 errors from parallel workers
+test.beforeEach(async () => {
+  await clearRateLimits();
+});
 
 /* =================================================================== */
 /*  Public pages (no auth required)                                     */

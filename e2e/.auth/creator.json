@@ -6,11 +6,11 @@
       "localStorage": [
         {
           "name": "sd_refresh_token",
-          "value": "rt_1771204426858_8ma16crzgx5_9uyp85259i"
+          "value": "rt_1771254646078_3oduqnpufn_wdm3itpqmka"
         },
         {
           "name": "sd_access_token",
-          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXN1Z2FyX2JhYnktMTc3MTE3NTMwMjY0MC0wYzFhbiIsImVtYWlsIjoiY3JlYXRvckB0ZXN0LmNvbSIsImp0aSI6InRlc3Qtc3VnYXJfYmFieS0xNzcxMTc1MzAyNjQwLTBjMWFuOjE3NzEyMDQ0MjY4NTc6bnFjYmYzayIsInJvbGUiOiJzdWdhcl9iYWJ5IiwiaWF0IjoxNzcxMjA0NDI2LCJleHAiOjE3NzEyMDUzMjZ9.fFlATZMO6dOxjEzKJiA5ZhziNpD3-KmmH8_nUQGqDbQ"
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXN1Z2FyX2JhYnktMTc3MTE3NTMwMjY0MC0wYzFhbiIsImVtYWlsIjoiY3JlYXRvckB0ZXN0LmNvbSIsImp0aSI6InRlc3Qtc3VnYXJfYmFieS0xNzcxMTc1MzAyNjQwLTBjMWFuOjE3NzEyNTQ2NDYwNzc6Zzg1aDM2MCIsInJvbGUiOiJzdWdhcl9iYWJ5IiwiaWF0IjoxNzcxMjU0NjQ2LCJleHAiOjE3NzEyNTU1NDZ9.QqsCr_jH1FuogJtWEqOHT0wT4EtBhByLsuF3ZkOODB8"
         }
       ]
     }
