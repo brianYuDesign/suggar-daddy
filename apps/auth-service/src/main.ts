@@ -2,37 +2,50 @@
  * Auth Service - 認證服務
  */
 
-import { Logger, ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { AllExceptionsFilter, setupSwagger, TracingService } from '@suggar-daddy/common';
-import { AppModule } from './app/app.module';
-const helmet = require('helmet');
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
+import {
+  AllExceptionsFilter,
+  setupSwagger,
+  TracingService,
+} from "@suggar-daddy/common";
+import { AppModule } from "./app/app.module";
+const helmet = require("helmet");
 
 async function bootstrap() {
   // Initialize tracing BEFORE creating the app
   const tracingService = new TracingService();
-  tracingService.init('auth-service');
+  await tracingService.init("auth-service");
 
   const app = await NestFactory.create(AppModule);
   app.use(helmet());
-  const globalPrefix = 'api/auth';
+  const globalPrefix = "api/auth";
   app.setGlobalPrefix(globalPrefix);
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
-  
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
   // Setup Swagger documentation
   setupSwagger(app, {
-    title: 'Auth Service API',
-    description: 'API documentation for Suggar Daddy Authentication Service - Register, Login, Password Management',
-    version: '1.0',
-    tag: 'Authentication',
-    path: 'api/docs',
+    title: "Auth Service API",
+    description:
+      "API documentation for Suggar Daddy Authentication Service - Register, Login, Password Management",
+    version: "1.0",
+    tag: "Authentication",
+    path: "api/docs",
   });
-  
+
   app.enableShutdownHooks();
   const port = process.env.AUTH_SERVICE_PORT || process.env.PORT || 3002;
   await app.listen(port);
-  Logger.log(`Auth Service running on: http://localhost:${port}/${globalPrefix}`);
+  Logger.log(
+    `Auth Service running on: http://localhost:${port}/${globalPrefix}`,
+  );
   Logger.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);
 }
 

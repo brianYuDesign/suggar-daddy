@@ -28,6 +28,18 @@ export class CreateTransactionDto {
   metadata?: object;
 }
 
+export class RefundTransactionDto {
+  @IsOptional()
+  @IsString()
+  reason?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0.01)
+  @Max(999999)
+  amount?: number;
+}
+
 export class UpdateTransactionDto {
   @IsOptional()
   @IsIn(['pending', 'succeeded', 'failed', 'refunded'])

@@ -15,7 +15,8 @@ import {
   DefaultValuePipe,
   HttpCode,
 } from '@nestjs/common';
-import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { ContentModerationService } from './content-moderation.service';
 
 @Controller('content')

@@ -2,6 +2,8 @@
  * Feed / Discovery 相關 DTO
  */
 
+import type { UserType, PermissionRole } from '@suggar-daddy/common';
+
 export interface FeedPostDto {
   id: string;
   creatorId: string;
@@ -35,5 +37,6 @@ export interface RecommendedCreatorDto {
   avatarUrl?: string;
   bio?: string;
   followerCount: number;
-  role: string;
+  userType: UserType;
+  permissionRole: PermissionRole;
 }

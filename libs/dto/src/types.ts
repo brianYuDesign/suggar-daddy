@@ -3,6 +3,8 @@
  * 仅用于 Next.js 项目的纯类型定义（不包含装饰器）
  */
 
+import type { UserType, PermissionRole } from '@suggar-daddy/common';
+
 // Auth Types
 /** 登入請求 */
 export interface LoginDto {
@@ -14,7 +16,8 @@ export interface LoginDto {
 export interface RegisterDto {
   email: string;
   password: string;
-  role: "sugar_baby" | "sugar_daddy";
+  /** 業務角色：使用者身份類型 */
+  userType: UserType;
   displayName: string;
   bio?: string;
 }
@@ -32,13 +35,33 @@ export interface TokenResponseDto {
   tokenType: "Bearer";
 }
 
+/** 忘記密碼請求 */
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+/** 重置密碼請求 */
+export interface ResetPasswordDto {
+  token: string;
+  newPassword: string;
+}
+
+/** 修改密碼請求 */
+export interface ChangePasswordDto {
+  oldPassword: string;
+  newPassword: string;
+}
+
 // User Types
 export interface UserCardDto {
   id: string;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
-  role: string;
+  /** 業務角色 */
+  userType: UserType;
+  /** 權限角色 */
+  permissionRole: PermissionRole;
   verificationStatus: string;
   lastActiveAt: Date;
   city?: string;
@@ -47,7 +70,10 @@ export interface UserCardDto {
 
 export interface UserProfileDto {
   id: string;
-  role: string;
+  /** 業務角色 */
+  userType: UserType;
+  /** 權限角色 */
+  permissionRole: PermissionRole;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
@@ -64,7 +90,8 @@ export interface UserProfileDto {
 }
 
 export interface CreateUserDto {
-  role: "sugar_baby" | "sugar_daddy";
+  /** 業務角色：使用者身份類型 */
+  userType: UserType;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
@@ -134,6 +161,36 @@ export interface ConversationDto {
   lastMessageAt?: Date;
 }
 
+export interface SendBroadcastDto {
+  content: string;
+  audience?: 'followers' | 'subscribers';
+  mediaIds?: string[];
+  recipientFilter?: 'ALL_SUBSCRIBERS' | 'TIER_SPECIFIC';
+  tierIds?: string[];
+}
+
+export interface BroadcastDto {
+  id: string;
+  creatorId: string;
+  content: string;
+  audience: 'followers' | 'subscribers';
+  recipientCount: number;
+  createdAt: string;
+}
+
+export interface BroadcastResultDto {
+  broadcastId: string;
+  recipientCount: number;
+  status: 'QUEUED' | 'SENDING' | 'SENT' | 'FAILED';
+  createdAt: string;
+}
+
+export interface CursorPaginatedResponse<T> {
+  data: T[];
+  cursor?: string;
+  hasMore: boolean;
+}
+
 // Notification Types
 export interface SendNotificationDto {
   userId: string;
@@ -151,4 +208,11 @@ export interface NotificationItemDto {
   data?: Record<string, unknown>;
   read: boolean;
   createdAt: Date;
+}
+
+export interface NotificationResultDto {
+  notificationId: string;
+  targetCount: number;
+  status: 'QUEUED' | 'SENDING' | 'SENT';
+  createdAt: string;
 }

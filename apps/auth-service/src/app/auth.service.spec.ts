@@ -5,6 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { TokenRevocationService } from '@suggar-daddy/auth';
+import { EmailService, AppConfigService, UserType } from '@suggar-daddy/common';
 
 jest.mock('bcrypt');
 
@@ -24,12 +26,31 @@ describe('AuthService', () => {
     kafka = { sendEvent: jest.fn() };
     jwt = { sign: jest.fn().mockReturnValue('access-token') };
 
+    const mockTokenRevocation = {
+      revokeToken: jest.fn().mockResolvedValue(undefined),
+      isRevoked: jest.fn().mockResolvedValue(false),
+      revokeAllUserTokens: jest.fn().mockResolvedValue(undefined),
+      isUserTokenRevoked: jest.fn().mockResolvedValue(false),
+    };
+
+    const mockEmailService = {
+      sendEmailVerification: jest.fn().mockResolvedValue(undefined),
+      sendPasswordReset: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const mockAppConfig = {
+      appBaseUrl: 'http://localhost:4200',
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: JwtService, useValue: jwt },
         { provide: RedisService, useValue: redis },
         { provide: KafkaProducerService, useValue: kafka },
+        { provide: TokenRevocationService, useValue: mockTokenRevocation },
+        { provide: EmailService, useValue: mockEmailService },
+        { provide: AppConfigService, useValue: mockAppConfig },
       ],
     }).compile();
 
@@ -41,7 +62,7 @@ describe('AuthService', () => {
     const dto = {
       email: 'Test@Example.COM',
       password: 'Secret123',
-      role: 'sugar_baby' as const,
+      userType: UserType.SUGAR_BABY,
       displayName: 'Test User',
       bio: 'Hello',
     };
@@ -61,7 +82,7 @@ describe('AuthService', () => {
         expect.objectContaining({
           email: 'test@example.com',
           displayName: 'Test User',
-          role: 'sugar_baby',
+          userType: UserType.SUGAR_BABY,
         })
       );
     });
@@ -80,9 +101,10 @@ describe('AuthService', () => {
       userId: 'user-1',
       email: 'a@b.com',
       passwordHash: 'hashed',
-      role: 'sugar_daddy',
+      userType: 'sugar_daddy',
       displayName: 'User',
       accountStatus: 'active',
+      emailVerified: false,
       createdAt: new Date().toISOString(),
     };
 
@@ -101,7 +123,9 @@ describe('AuthService', () => {
     });
 
     it('應在 email 不存在時拋出 UnauthorizedException', async () => {
-      (redis.get as jest.Mock).mockResolvedValue(null);
+      (redis.get as jest.Mock)
+        .mockResolvedValueOnce(null)  // checkLoginRateLimit
+        .mockResolvedValueOnce(null); // emailKey lookup - not found
 
       await expect(
         service.login({ email: 'nobody@x.com', password: 'pwd' })

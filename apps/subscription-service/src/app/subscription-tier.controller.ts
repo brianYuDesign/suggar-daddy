@@ -17,9 +17,9 @@ import {
   CurrentUser,
   Public,
   Roles,
-  UserRole,
   type CurrentUserData,
-} from '@suggar-daddy/common';
+} from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 
 @Controller('subscription-tiers')
 export class SubscriptionTierController {

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import type {
-  SendNotificationDto,
+  InternalSendNotificationDto,
   NotificationItemDto,
 } from '@suggar-daddy/dto';
 
@@ -23,7 +23,7 @@ export class NotificationService {
     private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
-  async send(dto: SendNotificationDto): Promise<NotificationItemDto> {
+  async send(dto: InternalSendNotificationDto): Promise<NotificationItemDto> {
     const id = `notif-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const now = new Date();
     const item: StoredNotification = {

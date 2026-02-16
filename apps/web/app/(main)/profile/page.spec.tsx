@@ -11,16 +11,28 @@
  * - Logout functionality
  */
 
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render, mockUser } from '../../../../src/test-utils';
+import { render } from '@testing-library/react';
 import ProfilePage from './page';
 
 // Mock the auth provider
 const mockLogout = jest.fn();
 const mockPush = jest.fn();
 
-jest.mock('../../../../providers/auth-provider', () => ({
+const mockUser = {
+  id: 'test-user-id',
+  userType: 'sugar_daddy',
+  permissionRole: 'user',
+  displayName: 'Test User',
+  bio: 'Test bio',
+  avatarUrl: 'https://example.com/avatar.jpg',
+  verificationStatus: 'verified',
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+};
+
+jest.mock('../../../providers/auth-provider', () => ({
   useAuth: () => ({
     user: mockUser,
     logout: mockLogout,
@@ -36,6 +48,14 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
+// Mock usersApi
+jest.mock('../../../lib/api', () => ({
+  usersApi: {
+    getFollowers: jest.fn().mockResolvedValue({ data: [], hasMore: false }),
+    getFollowing: jest.fn().mockResolvedValue({ data: [], hasMore: false }),
+  },
+}));
+
 describe('ProfilePage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -47,7 +67,7 @@ describe('ProfilePage', () => {
 
       expect(screen.getByRole('heading', { name: /我的檔案/i })).toBeInTheDocument();
       expect(screen.getByText(mockUser.displayName)).toBeInTheDocument();
-      expect(screen.getByText(/Sugar Daddy/i)).toBeInTheDocument(); // Role badge
+      expect(screen.getByText(/探索者/i)).toBeInTheDocument(); // Role badge
     });
 
     it('should display avatar when available', () => {
@@ -64,7 +84,7 @@ describe('ProfilePage', () => {
         displayName: 'John Doe',
       };
 
-      jest.spyOn(require('../../../../providers/auth-provider'), 'useAuth').mockReturnValue({
+      jest.spyOn(require('../../../providers/auth-provider'), 'useAuth').mockReturnValue({
         user: userWithoutAvatar,
         logout: mockLogout,
       });
@@ -86,7 +106,7 @@ describe('ProfilePage', () => {
         verificationStatus: 'pending',
       };
 
-      jest.spyOn(require('../../../../providers/auth-provider'), 'useAuth').mockReturnValue({
+      jest.spyOn(require('../../../providers/auth-provider'), 'useAuth').mockReturnValue({
         user: unverifiedUser,
         logout: mockLogout,
       });
@@ -108,7 +128,7 @@ describe('ProfilePage', () => {
         bio: undefined,
       };
 
-      jest.spyOn(require('../../../../providers/auth-provider'), 'useAuth').mockReturnValue({
+      jest.spyOn(require('../../../providers/auth-provider'), 'useAuth').mockReturnValue({
         user: userWithoutBio,
         logout: mockLogout,
       });
@@ -129,10 +149,10 @@ describe('ProfilePage', () => {
     it('should display "創作者" for sugar_baby role', () => {
       const sugarBabyUser = {
         ...mockUser,
-        role: 'sugar_baby',
+        userType: 'sugar_baby',
       };
 
-      jest.spyOn(require('../../../../providers/auth-provider'), 'useAuth').mockReturnValue({
+      jest.spyOn(require('../../../providers/auth-provider'), 'useAuth').mockReturnValue({
         user: sugarBabyUser,
         logout: mockLogout,
       });
@@ -145,10 +165,10 @@ describe('ProfilePage', () => {
     it('should display "探索者" for sugar_daddy role', () => {
       const sugarDaddyUser = {
         ...mockUser,
-        role: 'sugar_daddy',
+        userType: 'sugar_daddy',
       };
 
-      jest.spyOn(require('../../../../providers/auth-provider'), 'useAuth').mockReturnValue({
+      jest.spyOn(require('../../../providers/auth-provider'), 'useAuth').mockReturnValue({
         user: sugarDaddyUser,
         logout: mockLogout,
       });
@@ -225,7 +245,7 @@ describe('ProfilePage', () => {
 
   describe('No User State', () => {
     it('should render nothing when user is not available', () => {
-      jest.spyOn(require('../../../../providers/auth-provider'), 'useAuth').mockReturnValue({
+      jest.spyOn(require('../../../providers/auth-provider'), 'useAuth').mockReturnValue({
         user: null,
         logout: mockLogout,
       });
@@ -274,7 +294,7 @@ describe('ProfilePage', () => {
         createdAt: new Date('2024-01-15'),
       };
 
-      jest.spyOn(require('../../../../providers/auth-provider'), 'useAuth').mockReturnValue({
+      jest.spyOn(require('../../../providers/auth-provider'), 'useAuth').mockReturnValue({
         user: testUser,
         logout: mockLogout,
       });

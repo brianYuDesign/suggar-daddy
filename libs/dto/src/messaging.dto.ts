@@ -42,7 +42,11 @@ export class SendBroadcastDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(5000)
-  message: string;
+  content: string;
+
+  @IsOptional()
+  @IsIn(['followers', 'subscribers'])
+  audience?: 'followers' | 'subscribers';
 
   @IsOptional()
   @IsArray()
@@ -75,15 +79,11 @@ export interface ConversationDto {
 }
 
 export interface BroadcastDto {
-  broadcastId: string;
-  senderId: string;
-  senderUsername: string;
-  message: string;
-  mediaUrls?: string[];
+  id: string;
+  creatorId: string;
+  content: string;
+  audience: 'followers' | 'subscribers';
   recipientCount: number;
-  deliveredCount: number;
-  readCount: number;
-  status: 'QUEUED' | 'SENDING' | 'SENT' | 'FAILED';
   createdAt: string;
 }
 

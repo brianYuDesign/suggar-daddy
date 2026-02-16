@@ -15,7 +15,8 @@ import {
   DefaultValuePipe,
   HttpCode,
 } from '@nestjs/common';
-import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { WithdrawalManagementService } from './withdrawal-management.service';
 
 @Controller('withdrawals')

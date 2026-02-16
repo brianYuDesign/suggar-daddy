@@ -17,10 +17,9 @@ export class ApiHelper {
   async createUser(userData: {
     email: string;
     password: string;
-    name: string;
-    role: 'CREATOR' | 'SUBSCRIBER' | 'ADMIN';
+    displayName: string;
+    userType: 'sugar_daddy' | 'sugar_baby';
     bio?: string;
-    avatar?: string;
   }) {
     const response = await this.request.post(`${this.baseURL}/api/auth/register`, {
       data: userData,

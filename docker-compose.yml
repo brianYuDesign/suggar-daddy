@@ -1,10 +1,10 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Database Services - High Availability Architecture
   # =====================================================
   # PostgreSQL Master-Replica Setup with Streaming Replication
-  
+
   # PostgreSQL Master (Primary)
   postgres-master:
     image: postgres:16-alpine
@@ -37,7 +37,11 @@ services:
       -c config_file=/etc/postgresql/postgresql.conf
       -c hba_file=/etc/postgresql/pg_hba.conf
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres && psql -U postgres -c 'SELECT 1' > /dev/null 2>&1"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U postgres && psql -U postgres -c 'SELECT 1' > /dev/null 2>&1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,10 +49,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 1024M
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 512M
     logging:
       driver: "json-file"
@@ -93,7 +97,11 @@ services:
       postgres-master:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres && psql -U postgres -c 'SELECT pg_is_in_recovery()' | grep -q 't'"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U postgres && psql -U postgres -c 'SELECT pg_is_in_recovery()' | grep -q 't'",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -101,10 +109,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 1024M
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 512M
     logging:
       driver: "json-file"
@@ -119,12 +127,19 @@ services:
 
   # Legacy alias for backward compatibility
   # Services can still connect to 'postgres'
+  # Using healthcheck instead of tail -f for proper lifecycle management
   postgres:
     image: alpine:latest
     container_name: suggar-daddy-postgres-proxy
-    command: /bin/sh -c "echo 'Legacy postgres service - use postgres-master or postgres-replica' && tail -f /dev/null"
+    command: /bin/sh -c "echo 'Legacy postgres service - use postgres-master or postgres-replica' && sleep infinity"
     depends_on:
       - postgres-master
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     networks:
       - suggar-daddy-network
     profiles:
@@ -132,7 +147,7 @@ services:
 
   # Redis Sentinel Architecture for High Availability
   # =====================================================
-  
+
   # Redis Master - 主節點，處理寫入操作
   redis-master:
     image: redis:7-alpine
@@ -153,10 +168,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 768M
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 256M
     logging:
       driver: "json-file"
@@ -192,10 +207,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 768M
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 256M
     logging:
       driver: "json-file"
@@ -231,131 +246,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 768M
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 256M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - suggar-daddy-network
-    restart: unless-stopped
-
-  # Redis Sentinel 1 - 哨兵節點 1
-  redis-sentinel-1:
-    image: redis:7-alpine
-    container_name: suggar-daddy-redis-sentinel-1
-    ports:
-      - "26379:26379"
-    volumes:
-      - redis_sentinel_1_data:/data
-      - ./infrastructure/redis/sentinel/sentinel.conf:/usr/local/etc/redis/sentinel.conf:rw
-    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
-    depends_on:
-      redis-master:
-        condition: service_healthy
-      redis-replica-1:
-        condition: service_healthy
-      redis-replica-2:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 256M
-        reservations:
-          cpus: '0.1'
-          memory: 128M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - suggar-daddy-network
-    restart: unless-stopped
-
-  # Redis Sentinel 2 - 哨兵節點 2
-  redis-sentinel-2:
-    image: redis:7-alpine
-    container_name: suggar-daddy-redis-sentinel-2
-    ports:
-      - "26380:26379"
-    volumes:
-      - redis_sentinel_2_data:/data
-      - ./infrastructure/redis/sentinel/sentinel.conf:/usr/local/etc/redis/sentinel.conf:rw
-    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
-    depends_on:
-      redis-master:
-        condition: service_healthy
-      redis-replica-1:
-        condition: service_healthy
-      redis-replica-2:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 256M
-        reservations:
-          cpus: '0.1'
-          memory: 128M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - suggar-daddy-network
-    restart: unless-stopped
-
-  # Redis Sentinel 3 - 哨兵節點 3
-  redis-sentinel-3:
-    image: redis:7-alpine
-    container_name: suggar-daddy-redis-sentinel-3
-    ports:
-      - "26381:26379"
-    volumes:
-      - redis_sentinel_3_data:/data
-      - ./infrastructure/redis/sentinel/sentinel.conf:/usr/local/etc/redis/sentinel.conf:rw
-    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
-    depends_on:
-      redis-master:
-        condition: service_healthy
-      redis-replica-1:
-        condition: service_healthy
-      redis-replica-2:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 256M
-        reservations:
-          cpus: '0.1'
-          memory: 128M
     logging:
       driver: "json-file"
       options:
@@ -389,10 +284,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 512M
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 256M
     logging:
       driver: "json-file"
@@ -418,7 +313,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       # Performance tuning
       KAFKA_NUM_NETWORK_THREADS: 3
       KAFKA_NUM_IO_THREADS: 8
@@ -434,7 +329,13 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test:
+        [
+          "CMD",
+          "kafka-broker-api-versions",
+          "--bootstrap-server",
+          "localhost:9092",
+        ]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -442,10 +343,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 1024M
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 512M
     logging:
       driver: "json-file"
@@ -475,12 +376,16 @@ services:
       USER_SERVICE_URL: http://user-service:3001
       PAYMENT_SERVICE_URL: http://payment-service:3007
       SUBSCRIPTION_SERVICE_URL: http://subscription-service:3009
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
+      NODE_ENV_OTEL: ${NODE_ENV_OTEL:-development}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -488,7 +393,15 @@ services:
         condition: service_healthy
     command: npm run serve:api-gateway
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -496,10 +409,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 512M
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 256M
     logging:
       driver: "json-file"
@@ -524,14 +437,14 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3002
       # Database
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: postgres-master
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis (連接到 Sentinel)
-      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
-      REDIS_MASTER_NAME: mymaster
+      # Redis
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
       # Kafka
       KAFKA_BROKERS: kafka:9092
       KAFKA_CLIENT_ID: auth-service
@@ -550,12 +463,15 @@ services:
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-}
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -580,24 +496,29 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3001
       # Database
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: postgres-master
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis (連接到 Sentinel)
-      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
-      REDIS_MASTER_NAME: mymaster
+      # Redis
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
       # Cloudinary (for file uploads)
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -620,26 +541,29 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3007
       # Database
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: postgres-master
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis (連接到 Sentinel)
-      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
-      REDIS_MASTER_NAME: mymaster
+      # Redis
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
       # Kafka
       KAFKA_BROKERS: kafka:9092
       # Stripe
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -664,22 +588,25 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3009
       # Database
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: postgres-master
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis (連接到 Sentinel)
-      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
-      REDIS_MASTER_NAME: mymaster
+      # Redis
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
       # Kafka
       KAFKA_BROKERS: kafka:9092
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -704,23 +631,26 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3010
       # Database
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: postgres-master
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      # Redis (連接到 Sentinel)
-      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
-      REDIS_MASTER_NAME: mymaster
+      # Redis
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
       # Kafka
       KAFKA_BROKERS: kafka:9092
       KAFKA_GROUP_ID: db-writer-group
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -745,19 +675,24 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3003
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: postgres-master
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      REDIS_HOST: redis
+      REDIS_HOST: redis-master
       REDIS_PORT: 6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -781,20 +716,23 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3004
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: postgres-master
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      REDIS_HOST: redis
+      REDIS_HOST: redis-master
       REDIS_PORT: 6379
       KAFKA_BROKERS: kafka:9092
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -820,19 +758,24 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3005
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: postgres-master
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      REDIS_HOST: redis
+      REDIS_HOST: redis-master
       REDIS_PORT: 6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -852,23 +795,29 @@ services:
         APP_NAME: admin-service
     container_name: suggar-daddy-admin-service
     ports:
-      - "3006:3006"
+      - "3011:3011"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      PORT: 3006
-      POSTGRES_HOST: postgres
+      PORT: 3011
+      ADMIN_SERVICE_PORT: 3011
+      POSTGRES_HOST: postgres-master
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
-      REDIS_HOST: redis
+      REDIS_HOST: redis-master
       REDIS_PORT: 6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
     volumes:
       - .:/app
       - /app/node_modules
       - /app/dist
     depends_on:
-      postgres:
+      postgres-master:
         condition: service_healthy
       redis-master:
         condition: service_healthy
@@ -878,6 +827,94 @@ services:
     restart: unless-stopped
     profiles:
       - full
+
+  # Content Service
+  content-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: content-service
+    container_name: suggar-daddy-content-service
+    ports:
+      - "3006:3006"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3006
+      CONTENT_SERVICE_PORT: 3006
+      POSTGRES_HOST: postgres-master
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: npm run serve:content-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  # Media Service
+  media-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: media-service
+    container_name: suggar-daddy-media-service
+    ports:
+      - "3008:3008"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3008
+      MEDIA_SERVICE_PORT: 3008
+      POSTGRES_HOST: postgres-master
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      # Cloudinary (for media uploads)
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: npm run serve:media-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
 
   # Frontend Applications
   web:
@@ -928,6 +965,52 @@ services:
     profiles:
       - frontend
 
+  # Jaeger - Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: suggar-daddy-jaeger
+    hostname: jaeger
+    ports:
+      # Jaeger UI
+      - "16686:16686"
+      # OTLP gRPC Receiver
+      - "4317:4317"
+      # OTLP HTTP Receiver
+      - "4318:4318"
+      # Jaeger Collector HTTP
+      - "14268:14268"
+      # Jaeger Agent (Thrift)
+      - "6831:6831/udp"
+      # Admin port
+      - "14269:14269"
+    environment:
+      # Log level: debug, info, warn, error
+      COLLECTOR_OTLP_ENABLED: "true"
+      COLLECTOR_GRPC_HOST_PORT: "0.0.0.0:4317"
+      COLLECTOR_HTTP_HOST_PORT: "0.0.0.0:4318"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:14269/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
 networks:
   suggar-daddy-network:
     driver: bridge
@@ -943,7 +1026,7 @@ volumes:
   # Legacy volume (kept for backward compatibility)
   postgres_data:
     driver: local
-  
+
   # Redis High Availability Volumes
   redis_master_data:
     driver: local
@@ -951,16 +1034,10 @@ volumes:
     driver: local
   redis_replica_2_data:
     driver: local
-  redis_sentinel_1_data:
-    driver: local
-  redis_sentinel_2_data:
-    driver: local
-  redis_sentinel_3_data:
-    driver: local
   # Legacy volume (kept for backward compatibility)
   redis_data:
     driver: local
-  
+
   # Kafka & Zookeeper Volumes
   kafka_data:
     driver: local

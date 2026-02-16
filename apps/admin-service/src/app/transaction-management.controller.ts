@@ -6,13 +6,30 @@
 import {
   Controller,
   Get,
+  Post,
+  Param,
+  Body,
   Query,
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
-import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
+import { IsOptional, IsString, IsNumber, Min, Max } from 'class-validator';
 import { TransactionManagementService } from './transaction-management.service';
+
+export class AdminRefundDto {
+  @IsOptional()
+  @IsString()
+  reason?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0.01)
+  @Max(999999)
+  amount?: number;
+}
 
 @Controller('transactions')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -31,6 +48,15 @@ export class TransactionManagementController {
     @Query('status') status?: string,
   ) {
     return this.transactionService.listTransactions(page, limit, type, status);
+  }
+
+  /** POST /api/admin/transactions/:id/refund — 退款交易 */
+  @Post(':id/refund')
+  refundTransaction(
+    @Param('id') id: string,
+    @Body() refundDto: AdminRefundDto,
+  ) {
+    return this.transactionService.refundTransaction(id, refundDto.reason, refundDto.amount);
   }
 
   /** GET /api/admin/transactions/type-stats — 交易類型分佈 */

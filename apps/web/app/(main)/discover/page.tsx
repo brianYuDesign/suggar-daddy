@@ -18,18 +18,9 @@ import {
 import { Heart, X, Star, MessageCircle, Sparkles, Users } from 'lucide-react';
 import { matchingApi, ApiError } from '../../../lib/api';
 import { useAuth } from '../../../providers/auth-provider';
+import type { UserCard } from '../../../types/user';
 
-/* ---------- Local types (mirrors DTO, not imported) ---------- */
-
-interface UserCard {
-  id: string;
-  displayName: string;
-  bio?: string;
-  avatarUrl?: string;
-  role: string;
-  verificationStatus: string;
-  lastActiveAt: Date;
-}
+/* ---------- Local types ---------- */
 
 interface SwipeResponse {
   matched: boolean;
@@ -38,13 +29,12 @@ interface SwipeResponse {
 
 /* ---------- Helpers ---------- */
 
-function roleLabelMap(role: string): string {
+function roleLabelMap(userType: string): string {
   const map: Record<string, string> = {
     sugar_daddy: 'Sugar Daddy',
-    sugar_baby: 'Creator',
-    admin: 'Admin',
+    sugar_baby: 'Sugar Baby',
   };
-  return map[role] || role;
+  return map[userType] || userType;
 }
 
 function getInitials(name: string): string {
@@ -121,7 +111,7 @@ export default function DiscoverPage() {
       setIsLoading(true);
       setError(null);
       const res = await matchingApi.getCards(cursor);
-      setCards((prev) => (cursor ? [...prev, ...res.cards] : res.cards));
+      setCards((prev) => (cursor ? [...prev, ...res.cards as any] : res.cards as any));
       setNextCursor(res.nextCursor);
       if (!cursor) setCurrentIndex(0);
     } catch (err) {
@@ -146,7 +136,7 @@ export default function DiscoverPage() {
       setSwiping(true);
       try {
         const res: SwipeResponse = await matchingApi.swipe({
-          targetUserId: currentCard.id,
+          targetUserId: currentCard.id!,
           action,
         });
 
@@ -231,7 +221,7 @@ export default function DiscoverPage() {
                 variant="warning"
                 className="bg-brand-500/90 text-white border-0 text-xs"
               >
-                {roleLabelMap(currentCard.role)}
+                {roleLabelMap(currentCard.userType)}
               </Badge>
               {currentCard.verificationStatus === 'verified' && (
                 <Badge variant="success" className="text-xs">

@@ -1,8 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { JwtAuthGuard, UserRole } from "@suggar-daddy/auth";
+import { JwtAuthGuard, OAuthService } from "@suggar-daddy/auth";
 import { LoginDto, RegisterDto, RefreshTokenDto } from "@suggar-daddy/dto";
+import { UserType, PermissionRole } from "@suggar-daddy/common";
 
 describe("AuthController", () => {
   let controller: AuthController;
@@ -21,10 +22,14 @@ describe("AuthController", () => {
     deleteUser: jest.fn(),
   };
 
+  const mockOAuthService = {
+    handleOAuthLogin: jest.fn(),
+  };
+
   const mockJwtUser = {
     userId: "user-123",
     email: "test@example.com",
-    role: UserRole.SUBSCRIBER,
+    role: PermissionRole.SUBSCRIBER,
   };
 
   const mockTokenResponse = {
@@ -40,6 +45,10 @@ describe("AuthController", () => {
         {
           provide: AuthService,
           useValue: mockAuthService,
+        },
+        {
+          provide: OAuthService,
+          useValue: mockOAuthService,
         },
       ],
     })
@@ -61,7 +70,7 @@ describe("AuthController", () => {
         email: "newuser@example.com",
         password: "Password123!",
         displayName: "New User",
-        role: "sugar_daddy",
+        userType: UserType.SUGAR_DADDY,
       };
 
       mockAuthService.register.mockResolvedValue(mockTokenResponse);
@@ -78,7 +87,7 @@ describe("AuthController", () => {
         email: "existing@example.com",
         password: "Password123!",
         displayName: "Existing User",
-        role: "sugar_baby",
+        userType: UserType.SUGAR_BABY,
       };
 
       mockAuthService.register.mockRejectedValue(
@@ -156,7 +165,7 @@ describe("AuthController", () => {
       const refreshDto: RefreshTokenDto = {
         refreshToken: "valid-refresh-token",
       };
-      const mockUser = { userId: 'user-123', email: 'test@example.com', jti: 'jti-123' };
+      const mockUser = { userId: 'user-123', email: 'test@example.com', role: 'subscriber', jti: 'jti-123' };
 
       mockAuthService.logout.mockResolvedValue({ success: true });
 

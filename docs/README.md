@@ -90,7 +90,7 @@
 | [TEST_ACTION_PLAN.md](./testing/TEST_ACTION_PLAN.md) | 測試行動計劃 |
 | [CONTROLLER_INTEGRATION_TESTING_GUIDE.md](./testing/CONTROLLER_INTEGRATION_TESTING_GUIDE.md) | Controller 整合測試指南 |
 | [E2E_TESTING_GUIDE.md](./testing/E2E_TESTING_GUIDE.md) | E2E 測試指南 |
-| [E2E-TESTING-GUIDE.md](./testing/E2E-TESTING-GUIDE.md) | E2E 測試完整指南 |
+| [E2E_TESTING_GUIDE.md](./testing/E2E_TESTING_GUIDE.md) | E2E 測試完整指南 |
 | [FRONTEND_TESTING.md](./testing/FRONTEND_TESTING.md) | 前端測試指南 |
 | [FRONTEND_TESTING_QUICKSTART.md](./testing/FRONTEND_TESTING_QUICKSTART.md) | 前端測試快速上手 |
 | [FRONTEND_TEST_COMPLETION_REPORT.md](./testing/FRONTEND_TEST_COMPLETION_REPORT.md) | 前端測試覆蓋率報告 |

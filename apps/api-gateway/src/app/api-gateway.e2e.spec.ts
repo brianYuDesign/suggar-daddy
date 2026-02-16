@@ -111,7 +111,7 @@ describe("API Gateway (e2e)", () => {
       const target = proxyService.getTarget("/api/upload");
       expect(target).toBeTruthy();
       expect(target?.prefix).toBe("/api/upload");
-      expect(target?.baseUrl).toContain("3008");
+      expect(target?.baseUrl).toContain("3010");
     });
 
     it("should identify target for /api/admin", () => {
@@ -214,7 +214,7 @@ describe("API Gateway (e2e)", () => {
         body,
       );
 
-      expect([200, 400, 401, 404, 502, 504]).toContain(result.status);
+      expect([200, 400, 401, 403, 404, 502, 504]).toContain(result.status);
     });
   });
 

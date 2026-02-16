@@ -9,8 +9,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SendNotificationDto } from '@suggar-daddy/dto';
-import { JwtAuthGuard, CurrentUser, Public, Roles, UserRole } from '@suggar-daddy/common';
-import type { CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, Public, Roles } from '@suggar-daddy/auth';
+import type { CurrentUserData } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { NotificationService } from './notification.service';
 
 @Controller()
@@ -24,11 +25,22 @@ export class NotificationController {
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.ADMIN)
   async send(@Body() body: SendNotificationDto) {
+    const targetUserIds = body.userIds ?? [];
     this.logger.log(
-      `send userId=${body.userId} type=${body.type} title=${body.title}`
+      `send userIds=${targetUserIds.join(',')} type=${body.type} title=${body.title}`
     );
-    const notification = await this.notificationService.send(body);
-    return notification;
+    // Send to each target user using the internal notification DTO
+    const results = await Promise.all(
+      targetUserIds.map((userId) =>
+        this.notificationService.send({
+          userId,
+          type: body.type,
+          title: body.title,
+          body: body.message,
+        }),
+      ),
+    );
+    return results;
   }
 
   /** 取得當前用戶通知列表（JWT） */

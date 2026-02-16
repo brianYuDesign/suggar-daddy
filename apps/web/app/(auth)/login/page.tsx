@@ -93,6 +93,14 @@ export default function LoginPage() {
           {errors.password && (
             <p className="text-xs text-red-500">{errors.password.message}</p>
           )}
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-xs text-brand-600 hover:text-brand-700"
+            >
+              忘記密碼？
+            </Link>
+          </div>
         </div>
 
         <Button

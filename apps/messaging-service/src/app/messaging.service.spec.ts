@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MessagingService } from './messaging.service';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { SubscriptionServiceClient } from './subscription-service.client';
 
 describe('MessagingService', () => {
   let service: MessagingService;
@@ -40,6 +41,10 @@ describe('MessagingService', () => {
     sendEvent: jest.fn().mockResolvedValue(null),
   };
 
+  const subscriptionServiceClient = {
+    checkSubscriptionAccess: jest.fn().mockResolvedValue(true),
+  };
+
   beforeEach(async () => {
     store.clear();
     lists.clear();
@@ -51,6 +56,7 @@ describe('MessagingService', () => {
         MessagingService,
         { provide: RedisService, useValue: redis },
         { provide: KafkaProducerService, useValue: kafka },
+        { provide: SubscriptionServiceClient, useValue: subscriptionServiceClient },
       ],
     }).compile();
 

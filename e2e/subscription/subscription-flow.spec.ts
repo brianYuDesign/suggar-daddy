@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, TEST_USERS, takeScreenshot } from '../utils/test-helpers';
+import { takeScreenshot } from '../utils/test-helpers';
 
 /**
  * 訂閱流程測試
@@ -7,9 +7,6 @@ import { login, TEST_USERS, takeScreenshot } from '../utils/test-helpers';
  */
 
 test.describe('創建訂閱', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('應該能查看訂閱方案', async ({ page }) => {
     await page.goto('/subscription/plans');
@@ -85,9 +82,6 @@ test.describe('創建訂閱', () => {
 });
 
 test.describe('訂閱管理', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('應該能查看當前訂閱狀態', async ({ page, context }) => {
     await context.tracing.start({ screenshots: true, snapshots: true });
@@ -131,9 +125,6 @@ test.describe('訂閱管理', () => {
 });
 
 test.describe('訂閱升級', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('應該能從 Basic 升級到 Premium', async ({ page, context }) => {
     await context.tracing.start({ screenshots: true, snapshots: true });
@@ -211,9 +202,7 @@ test.describe('訂閱升級', () => {
 });
 
 test.describe('訂閱降級', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.creator); // 假設創作者有 Premium
-  });
+  test.use({ storageState: 'e2e/.auth/creator.json' });
 
   test('應該能從 Premium 降級到 Basic', async ({ page, context }) => {
     await context.tracing.start({ screenshots: true, snapshots: true });
@@ -280,9 +269,6 @@ test.describe('訂閱降級', () => {
 });
 
 test.describe('訂閱取消', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('應該能取消訂閱', async ({ page, context }) => {
     await context.tracing.start({ screenshots: true, snapshots: true });
@@ -367,10 +353,6 @@ test.describe('訂閱取消', () => {
 });
 
 test.describe('免費試用', () => {
-  test.beforeEach(async ({ page }) => {
-    // 使用新用戶（假設沒有訂閱過）
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('應該顯示免費試用選項', async ({ page }) => {
     await page.goto('/subscription/plans');
@@ -440,9 +422,6 @@ test.describe('免費試用', () => {
 });
 
 test.describe('訂閱自動續費', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('應該顯示自動續費狀態', async ({ page }) => {
     await page.goto('/subscription');
@@ -491,9 +470,6 @@ test.describe('訂閱自動續費', () => {
 });
 
 test.describe('訂閱錯誤處理', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('支付失敗時應該顯示錯誤訊息', async ({ page }) => {
     // 模擬支付失敗

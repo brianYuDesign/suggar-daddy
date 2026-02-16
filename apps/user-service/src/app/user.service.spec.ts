@@ -12,7 +12,8 @@ describe('UserService', () => {
   const now = new Date();
   const userRecord = {
     id: 'user-1',
-    role: 'sugar_baby',
+    userType: 'sugar_baby',
+    permissionRole: 'subscriber',
     displayName: 'Alice',
     bio: 'Hi',
     avatarUrl: null,
@@ -96,7 +97,7 @@ describe('UserService', () => {
       expect(result).not.toBeNull();
       expect(result!.id).toBe('user-1');
       expect(result!.displayName).toBe('Alice');
-      expect(result!.role).toBe('sugar_baby');
+      expect(result!.userType).toBe('sugar_baby');
     });
 
     it('應在用戶不存在時回傳 null', async () => {

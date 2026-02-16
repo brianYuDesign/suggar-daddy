@@ -12,8 +12,41 @@
 
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render } from '../../../../src/test-utils';
+import { render } from '@testing-library/react';
 import CreatePostPage from './page';
+
+// Mock useAuth
+const mockUser = {
+  id: 'test-user-id',
+  userType: 'sugar_baby',
+  permissionRole: 'user',
+  displayName: 'Test Creator',
+  bio: 'Test bio',
+  avatarUrl: 'https://example.com/avatar.jpg',
+  verificationStatus: 'verified',
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+};
+
+jest.mock('../../../../providers/auth-provider', () => ({
+  useAuth: () => ({
+    user: mockUser,
+    isLoading: false,
+    isAuthenticated: true,
+  }),
+}));
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+  }),
+  usePathname: () => '/post/create',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 // Mock the API
 jest.mock('../../../../lib/api', () => ({

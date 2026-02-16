@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { Public } from '@suggar-daddy/common';
+import { Public } from '@suggar-daddy/auth';
 import { DiscoveryService } from './discovery.service';
 
 @Controller('posts')

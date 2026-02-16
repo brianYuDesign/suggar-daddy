@@ -5,7 +5,7 @@ import {
   UseGuards,
   Logger,
 } from '@nestjs/common';
-import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
 import { DmPurchaseService } from './dm-purchase.service';
 
 @Controller('dm-purchases')

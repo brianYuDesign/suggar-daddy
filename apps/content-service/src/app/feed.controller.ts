@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
 import { FeedService } from './feed.service';
 
 @Controller('posts')

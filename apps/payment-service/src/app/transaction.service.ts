@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { PAYMENT_EVENTS } from '@suggar-daddy/common';
+import { PAYMENT_EVENTS, StripeService } from '@suggar-daddy/common';
 import { PaginatedResponse } from '@suggar-daddy/dto';
 import { CreateTransactionDto, UpdateTransactionDto } from './dto/transaction.dto';
 
@@ -28,6 +28,7 @@ export class TransactionService {
   constructor(
     private readonly redis: RedisService,
     private readonly kafkaProducer: KafkaProducerService,
+    private readonly stripeService: StripeService,
   ) {}
 
   private genId(): string {
@@ -125,6 +126,69 @@ export class TransactionService {
         metadata: tx.metadata,
       });
     }
+    return tx;
+  }
+
+  async refund(id: string, reason?: string, amount?: number): Promise<Transaction> {
+    const tx = await this.findOne(id);
+
+    if (tx.status === 'refunded') {
+      throw new BadRequestException('Transaction has already been refunded');
+    }
+
+    if (tx.status !== 'succeeded') {
+      throw new BadRequestException(
+        `Cannot refund a transaction with status "${tx.status}". Only succeeded transactions can be refunded.`,
+      );
+    }
+
+    if (amount !== undefined && amount > tx.amount) {
+      throw new BadRequestException(
+        `Refund amount (${amount}) cannot exceed the transaction amount (${tx.amount})`,
+      );
+    }
+
+    // Call Stripe refund if the transaction has a stripePaymentId
+    let stripeRefundId: string | null = null;
+    if (tx.stripePaymentId && this.stripeService.isConfigured()) {
+      try {
+        const refund = await this.stripeService.createRefund(
+          tx.stripePaymentId,
+          amount,
+          reason,
+        );
+        stripeRefundId = refund.id;
+      } catch (err) {
+        throw new BadRequestException(
+          `Stripe refund failed: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
+
+    const refundedAmount = amount ?? tx.amount;
+
+    // Update transaction status
+    tx.status = 'refunded';
+    tx.metadata = {
+      ...(tx.metadata || {}),
+      refundedAt: new Date().toISOString(),
+      refundedAmount,
+      refundReason: reason || null,
+      stripeRefundId,
+    };
+    await this.redis.set(TX_KEY(id), JSON.stringify(tx));
+
+    // Emit Kafka event
+    await this.kafkaProducer.sendEvent(PAYMENT_EVENTS.PAYMENT_REFUNDED, {
+      transactionId: id,
+      userId: tx.userId,
+      amount: tx.amount,
+      refundedAmount,
+      stripeRefundId,
+      reason: reason || null,
+      refundedAt: new Date().toISOString(),
+    });
+
     return tx;
   }
 }

@@ -8,7 +8,8 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { Public, StripeService } from '@suggar-daddy/common';
+import { Public } from '@suggar-daddy/auth';
+import { StripeService } from '@suggar-daddy/common';
 import { StripeWebhookService } from './stripe-webhook.service';
 
 @ApiTags('Stripe Webhooks')

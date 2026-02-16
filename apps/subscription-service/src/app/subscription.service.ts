@@ -8,6 +8,11 @@ import { CreateSubscriptionDto, UpdateSubscriptionDto } from './dto/subscription
 const SUB_KEY = (id: string) => `subscription:${id}`;
 const SUBS_SUBSCRIBER = (subscriberId: string) => `subscriptions:subscriber:${subscriberId}`;
 const SUBS_CREATOR = (creatorId: string) => `subscriptions:creator:${creatorId}`;
+/** Active subscription index: Set of active tier IDs for a subscriber→creator pair */
+const ACTIVE_SUB_INDEX = (subscriberId: string, creatorId: string) =>
+  `sub:active:${subscriberId}:${creatorId}`;
+/** Set of all subscription IDs (avoids SCAN on subscription:sub-* keyspace) */
+const SUBS_ALL = 'subscriptions:all';
 
 export interface Subscription {
   id: string;
@@ -52,6 +57,13 @@ export class SubscriptionService {
     await this.redis.set(SUB_KEY(id), JSON.stringify(sub));
     await this.redis.lPush(SUBS_SUBSCRIBER(createDto.subscriberId), id);
     await this.redis.lPush(SUBS_CREATOR(createDto.creatorId), id);
+    // Maintain active subscription index for O(1) hasActiveSubscription checks
+    await this.redis.sAdd(
+      ACTIVE_SUB_INDEX(createDto.subscriberId, createDto.creatorId),
+      createDto.tierId,
+    );
+    // Maintain global subscription index (avoids SCAN)
+    await this.redis.sAdd(SUBS_ALL, id);
     await this.kafkaProducer.sendEvent(SUBSCRIPTION_EVENTS.SUBSCRIPTION_CREATED, {
       subscriptionId: id,
       subscriberId: createDto.subscriberId,
@@ -200,6 +212,11 @@ export class SubscriptionService {
     sub.status = 'cancelled';
     sub.cancelledAt = new Date().toISOString();
     await this.redis.set(SUB_KEY(id), JSON.stringify(sub));
+    // Remove from active subscription index
+    await this.redis.sRem(
+      ACTIVE_SUB_INDEX(sub.subscriberId, sub.creatorId),
+      sub.tierId,
+    );
     await this.kafkaProducer.sendEvent(SUBSCRIPTION_EVENTS.SUBSCRIPTION_CANCELLED, {
       subscriptionId: id,
       reason: 'user_cancelled',
@@ -228,17 +245,13 @@ export class SubscriptionService {
     creatorId: string,
     tierId?: string | null
   ): Promise<boolean> {
-    const result = await this.findBySubscriber(subscriberId, 1, 10000);
-    const now = new Date().toISOString();
-    const active = result.data.filter(
-      (s) =>
-        s.creatorId === creatorId &&
-        s.status === 'active' &&
-        (!s.currentPeriodEnd || s.currentPeriodEnd >= now)
-    );
+    const indexKey = ACTIVE_SUB_INDEX(subscriberId, creatorId);
     if (tierId) {
-      return active.some((s) => s.tierId === tierId);
+      // O(1) check for specific tier
+      return this.redis.sIsMember(indexKey, tierId);
     }
-    return active.length > 0;
+    // O(1) check for any active subscription
+    const count = await this.redis.sCard(indexKey);
+    return count > 0;
   }
 }

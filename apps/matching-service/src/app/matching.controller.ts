@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SwipeRequestDto, type SwipeAction, type SwipeResponseDto, type CardsResponseDto, type MatchesResponseDto } from '@suggar-daddy/dto';
-import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
 import { MatchingService } from './matching.service';
 
 @Controller()

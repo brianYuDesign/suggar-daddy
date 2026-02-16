@@ -41,7 +41,8 @@ interface StoredUser {
   userId: string;
   email: string;
   passwordHash: string;
-  role: string;
+  userType: string; // 業務角色：sugar_baby or sugar_daddy
+  permissionRole?: string; // 權限角色：ADMIN, CREATOR, SUBSCRIBER
   displayName: string;
   bio?: string;
   accountStatus: 'active' | 'suspended' | 'banned';
@@ -124,7 +125,7 @@ export class AuthService {
 
   async register(dto: RegisterDto): Promise<TokenResponseDto> {
     try {
-      this.logger.log(`[REGISTER START] email=${dto.email} role=${dto.role}`);
+      this.logger.log(`[REGISTER START] email=${dto.email} userType=${dto.userType}`);
       
       // Step 1: Validate input
       this.logger.debug('[REGISTER] Step 1: Validating email');
@@ -138,9 +139,9 @@ export class AuthService {
         throw new BadRequestException('Display name must be at least 2 characters');
       }
       
-      this.logger.debug('[REGISTER] Step 4: Validating role');
-      if (!['sugar_baby', 'sugar_daddy'].includes(dto.role)) {
-        throw new BadRequestException('Role must be sugar_baby or sugar_daddy');
+      this.logger.debug('[REGISTER] Step 4: Validating userType');
+      if (!['sugar_baby', 'sugar_daddy'].includes(dto.userType)) {
+        throw new BadRequestException('UserType must be sugar_baby or sugar_daddy');
       }
 
       const normalizedEmail = dto.email.trim().toLowerCase();
@@ -162,7 +163,7 @@ export class AuthService {
         userId,
         email: normalizedEmail,
         passwordHash,
-        role: dto.role,
+        userType: dto.userType,
         displayName: dto.displayName.trim(),
         bio: dto.bio?.trim(),
         accountStatus: 'active',
@@ -185,7 +186,7 @@ export class AuthService {
         throw new Error(`Failed to store user data: ${redisError.message}`);
       }
 
-      this.logger.log(`[REGISTER] Step 9: User created successfully - email=${normalizedEmail} userId=${userId} role=${dto.role}`);
+      this.logger.log(`[REGISTER] Step 9: User created successfully - email=${normalizedEmail} userId=${userId} userType=${dto.userType}`);
 
       // Step 10: Send Kafka event (non-blocking, log errors but don't fail)
       this.logger.debug('[REGISTER] Step 10: Sending Kafka event');
@@ -194,7 +195,7 @@ export class AuthService {
           id: userId,
           email: normalizedEmail,
           displayName: user.displayName,
-          role: user.role,
+          userType: user.userType,
           bio: user.bio,
           accountStatus: user.accountStatus,
           emailVerified: user.emailVerified,
@@ -218,7 +219,7 @@ export class AuthService {
 
       // Step 12: Issue tokens
       this.logger.debug('[REGISTER] Step 12: Issuing tokens');
-      const tokens = await this.issueTokens(userId, normalizedEmail, user.role);
+      const tokens = await this.issueTokens(userId, normalizedEmail, user.userType, undefined);
       
       this.logger.log(`[REGISTER SUCCESS] userId=${userId} email=${normalizedEmail}`);
       return tokens;
@@ -265,8 +266,8 @@ export class AuthService {
 
     await this.clearLoginAttempts(normalizedEmail);
 
-    this.logger.log(`login email=${normalizedEmail} userId=${user.userId}`);
-    return this.issueTokens(user.userId, user.email, user.role);
+    this.logger.log(`login email=${normalizedEmail} userId=${user.userId} permissionRole=${user.permissionRole || 'none'}`);
+    return this.issueTokens(user.userId, user.email, user.userType, user.permissionRole);
   }
 
   async refresh(refreshToken: string): Promise<TokenResponseDto> {
@@ -447,10 +448,12 @@ export class AuthService {
     userId: string,
     email: string,
     role?: string,
+    permissionRole?: string,
   ): Promise<TokenResponseDto> {
     const jti = `${userId}:${Date.now()}:${Math.random().toString(36).slice(2, 9)}`;
     const payload: Record<string, string> = { sub: userId, email, jti };
     if (role) payload.role = role;
+    if (permissionRole) payload.permissionRole = permissionRole;
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: ACCESS_EXPIRES_SEC });
     const refreshToken = this.generateRefreshToken();

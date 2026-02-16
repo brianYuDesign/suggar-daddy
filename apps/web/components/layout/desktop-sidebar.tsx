@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   Home,
   Compass,
+  Search,
   PlusSquare,
   MessageCircle,
   User,
@@ -21,6 +22,7 @@ import { useNotifications } from '../../providers/notification-provider';
 const mainNav = [
   { href: '/feed', icon: Home, label: '首頁' },
   { href: '/discover', icon: Compass, label: '探索' },
+  { href: '/search', icon: Search, label: '搜尋' },
   { href: '/matches', icon: Heart, label: '配對' },
   { href: '/post/create', icon: PlusSquare, label: '發文' },
   { href: '/messages', icon: MessageCircle, label: '訊息' },
@@ -108,7 +110,7 @@ export function DesktopSidebar() {
               <p className="truncate text-sm font-medium text-gray-900">
                 {user.displayName}
               </p>
-              <p className="truncate text-xs text-gray-500">{user.role}</p>
+              <p className="truncate text-xs text-gray-500">{user.userType}</p>
             </div>
             <button
               onClick={logout}

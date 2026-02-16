@@ -13,6 +13,11 @@ import {
   TransactionEntity,
   TipEntity,
   PostPurchaseEntity,
+  FollowEntity,
+  BookmarkEntity,
+  DmPurchaseEntity,
+  StoryEntity,
+  StoryViewEntity,
 } from '@suggar-daddy/database';
 
 const mockRepo = () => ({
@@ -45,6 +50,11 @@ describe('DbWriterService', () => {
         { provide: getRepositoryToken(TransactionEntity), useFactory: mockRepo },
         { provide: getRepositoryToken(TipEntity), useFactory: mockRepo },
         { provide: getRepositoryToken(PostPurchaseEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(FollowEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(BookmarkEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(DmPurchaseEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(StoryEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(StoryViewEntity), useFactory: mockRepo },
         { provide: RedisService, useValue: redis },
       ],
     }).compile();
@@ -64,14 +74,14 @@ describe('DbWriterService', () => {
         email: 'test@x.com',
         passwordHash: 'hash-from-redis',
         displayName: 'Test',
-        role: 'sugar_baby',
+        userType: 'sugar_baby',
       }));
 
       await service.handleUserCreated({
         id: 'user-1',
         email: '  Test@X.com  ',
         displayName: 'Test',
-        role: 'sugar_baby',
+        userType: 'sugar_baby',
         bio: 'Hi',
         createdAt: new Date().toISOString(),
       });
@@ -83,7 +93,7 @@ describe('DbWriterService', () => {
           email: 'test@x.com',
           passwordHash: 'hash-from-redis',
           displayName: 'Test',
-          role: 'sugar_baby',
+          userType: 'sugar_baby',
         })
       );
       expect(redis.set).toHaveBeenCalledWith('user:user-1', expect.any(String));

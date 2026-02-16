@@ -1,17 +1,21 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app/app.module';
-import { AllExceptionsFilter, setupSwagger, TracingService } from '@suggar-daddy/common';
-const helmet = require('helmet');
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app/app.module";
+import {
+  AllExceptionsFilter,
+  setupSwagger,
+  TracingService,
+} from "@suggar-daddy/common";
+const helmet = require("helmet");
 
 async function bootstrap() {
   // Initialize tracing BEFORE creating the app
   const tracingService = new TracingService();
-  tracingService.init('media-service');
+  await tracingService.init("media-service");
 
   const app = await NestFactory.create(AppModule);
   app.use(helmet());
-  const globalPrefix = 'api';
+  const globalPrefix = "api";
   app.setGlobalPrefix(globalPrefix);
 
   // Global error handling
@@ -28,11 +32,11 @@ async function bootstrap() {
 
   // Setup Swagger documentation
   setupSwagger(app, {
-    title: 'Media Service API',
-    description: 'API documentation for Suggar Daddy Media Service',
-    version: '1.0',
-    tag: 'Media',
-    path: 'api/docs',
+    title: "Media Service API",
+    description: "API documentation for Suggar Daddy Media Service",
+    version: "1.0",
+    tag: "Media",
+    path: "api/docs",
   });
 
   // Port 3008 - Media Service

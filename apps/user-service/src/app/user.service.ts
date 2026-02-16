@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { USER_EVENTS, SOCIAL_EVENTS } from '@suggar-daddy/common';
+import { USER_EVENTS, SOCIAL_EVENTS, PermissionRole } from '@suggar-daddy/common';
 import type {
   UserProfileDto,
   CreateUserDto,
@@ -17,6 +17,7 @@ import {
   type UserRecord, GEO_KEY,
   FOLLOWING_SET, FOLLOWERS_SET,
   BLOCK_SET, BLOCKED_BY_SET,
+  USERS_ALL_SET, CREATORS_SET,
 } from './user.types';
 
 @Injectable()
@@ -60,7 +61,8 @@ export class UserService {
       displayName: user.displayName,
       bio: user.bio,
       avatarUrl: user.avatarUrl,
-      role: user.role,
+      userType: user.userType,
+      permissionRole: user.permissionRole,
       verificationStatus: user.verificationStatus,
       lastActiveAt: user.lastActiveAt,
       city: user.city,
@@ -85,7 +87,8 @@ export class UserService {
         displayName: user.displayName,
         bio: user.bio,
         avatarUrl: user.avatarUrl,
-        role: user.role,
+        userType: user.userType,
+        permissionRole: user.permissionRole,
         verificationStatus: user.verificationStatus,
         lastActiveAt: user.lastActiveAt,
         city: user.city,
@@ -101,7 +104,8 @@ export class UserService {
     limit: number,
     currentUserId?: string,
   ): Promise<UserCardDto[]> {
-    const keys = await this.redisService.scan(`${this.USER_PREFIX}*`);
+    // Use users:all Set instead of SCAN (O(N_members) vs O(total_keys))
+    const allUserIds = await this.redisService.sMembers(USERS_ALL_SET);
     const excludeSet = new Set(excludeIds);
 
     // Also exclude blocked users if currentUserId is provided
@@ -112,36 +116,34 @@ export class UserService {
       blockedByIds.forEach((id) => excludeSet.add(id));
     }
 
-    const userIds = keys
-      .map((k) => k.replace(this.USER_PREFIX, ''))
-      .filter((id) => id && !id.includes(':') && !excludeSet.has(id));
-    
-    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
-    // 取得需要的數量（略多一些以防部分資料無效）
+    const userIds = allUserIds.filter((id) => !excludeSet.has(id));
+
+    // Fetch a limited batch
     const fetchCount = Math.min(userIds.length, limit * 2);
     const userKeys = userIds.slice(0, fetchCount).map(id => `${this.USER_PREFIX}${id}`);
-    
+
     if (userKeys.length === 0) return [];
-    
+
     const values = await this.redisService.mget(...userKeys);
-    
+
     const result: UserCardDto[] = [];
     for (let i = 0; i < values.length && result.length < limit; i++) {
       if (!values[i]) continue;
-      
+
       const user = JSON.parse(values[i]!) as UserRecord;
       result.push({
         id: user.id,
         displayName: user.displayName,
         bio: user.bio,
         avatarUrl: user.avatarUrl,
-        role: user.role,
+        userType: user.userType,
+        permissionRole: user.permissionRole,
         verificationStatus: user.verificationStatus,
         lastActiveAt: user.lastActiveAt,
         city: user.city,
       });
     }
-    
+
     return result;
   }
 
@@ -151,7 +153,8 @@ export class UserService {
     const now = new Date();
     const user: UserRecord = {
       id,
-      role: dto.role,
+      userType: dto.userType,
+      permissionRole: PermissionRole.SUBSCRIBER, // 預設為 subscriber
       displayName: dto.displayName,
       bio: dto.bio,
       avatarUrl: dto.avatarUrl,
@@ -168,13 +171,21 @@ export class UserService {
     
     // 儲存到 Redis
     await this.saveUserToRedis(user);
-    
-    this.logger.log(`user created id=${id} role=${dto.role} displayName=${dto.displayName}`);
+    // Maintain user ID indexes (avoids SCAN on user:* keyspace)
+    await this.redisService.sAdd(USERS_ALL_SET, id);
+    // Note: creator role is now determined by permissionRole, not userType
+    // Users can upgrade to creator status later
+    if (user.permissionRole === PermissionRole.CREATOR) {
+      await this.redisService.sAdd(CREATORS_SET, id);
+    }
+
+    this.logger.log(`user created id=${id} userType=${dto.userType} displayName=${dto.displayName}`);
     
     // 發送 Kafka 事件
     await this.kafkaProducer.sendEvent('user.created', {
       userId: id,
-      role: user.role,
+      userType: user.userType,
+      permissionRole: user.permissionRole,
       displayName: user.displayName,
       createdAt: user.createdAt.toISOString(),
     });
@@ -351,7 +362,8 @@ export class UserService {
         id: user.id,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
-        role: user.role,
+        userType: user.userType,
+        permissionRole: user.permissionRole,
       });
     }
     
@@ -379,7 +391,8 @@ export class UserService {
         id: user.id,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
-        role: user.role,
+        userType: user.userType,
+        permissionRole: user.permissionRole,
       });
     }
     
@@ -427,10 +440,8 @@ export class UserService {
   // ── Discovery: Recommended Creators & Search ──────────────────
 
   async getRecommendedCreators(userId: string, limit = 10): Promise<RecommendedCreatorDto[]> {
-    const keys = await this.redisService.scan(`${this.USER_PREFIX}*`);
-    const userIds = keys
-      .map((k) => k.replace(this.USER_PREFIX, ''))
-      .filter((id) => id && !id.includes(':'));
+    // Use creators:set instead of SCAN (only creator IDs, not all keys)
+    const creatorIds = await this.redisService.sMembers(CREATORS_SET);
 
     // Get users the requester already follows + blocked users
     const [followingIds, blockedIds, blockedByIds] = await Promise.all([
@@ -440,29 +451,26 @@ export class UserService {
     ]);
     const excludeSet = new Set([userId, ...followingIds, ...blockedIds, ...blockedByIds]);
 
-    // Filter excluded users first
-    const candidateIds = userIds.filter(id => !excludeSet.has(id));
-    
+    const candidateIds = creatorIds.filter(id => !excludeSet.has(id));
+
     if (candidateIds.length === 0) return [];
 
-    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
     const userKeys = candidateIds.map(id => `${this.USER_PREFIX}${id}`);
     const values = await this.redisService.mget(...userKeys);
 
     const creators: RecommendedCreatorDto[] = [];
     for (const value of values) {
       if (!value) continue;
-      
+
       const user = JSON.parse(value) as UserRecord;
-      if (user.role !== 'creator') continue;
-      
       creators.push({
         id: user.id,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         bio: user.bio,
         followerCount: user.followerCount ?? 0,
-        role: user.role,
+        userType: user.userType,
+        permissionRole: user.permissionRole,
       });
     }
 
@@ -474,14 +482,11 @@ export class UserService {
   async searchUsers(query: string, limit = 20): Promise<FollowerDto[]> {
     if (!query || query.trim().length === 0) return [];
     const lowerQuery = query.toLowerCase();
-    const keys = await this.redisService.scan(`${this.USER_PREFIX}*`);
-    const userIds = keys
-      .map((k) => k.replace(this.USER_PREFIX, ''))
-      .filter((id) => id && !id.includes(':'));
+    // Use users:all Set instead of SCAN
+    const userIds = await this.redisService.sMembers(USERS_ALL_SET);
 
     if (userIds.length === 0) return [];
 
-    // ✅ 使用 MGET 批量查詢，避免 N+1 問題
     const userKeys = userIds.map(id => `${this.USER_PREFIX}${id}`);
     const values = await this.redisService.mget(...userKeys);
 
@@ -496,7 +501,8 @@ export class UserService {
           id: user.id,
           displayName: user.displayName,
           avatarUrl: user.avatarUrl,
-          role: user.role,
+          userType: user.userType,
+          permissionRole: user.permissionRole,
         });
       }
     }
@@ -577,7 +583,8 @@ export class UserService {
   private toProfileDto(user: UserRecord): UserProfileDto {
     return {
       id: user.id,
-      role: user.role,
+      userType: user.userType,
+      permissionRole: user.permissionRole,
       displayName: user.displayName,
       bio: user.bio,
       avatarUrl: user.avatarUrl,
@@ -589,9 +596,6 @@ export class UserService {
       country: user.country,
       latitude: user.latitude,
       longitude: user.longitude,
-      followerCount: user.followerCount ?? 0,
-      followingCount: user.followingCount ?? 0,
-      dmPrice: user.dmPrice,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

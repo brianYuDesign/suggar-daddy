@@ -8,11 +8,16 @@ import {
   Index,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { UserType, PermissionRole } from '@suggar-daddy/common';
+
+// 重新導出以保持向後兼容
+export { UserType, PermissionRole };
 
 @Entity('users')
 @Unique(['email'])
 @Index('idx_users_location', ['latitude', 'longitude'])
-@Index('idx_users_role', ['role'])
+@Index('idx_users_user_type', ['userType'])
+@Index('idx_users_permission_role', ['permissionRole'])
 export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -27,8 +32,26 @@ export class UserEntity {
   @Column('varchar', { length: 100 })
   displayName!: string;
 
-  @Column('varchar', { length: 50, default: 'subscriber' })
-  role!: string;
+  /** 業務角色：sugar_baby 或 sugar_daddy */
+  @Column({
+    type: 'varchar',
+    length: 50,
+    enum: UserType,
+  })
+  userType!: UserType;
+
+  /** 權限角色：subscriber, creator 或 admin */
+  @Column({
+    type: 'varchar',
+    length: 50,
+    enum: PermissionRole,
+    default: PermissionRole.SUBSCRIBER,
+  })
+  permissionRole!: PermissionRole;
+
+  /** @deprecated 舊的 role 欄位，將在後續版本移除。請使用 userType 和 permissionRole */
+  @Column('varchar', { length: 50, default: 'subscriber', nullable: true })
+  role?: string;
 
   @Column('text', { nullable: true })
   bio!: string | null;

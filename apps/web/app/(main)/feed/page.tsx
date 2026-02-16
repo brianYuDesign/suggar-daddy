@@ -24,6 +24,9 @@ import {
   Sparkles,
   RefreshCw,
 } from 'lucide-react';
+import { StoriesBar } from '../../../components/stories/stories-bar';
+import { StoryViewer } from '../../../components/stories/story-viewer';
+import type { StoryGroup } from '@suggar-daddy/api-client';
 
 interface Post {
   id: string;
@@ -211,6 +214,14 @@ export default function FeedPage() {
   });
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [authorNames, setAuthorNames] = useState<Record<string, string>>({});
+  const [storyViewerData, setStoryViewerData] = useState<{
+    groups: StoryGroup[];
+    startIndex: number;
+  } | null>(null);
+
+  const handleStoryClick = (groups: StoryGroup[], startIndex: number) => {
+    setStoryViewerData({ groups, startIndex });
+  };
 
   const fetchPosts = useCallback(async (cursor?: string) => {
     try {
@@ -313,13 +324,25 @@ export default function FeedPage() {
 
   return (
     <div className="space-y-4">
+      {/* Story viewer overlay */}
+      {storyViewerData && (
+        <StoryViewer
+          groups={storyViewerData.groups}
+          startGroupIndex={storyViewerData.startIndex}
+          onClose={() => setStoryViewerData(null)}
+        />
+      )}
+
+      {/* Stories bar */}
+      <StoriesBar onStoryClick={handleStoryClick} />
+
       {/* Welcome card */}
       <div className="rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 p-5 text-white">
         <h1 className="text-xl font-bold">
           {user?.displayName ? `嗨，${user.displayName}` : '歡迎'}
         </h1>
         <p className="mt-1 text-sm text-brand-100">
-          {user?.role === 'sugar_baby'
+          {(user as any)?.userType === 'sugar_baby'
             ? '開始分享你的精彩內容吧'
             : '探索你感興趣的創作者'}
         </p>

@@ -2,8 +2,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { TransactionService } from "./transaction.service";
 import { RedisService } from "@suggar-daddy/redis";
 import { KafkaProducerService } from "@suggar-daddy/kafka";
-import { NotFoundException } from "@nestjs/common";
-import { PAYMENT_EVENTS } from "@suggar-daddy/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { PAYMENT_EVENTS, StripeService } from "@suggar-daddy/common";
 
 // Mock implementations to match actual Redis methods
 const _createMockRedisClient = () => ({
@@ -61,6 +61,12 @@ describe("TransactionService", () => {
     sendEvent: jest.fn(),
   };
 
+  const mockStripeService = {
+    isConfigured: jest.fn().mockReturnValue(true),
+    createRefund: jest.fn().mockResolvedValue({ id: 're_mock123' }),
+    getStripeInstance: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -72,6 +78,10 @@ describe("TransactionService", () => {
         {
           provide: KafkaProducerService,
           useValue: mockKafkaProducer,
+        },
+        {
+          provide: StripeService,
+          useValue: mockStripeService,
         },
       ],
     }).compile();
@@ -354,6 +364,150 @@ describe("TransactionService", () => {
       const result = await service.update(txId, { status: "failed" });
 
       expect(result.status).toBe("failed");
+    });
+  });
+
+  describe("refund", () => {
+    it("should refund a succeeded transaction", async () => {
+      const txId = "tx-123";
+      const mockTx = {
+        id: txId,
+        userId: "user-123",
+        amount: 1000,
+        type: "subscription",
+        status: "succeeded",
+        stripePaymentId: "pi_123",
+        relatedEntityId: null,
+        relatedEntityType: null,
+        metadata: null,
+        createdAt: new Date().toISOString(),
+      };
+
+      mockRedisService.get = jest
+        .fn()
+        .mockResolvedValue(JSON.stringify(mockTx));
+      mockRedisService.set = jest.fn().mockResolvedValue("OK");
+
+      const result = await service.refund(txId, "customer request");
+
+      expect(result.status).toBe("refunded");
+      expect(mockStripeService.createRefund).toHaveBeenCalledWith(
+        "pi_123",
+        undefined,
+        "customer request",
+      );
+      expect(mockKafkaProducer.sendEvent).toHaveBeenCalledWith(
+        PAYMENT_EVENTS.PAYMENT_REFUNDED,
+        expect.objectContaining({
+          transactionId: txId,
+          userId: "user-123",
+          refundedAmount: 1000,
+        }),
+      );
+    });
+
+    it("should reject refund for already refunded transaction", async () => {
+      const mockTx = {
+        id: "tx-123",
+        userId: "user-123",
+        amount: 1000,
+        type: "subscription",
+        status: "refunded",
+        stripePaymentId: "pi_123",
+        relatedEntityId: null,
+        relatedEntityType: null,
+        metadata: null,
+        createdAt: new Date().toISOString(),
+      };
+
+      mockRedisService.get = jest
+        .fn()
+        .mockResolvedValue(JSON.stringify(mockTx));
+
+      await expect(service.refund("tx-123")).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it("should reject refund for pending transaction", async () => {
+      const mockTx = {
+        id: "tx-123",
+        userId: "user-123",
+        amount: 1000,
+        type: "subscription",
+        status: "pending",
+        stripePaymentId: null,
+        relatedEntityId: null,
+        relatedEntityType: null,
+        metadata: null,
+        createdAt: new Date().toISOString(),
+      };
+
+      mockRedisService.get = jest
+        .fn()
+        .mockResolvedValue(JSON.stringify(mockTx));
+
+      await expect(service.refund("tx-123")).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it("should support partial refund", async () => {
+      const mockTx = {
+        id: "tx-123",
+        userId: "user-123",
+        amount: 1000,
+        type: "tip",
+        status: "succeeded",
+        stripePaymentId: "pi_123",
+        relatedEntityId: null,
+        relatedEntityType: null,
+        metadata: null,
+        createdAt: new Date().toISOString(),
+      };
+
+      mockRedisService.get = jest
+        .fn()
+        .mockResolvedValue(JSON.stringify(mockTx));
+      mockRedisService.set = jest.fn().mockResolvedValue("OK");
+
+      const result = await service.refund("tx-123", "partial", 500);
+
+      expect(result.status).toBe("refunded");
+      expect(mockStripeService.createRefund).toHaveBeenCalledWith(
+        "pi_123",
+        500,
+        "partial",
+      );
+      expect(mockKafkaProducer.sendEvent).toHaveBeenCalledWith(
+        PAYMENT_EVENTS.PAYMENT_REFUNDED,
+        expect.objectContaining({
+          refundedAmount: 500,
+        }),
+      );
+    });
+
+    it("should reject refund when amount exceeds transaction amount", async () => {
+      const mockTx = {
+        id: "tx-123",
+        userId: "user-123",
+        amount: 1000,
+        type: "tip",
+        status: "succeeded",
+        stripePaymentId: "pi_123",
+        relatedEntityId: null,
+        relatedEntityType: null,
+        metadata: null,
+        createdAt: new Date().toISOString(),
+      };
+
+      mockRedisService.get = jest
+        .fn()
+        .mockResolvedValue(JSON.stringify(mockTx));
+
+      await expect(service.refund("tx-123", "too much", 2000)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

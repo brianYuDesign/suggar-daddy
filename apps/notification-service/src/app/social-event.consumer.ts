@@ -42,15 +42,15 @@ export class SocialEventConsumer implements OnModuleInit {
       // Follow notification
       await this.kafkaConsumer.subscribe(SOCIAL_EVENTS.USER_FOLLOWED, async (payload) => {
         const event = JSON.parse(payload.message.value.toString());
-        await this.withRetry(SOCIAL_EVENTS.USER_FOLLOWED, event, () =>
-          this.notificationService.send({
+        await this.withRetry(SOCIAL_EVENTS.USER_FOLLOWED, event, async () => {
+          await this.notificationService.send({
             userId: event.followedId,
             type: 'follow',
             title: '新粉絲！',
             body: '有人開始追蹤你了',
             data: { followerId: event.followerId },
-          }),
-        );
+          });
+        });
       });
 
       // Comment reply notification
@@ -58,15 +58,15 @@ export class SocialEventConsumer implements OnModuleInit {
         const event = JSON.parse(payload.message.value.toString());
         if (event.parentCommentId) {
           if (event.parentCommentUserId && event.parentCommentUserId !== event.userId) {
-            await this.withRetry(CONTENT_EVENTS.COMMENT_CREATED, event, () =>
-              this.notificationService.send({
+            await this.withRetry(CONTENT_EVENTS.COMMENT_CREATED, event, async () => {
+              await this.notificationService.send({
                 userId: event.parentCommentUserId,
                 type: 'comment_reply',
                 title: '留言回覆',
                 body: '有人回覆了你的留言',
                 data: { postId: event.postId, commentId: event.commentId },
-              }),
-            );
+              });
+            });
           }
         }
       });

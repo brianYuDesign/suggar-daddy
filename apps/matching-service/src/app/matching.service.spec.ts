@@ -3,6 +3,7 @@ import { MatchingService } from './matching.service';
 import { UserServiceClient } from './user-service.client';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { UserType, PermissionRole } from '@suggar-daddy/common';
 import type { UserCardDto } from '@suggar-daddy/dto';
 
 describe('MatchingService', () => {
@@ -56,9 +57,9 @@ describe('MatchingService', () => {
       redis.geoPos!.mockResolvedValue(null);
       redis.sMembers!.mockResolvedValue(['user-3', 'user-5']);
       userServiceClient.getCardsForRecommendation!.mockResolvedValue([
-        { id: 'user-1', displayName: 'A', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
-        { id: 'user-2', displayName: 'B', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
-        { id: 'user-3', displayName: 'C', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
+        { id: 'user-1', displayName: 'A', userType: UserType.SUGAR_BABY, permissionRole: PermissionRole.SUBSCRIBER, verificationStatus: 'unverified', lastActiveAt: new Date() },
+        { id: 'user-2', displayName: 'B', userType: UserType.SUGAR_BABY, permissionRole: PermissionRole.SUBSCRIBER, verificationStatus: 'unverified', lastActiveAt: new Date() },
+        { id: 'user-3', displayName: 'C', userType: UserType.SUGAR_BABY, permissionRole: PermissionRole.SUBSCRIBER, verificationStatus: 'unverified', lastActiveAt: new Date() },
       ] satisfies UserCardDto[]);
       const result = await service.getCards('user-0', 3);
       expect(result.cards.length).toBeLessThanOrEqual(3);
@@ -74,8 +75,8 @@ describe('MatchingService', () => {
         { member: 'user-2', distance: 8.3 },
       ]);
       userServiceClient.getCardsByIds!.mockResolvedValue([
-        { id: 'user-1', displayName: 'A', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
-        { id: 'user-2', displayName: 'B', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
+        { id: 'user-1', displayName: 'A', userType: UserType.SUGAR_BABY, permissionRole: PermissionRole.SUBSCRIBER, verificationStatus: 'unverified', lastActiveAt: new Date() },
+        { id: 'user-2', displayName: 'B', userType: UserType.SUGAR_BABY, permissionRole: PermissionRole.SUBSCRIBER, verificationStatus: 'unverified', lastActiveAt: new Date() },
       ] satisfies UserCardDto[]);
 
       const result = await service.getCards('user-0', 10, undefined, 50);
@@ -95,8 +96,8 @@ describe('MatchingService', () => {
         { member: 'user-3', distance: 8.3 },
       ]);
       userServiceClient.getCardsByIds!.mockResolvedValue([
-        { id: 'user-1', displayName: 'A', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
-        { id: 'user-3', displayName: 'C', role: 'subscriber', verificationStatus: 'unverified', lastActiveAt: new Date() },
+        { id: 'user-1', displayName: 'A', userType: UserType.SUGAR_BABY, permissionRole: PermissionRole.SUBSCRIBER, verificationStatus: 'unverified', lastActiveAt: new Date() },
+        { id: 'user-3', displayName: 'C', userType: UserType.SUGAR_BABY, permissionRole: PermissionRole.SUBSCRIBER, verificationStatus: 'unverified', lastActiveAt: new Date() },
       ] satisfies UserCardDto[]);
 
       const result = await service.getCards('user-0', 10, undefined, 50);

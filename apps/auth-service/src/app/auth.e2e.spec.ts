@@ -59,7 +59,7 @@ describe('Auth Service (e2e)', () => {
         email: `test-${Date.now()}@example.com`,
         password: 'Test@1234',
         displayName: `Test User`,
-        role: 'sugar_baby',
+        userType: 'sugar_baby',
       };
 
       mockRedisService.get.mockResolvedValue(null); // No existing user
@@ -82,7 +82,7 @@ describe('Auth Service (e2e)', () => {
         email,
         password: 'Test@1234',
         displayName: `Duplicate User`,
-        role: 'sugar_baby',
+        userType: 'sugar_baby',
       };
 
       mockRedisService.get.mockResolvedValue('existing-user-id');
@@ -98,7 +98,7 @@ describe('Auth Service (e2e)', () => {
         email: 'invalid-email',
         password: 'Test@1234',
         displayName: 'Test User',
-        role: 'sugar_baby',
+        userType: 'sugar_baby',
       };
 
       await request(app.getHttpServer())
@@ -112,7 +112,7 @@ describe('Auth Service (e2e)', () => {
         email: `test-${Date.now()}@example.com`,
         password: '123',
         displayName: 'Test User',
-        role: 'sugar_baby',
+        userType: 'sugar_baby',
       };
 
       await request(app.getHttpServer())
@@ -126,7 +126,7 @@ describe('Auth Service (e2e)', () => {
         email: `test-${Date.now()}@example.com`,
         password: 'Test@1234',
         displayName: 'Test User',
-        role: 'invalid_role',
+        userType: 'invalid_role',
       };
 
       await request(app.getHttpServer())
@@ -139,7 +139,7 @@ describe('Auth Service (e2e)', () => {
       const registerDto = {
         email: `test-${Date.now()}@example.com`,
         password: 'Test@1234',
-        role: 'sugar_baby',
+        userType: 'sugar_baby',
       };
 
       await request(app.getHttpServer())
@@ -354,7 +354,7 @@ describe('Auth Service (e2e)', () => {
           email: 'not-an-email',
           password: 'Test@1234',
           displayName: 'Test',
-          role: 'sugar_baby',
+          userType: 'sugar_baby',
         })
         .expect(400);
     });
@@ -366,7 +366,7 @@ describe('Auth Service (e2e)', () => {
           email: `test-${Date.now()}@example.com`,
           password: 'short',
           displayName: 'Test',
-          role: 'sugar_baby',
+          userType: 'sugar_baby',
         })
         .expect(400);
     });
@@ -378,7 +378,7 @@ describe('Auth Service (e2e)', () => {
           email: `test-${Date.now()}@example.com`,
           password: 'Test@1234',
           displayName: 'Test',
-          role: 'invalid',
+          userType: 'invalid',
         })
         .expect(400);
     });

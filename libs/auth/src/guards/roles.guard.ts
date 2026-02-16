@@ -1,18 +1,16 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { PermissionRole, UserRole } from '@suggar-daddy/common';
 
-export enum UserRole {
-  ADMIN = 'admin',
-  CREATOR = 'creator',
-  SUBSCRIBER = 'subscriber',
-}
+// 重新導出以保持向後兼容
+export { PermissionRole, UserRole };
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>('roles', [
+    const requiredRoles = this.reflector.getAllAndOverride<(PermissionRole | UserRole)[]>('roles', [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -27,6 +25,9 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
-    return requiredRoles.some((role) => user.role === role);
+    // 支援檢查 permissionRole 或舊的 role 欄位
+    const userRole = user.permissionRole || user.role;
+
+    return requiredRoles.some((role) => userRole === role);
   }
 }

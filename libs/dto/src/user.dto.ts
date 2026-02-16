@@ -1,14 +1,18 @@
 /**
  * User 相關 DTO
  */
-import { IsString, IsNotEmpty, IsOptional, IsIn, MaxLength, IsDateString, IsNumber, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, MaxLength, IsDateString, IsNumber, Min, Max } from 'class-validator';
+import { UserType, PermissionRole } from '@suggar-daddy/common';
 
 export interface UserCardDto {
   id: string;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
-  role: string;
+  /** 業務角色 */
+  userType: UserType;
+  /** 權限角色 */
+  permissionRole: PermissionRole;
   verificationStatus: string;
   lastActiveAt: Date;
   city?: string;
@@ -17,7 +21,10 @@ export interface UserCardDto {
 
 export interface UserProfileDto {
   id: string;
-  role: string;
+  /** 業務角色 */
+  userType: UserType;
+  /** 權限角色 */
+  permissionRole: PermissionRole;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
@@ -38,8 +45,8 @@ export interface UserProfileDto {
 
 /** 創建用戶（註冊） */
 export class CreateUserDto {
-  @IsIn(['sugar_baby', 'sugar_daddy'])
-  role: 'sugar_baby' | 'sugar_daddy';
+  @IsEnum(UserType, { message: 'userType must be either sugar_baby or sugar_daddy' })
+  userType: UserType;
 
   @IsString()
   @IsNotEmpty()

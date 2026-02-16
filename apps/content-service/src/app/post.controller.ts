@@ -13,7 +13,7 @@ import {
 import { PostService } from './post.service';
 import { CreatePostDto, UpdatePostDto } from './dto/post.dto';
 import { CreatePostCommentDto } from './dto/post-comment.dto';
-import { JwtAuthGuard, OptionalJwtGuard, CurrentUser, Public, type CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, OptionalJwtGuard, CurrentUser, Public, type CurrentUserData } from '@suggar-daddy/auth';
 
 @Controller('posts')
 export class PostController {

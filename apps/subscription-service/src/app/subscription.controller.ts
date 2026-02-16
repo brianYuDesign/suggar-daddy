@@ -12,9 +12,9 @@ import {
   CurrentUser,
   CurrentUserData,
   Roles,
-  UserRole,
   Public,
-} from '@suggar-daddy/common';
+} from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { SubscriptionService } from './subscription.service';
 
 @ApiTags('Subscriptions')

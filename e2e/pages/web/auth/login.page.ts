@@ -9,17 +9,15 @@ export class LoginPage extends BasePage {
   private emailInput = () => this.page.locator('input[name="email"]');
   private passwordInput = () => this.page.locator('input[name="password"]');
   private loginButton = () => this.page.locator('button[type="submit"], button:has-text("登入")');
-  private registerLink = () => this.page.locator('a:has-text("註冊")');
-  private forgotPasswordLink = () => this.page.locator('a:has-text("忘記密碼")');
-  private googleLoginButton = () => this.page.locator('button:has-text("使用 Google 登入")');
-  private errorMessage = () => this.page.locator('[data-testid="error-message"], .error-message, .alert-error');
-  private rememberMeCheckbox = () => this.page.locator('input[type="checkbox"][name="rememberMe"]');
+  private registerLink = () => this.page.locator('a:has-text("免費註冊")');
+  private forgotPasswordLink = () => this.page.locator('a:has-text("忘記密碼？")');
+  private errorMessage = () => this.page.locator('div.bg-red-50.text-red-600, p.text-red-500');
 
   /**
    * 導航到登入頁面
    */
   async navigateToLogin() {
-    await this.navigate('/auth/login');
+    await this.navigate('/login');
     await this.waitForSelector('input[name="email"]');
   }
 
@@ -34,14 +32,10 @@ export class LoginPage extends BasePage {
   }
 
   /**
-   * 使用郵箱和密碼登入，並勾選記住我
+   * 使用郵箱和密碼登入（記住我功能不存在，直接呼叫 login）
    */
   async loginWithRememberMe(email: string, password: string) {
-    await this.emailInput().fill(email);
-    await this.passwordInput().fill(password);
-    await this.rememberMeCheckbox().check();
-    await this.loginButton().click();
-    await this.waitForLoading();
+    await this.login(email, password);
   }
 
   /**
@@ -56,13 +50,6 @@ export class LoginPage extends BasePage {
    */
   async clickForgotPasswordLink() {
     await this.forgotPasswordLink().click();
-  }
-
-  /**
-   * 點擊 Google 登入按鈕
-   */
-  async clickGoogleLogin() {
-    await this.googleLoginButton().click();
   }
 
   /**

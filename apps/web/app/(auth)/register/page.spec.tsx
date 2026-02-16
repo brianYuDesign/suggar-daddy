@@ -13,8 +13,53 @@
 
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render, mockAuthResponse, mockUser } from '../../../src/test-utils';
+import { render } from '@testing-library/react';
 import RegisterPage from './page';
+
+// Test fixtures
+const mockAuthResponse = {
+  accessToken: 'mock-access-token',
+  refreshToken: 'mock-refresh-token',
+  expiresIn: 3600,
+};
+
+const mockUser = {
+  id: 'test-user-id',
+  userType: 'sugar_daddy',
+  permissionRole: 'user',
+  displayName: 'Test User',
+  bio: 'Test bio',
+  avatarUrl: 'https://example.com/avatar.jpg',
+  verificationStatus: 'verified',
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+};
+
+// Create mock functions
+const mockRegister = jest.fn();
+const mockPush = jest.fn();
+
+// Mock useAuth
+jest.mock('../../../providers/auth-provider', () => ({
+  useAuth: () => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    register: mockRegister,
+  }),
+}));
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+  }),
+  usePathname: () => '/register',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 // Mock the API
 jest.mock('../../../lib/api', () => ({
@@ -209,7 +254,7 @@ describe('RegisterPage', () => {
       const submitButton = screen.getByRole('button', { name: /建立帳號/i });
       await user.click(submitButton);
 
-      expect(authApi.register).not.toHaveBeenCalled();
+      expect(mockRegister).not.toHaveBeenCalled();
     });
   });
 
@@ -236,7 +281,7 @@ describe('RegisterPage', () => {
 
   describe('Successful Registration', () => {
     it('should register successfully with valid data', async () => {
-      authApi.register.mockResolvedValue(mockAuthResponse);
+      mockRegister.mockResolvedValue(mockAuthResponse);
       usersApi.getMe.mockResolvedValue(mockUser);
 
       const user = userEvent.setup();
@@ -255,8 +300,9 @@ describe('RegisterPage', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(authApi.register).toHaveBeenCalledWith({
-          role: 'sugar_daddy',
+        expect(mockRegister).toHaveBeenCalledWith({
+          userType: 'sugar_daddy',
+  permissionRole: 'user',
           displayName: 'Test User',
           email: 'test@example.com',
           password: 'password123',
@@ -292,7 +338,7 @@ describe('RegisterPage', () => {
       expect(submitButton).toBeDisabled();
 
       await waitFor(() => {
-        expect(authApi.register).toHaveBeenCalled();
+        expect(mockRegister).toHaveBeenCalled();
       });
     });
   });
@@ -300,7 +346,7 @@ describe('RegisterPage', () => {
   describe('Failed Registration', () => {
     it('should show error message on registration failure', async () => {
       const errorMessage = 'Email 已被使用';
-      authApi.register.mockRejectedValue(new Error(errorMessage));
+      mockRegister.mockRejectedValue(new Error(errorMessage));
 
       const user = userEvent.setup();
       render(<RegisterPage />);
@@ -323,7 +369,7 @@ describe('RegisterPage', () => {
     });
 
     it('should show default error message on unknown error', async () => {
-      authApi.register.mockRejectedValue(new Error());
+      mockRegister.mockRejectedValue(new Error());
 
       const user = userEvent.setup();
       render(<RegisterPage />);
@@ -346,7 +392,7 @@ describe('RegisterPage', () => {
     });
 
     it('should clear error message on new submission', async () => {
-      authApi.register.mockRejectedValueOnce(new Error('First error'));
+      mockRegister.mockRejectedValueOnce(new Error('First error'));
       
       const user = userEvent.setup();
       render(<RegisterPage />);
@@ -368,7 +414,7 @@ describe('RegisterPage', () => {
       });
 
       // Second attempt - error should be cleared
-      authApi.register.mockResolvedValue(mockAuthResponse);
+      mockRegister.mockResolvedValue(mockAuthResponse);
       usersApi.getMe.mockResolvedValue(mockUser);
 
       const passwordInput = screen.getByLabelText(/密碼/i);

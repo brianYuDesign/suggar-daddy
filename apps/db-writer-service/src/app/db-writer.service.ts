@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { RedisService } from "@suggar-daddy/redis";
+import { UserType, PermissionRole } from "@suggar-daddy/common";
 import {
   UserEntity,
   PostEntity,
@@ -67,7 +68,7 @@ export class DbWriterService {
   ) {}
 
   async handleUserCreated(payload: Record<string, unknown>): Promise<void> {
-    const { id, email, displayName, role, bio, createdAt } = payload;
+    const { id, email, displayName, userType, bio, createdAt } = payload;
     if (!id || !email || !displayName) {
       this.logger.warn("user.created missing required fields");
       return;
@@ -88,7 +89,8 @@ export class DbWriterService {
       email: normalizedEmail,
       passwordHash,
       displayName: displayName as string,
-      role: (role as string) || "subscriber",
+      userType: (userType as UserType) || UserType.SUGAR_BABY,
+      permissionRole: PermissionRole.SUBSCRIBER,
       bio: (bio as string) || null,
       createdAt: createdAt
         ? new Date(createdAt as string | number)
@@ -100,7 +102,8 @@ export class DbWriterService {
       email: normalizedEmail,
       passwordHash,
       displayName: displayName as string,
-      role: (role as string) || "subscriber",
+      userType: (userType as string) || "sugar_baby",
+      permissionRole: "subscriber",
       bio: (bio as string) ?? null,
       avatarUrl: null,
       createdAt,
@@ -394,6 +397,26 @@ export class DbWriterService {
       createdAt: new Date(),
     });
     this.logger.log(`payment.completed transactionId=${transactionId}`);
+  }
+
+  async handlePaymentRefunded(
+    payload: Record<string, unknown>,
+  ): Promise<void> {
+    const { transactionId, refundedAmount, reason, stripeRefundId, refundedAt } = payload;
+    if (!transactionId) return;
+    await this.transactionRepo.update(
+      { id: transactionId as string },
+      {
+        status: 'refunded',
+        metadata: {
+          refundedAmount: refundedAmount as number,
+          refundReason: (reason as string) || null,
+          stripeRefundId: (stripeRefundId as string) || null,
+          refundedAt: refundedAt as string,
+        },
+      },
+    );
+    this.logger.log(`payment.refunded transactionId=${transactionId}`);
   }
 
   async handleTipSent(payload: Record<string, unknown>): Promise<void> {

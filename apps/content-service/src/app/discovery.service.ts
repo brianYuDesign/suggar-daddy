@@ -21,24 +21,24 @@ export class DiscoveryService {
   async getTrendingPosts(page = 1, limit = 20): Promise<PaginatedResponse<Post & { engagementScore?: number }>> {
     const total = await this.redis.zCard(TRENDING_POSTS);
     const skip = (page - 1) * limit;
-    const postIds = await this.redis.zRevRange(TRENDING_POSTS, skip, skip + limit - 1);
+    // Use zRevRangeWithScores to get both members and scores in 1 call (eliminates N+1 zScore)
+    const entries = await this.redis.zRevRangeWithScores(TRENDING_POSTS, skip, skip + limit - 1);
 
-    if (postIds.length === 0) {
+    if (entries.length === 0) {
       return { data: [], total, page, limit };
     }
 
+    const postIds = entries.map((e) => e.member);
     const keys = postIds.map((id) => POST_KEY(id));
     const values = await this.redis.mget(...keys);
 
     const posts: (Post & { engagementScore?: number })[] = [];
-    for (let i = 0; i < postIds.length; i++) {
+    for (let i = 0; i < entries.length; i++) {
       const raw = values[i];
       if (!raw) continue;
       const post: Post = JSON.parse(raw);
-      // Only include public posts
       if (post.visibility !== 'public') continue;
-      const score = await this.redis.zScore(TRENDING_POSTS, postIds[i]);
-      posts.push({ ...post, engagementScore: score ?? 0 });
+      posts.push({ ...post, engagementScore: entries[i].score ?? 0 });
     }
 
     return { data: posts, total, page, limit };
@@ -50,24 +50,34 @@ export class DiscoveryService {
     }
 
     const lowerQuery = query.toLowerCase();
-
-    // Scan all public posts and filter by caption match
-    const allIds = await this.redis.lRange(POSTS_PUBLIC_IDS, 0, -1);
-    if (allIds.length === 0) {
+    const totalIds = await this.redis.lLen(POSTS_PUBLIC_IDS);
+    if (totalIds === 0) {
       return { data: [], total: 0, page, limit };
     }
 
-    const keys = allIds.map((id) => POST_KEY(id));
-    const values = await this.redis.mget(...keys);
-
+    // Process in batches to avoid loading all posts at once
+    const BATCH_SIZE = 200;
     const matching: Post[] = [];
-    for (const raw of values) {
-      if (!raw) continue;
-      const post: Post = JSON.parse(raw);
-      if (post.visibility !== 'public') continue;
-      if (post.caption && post.caption.toLowerCase().includes(lowerQuery)) {
-        matching.push(post);
+    const targetCount = (page * limit) + limit; // fetch enough for pagination
+
+    for (let offset = 0; offset < totalIds; offset += BATCH_SIZE) {
+      const batchIds = await this.redis.lRange(POSTS_PUBLIC_IDS, offset, offset + BATCH_SIZE - 1);
+      if (batchIds.length === 0) break;
+
+      const keys = batchIds.map((id) => POST_KEY(id));
+      const values = await this.redis.mget(...keys);
+
+      for (const raw of values) {
+        if (!raw) continue;
+        const post: Post = JSON.parse(raw);
+        if (post.visibility !== 'public') continue;
+        if (post.caption && post.caption.toLowerCase().includes(lowerQuery)) {
+          matching.push(post);
+        }
       }
+
+      // Early exit if we have enough results for the requested page
+      if (matching.length >= targetCount) break;
     }
 
     // Sort by most recent

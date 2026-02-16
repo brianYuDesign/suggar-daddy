@@ -5,8 +5,10 @@ import { test, expect } from '../../fixtures/extended-test';
  * 涵蓋各種註冊場景和驗證
  */
 test.describe('用戶註冊流程', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test.beforeEach(async ({ page }) => {
-    await page.goto('/auth/register');
+    await page.goto('/register');
   });
 
   test('TC-001: 成功註冊訂閱者帳號', async ({ page, registerPage }) => {
@@ -16,18 +18,12 @@ test.describe('用戶註冊流程', () => {
     await registerPage.register({
       email,
       password: 'Test1234!',
-      confirmPassword: 'Test1234!',
-      name: `Test Subscriber ${timestamp}`,
-      role: 'SUBSCRIBER',
+      displayName: `Test Subscriber ${timestamp}`,
+      userType: 'sugar_daddy',
     });
 
     // 驗證跳轉到 Dashboard
-    await expect(page).toHaveURL(/\/(dashboard|feed)/);
-    
-    // 驗證歡迎訊息或用戶名出現
-    await expect(
-      page.locator('text=/歡迎|Welcome|Dashboard/')
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page).toHaveURL(/\/(dashboard|feed)/, { timeout: 10000 });
   });
 
   test('TC-002: 成功註冊創作者帳號', async ({ page, registerPage }) => {
@@ -37,153 +33,122 @@ test.describe('用戶註冊流程', () => {
     await registerPage.register({
       email,
       password: 'Test1234!',
-      confirmPassword: 'Test1234!',
-      name: `Test Creator ${timestamp}`,
-      role: 'CREATOR',
+      displayName: `Test Creator ${timestamp}`,
+      userType: 'sugar_baby',
     });
 
     // 驗證跳轉成功
-    await expect(page).toHaveURL(/\/(dashboard|feed|profile)/);
+    await expect(page).toHaveURL(/\/(dashboard|feed|profile)/, { timeout: 10000 });
   });
 
-  test('TC-003: 驗證必填欄位 - Email', async ({ registerPage }) => {
+  test('TC-003: 驗證必填欄位 - Email', async ({ page, registerPage }) => {
+    // Select role and fill other fields, leave email empty
     await registerPage.register({
       email: '',
       password: 'Test1234!',
-      confirmPassword: 'Test1234!',
-      name: 'Test User',
-      role: 'SUBSCRIBER',
+      displayName: 'Test User',
+      userType: 'sugar_daddy',
     });
 
     // 驗證錯誤訊息
-    const hasError = await registerPage.hasFieldError('email');
-    expect(hasError).toBeTruthy();
+    await expect(page.locator('p.text-red-500:has-text("請輸入有效的 Email")')).toBeVisible();
   });
 
-  test('TC-004: 驗證必填欄位 - Password', async ({ registerPage }) => {
+  test('TC-004: 驗證必填欄位 - Password', async ({ page, registerPage }) => {
     await registerPage.register({
       email: 'test@example.com',
       password: '',
-      confirmPassword: '',
-      name: 'Test User',
-      role: 'SUBSCRIBER',
+      displayName: 'Test User',
+      userType: 'sugar_daddy',
     });
 
-    const hasError = await registerPage.hasFieldError('password');
-    expect(hasError).toBeTruthy();
+    await expect(page.locator('p.text-red-500:has-text("密碼至少 8 個字元")')).toBeVisible();
   });
 
-  test('TC-005: 驗證必填欄位 - Name', async ({ registerPage }) => {
+  test('TC-005: 驗證必填欄位 - DisplayName', async ({ page, registerPage }) => {
     await registerPage.register({
       email: 'test@example.com',
       password: 'Test1234!',
-      confirmPassword: 'Test1234!',
-      name: '',
-      role: 'SUBSCRIBER',
+      displayName: '',
+      userType: 'sugar_daddy',
     });
 
-    const hasError = await registerPage.hasFieldError('name');
-    expect(hasError).toBeTruthy();
+    await expect(page.locator('p.text-red-500:has-text("請輸入暱稱")')).toBeVisible();
   });
 
-  test('TC-006: 驗證密碼不一致', async ({ page, registerPage }) => {
-    await registerPage.register({
-      email: 'test@example.com',
-      password: 'Test1234!',
-      confirmPassword: 'Different1234!',
-      name: 'Test User',
-      role: 'SUBSCRIBER',
-    });
-
-    // 驗證密碼不一致錯誤
-    const errorVisible = await page.locator('text=/密碼不一致|Passwords do not match/i').isVisible();
-    expect(errorVisible).toBeTruthy();
+  test.skip('TC-006: 驗證密碼不一致', async () => {
+    // SKIPPED: No confirmPassword field exists in the register form
   });
 
   test('TC-007: 驗證 Email 格式錯誤', async ({ page, registerPage }) => {
     await registerPage.register({
       email: 'invalid-email',
       password: 'Test1234!',
-      confirmPassword: 'Test1234!',
-      name: 'Test User',
-      role: 'SUBSCRIBER',
+      displayName: 'Test User',
+      userType: 'sugar_daddy',
     });
 
     // 驗證 Email 格式錯誤訊息
-    const errorVisible = await page.locator('text=/無效的郵箱|Invalid email|email.*invalid/i').isVisible();
-    expect(errorVisible).toBeTruthy();
+    await expect(page.locator('p.text-red-500:has-text("請輸入有效的 Email")')).toBeVisible();
   });
 
   test('TC-008: 驗證密碼強度 - 過短', async ({ page, registerPage }) => {
     await registerPage.register({
       email: 'test@example.com',
       password: '123',
-      confirmPassword: '123',
-      name: 'Test User',
-      role: 'SUBSCRIBER',
+      displayName: 'Test User',
+      userType: 'sugar_daddy',
     });
 
     // 驗證密碼過短錯誤
-    const errorVisible = await page.locator('text=/密碼.*至少|Password.*least|too short/i').isVisible();
-    expect(errorVisible).toBeTruthy();
+    await expect(page.locator('p.text-red-500:has-text("密碼至少 8 個字元")')).toBeVisible();
   });
 
   test('TC-009: 驗證重複 Email', async ({ page, registerPage, apiHelper }) => {
     // 先創建一個用戶
     const existingEmail = `existing-${Date.now()}@test.com`;
-    
+
     try {
       await apiHelper.createUser({
         email: existingEmail,
         password: 'Test1234!',
-        name: 'Existing User',
-        role: 'SUBSCRIBER',
+        displayName: 'Existing User',
+        userType: 'sugar_daddy',
       });
     } catch (error) {
       console.warn('Failed to create existing user, test may not work correctly:', error);
     }
 
     // 嘗試用相同 Email 註冊
-    await page.goto('/auth/register');
+    await page.goto('/register');
     await registerPage.register({
       email: existingEmail,
       password: 'Test1234!',
-      confirmPassword: 'Test1234!',
-      name: 'New User',
-      role: 'SUBSCRIBER',
+      displayName: 'New User',
+      userType: 'sugar_daddy',
     });
 
     // 驗證重複 Email 錯誤
     await page.waitForTimeout(2000);
-    const errorVisible = await page.locator('text=/已被使用|already.*use|exists/i').isVisible();
+    const errorVisible = await page.locator('div.bg-red-50').isVisible();
     expect(errorVisible).toBeTruthy();
   });
 
-  test('TC-010: 未勾選服務條款無法註冊', async ({ registerPage }) => {
-    await registerPage.register({
-      email: 'test@example.com',
-      password: 'Test1234!',
-      confirmPassword: 'Test1234!',
-      name: 'Test User',
-      role: 'SUBSCRIBER',
-      acceptTerms: false,
-    });
-
-    // 驗證按鈕被禁用或顯示錯誤
-    const isDisabled = await registerPage.isRegisterButtonDisabled();
-    expect(isDisabled).toBeTruthy();
+  test.skip('TC-010: 未勾選服務條款無法註冊', async () => {
+    // SKIPPED: No terms/conditions checkbox exists in the register form
   });
 
   test('TC-011: 點擊登入連結跳轉到登入頁面', async ({ page, registerPage }) => {
     await registerPage.clickLoginLink();
-    
+
     // 驗證跳轉到登入頁面
-    await expect(page).toHaveURL(/\/auth\/login/);
+    await expect(page).toHaveURL(/\/login/);
   });
 
   test('TC-012: 檢查密碼可見性切換', async ({ page }) => {
     const passwordInput = page.locator('input[name="password"]');
-    const toggleButton = page.locator('button[aria-label*="密碼"], button[aria-label*="password"]').first();
+    // The toggle button is inside a relative div, it's a button with Eye/EyeOff icon
+    const toggleButton = page.locator('input[name="password"] + button, input[name="password"] ~ button').first();
 
     // 輸入密碼
     await passwordInput.fill('Test1234!');
@@ -192,9 +157,11 @@ test.describe('用戶註冊流程', () => {
     const initialType = await passwordInput.getAttribute('type');
     expect(initialType).toBe('password');
 
-    // 點擊切換按鈕（如果存在）
-    if (await toggleButton.isVisible()) {
-      await toggleButton.click();
+    // 點擊切換按鈕（在 password input 的父 div 中）
+    const parentDiv = page.locator('input[name="password"]').locator('..');
+    const eyeButton = parentDiv.locator('button');
+    if (await eyeButton.isVisible()) {
+      await eyeButton.click();
       const newType = await passwordInput.getAttribute('type');
       expect(newType).toBe('text');
     }

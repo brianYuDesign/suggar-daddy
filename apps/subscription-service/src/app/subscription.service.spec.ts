@@ -6,7 +6,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('SubscriptionService', () => {
   let service: SubscriptionService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'keys'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'keys' | 'sAdd' | 'sRem'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
 
   beforeEach(async () => {
@@ -16,6 +16,8 @@ describe('SubscriptionService', () => {
       lPush: jest.fn(),
       lRange: jest.fn(),
       keys: jest.fn(),
+      sAdd: jest.fn(),
+      sRem: jest.fn(),
     };
     kafka = { sendEvent: jest.fn() };
 

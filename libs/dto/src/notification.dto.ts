@@ -40,6 +40,18 @@ export class SendNotificationDto {
   expiresAt?: string;
 }
 
+/**
+ * Internal notification DTO used by notification-service for programmatic sends
+ * (e.g., from Kafka consumers). Not validated via class-validator.
+ */
+export interface InternalSendNotificationDto {
+  userId: string;
+  type: string;
+  title: string;
+  body?: string;
+  data?: Record<string, unknown>;
+}
+
 export interface NotificationItemDto {
   id: string;
   type: string;

@@ -12,8 +12,63 @@
 
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render, mockAuthResponse, mockUser, mockApiSuccess, mockApiError } from '../../../src/test-utils';
+import { render } from '@testing-library/react';
 import LoginPage from './page';
+
+// Test fixtures
+const mockAuthResponse = {
+  accessToken: 'mock-access-token',
+  refreshToken: 'mock-refresh-token',
+  expiresIn: 3600,
+};
+
+const mockUser = {
+  id: 'test-user-id',
+  userType: 'sugar_daddy',
+  permissionRole: 'user',
+  displayName: 'Test User',
+  bio: 'Test bio',
+  avatarUrl: 'https://example.com/avatar.jpg',
+  verificationStatus: 'verified',
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+};
+
+function mockApiSuccess<T>(data: T) {
+  return Promise.resolve(data);
+}
+
+function mockApiError(message: string, status = 400) {
+  const error = new Error(message) as any;
+  error.response = { status };
+  return Promise.reject(error);
+}
+
+// Create mock login function
+const mockLogin = jest.fn();
+const mockPush = jest.fn();
+
+// Mock useAuth
+jest.mock('../../../providers/auth-provider', () => ({
+  useAuth: () => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    login: mockLogin,
+  }),
+}));
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+  }),
+  usePathname: () => '/login',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 // Mock the API
 jest.mock('../../../lib/api', () => ({
@@ -141,8 +196,7 @@ describe('LoginPage', () => {
 
   describe('Successful Login', () => {
     it('should login successfully with valid credentials', async () => {
-      authApi.login.mockResolvedValue(mockAuthResponse);
-      usersApi.getMe.mockResolvedValue(mockUser);
+      mockLogin.mockResolvedValue(undefined);
 
       const user = userEvent.setup();
       render(<LoginPage />);
@@ -156,20 +210,14 @@ describe('LoginPage', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(authApi.login).toHaveBeenCalledWith({
-          email: 'test@example.com',
-          password: 'password123',
-        });
+        expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123');
       });
-
-      expect(usersApi.getMe).toHaveBeenCalled();
     });
 
     it('should show loading state during login', async () => {
-      authApi.login.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve(mockAuthResponse), 100))
+      mockLogin.mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve(undefined), 100))
       );
-      usersApi.getMe.mockResolvedValue(mockUser);
 
       const user = userEvent.setup();
       render(<LoginPage />);
@@ -187,7 +235,7 @@ describe('LoginPage', () => {
       expect(submitButton).toBeDisabled();
 
       await waitFor(() => {
-        expect(authApi.login).toHaveBeenCalled();
+        expect(mockLogin).toHaveBeenCalled();
       });
     });
   });
@@ -195,7 +243,7 @@ describe('LoginPage', () => {
   describe('Failed Login', () => {
     it('should show error message on login failure', async () => {
       const errorMessage = '帳號或密碼錯誤';
-      authApi.login.mockRejectedValue(new Error(errorMessage));
+      mockLogin.mockRejectedValue(new Error(errorMessage));
 
       const user = userEvent.setup();
       render(<LoginPage />);
@@ -214,7 +262,7 @@ describe('LoginPage', () => {
     });
 
     it('should show default error message on unknown error', async () => {
-      authApi.login.mockRejectedValue(new Error());
+      mockLogin.mockRejectedValue(new Error());
 
       const user = userEvent.setup();
       render(<LoginPage />);
@@ -233,7 +281,7 @@ describe('LoginPage', () => {
     });
 
     it('should clear error message on new submission', async () => {
-      authApi.login.mockRejectedValueOnce(new Error('First error'));
+      mockLogin.mockRejectedValueOnce(new Error('First error'));
       
       const user = userEvent.setup();
       render(<LoginPage />);

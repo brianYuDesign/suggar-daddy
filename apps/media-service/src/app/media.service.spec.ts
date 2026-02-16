@@ -17,6 +17,13 @@ describe('MediaService', () => {
     lPush: jest.fn().mockResolvedValue(1),
     lRange: jest.fn().mockResolvedValue([]),
     lLen: jest.fn().mockResolvedValue(0),
+    lRem: jest.fn().mockResolvedValue(1),
+    zAdd: jest.fn().mockResolvedValue(1),
+    zRem: jest.fn().mockResolvedValue(1),
+    zRevRange: jest.fn().mockResolvedValue([]),
+    zCard: jest.fn().mockResolvedValue(0),
+    exists: jest.fn().mockResolvedValue(1),
+    zRange: jest.fn().mockResolvedValue([]),
   };
 
   const kafkaProducer = {
@@ -121,10 +128,11 @@ describe('MediaService', () => {
         createdAt: '2024-06-01T00:00:00.000Z',
       };
 
-      redis.scan.mockResolvedValueOnce(['media:media-1', 'media:media-2']);
+      redis.zCard.mockResolvedValueOnce(2);
+      redis.zRevRange.mockResolvedValueOnce(['media-2', 'media-1']);
       redis.mget.mockResolvedValueOnce([
-        JSON.stringify(media1),
         JSON.stringify(media2),
+        JSON.stringify(media1),
       ]);
 
       const result = await service.findAll();
@@ -158,10 +166,10 @@ describe('MediaService', () => {
       };
 
       redis.lLen.mockResolvedValueOnce(2);
-      redis.lRange.mockResolvedValueOnce(['media-a', 'media-b']);
+      redis.lRange.mockResolvedValueOnce(['media-b', 'media-a']);
       redis.mget.mockResolvedValueOnce([
-        JSON.stringify(media1),
         JSON.stringify(media2),
+        JSON.stringify(media1),
       ]);
 
       const result = await service.findByUser('user-1');

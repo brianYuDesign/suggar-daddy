@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { PostPurchaseService } from './post-purchase.service';
 import { CreatePostPurchaseDto } from './dto/post-purchase.dto';
-import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
 
 @Controller('post-purchases')
 export class PostPurchaseController {

@@ -6,7 +6,8 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { JwtAuthGuard, CurrentUser, CloudFrontSignedUrlService, type CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
+import { CloudFrontSignedUrlService } from '@suggar-daddy/common';
 import { PostService } from './post.service';
 import { SubscriptionServiceClient } from './subscription-service.client';
 import { RedisService } from '@suggar-daddy/redis';

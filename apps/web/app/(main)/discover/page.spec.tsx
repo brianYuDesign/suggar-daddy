@@ -12,8 +12,41 @@
 
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render } from '../../../src/test-utils';
+import { render } from '@testing-library/react';
 import DiscoverPage from './page';
+
+// Mock useAuth
+const mockUser = {
+  id: 'test-user-id',
+  userType: 'sugar_daddy',
+  permissionRole: 'user',
+  displayName: 'Test User',
+  bio: 'Test bio',
+  avatarUrl: 'https://example.com/avatar.jpg',
+  verificationStatus: 'verified',
+  createdAt: new Date('2024-01-01'),
+  updatedAt: new Date('2024-01-01'),
+};
+
+jest.mock('../../../providers/auth-provider', () => ({
+  useAuth: () => ({
+    user: mockUser,
+    isLoading: false,
+    isAuthenticated: true,
+  }),
+}));
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+  }),
+  usePathname: () => '/discover',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 // Mock the API
 jest.mock('../../../lib/api', () => ({
@@ -52,7 +85,8 @@ const mockUserCard = {
   displayName: 'Test User',
   bio: 'This is a test bio',
   avatarUrl: 'https://example.com/avatar.jpg',
-  role: 'sugar_baby',
+  userType: 'sugar_baby',
+  permissionRole: 'user',
   verificationStatus: 'verified',
   lastActiveAt: new Date('2024-01-01'),
 };
@@ -62,7 +96,8 @@ const mockUserCard2 = {
   displayName: 'Second User',
   bio: 'Another test bio',
   avatarUrl: 'https://example.com/avatar2.jpg',
-  role: 'sugar_daddy',
+  userType: 'sugar_daddy',
+  permissionRole: 'user',
   verificationStatus: 'pending',
   lastActiveAt: new Date('2024-01-02'),
 };
@@ -80,7 +115,8 @@ describe('DiscoverPage', () => {
       render(<DiscoverPage />);
 
       // Should show skeleton loaders
-      expect(screen.getByTestId('skeleton') || document.querySelector('.animate-pulse')).toBeTruthy();
+      const skeletons = document.querySelectorAll('.animate-pulse');
+      expect(skeletons.length).toBeGreaterThan(0);
     });
 
     it('should render user card with all information', async () => {
@@ -495,7 +531,8 @@ describe('DiscoverPage', () => {
 
   describe('Role Labels', () => {
     it('should display correct role labels', async () => {
-      const daddyCard = { ...mockUserCard, role: 'sugar_daddy' };
+      const daddyCard = { ...mockUserCard, userType: 'sugar_daddy' };
+  permissionRole: 'user',
       matchingApi.getCards.mockResolvedValue({
         cards: [daddyCard],
         nextCursor: null,

@@ -254,3 +254,9 @@ describe('Service (e2e)', () => {
 - **@types/supertest** (^6.0.2) - TypeScript 型別定義
 - Jest (v30.0.2) - 測試框架
 - @nestjs/testing - NestJS 測試工具
+
+---
+
+## 📜 歷史修復記錄
+
+- [E2E Rate Limit 修復](../archive/solutions/e2e-rate-limit-solution.md) - 解決 E2E 測試速率限制問題的三層策略

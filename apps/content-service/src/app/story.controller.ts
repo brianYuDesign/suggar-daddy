@@ -8,7 +8,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard, OptionalJwtGuard, CurrentUser, Public, type CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, OptionalJwtGuard, CurrentUser, Public, type CurrentUserData } from '@suggar-daddy/auth';
 import { CreateStoryDto } from '@suggar-daddy/dto';
 import { StoryService } from './story.service';
 

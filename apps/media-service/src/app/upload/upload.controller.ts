@@ -13,13 +13,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
 import {
   UploadService,
-  JwtAuthGuard,
-  CurrentUser,
   S3Service,
   MEDIA_EVENTS,
-  type CurrentUserData,
 } from '@suggar-daddy/common';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { MediaService } from '../media.service';

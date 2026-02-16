@@ -36,6 +36,7 @@ export class DbWriterConsumer implements OnModuleInit {
       { topic: MEDIA_EVENTS.MEDIA_DELETED, handler: (p) => this.dbWriter.handleMediaDeleted(p) },
       { topic: SUBSCRIPTION_EVENTS.SUBSCRIPTION_CREATED, handler: (p) => this.dbWriter.handleSubscriptionCreated(p) },
       { topic: PAYMENT_EVENTS.PAYMENT_COMPLETED, handler: (p) => this.dbWriter.handlePaymentCompleted(p) },
+      { topic: PAYMENT_EVENTS.PAYMENT_REFUNDED, handler: (p) => this.dbWriter.handlePaymentRefunded(p) },
       { topic: PAYMENT_EVENTS.TIP_SENT, handler: (p) => this.dbWriter.handleTipSent(p) },
       { topic: PAYMENT_EVENTS.POST_PURCHASED, handler: (p) => this.dbWriter.handlePostPurchased(p) },
       { topic: SUBSCRIPTION_EVENTS.TIER_CREATED, handler: (p) => this.dbWriter.handleTierCreated(p) },

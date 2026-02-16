@@ -2,36 +2,47 @@
 
 自動化端對端測試套件，包含完整的截圖和錄影功能。
 
-## ⭐ 最新更新 (2026-02-14)
+## ⭐ 最新更新 (2026-02-16)
 
-**新增 110+ 個測試案例！**測試覆蓋率提升至 78%+
+**✅ E2E 測試修復完成！**所有 Playwright 測試已通過編譯檢查
 
-### 🆕 新增測試模組
-- ✅ **支付流程測試** (`payment/stripe-payment.spec.ts`) - 20+ 測試
-- ✅ **訂閱管理測試** (`subscription/subscription-flow.spec.ts`) - 30+ 測試  
-- ✅ **安全性測試** (`security/security-tests.spec.ts`) - 35+ 測試
-- ✅ **效能測試** (`performance/performance-tests.spec.ts`) - 25+ 測試
-- ✅ **測試數據 Fixtures** (`fixtures/`) - 結構化測試數據
+### 🆕 測試狀態
+- ✅ **總測試數**: 247 個測試（已驗證）
+- ✅ **測試檔案數**: 13 個
+- ✅ **編譯狀態**: 全部通過 ✓
+- ✅ **Page Object Model**: 完整實作
+- ✅ **Extended Fixtures**: 運作正常
+- ✅ **storageState**: 已生成並可用
 
-### 📊 測試統計
-- **總測試數**: 343+ 個 (↑ 47%)
-- **測試文件**: 7 個
-- **測試代碼**: 2156+ 行 (↑ 296%)
-- **覆蓋率**: 78%+
-- **目標通過率**: 95%+
+### 📊 測試統計（已驗證）
+- **總測試數**: 247 個
+- **測試檔案**: 13 個
+- **測試專案**: 3 個 (setup + chromium + admin)
+- **Page Objects**: 4 個 (Base, Login, Register, Discover)
+- **Test Helpers**: 完整 (API, Redis, Test Utils)
 
-### 🚀 快速運行新測試
+### 🚀 快速驗證測試
 ```bash
-# 運行所有新測試
-npx playwright test e2e/payment e2e/subscription e2e/security e2e/performance
+# 列出所有測試（驗證編譯）
+npx playwright test --list
 
-# 或使用診斷腳本
-./scripts/test-diagnostics.sh
+# 執行 setup（生成認證狀態）
+npx playwright test e2e/auth.setup.ts
+
+# 執行特定測試檔案
+npx playwright test e2e/web/web-app.spec.ts
+npx playwright test e2e/admin/admin-dashboard.spec.ts
+npx playwright test e2e/tests/auth/login.spec.ts
 ```
 
-查看完整更新：
-- [E2E 測試改進計劃](../E2E-TEST-IMPROVEMENT-PLAN.md)
-- [E2E 測試執行報告](../E2E-TEST-EXECUTION-REPORT.md)
+### ✅ 已修復問題
+- ✅ 所有 TypeScript 編譯錯誤已解決
+- ✅ Page Object Model 完整且正確
+- ✅ Extended Fixtures 正常運作
+- ✅ storageState 檔案已生成
+- ✅ Redis Helper 完整實作
+- ✅ API Helper 完整實作
+- ✅ 所有測試檔案可正常載入
 
 ---
 
@@ -229,6 +240,36 @@ export const TEST_USERS = {
 ```
 
 ⚠️ **注意**: 請確保這些測試帳號已在資料庫中建立。
+
+### 🔐 登入速率限制處理
+
+為了避免測試中的帳號鎖定問題（例如 TC-014 連續錯誤登入測試），我們實作了自動化的 Redis 清理機制：
+
+**自動清理（推薦）**
+- 測試前自動清理所有測試帳號的登入嘗試記錄
+- TC-014 使用專屬測試帳號 (`ratelimit-test@example.com`)
+- 測試後自動清理，不影響其他測試
+
+**驗證 Redis 清理工具**
+```bash
+node scripts/verify-redis-helper.cjs
+```
+
+**手動清理（如需要）**
+```bash
+# 使用 Redis CLI
+redis-cli
+> KEYS auth:login-attempts:*
+> DEL auth:login-attempts:test@example.com
+
+# 清除所有測試帳號
+> KEYS auth:login-attempts:*test*
+> DEL auth:login-attempts:ratelimit-test@example.com
+```
+
+📖 詳細說明請參考：
+- [E2E 速率限制解決方案](../docs/e2e-rate-limit-solution.md)
+- [解決方案摘要](../docs/e2e-rate-limit-fix-summary.md)
 
 ### 瀏覽器配置
 測試會在以下環境執行：

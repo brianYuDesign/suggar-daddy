@@ -3,7 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from './app.module';
 import { RedisService } from '@suggar-daddy/redis';
-import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { KafkaProducerService, KafkaConsumerService } from '@suggar-daddy/kafka';
 
 const mockRedisService = {
   get: jest.fn().mockResolvedValue(null),
@@ -35,6 +35,13 @@ const mockKafkaProducer = {
   onModuleDestroy: jest.fn().mockResolvedValue(undefined),
 };
 
+const mockKafkaConsumer = {
+  subscribe: jest.fn().mockResolvedValue(undefined),
+  startConsuming: jest.fn().mockResolvedValue(undefined),
+  onModuleInit: jest.fn().mockResolvedValue(undefined),
+  onModuleDestroy: jest.fn().mockResolvedValue(undefined),
+};
+
 describe('Content Service (e2e)', () => {
   let app: INestApplication;
 
@@ -46,6 +53,8 @@ describe('Content Service (e2e)', () => {
       .useValue(mockRedisService)
       .overrideProvider(KafkaProducerService)
       .useValue(mockKafkaProducer)
+      .overrideProvider(KafkaConsumerService)
+      .useValue(mockKafkaConsumer)
       .compile();
 
     app = moduleFixture.createNestApplication();

@@ -10,6 +10,12 @@ import { Button, Input, Label } from '@suggar-daddy/ui';
 import { useAuth } from '../../../providers/auth-provider';
 import { ApiError } from '../../../lib/api';
 
+// 直接定義 UserType 以避免從後端模組導入
+enum UserType {
+  SUGAR_BABY = 'sugar_baby',
+  SUGAR_DADDY = 'sugar_daddy',
+}
+
 const registerSchema = z.object({
   email: z.string().email('請輸入有效的 Email'),
   password: z
@@ -20,22 +26,20 @@ const registerSchema = z.object({
     .string()
     .min(1, '請輸入暱稱')
     .max(50, '暱稱不可超過 50 個字元'),
-  role: z.enum(['sugar_baby', 'sugar_daddy'], {
-    message: '請選擇你的身份',
-  }),
+  userType: z.enum(['sugar_baby', 'sugar_daddy']),
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
 const roles = [
   {
-    value: 'sugar_daddy' as const,
+    value: UserType.SUGAR_DADDY,
     icon: Crown,
     label: 'Sugar Daddy',
     desc: '探索精彩內容，支持喜愛的創作者',
   },
   {
-    value: 'sugar_baby' as const,
+    value: UserType.SUGAR_BABY,
     icon: Heart,
     label: 'Sugar Baby',
     desc: '分享獨家內容，建立你的粉絲社群',
@@ -57,7 +61,7 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
-  const selectedRole = watch('role');
+  const selectedUserType = watch('userType');
 
   const onSubmit = async (data: RegisterForm) => {
     setError('');
@@ -87,13 +91,13 @@ export default function RegisterPage() {
           <Label>選擇你的身份</Label>
           <div className="grid grid-cols-2 gap-3">
             {roles.map((r) => {
-              const isSelected = selectedRole === r.value;
+              const isSelected = selectedUserType === r.value;
               return (
                 <button
                   key={r.value}
                   type="button"
                   onClick={() =>
-                    setValue('role', r.value, { shouldValidate: true })
+                    setValue('userType', r.value, { shouldValidate: true })
                   }
                   className={`flex flex-col items-center rounded-xl border-2 p-4 transition-all ${
                     isSelected
@@ -120,8 +124,8 @@ export default function RegisterPage() {
               );
             })}
           </div>
-          {errors.role && (
-            <p className="text-xs text-red-500">{errors.role.message}</p>
+          {errors.userType && (
+            <p className="text-xs text-red-500">{errors.userType.message}</p>
           )}
         </div>
 

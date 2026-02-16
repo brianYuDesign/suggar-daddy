@@ -9,7 +9,8 @@ import {
   ChangePasswordDto,
   type TokenResponseDto 
 } from '@suggar-daddy/dto';
-import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, UserRole, type JwtUser } from '@suggar-daddy/auth';
+import { JwtAuthGuard, CurrentUser, Roles, RolesGuard, type JwtUser } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { OAuthService } from '@suggar-daddy/auth';
 import { AuthService } from './auth.service';
 import type { Request } from 'express';
@@ -26,7 +27,7 @@ export class AuthController {
   @Post('register')
   async register(@Body() body: RegisterDto): Promise<TokenResponseDto> {
     try {
-      this.logger.log(`[CONTROLLER] register email=${body.email} role=${body.role}`);
+      this.logger.log(`[CONTROLLER] register email=${body.email} userType=${body.userType}`);
       const result = await this.authService.register(body);
       this.logger.log(`[CONTROLLER] register success email=${body.email}`);
       return result;

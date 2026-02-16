@@ -3,13 +3,8 @@ import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
-import {
-  JwtAuthGuard,
-  RolesGuard,
-  EnvConfigModule,
-  AppConfigService,
-} from "@suggar-daddy/common";
-import { AuthModule } from "@suggar-daddy/auth";
+import { EnvConfigModule, AppConfigService } from "@suggar-daddy/common";
+import { AuthModule, JwtAuthGuard, RolesGuard } from "@suggar-daddy/auth";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { SubscriptionTierController } from "./subscription-tier.controller";

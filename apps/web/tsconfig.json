@@ -50,12 +50,18 @@
     "**/*.jsx",
     "next-env.d.ts",
     ".next/types/**/*.ts",
-    "../../dist/apps/web/.next/types/**/*.ts"
+    "../../dist/apps/web/.next/types/**/*.ts",
+    "../../types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",
     "jest.config.ts",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "../../libs/common/src/lib/data-consistency*.ts",
+    "../../libs/auth/src/**/*.controller.ts",
+    "../../libs/auth/src/**/*.service.ts",
+    "../../libs/auth/src/**/*.guard.ts",
+    "../../libs/auth/src/**/*.strategy.ts"
   ]
 }

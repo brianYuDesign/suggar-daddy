@@ -99,7 +99,7 @@ export default function SettingsPage() {
 
   if (!user) return null;
 
-  const isCreator = user.role === 'sugar_baby' || user.role === 'CREATOR';
+  const isCreator = user.userType === 'sugar_baby' || user.userType === 'CREATOR';
 
   return (
     <div className="space-y-6">

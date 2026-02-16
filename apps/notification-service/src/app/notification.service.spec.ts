@@ -12,6 +12,8 @@ describe('NotificationService', () => {
   const redis = {
     get: jest.fn(async (key: string) => store.get(key) ?? null),
     set: jest.fn(async (key: string, value: string) => { store.set(key, value); }),
+    setex: jest.fn(async (key: string, ttl: number, value: string) => { store.set(key, value); }),
+    mget: jest.fn(async (...keys: string[]) => keys.map(k => store.get(k) ?? null)),
     lPush: jest.fn(async (key: string, value: string) => {
       const arr = lists.get(key) ?? [];
       arr.push(value);

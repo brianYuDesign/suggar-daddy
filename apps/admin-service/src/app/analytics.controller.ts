@@ -11,7 +11,8 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
-import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { AnalyticsService } from './analytics.service';
 
 @Controller('analytics')

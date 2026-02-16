@@ -1,7 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../../../providers/auth-provider';
+import { usersApi } from '../../../lib/api';
 import {
   Avatar,
   Badge,
@@ -16,6 +19,8 @@ import {
   LogOut,
   Calendar,
   ChevronRight,
+  Users,
+  UserCheck,
 } from 'lucide-react';
 
 function getRoleLabel(role: string): string {
@@ -45,6 +50,14 @@ function formatDate(date: Date | string): string {
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    usersApi.getFollowers(user.id).then((res) => setFollowerCount(res.data.length + (res.hasMore ? 1 : 0))).catch(() => {});
+    usersApi.getFollowing(user.id).then((res) => setFollowingCount(res.data.length + (res.hasMore ? 1 : 0))).catch(() => {});
+  }, [user?.id]);
 
   if (!user) return null;
 
@@ -73,10 +86,10 @@ export default function ProfilePage() {
             {user.displayName}
           </h2>
           <Badge
-            variant={getRoleBadgeVariant(user.role) as 'warning' | 'default'}
+            variant={getRoleBadgeVariant(user.userType) as 'warning' | 'default'}
             className="mt-2"
           >
-            {getRoleLabel(user.role)}
+            {getRoleLabel(user.userType)}
           </Badge>
 
           {/* Verification status */}
@@ -96,6 +109,28 @@ export default function ProfilePage() {
               </p>
             </div>
             <Separator />
+          </div>
+
+          {/* Followers / Following */}
+          <div className="flex items-center gap-6 mt-4">
+            <Link
+              href="/profile/followers"
+              className="flex flex-col items-center hover:text-brand-600 transition-colors"
+            >
+              <span className="text-lg font-bold text-gray-900">
+                {followerCount}
+              </span>
+              <span className="text-xs text-gray-500">粉絲</span>
+            </Link>
+            <Link
+              href="/profile/following"
+              className="flex flex-col items-center hover:text-brand-600 transition-colors"
+            >
+              <span className="text-lg font-bold text-gray-900">
+                {followingCount}
+              </span>
+              <span className="text-xs text-gray-500">追蹤中</span>
+            </Link>
           </div>
 
           {/* Member since */}

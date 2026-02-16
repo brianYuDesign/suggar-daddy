@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, TEST_USERS, takeScreenshot } from '../utils/test-helpers';
+import { takeScreenshot } from '../utils/test-helpers';
 
 /**
  * 支付流程測試
@@ -7,9 +7,6 @@ import { login, TEST_USERS, takeScreenshot } from '../utils/test-helpers';
  */
 
 test.describe('Stripe 支付流程', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('應該能訪問支付頁面', async ({ page }) => {
     await page.goto('/payment');
@@ -123,9 +120,6 @@ test.describe('Stripe 支付流程', () => {
 });
 
 test.describe('支付歷史記錄', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('應該能查看支付歷史', async ({ page, context }) => {
     await context.tracing.start({ screenshots: true, snapshots: true });
@@ -172,9 +166,6 @@ test.describe('支付歷史記錄', () => {
 });
 
 test.describe('退款流程', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_USERS.subscriber);
-  });
 
   test('應該能申請退款', async ({ page, context }) => {
     await context.tracing.start({ screenshots: true, snapshots: true });
@@ -238,6 +229,8 @@ test.describe('退款流程', () => {
 });
 
 test.describe('支付安全性測試', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('未登入用戶應該無法訪問支付頁面', async ({ page }) => {
     // 不登入直接訪問支付頁面
     await page.goto('/payment');

@@ -11,6 +11,7 @@ import {
   getDatabaseConfig,
   EnvConfigModule,
   AppConfigService,
+  StripeModule as CommonStripeModule,
 } from "@suggar-daddy/common";
 import { AuthModule } from "@suggar-daddy/auth";
 import { RedisModule } from "@suggar-daddy/redis";
@@ -92,6 +93,9 @@ const ALL_ENTITIES = [
       }),
       inject: [AppConfigService],
     }),
+
+    // Stripe 支付
+    CommonStripeModule,
 
     // JWT 認證
     AuthModule,

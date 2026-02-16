@@ -172,6 +172,22 @@ export class UsersApi {
     return this.client.get<FollowStatus>(`/api/users/follow/${targetId}/status`);
   }
 
+  /**
+   * 追蹤用戶
+   * @param targetId - 目標用戶 ID
+   */
+  followUser(targetId: string): Promise<{ success: boolean }> {
+    return this.client.post<{ success: boolean }>(`/api/users/follow/${targetId}`);
+  }
+
+  /**
+   * 取消追蹤用戶
+   * @param targetId - 目標用戶 ID
+   */
+  unfollowUser(targetId: string): Promise<{ success: boolean }> {
+    return this.client.delete<{ success: boolean }>(`/api/users/follow/${targetId}`);
+  }
+
   // ==================== P1 進階功能 ====================
 
   /**

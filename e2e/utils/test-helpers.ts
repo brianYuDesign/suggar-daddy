@@ -19,20 +19,37 @@ export const TEST_USERS = {
 };
 
 /**
- * 登入輔助函數
+ * 登入輔助函數 — 透過 API 取得 token 寫入 localStorage，避免 UI 登入的速率限制
  */
 export async function login(
   page: Page,
   credentials: { email: string; password: string },
   baseURL = 'http://localhost:4200'
 ) {
-  await page.goto(`${baseURL}/auth/login`);
-  await page.fill('input[name="email"]', credentials.email);
-  await page.fill('input[name="password"]', credentials.password);
-  await page.click('button[type="submit"]');
-  
-  // 等待導向到主頁或 dashboard
-  await page.waitForURL(/\/(feed|dashboard)/, { timeout: 5000 });
+  // 先導航到任意頁面以建立 origin context
+  await page.goto(`${baseURL}/login`);
+
+  // 透過 API 直接登入取得 token
+  const apiBase = 'http://localhost:3000';
+  const res = await page.request.post(`${apiBase}/api/auth/login`, {
+    data: { email: credentials.email, password: credentials.password },
+  });
+
+  if (!res.ok()) {
+    throw new Error(`Login API failed: ${res.status()} ${await res.text()}`);
+  }
+
+  const tokens = await res.json();
+
+  // 將 token 寫入 localStorage
+  await page.evaluate((t) => {
+    localStorage.setItem('sd_access_token', t.accessToken);
+    localStorage.setItem('sd_refresh_token', t.refreshToken);
+  }, tokens);
+
+  // 導航到 feed 讓 auth-provider 從 localStorage 讀取 token
+  await page.goto(`${baseURL}/feed`);
+  await page.waitForURL(/\/(feed|dashboard)/, { timeout: 10000 });
 }
 
 /**

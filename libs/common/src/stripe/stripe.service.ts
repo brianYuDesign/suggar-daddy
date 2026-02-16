@@ -117,6 +117,25 @@ export class StripeService {
     });
   }
 
+  // Refund Management
+  async createRefund(
+    paymentIntentId: string,
+    amount?: number,
+    reason?: string,
+  ) {
+    const params: Stripe.RefundCreateParams = {
+      payment_intent: paymentIntentId,
+    };
+    if (amount !== undefined) {
+      params.amount = Math.round(amount * 100); // Convert to cents
+    }
+    if (reason) {
+      params.reason = 'requested_by_customer';
+      params.metadata = { reason };
+    }
+    return this.getStripeInstance().refunds.create(params);
+  }
+
   // Webhook signature verification（僅需 STRIPE_WEBHOOK_SECRET，不依賴 STRIPE_SECRET_KEY）
   constructWebhookEvent(payload: Buffer, signature: string): Stripe.Event {
     const webhookSecret = process.env['STRIPE_WEBHOOK_SECRET'];

@@ -8,7 +8,8 @@ import {
   DefaultValuePipe,
   NotFoundException,
 } from '@nestjs/common';
-import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { AuditLogService } from './audit-log.service';
 
 @Controller('audit-logs')

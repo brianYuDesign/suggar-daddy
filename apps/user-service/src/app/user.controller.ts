@@ -13,7 +13,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { CreateUserDto, UpdateProfileDto, LocationUpdateDto, UserProfileDto, UserCardDto, FollowerDto, FollowStatusDto, RecommendedCreatorDto } from '@suggar-daddy/dto';
-import { CurrentUser, Public, Roles, RolesGuard, UserRole, JwtAuthGuard, OptionalJwtGuard, type CurrentUserData } from '@suggar-daddy/common';
+import { CurrentUser, Public, Roles, RolesGuard, JwtAuthGuard, OptionalJwtGuard, type CurrentUserData } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { UserService } from './user.service';
 import { ReportService } from './report.service';
 import type { ReportRecord } from './user.types';
@@ -191,7 +192,7 @@ export class UserController {
   @Public()
   @Post()
   async create(@Body() body: CreateUserDto): Promise<UserProfileDto> {
-    this.logger.log(`create user request role=${body.role} displayName=${body.displayName}`);
+    this.logger.log(`create user request userType=${body.userType} displayName=${body.displayName}`);
     const user = await this.userService.create(body);
     this.logger.log(`create user result id=${user.id}`);
     return user;

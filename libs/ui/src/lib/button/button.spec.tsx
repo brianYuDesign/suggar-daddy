@@ -163,10 +163,11 @@ describe('Button', () => {
       expect(button).toHaveAttribute('type', 'submit');
     });
 
-    it('should default to button type', () => {
+    it('should not set type attribute when not provided', () => {
       render(<Button>Default Type</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveAttribute('type', 'button');
+      // type is not explicitly set; browser defaults to "submit"
+      expect(button.getAttribute('type')).toBeNull();
     });
 
     it('should accept data attributes', () => {

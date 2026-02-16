@@ -30,6 +30,7 @@ export const SUBSCRIPTION_EVENTS = {
 export const PAYMENT_EVENTS = {
   PAYMENT_COMPLETED: 'payment.completed',
   PAYMENT_FAILED: 'payment.failed',
+  PAYMENT_REFUNDED: 'payment.refunded',
   TIP_SENT: 'payment.tip.sent',
   POST_PURCHASED: 'payment.post.purchased',
   WALLET_CREDITED: 'payment.wallet.credited',
@@ -97,6 +98,16 @@ export interface PaymentCompletedEvent {
   amount: number;
   type: 'subscription' | 'tip' | 'ppv';
   metadata?: Record<string, unknown>;
+}
+
+export interface PaymentRefundedEvent {
+  transactionId: string;
+  userId: string;
+  amount: number;
+  refundedAmount: number;
+  stripeRefundId: string | null;
+  reason: string | null;
+  refundedAt: string;
 }
 
 export interface PostCreatedEvent {

@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, ForbiddenException } from '@nestjs/common';
-import { JwtAuthGuard, CurrentUser, CurrentUserData, Roles, UserRole } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, CurrentUserData, Roles } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { TransactionService } from './transaction.service';
-import { CreateTransactionDto, UpdateTransactionDto } from './dto/transaction.dto';
+import { CreateTransactionDto, UpdateTransactionDto, RefundTransactionDto } from './dto/transaction.dto';
 
 @Controller('transactions')
 @UseGuards(JwtAuthGuard)
@@ -34,6 +35,19 @@ export class TransactionController {
       throw new ForbiddenException('You can only view your own transactions');
     }
     return tx;
+  }
+
+  @Post(':id/refund')
+  async refund(
+    @CurrentUser() user: CurrentUserData,
+    @Param('id') id: string,
+    @Body() refundDto: RefundTransactionDto,
+  ) {
+    const tx = await this.transactionService.findOne(id);
+    if (user.role !== UserRole.ADMIN && tx.userId !== user.userId) {
+      throw new ForbiddenException('You can only refund your own transactions');
+    }
+    return this.transactionService.refund(id, refundDto.reason, refundDto.amount);
   }
 
   @Put(':id')

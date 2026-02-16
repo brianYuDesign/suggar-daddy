@@ -4,7 +4,8 @@
  */
 
 import { Controller, Get, Post, Delete, Param, UseGuards, HttpCode } from '@nestjs/common';
-import { JwtAuthGuard, RolesGuard, Roles, UserRole } from '@suggar-daddy/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { SystemMonitorService } from './system-monitor.service';
 
 @Controller('system')

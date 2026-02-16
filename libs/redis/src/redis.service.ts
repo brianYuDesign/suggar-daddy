@@ -263,6 +263,148 @@ export class RedisService implements OnModuleDestroy {
     };
   }
 
+  // ── Pipeline support ──────────────────────────────────────────
+
+  /** Execute multiple commands in a single pipeline (single roundtrip) */
+  async pipeline(
+    commands: Array<{ cmd: string; args: (string | number)[] }>,
+  ): Promise<Array<[Error | null, unknown]>> {
+    if (commands.length === 0) return [];
+    const pipe = this.client.pipeline();
+    for (const { cmd, args } of commands) {
+      (pipe as any)[cmd](...args);
+    }
+    const results = await pipe.exec();
+    return (results ?? []) as Array<[Error | null, unknown]>;
+  }
+
+  /** Batch SISMEMBER: check multiple members against multiple keys in one pipeline */
+  async batchSIsMember(
+    checks: Array<{ key: string; member: string }>,
+  ): Promise<boolean[]> {
+    if (checks.length === 0) return [];
+    const pipe = this.client.pipeline();
+    for (const { key, member } of checks) {
+      pipe.sismember(key, member);
+    }
+    const results = await pipe.exec();
+    return (results ?? []).map(([err, val]) => (!err && val === 1));
+  }
+
+  /** Get zRevRange with scores in one call */
+  async zRevRangeWithScores(
+    key: string,
+    start: number,
+    stop: number,
+  ): Promise<Array<{ member: string; score: number }>> {
+    const raw = await this.client.zrevrange(key, start, stop, 'WITHSCORES');
+    const result: Array<{ member: string; score: number }> = [];
+    for (let i = 0; i < raw.length; i += 2) {
+      result.push({ member: raw[i], score: parseFloat(raw[i + 1]) });
+    }
+    return result;
+  }
+
+  /** Batch zAdd + expire in one pipeline (for fan-out operations) */
+  async batchZAddWithExpire(
+    ops: Array<{ key: string; score: number; member: string; ttl: number }>,
+  ): Promise<void> {
+    if (ops.length === 0) return;
+    const pipe = this.client.pipeline();
+    for (const { key, score, member, ttl } of ops) {
+      pipe.zadd(key, score, member);
+      pipe.expire(key, ttl);
+    }
+    await pipe.exec();
+  }
+
+  /** Batch lRange in one pipeline */
+  async batchLRange(
+    ops: Array<{ key: string; start: number; stop: number }>,
+  ): Promise<string[][]> {
+    if (ops.length === 0) return [];
+    const pipe = this.client.pipeline();
+    for (const { key, start, stop } of ops) {
+      pipe.lrange(key, start, stop);
+    }
+    const results = await pipe.exec();
+    return (results ?? []).map(([err, val]) => (!err && Array.isArray(val) ? val as string[] : []));
+  }
+
+  /** Batch exists in one pipeline */
+  async batchExists(keys: string[]): Promise<boolean[]> {
+    if (keys.length === 0) return [];
+    const pipe = this.client.pipeline();
+    for (const key of keys) {
+      pipe.exists(key);
+    }
+    const results = await pipe.exec();
+    return (results ?? []).map(([err, val]) => (!err && val === 1));
+  }
+
+  /** Batch zScore in one pipeline */
+  async batchZScore(
+    key: string,
+    members: string[],
+  ): Promise<(number | null)[]> {
+    if (members.length === 0) return [];
+    const pipe = this.client.pipeline();
+    for (const member of members) {
+      pipe.zscore(key, member);
+    }
+    const results = await pipe.exec();
+    return (results ?? []).map(([err, val]) =>
+      !err && val !== null ? parseFloat(val as string) : null,
+    );
+  }
+
+  /** Batch zRem in one pipeline */
+  async batchZRem(
+    key: string,
+    members: string[],
+  ): Promise<void> {
+    if (members.length === 0) return;
+    const pipe = this.client.pipeline();
+    for (const member of members) {
+      pipe.zrem(key, member);
+    }
+    await pipe.exec();
+  }
+
+  /** Batch addToFeed: zAdd + zCard + conditional trim in pipeline */
+  async batchAddToFeed(
+    ops: Array<{ key: string; score: number; member: string; maxSize: number }>,
+  ): Promise<void> {
+    if (ops.length === 0) return;
+    // Phase 1: batch zAdd
+    const addPipe = this.client.pipeline();
+    for (const { key, score, member } of ops) {
+      addPipe.zadd(key, score, member);
+    }
+    await addPipe.exec();
+
+    // Phase 2: batch zCard to check sizes
+    const cardPipe = this.client.pipeline();
+    for (const { key } of ops) {
+      cardPipe.zcard(key);
+    }
+    const cardResults = await cardPipe.exec();
+
+    // Phase 3: trim if needed
+    const trimPipe = this.client.pipeline();
+    let hasTrim = false;
+    for (let i = 0; i < ops.length; i++) {
+      const [err, size] = (cardResults ?? [])[i] ?? [null, 0];
+      if (!err && (size as number) > ops[i].maxSize) {
+        trimPipe.zremrangebyrank(ops[i].key, 0, (size as number) - ops[i].maxSize - 1);
+        hasTrim = true;
+      }
+    }
+    if (hasTrim) {
+      await trimPipe.exec();
+    }
+  }
+
   getClient(): Redis {
     return this.client;
   }

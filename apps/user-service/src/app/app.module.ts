@@ -1,12 +1,8 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
-import {
-  JwtAuthGuard,
-  RolesGuard,
-  EnvConfigModule,
-  AppConfigService,
-} from "@suggar-daddy/common";
+import { JwtAuthGuard, RolesGuard } from "@suggar-daddy/auth";
+import { EnvConfigModule, AppConfigService } from "@suggar-daddy/common";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import { AuthModule } from "@suggar-daddy/auth";

@@ -17,7 +17,8 @@ import { disconnectAll } from '../lib/socket';
 /** Mirrors UserProfile from @suggar-daddy/dto (avoids decorator compilation issues) */
 export interface UserProfile {
   id: string;
-  role: string;
+  userType: string;
+  permissionRole: string;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
@@ -42,7 +43,7 @@ interface AuthContextValue extends AuthState {
   register: (data: {
     email: string;
     password: string;
-    role: 'sugar_baby' | 'sugar_daddy';
+    userType: string;
     displayName: string;
     bio?: string;
   }) => Promise<void>;
@@ -169,7 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (data: {
       email: string;
       password: string;
-      role: 'sugar_baby' | 'sugar_daddy';
+      userType: string;
       displayName: string;
       bio?: string;
     }) => {

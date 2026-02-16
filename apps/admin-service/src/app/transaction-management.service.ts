@@ -3,10 +3,12 @@
  * 提供交易列表、詳情查詢功能
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TransactionEntity, UserEntity } from '@suggar-daddy/database';
+import { StripeService, PAYMENT_EVENTS } from '@suggar-daddy/common';
+import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 @Injectable()
 export class TransactionManagementService {
@@ -17,6 +19,8 @@ export class TransactionManagementService {
     private readonly transactionRepo: Repository<TransactionEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    private readonly stripeService: StripeService,
+    private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
   /** 分頁查詢交易列表 */
@@ -62,6 +66,74 @@ export class TransactionManagementService {
     });
 
     return { data, total, page, limit };
+  }
+
+  /** 退款交易 */
+  async refundTransaction(id: string, reason?: string, amount?: number) {
+    const tx = await this.transactionRepo.findOne({ where: { id } });
+    if (!tx) {
+      throw new BadRequestException(`Transaction ${id} not found`);
+    }
+
+    if (tx.status === 'refunded') {
+      throw new BadRequestException('Transaction has already been refunded');
+    }
+
+    if (tx.status !== 'succeeded') {
+      throw new BadRequestException(
+        `Cannot refund a transaction with status "${tx.status}". Only succeeded transactions can be refunded.`,
+      );
+    }
+
+    const refundedAmount = amount ?? Number(tx.amount);
+
+    if (amount !== undefined && amount > Number(tx.amount)) {
+      throw new BadRequestException(
+        `Refund amount (${amount}) cannot exceed the transaction amount (${tx.amount})`,
+      );
+    }
+
+    // Call Stripe refund if applicable
+    let stripeRefundId: string | null = null;
+    if (tx.stripePaymentId && this.stripeService.isConfigured()) {
+      try {
+        const refund = await this.stripeService.createRefund(
+          tx.stripePaymentId,
+          amount,
+          reason,
+        );
+        stripeRefundId = refund.id;
+      } catch (err) {
+        throw new BadRequestException(
+          `Stripe refund failed: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
+
+    // Update transaction in DB
+    tx.status = 'refunded';
+    tx.metadata = {
+      ...((tx.metadata as Record<string, unknown>) || {}),
+      refundedAt: new Date().toISOString(),
+      refundedAmount,
+      refundReason: reason || null,
+      stripeRefundId,
+    };
+    await this.transactionRepo.save(tx);
+
+    // Emit Kafka event
+    await this.kafkaProducer.sendEvent(PAYMENT_EVENTS.PAYMENT_REFUNDED, {
+      transactionId: id,
+      userId: tx.userId,
+      amount: Number(tx.amount),
+      refundedAmount,
+      stripeRefundId,
+      reason: reason || null,
+      refundedAt: new Date().toISOString(),
+    });
+
+    this.logger.log(`Transaction ${id} refunded (amount: ${refundedAmount})`);
+    return { id: tx.id, status: tx.status, refundedAmount, stripeRefundId };
   }
 
   /** 取得交易類型分佈統計 */

@@ -1,6 +1,11 @@
+import type { UserType, PermissionRole } from '@suggar-daddy/common';
+
 export interface UserRecord {
   id: string;
-  role: string;
+  /** 業務角色：sugar_baby or sugar_daddy */
+  userType: UserType;
+  /** 權限角色：subscriber, creator, admin */
+  permissionRole: PermissionRole;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
@@ -32,6 +37,10 @@ export interface ReportRecord {
 }
 
 export const GEO_KEY = 'geo:users';
+/** Set of all user IDs (avoids SCAN on user:* keyspace) */
+export const USERS_ALL_SET = 'users:all';
+/** Set of all creator user IDs */
+export const CREATORS_SET = 'users:creators';
 
 export const FOLLOWING_SET = (userId: string): string => `user:following:${userId}`;
 export const FOLLOWERS_SET = (userId: string): string => `user:followers:${userId}`;

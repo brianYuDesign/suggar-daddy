@@ -5,13 +5,7 @@
 
 ## 立即解決方案
 
-### 1. 執行清理腳本
-```bash
-chmod +x scripts/docker-cleanup.sh
-./scripts/docker-cleanup.sh
-```
-
-### 2. 手動深度清理
+### 手動深度清理
 ```bash
 # 停止所有容器
 docker-compose down
@@ -27,20 +21,6 @@ docker builder prune -af
 ```
 
 ## 優化策略
-
-### 使用輕量級開發環境
-使用 `docker-compose.dev.yml` 代替完整的 `docker-compose.yml`：
-
-```bash
-# 啟動輕量級開發環境（不包括 HA 和監控）
-docker-compose -f docker-compose.dev.yml up -d
-
-# 優點：
-# - 啟動速度快 60%
-# - 記憶體使用減少 70%
-# - 磁盤空間節省 50%
-# - 只包含核心服務（PostgreSQL, Redis, Kafka, Jaeger）
-```
 
 ### 按需啟動服務
 ```bash
@@ -143,39 +123,33 @@ docker volume ls -q | xargs docker volume inspect | \
 
 ### 設置磁盤空間警報
 ```bash
-# 創建監控腳本
-cat > scripts/check-docker-space.sh << 'EOF'
-#!/bin/bash
+# 檢查 Docker 磁盤使用率
 THRESHOLD=80
 USAGE=$(df -h | grep '/var/lib/docker' | awk '{print $5}' | sed 's/%//')
 if [ "$USAGE" -gt "$THRESHOLD" ]; then
-  echo "⚠️ Docker 磁盤使用率超過 ${THRESHOLD}%（當前：${USAGE}%）"
-  echo "建議執行: ./scripts/docker-cleanup.sh"
+  echo "Docker 磁盤使用率超過 ${THRESHOLD}%（當前：${USAGE}%）"
+  echo "建議執行: docker system prune -af"
 fi
-EOF
-chmod +x scripts/check-docker-space.sh
 ```
 
 ## 開發環境對比
 
 | 配置 | 啟動時間 | 記憶體使用 | 磁盤空間 | 用途 |
 |------|---------|-----------|---------|------|
-| `docker-compose.yml` | ~60s | ~8GB | ~25GB | 生產環境、完整測試 |
-| `docker-compose.dev.yml` | ~20s | ~2GB | ~5GB | 日常開發 |
+| `docker-compose.yml` | ~60s | ~8GB | ~25GB | 完整環境 |
 | 按需啟動 | ~10s | ~1GB | ~3GB | 單一服務開發 |
 
 ## 最佳實踐
 
-1. **開發環境使用輕量配置**
+1. **按需啟動服務**
    ```bash
-   alias dc-dev='docker-compose -f docker-compose.dev.yml'
-   dc-dev up -d
+   docker-compose up -d postgres-master redis-master kafka jaeger
    ```
 
 2. **定期清理（加入 crontab）**
    ```bash
    # 每天凌晨 2 點清理
-   0 2 * * * /path/to/scripts/docker-cleanup.sh >> /var/log/docker-cleanup.log 2>&1
+   0 2 * * * docker image prune -af --filter "until=24h" >> /var/log/docker-cleanup.log 2>&1
    ```
 
 3. **使用 BuildKit 加速構建**
@@ -223,7 +197,7 @@ osascript -e 'quit app "Docker"'
 open -a Docker
 
 # 7. 重新啟動服務
-docker-compose -f docker-compose.dev.yml up -d
+docker-compose up -d
 ```
 
 ## 相關資源

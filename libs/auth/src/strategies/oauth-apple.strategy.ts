@@ -18,11 +18,11 @@ interface AppleProfile {
 export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
   constructor(private readonly configService: ConfigService) {
     super({
-      clientID: configService.get<string>('APPLE_CLIENT_ID'),
-      teamID: configService.get<string>('APPLE_TEAM_ID'),
-      keyID: configService.get<string>('APPLE_KEY_ID'),
-      privateKeyLocation: configService.get<string>('APPLE_PRIVATE_KEY_PATH'),
-      callbackURL: configService.get<string>('APPLE_CALLBACK_URL'),
+      clientID: configService.get<string>('APPLE_CLIENT_ID') || '',
+      teamID: configService.get<string>('APPLE_TEAM_ID') || '',
+      keyID: configService.get<string>('APPLE_KEY_ID') || '',
+      privateKeyLocation: configService.get<string>('APPLE_PRIVATE_KEY_PATH') || '',
+      callbackURL: configService.get<string>('APPLE_CALLBACK_URL') || '',
       scope: ['email', 'name'],
       passReqToCallback: false,
     });

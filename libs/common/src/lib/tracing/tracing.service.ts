@@ -1,55 +1,60 @@
-import { Injectable } from '@nestjs/common';
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { resourceFromAttributes } from '@opentelemetry/resources';
-import { 
-  SEMRESATTRS_SERVICE_NAME, 
-  SEMRESATTRS_SERVICE_VERSION, 
-  SEMRESATTRS_DEPLOYMENT_ENVIRONMENT 
-} from '@opentelemetry/semantic-conventions';
+import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class TracingService {
-  private sdk: NodeSDK;
+  private sdk: any;
+  private readonly logger = new Logger(TracingService.name);
 
   constructor() {}
 
-  init(serviceName: string) {
-    const traceExporter = new OTLPTraceExporter({
-      url: process.env.JAEGER_ENDPOINT || 'http://localhost:4318/v1/traces',
-    });
+  async init(serviceName: string) {
+    try {
+      const { NodeSDK } = await import('@opentelemetry/sdk-node');
+      const { getNodeAutoInstrumentations } = await import('@opentelemetry/auto-instrumentations-node');
+      const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
+      const { resourceFromAttributes } = await import('@opentelemetry/resources');
+      const {
+        SEMRESATTRS_SERVICE_NAME,
+        SEMRESATTRS_SERVICE_VERSION,
+        SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
+      } = await import('@opentelemetry/semantic-conventions');
 
-    this.sdk = new NodeSDK({
-      resource: resourceFromAttributes({
-        [SEMRESATTRS_SERVICE_NAME]: serviceName,
-        [SEMRESATTRS_SERVICE_VERSION]: process.env.APP_VERSION || '1.0.0',
-        [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'development',
-      }),
-      traceExporter,
-      instrumentations: [
-        getNodeAutoInstrumentations({
-          '@opentelemetry/instrumentation-fs': {
-            enabled: false, // Disable file system instrumentation
-          },
+      const traceExporter = new OTLPTraceExporter({
+        url: process.env.JAEGER_ENDPOINT || 'http://localhost:4318/v1/traces',
+      });
+
+      this.sdk = new NodeSDK({
+        resource: resourceFromAttributes({
+          [SEMRESATTRS_SERVICE_NAME]: serviceName,
+          [SEMRESATTRS_SERVICE_VERSION]: process.env.APP_VERSION || '1.0.0',
+          [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'development',
         }),
-      ],
-    });
+        traceExporter,
+        instrumentations: [
+          getNodeAutoInstrumentations({
+            '@opentelemetry/instrumentation-fs': {
+              enabled: false,
+            },
+          }),
+        ],
+      });
 
-    this.sdk.start();
-    console.log(`✅ Tracing initialized for ${serviceName}`);
+      this.sdk.start();
+      this.logger.log(`Tracing initialized for ${serviceName}`);
 
-    // Graceful shutdown
-    process.on('SIGTERM', () => {
-      this.sdk
-        .shutdown()
-        .then(() => console.log('Tracing terminated'))
-        .catch((error) => console.log('Error terminating tracing', error))
-        .finally(() => process.exit(0));
-    });
+      process.on('SIGTERM', () => {
+        this.sdk
+          ?.shutdown()
+          .then(() => this.logger.log('Tracing terminated'))
+          .catch((error: unknown) => this.logger.error('Error terminating tracing', error))
+          .finally(() => process.exit(0));
+      });
+    } catch {
+      this.logger.warn(`Tracing disabled for ${serviceName} (OpenTelemetry packages not available)`);
+    }
   }
 
-  getSDK(): NodeSDK {
+  getSDK() {
     return this.sdk;
   }
 }

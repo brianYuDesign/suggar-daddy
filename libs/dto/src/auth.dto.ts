@@ -1,7 +1,8 @@
 /**
  * Auth 相關 DTO
  */
-import { IsEmail, IsNotEmpty, IsString, IsIn, IsOptional, MinLength, MaxLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsEnum, IsOptional, MinLength, MaxLength } from 'class-validator';
+import { UserType } from '@suggar-daddy/common';
 
 /** 登入請求 */
 export class LoginDto {
@@ -23,8 +24,8 @@ export class RegisterDto {
   @MaxLength(128)
   password: string;
 
-  @IsIn(['sugar_baby', 'sugar_daddy'])
-  role: 'sugar_baby' | 'sugar_daddy';
+  @IsEnum(UserType, { message: 'userType must be either sugar_baby or sugar_daddy' })
+  userType: UserType;
 
   @IsString()
   @IsNotEmpty()

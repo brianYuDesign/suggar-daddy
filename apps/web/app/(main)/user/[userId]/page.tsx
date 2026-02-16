@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../../../providers/auth-provider';
-import { usersApi, paymentsApi, ApiError } from '../../../../lib/api';
+import { usersApi, ApiError } from '../../../../lib/api';
+import { useToast } from '../../../../providers/toast-provider';
+import { TipModal } from '../../../components/TipModal';
 import {
   Avatar,
   Badge,
@@ -26,8 +28,8 @@ import {
   Flag,
   MessageCircle,
   Loader2,
-  Check,
 } from 'lucide-react';
+import { FollowButton } from '../../../../components/FollowButton';
 
 interface UserProfile {
   id: string;
@@ -86,9 +88,17 @@ export default function UserProfilePage() {
   const [reportSuccess, setReportSuccess] = useState(false);
 
   const [showTipDialog, setShowTipDialog] = useState(false);
-  const [tipAmount, setTipAmount] = useState('');
-  const [isTipping, setIsTipping] = useState(false);
-  const [tipSuccess, setTipSuccess] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const toast = useToast();
+
+  // Fetch follow status
+  useEffect(() => {
+    if (userId && currentUser?.id && currentUser.id !== userId) {
+      usersApi.getFollowStatus(userId).then((status) => {
+        setIsFollowing(status.isFollowing);
+      }).catch(() => {});
+    }
+  }, [userId, currentUser?.id]);
 
   const fetchProfile = useCallback(async () => {
     setIsLoading(true);
@@ -115,8 +125,9 @@ export default function UserProfilePage() {
     try {
       await usersApi.blockUser(userId);
       setBlockSuccess(true);
+      toast.success('已成功封鎖此使用者');
     } catch (err: unknown) {
-      setError(ApiError.getMessage(err, '封鎖失敗，請稍後再試'));
+      toast.error(ApiError.getMessage(err, '封鎖失敗，請稍後再試'));
     } finally {
       setIsBlocking(false);
       setShowBlockDialog(false);
@@ -133,8 +144,9 @@ export default function UserProfilePage() {
         reason: reportReason,
       });
       setReportSuccess(true);
+      toast.success('檢舉已送出，我們會盡快處理');
     } catch (err: unknown) {
-      setError(ApiError.getMessage(err, '檢舉失敗，請稍後再試'));
+      toast.error(ApiError.getMessage(err, '檢舉失敗，請稍後再試'));
     } finally {
       setIsReporting(false);
       setShowReportDialog(false);
@@ -251,10 +263,10 @@ export default function UserProfilePage() {
             {profile.displayName}
           </h2>
           <Badge
-            variant={getRoleBadgeVariant(profile.role) as 'warning' | 'default'}
+            variant={getRoleBadgeVariant(profile.userType) as 'warning' | 'default'}
             className="mt-2"
           >
-            {getRoleLabel(profile.role)}
+            {getRoleLabel(profile.userType)}
           </Badge>
 
           {/* Verification status */}
@@ -262,6 +274,16 @@ export default function UserProfilePage() {
             <span className="mt-2 text-xs text-green-600 font-medium">
               已驗證
             </span>
+          )}
+
+          {/* Follow button */}
+          {!isOwnProfile && !blockSuccess && (
+            <div className="mt-3">
+              <FollowButton
+                targetUserId={profile.id}
+                initialIsFollowing={isFollowing}
+              />
+            </div>
           )}
 
           {/* Bio */}
@@ -336,14 +358,6 @@ export default function UserProfilePage() {
         </div>
       )}
 
-      {/* Tip success banner */}
-      {tipSuccess && (
-        <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
-          <Check className="h-4 w-4" />
-          打賞成功！
-        </div>
-      )}
-
       {/* Block confirmation dialog */}
       <Dialog open={showBlockDialog} onClose={() => setShowBlockDialog(false)}>
         <DialogHeader>
@@ -377,71 +391,14 @@ export default function UserProfilePage() {
         </DialogFooter>
       </Dialog>
 
-      {/* Tip dialog */}
-      <Dialog open={showTipDialog} onClose={() => { setShowTipDialog(false); setTipAmount(''); }}>
-        <DialogHeader>
-          <DialogTitle>打賞 {profile.displayName}</DialogTitle>
-          <DialogDescription>
-            選擇或輸入打賞金額
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4 space-y-3">
-          <div className="grid grid-cols-3 gap-2">
-            {[5, 10, 20].map((amt) => (
-              <Button
-                key={amt}
-                variant={tipAmount === String(amt) ? 'default' : 'outline'}
-                className={tipAmount === String(amt) ? 'bg-brand-500 text-white' : ''}
-                onClick={() => setTipAmount(String(amt))}
-              >
-                ${amt}
-              </Button>
-            ))}
-          </div>
-          <input
-            type="number"
-            value={tipAmount}
-            onChange={(e) => setTipAmount(e.target.value)}
-            placeholder="自訂金額"
-            min="1"
-            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => { setShowTipDialog(false); setTipAmount(''); }}
-            disabled={isTipping}
-          >
-            取消
-          </Button>
-          <Button
-            className="bg-brand-500 hover:bg-brand-600 text-white"
-            onClick={async () => {
-              const amount = Number(tipAmount);
-              if (!amount || amount <= 0) return;
-              setIsTipping(true);
-              try {
-                await paymentsApi.sendTip(profile.id, amount);
-                setTipSuccess(true);
-                setShowTipDialog(false);
-                setTipAmount('');
-              } catch (err: unknown) {
-                setError(ApiError.getMessage(err, '打賞失敗，請稍後再試'));
-              } finally {
-                setIsTipping(false);
-              }
-            }}
-            disabled={isTipping || !tipAmount || Number(tipAmount) <= 0}
-          >
-            {isTipping ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />處理中...</>
-            ) : (
-              '確認打賞'
-            )}
-          </Button>
-        </DialogFooter>
-      </Dialog>
+      {/* Tip modal */}
+      {showTipDialog && (
+        <TipModal
+          recipientId={profile.id}
+          recipientName={profile.displayName}
+          onClose={() => setShowTipDialog(false)}
+        />
+      )}
 
       {/* Report dialog */}
       <Dialog open={showReportDialog} onClose={() => setShowReportDialog(false)}>

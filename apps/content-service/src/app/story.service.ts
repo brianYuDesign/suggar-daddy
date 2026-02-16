@@ -69,30 +69,59 @@ export class StoryService {
   }
 
   async getStoryFeed(userId: string): Promise<{ creatorId: string; latestStoryAt: string }[]> {
-    const creatorIds = await this.redis.zRevRange(STORIES_FEED(userId), 0, -1);
-    if (creatorIds.length === 0) return [];
+    // Use zRevRangeWithScores to get scores in one call (eliminates N zScore calls)
+    const entries = await this.redis.zRevRangeWithScores(STORIES_FEED(userId), 0, -1);
+    if (entries.length === 0) return [];
 
+    const creatorIds = entries.map((e) => e.member);
+
+    // Batch lRange: get first story ID for each creator (1 pipeline instead of N calls)
+    const lRangeResults = await this.redis.batchLRange(
+      creatorIds.map((id) => ({ key: STORIES_CREATOR(id), start: 0, stop: 0 })),
+    );
+
+    // Batch exists: check if first story still exists (1 pipeline instead of N calls)
+    const storyKeysToCheck: string[] = [];
+    const storyCheckMap: number[] = []; // maps storyKeysToCheck index -> creatorIds index
+    for (let i = 0; i < lRangeResults.length; i++) {
+      if (lRangeResults[i].length > 0) {
+        storyKeysToCheck.push(STORY_KEY(lRangeResults[i][0]));
+        storyCheckMap.push(i);
+      }
+    }
+    const existsResults = await this.redis.batchExists(storyKeysToCheck);
+
+    // Determine which creators to keep and which to clean up
+    const toRemove: string[] = [];
+    const validSet = new Set<number>();
+
+    for (let i = 0; i < creatorIds.length; i++) {
+      if (lRangeResults[i].length === 0) {
+        toRemove.push(creatorIds[i]);
+        continue;
+      }
+      const checkIdx = storyCheckMap.indexOf(i);
+      if (checkIdx === -1 || !existsResults[checkIdx]) {
+        toRemove.push(creatorIds[i]);
+        continue;
+      }
+      validSet.add(i);
+    }
+
+    // Batch cleanup removed creators
+    if (toRemove.length > 0) {
+      await this.redis.batchZRem(STORIES_FEED(userId), toRemove);
+    }
+
+    // Build result from valid entries (scores already available)
     const result: { creatorId: string; latestStoryAt: string }[] = [];
-
-    for (const creatorId of creatorIds) {
-      // Check if creator still has active stories
-      const storyIds = await this.redis.lRange(STORIES_CREATOR(creatorId), 0, 0);
-      if (storyIds.length === 0) {
-        // Lazy cleanup: remove from feed
-        await this.redis.zRem(STORIES_FEED(userId), creatorId);
-        continue;
-      }
-      // Check if the first story still exists (not expired)
-      const exists = await this.redis.exists(STORY_KEY(storyIds[0]));
-      if (!exists) {
-        await this.redis.zRem(STORIES_FEED(userId), creatorId);
-        continue;
-      }
-
-      const score = await this.redis.zScore(STORIES_FEED(userId), creatorId);
+    for (let i = 0; i < entries.length; i++) {
+      if (!validSet.has(i)) continue;
       result.push({
-        creatorId,
-        latestStoryAt: score ? new Date(score).toISOString() : new Date().toISOString(),
+        creatorId: entries[i].member,
+        latestStoryAt: entries[i].score
+          ? new Date(entries[i].score).toISOString()
+          : new Date().toISOString(),
       });
     }
 
@@ -111,22 +140,29 @@ export class StoryService {
 
     const stories: StoryDto[] = [];
     const expiredIds: string[] = [];
+    const validIndices: number[] = [];
 
     for (let i = 0; i < storyIds.length; i++) {
-      const raw = values[i];
-      if (!raw) {
-        // Story expired — mark for cleanup
+      if (!values[i]) {
         expiredIds.push(storyIds[i]);
-        continue;
+      } else {
+        validIndices.push(i);
       }
-      const story: StoryDto = JSON.parse(raw);
+    }
 
-      // Mark viewed status for viewer
+    // Batch check viewed status with pipeline (eliminates N+1)
+    let viewedResults: boolean[] = [];
+    if (viewerId && validIndices.length > 0) {
+      viewedResults = await this.redis.batchSIsMember(
+        validIndices.map((i) => ({ key: STORY_VIEWERS(storyIds[i]), member: viewerId })),
+      );
+    }
+
+    for (let j = 0; j < validIndices.length; j++) {
+      const story: StoryDto = JSON.parse(values[validIndices[j]]!);
       if (viewerId) {
-        const viewed = await this.redis.sIsMember(STORY_VIEWERS(storyIds[i]), viewerId);
-        story.viewed = viewed;
+        story.viewed = viewedResults[j] ?? false;
       }
-
       stories.push(story);
     }
 

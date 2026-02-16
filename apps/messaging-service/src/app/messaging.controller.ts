@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SendMessageDto, SendBroadcastDto } from '@suggar-daddy/dto';
-import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/common';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
 import { MessagingService } from './messaging.service';
 
 @Controller()

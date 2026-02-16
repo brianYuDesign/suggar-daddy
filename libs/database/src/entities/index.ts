@@ -1,6 +1,7 @@
 export * from './swipe.entity';
 export * from './match.entity';
 export * from './user.entity';
+export { UserEntity, UserType, PermissionRole } from './user.entity';
 export * from './post.entity';
 export * from './post-like.entity';
 export * from './post-comment.entity';
