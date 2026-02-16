@@ -1,12 +1,15 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { APP_GUARD } from "@nestjs/core";
+import { ThrottlerModule } from "@nestjs/throttler";
 import { RedisModule } from "@suggar-daddy/redis";
 import { EnvConfigModule } from "@suggar-daddy/common";
 import { ProxyController } from "./proxy.controller";
 import { ProxyService } from "./proxy.service";
 import { AppController } from "./app.controller";
-import { RateLimitMiddleware } from "./rate-limit.middleware";
 import { RequestLoggerMiddleware } from "./request-logger.middleware";
+import { ThrottlerBehindProxyGuard } from "./guards/throttler-behind-proxy.guard";
+import { createThrottlerOptions } from "./throttler.config";
 
 @Module({
   imports: [
@@ -16,12 +19,22 @@ import { RequestLoggerMiddleware } from "./request-logger.middleware";
     }),
     EnvConfigModule,
     RedisModule.forRoot(),
+    // Throttler Module with Redis Storage
+    ThrottlerModule.forRoot(createThrottlerOptions()),
   ],
   controllers: [AppController, ProxyController],
-  providers: [ProxyService],
+  providers: [
+    ProxyService,
+    // 全局應用 Throttler Guard
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerBehindProxyGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestLoggerMiddleware, RateLimitMiddleware).forRoutes("*");
+    // 只保留 Request Logger，移除舊的 RateLimitMiddleware
+    consumer.apply(RequestLoggerMiddleware).forRoutes("*");
   }
 }

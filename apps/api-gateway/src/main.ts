@@ -19,6 +19,11 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
+  // Trust proxy - 必須在所有 middleware 之前設置
+  // 這樣才能正確獲取 X-Forwarded-For 和 X-Real-IP
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', true);
+
   // Security headers
   app.use(helmet());
 

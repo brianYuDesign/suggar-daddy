@@ -420,6 +420,28 @@ apps/
 
 ## Recent Improvements
 
+### ⚡ Phase A: Critical Security - Rate Limiting (2024-02-16)
+
+#### Rate Limiting Implementation ✅
+- **三層限流架構**：
+  - 全局限流：100 requests/分鐘/IP（防止 DDoS）
+  - 認證端點：5 requests/分鐘/IP（防止暴力破解）
+  - 支付端點：10 requests/分鐘/用戶（防止支付濫用）
+- **技術實施**：
+  - 使用 `@nestjs/throttler` 標準化限流
+  - Redis 儲存支援分散式部署
+  - 智能 IP 追蹤（X-Forwarded-For, X-Real-IP）
+  - 標準 Rate Limit Headers
+  - 路徑自動識別與策略選擇
+- **文檔**：詳見 [docs/rate-limiting.md](./docs/rate-limiting.md)
+- **影響**：
+  - ✅ 保護所有 API 端點免受 DDoS 攻擊
+  - ✅ 防止暴力破解登入/註冊
+  - ✅ 防止支付濫用和重複扣款
+  - ✅ 支援高可用 Redis Sentinel 架構
+
+---
+
 ### Phase 1 Infrastructure Fixes (Completed)
 
 #### 1. Docker Compose Configuration

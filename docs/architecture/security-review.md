@@ -579,44 +579,78 @@ export function RichTextDisplay({ content }: { content: string }) {
 
 ### ⚠️ 關鍵問題
 
-#### 4.1 缺少 Rate Limiting
-```typescript
-// ⚠️ 當前: 無全局 Rate Limiting
-// 攻擊場景: 暴力破解登入、DDoS 攻擊
+#### 4.1 ✅ Rate Limiting 已實施 (2024-02-16)
 
-// 建議: @nestjs/throttler
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+**實施狀態**: ✅ 已完成
+
+**架構**:
+```typescript
+// ✅ 已實施: 三層限流架構
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nestjs-redis/throttler-storage';
 
 @Module({
   imports: [
     ThrottlerModule.forRoot({
-      ttl: 60,  // 60 秒內
-      limit: 100,  // 最多 100 個請求
-      storage: new ThrottlerStorageRedisService(redisClient),  // Redis 存儲（分散式）
+      throttlers: [
+        {
+          name: 'global',
+          ttl: 60000,  // 60 秒
+          limit: 100,  // 最多 100 個請求
+        },
+        {
+          name: 'auth',
+          ttl: 60000,
+          limit: 5,    // 認證端點：5 requests/分鐘
+        },
+        {
+          name: 'payment',
+          ttl: 60000,
+          limit: 10,   // 支付端點：10 requests/分鐘
+        },
+      ],
+      storage: new ThrottlerStorageRedisService(redisClient),
     }),
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerBehindProxyGuard,  // 支援 proxy 環境
+    },
   ],
 })
 export class AppModule {}
-
-// 全局應用
-app.useGlobalGuards(new ThrottlerGuard());
-
-// 特定端點嚴格限制
-@Controller('auth')
-export class AuthController {
-  @Throttle(5, 60)  // 60 秒內最多 5 次
-  @Post('login')
-  async login(@Body() dto: LoginDto) { ... }
-  
-  @Throttle(3, 60)  // 60 秒內最多 3 次
-  @Post('register')
-  async register(@Body() dto: RegisterDto) { ... }
-  
-  @Throttle(2, 300)  // 5 分鐘內最多 2 次
-  @Post('forgot-password')
-  async forgotPassword(@Body() dto: ForgotPasswordDto) { ... }
-}
 ```
+
+**限流策略**:
+| 層級 | 限制 | 適用範圍 |
+|------|------|----------|
+| 全局 | 100 requests/分鐘/IP | 所有 API 端點 |
+| 認證 | 5 requests/分鐘/IP | `/api/auth/*` |
+| 支付 | 10 requests/分鐘/用戶 | `/api/payment/*`, `/api/subscription/*` |
+
+**特色功能**:
+- ✅ Redis 儲存（分散式支援）
+- ✅ 支援 Redis Sentinel 高可用性
+- ✅ 智能 IP 追蹤（X-Forwarded-For, X-Real-IP）
+- ✅ 標準 Rate Limit Headers
+- ✅ 路徑自動識別
+- ✅ 健康檢查豁免
+
+**文檔**: 詳見 `docs/rate-limiting.md`
+
+---
+
+#### 4.1.1 實施前的問題（已解決）
+```typescript
+// ⚠️ 之前: 自定義 middleware，功能有限
+// 問題:
+// 1. 只有簡單的 IP-based 限流
+// 2. 沒有針對不同端點的策略
+// 3. Redis 故障時無降級機制
+// 4. 缺少標準 Rate Limit Headers
+```
+
 
 #### 4.2 CORS 配置過於寬鬆
 ```typescript
@@ -1254,7 +1288,7 @@ export class Transaction {
 | CVE ID | 嚴重性 | 組件 | 描述 | 狀態 |
 |--------|-------|------|------|------|
 | - | 🔴 High | JWT Secret | 使用弱 secret | 🟡 規劃中 |
-| - | 🔴 High | Rate Limiting | 缺少全局限流 | 🔴 未修復 |
+| - | 🔴 High | Rate Limiting | 缺少全局限流 | ✅ **已修復** (2024-02-16) |
 | - | 🟡 Medium | HTTPS | 未強制 HTTPS | 🟡 規劃中 |
 | - | 🟡 Medium | DB SSL | 連接未加密 | 🟡 規劃中 |
 | - | 🟡 Medium | XSS | dangerouslySetInnerHTML 未清理 | 🔴 未修復 |
