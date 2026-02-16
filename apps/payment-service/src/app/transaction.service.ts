@@ -15,6 +15,7 @@ export interface Transaction {
   userId: string;
   type: 'subscription' | 'ppv' | 'tip';
   amount: number;
+  currency?: string; // ✅ Bug 2 修復: 添加 currency 欄位
   status: 'pending' | 'succeeded' | 'failed' | 'refunded';
   stripePaymentId: string | null;
   relatedEntityId: string | null;
@@ -188,6 +189,46 @@ export class TransactionService {
       reason: reason || null,
       refundedAt: new Date().toISOString(),
     });
+
+    return tx;
+  }
+
+  // ✅ Bug 2 修復: 創建孤兒交易記錄
+  async createOrphan(data: {
+    stripePaymentIntentId: string;
+    amount: number;
+    currency: string;
+    status: 'failed';
+    type: 'orphan';
+    metadata: Record<string, unknown>;
+  }): Promise<Transaction> {
+    const id = this.genId();
+    const now = new Date().toISOString();
+    const tx: Transaction = {
+      id,
+      userId: 'orphan', // 特殊標記表示孤兒交易
+      type: 'tip', // 使用 tip 作為默認類型
+      amount: data.amount,
+      status: data.status,
+      stripePaymentId: data.stripePaymentIntentId,
+      relatedEntityId: null,
+      relatedEntityType: null,
+      metadata: {
+        ...data.metadata,
+        currency: data.currency,
+        isOrphan: true,
+      },
+      createdAt: now,
+    };
+
+    // 儲存孤兒交易
+    const pipeline = this.redis.getClient().pipeline();
+    pipeline.set(TX_KEY(id), JSON.stringify(tx));
+    pipeline.set(TX_STRIPE(data.stripePaymentIntentId), id);
+    pipeline.zadd(TX_ALL_BY_TIME, Date.now(), id);
+    // 添加到特殊的孤兒交易列表用於監控
+    pipeline.lpush('transactions:orphan', id);
+    await pipeline.exec();
 
     return tx;
   }

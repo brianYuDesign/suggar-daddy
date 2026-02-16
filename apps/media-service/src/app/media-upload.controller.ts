@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Delete, Body, Param, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, Query, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard } from '@suggar-daddy/auth';
 import { MediaUploadService } from './media-upload.service';
 import { CreateMediaUploadDto } from './dto/media-upload.dto';
 
@@ -7,7 +8,9 @@ import { CreateMediaUploadDto } from './dto/media-upload.dto';
 export class MediaUploadController {
   constructor(private readonly mediaUploadService: MediaUploadService) {}
 
+  // ✅ Bug 4 修復: 添加認證保護
   @Post('upload')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async upload(
     @UploadedFile() file: Express.Multer.File,
@@ -29,7 +32,9 @@ export class MediaUploadController {
     return this.mediaUploadService.findOne(id);
   }
 
+  // ✅ Bug 4 修復: 添加認證保護
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.mediaUploadService.remove(id);
   }

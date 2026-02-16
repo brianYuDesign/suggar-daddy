@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException, NotFoundException } from '@nes
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { PAYMENT_EVENTS } from '@suggar-daddy/common';
+import Decimal from 'decimal.js';
 
 const WALLET_KEY = (userId: string) => `wallet:${userId}`;
 const WALLET_HISTORY = (userId: string) => `wallet:history:${userId}`;
@@ -185,8 +186,16 @@ export class WalletService {
     type: 'tip_received' | 'subscription_received' | 'ppv_received',
     referenceId?: string,
   ): Promise<WalletRecord> {
-    const platformFee = Math.round(grossAmount * PLATFORM_FEE_RATE * 100) / 100;
-    const netAmount = Math.round((grossAmount - platformFee) * 100) / 100;
+    // ✅ 使用 Decimal.js 進行精確計算
+    const grossAmountDecimal = new Decimal(grossAmount);
+    const platformFee = grossAmountDecimal
+      .times(PLATFORM_FEE_RATE)
+      .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+      .toNumber();
+    const netAmount = grossAmountDecimal
+      .minus(platformFee)
+      .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+      .toNumber();
     const now = new Date().toISOString();
 
     // Atomic wallet credit using Lua script

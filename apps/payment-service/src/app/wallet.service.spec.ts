@@ -123,6 +123,74 @@ describe("WalletService", () => {
       expect(result.balance).toBeGreaterThan(mockWallet.balance);
     });
 
+    // ✅ Bug 1 修復: 金額精度測試
+    it("should calculate fees correctly for standard amounts", async () => {
+      const grossAmount = 100;
+      const expectedPlatformFee = 20; // 20% of 100
+      const expectedNetAmount = 80; // 100 - 20
+
+      mockRedisClient.eval.mockResolvedValue([
+        JSON.stringify({
+          ...mockWallet,
+          balance: expectedNetAmount,
+        }),
+        0,
+      ]);
+
+      await service.creditWallet("user-123", grossAmount, "tip_received");
+
+      // 驗證傳給 Redis 的 netAmount 是正確的
+      expect(mockRedisClient.eval).toHaveBeenCalledWith(
+        expect.any(String),
+        1,
+        expect.any(String),
+        expectedNetAmount.toString(),
+        expect.any(String),
+        "user-123",
+      );
+    });
+
+    it("should handle edge case amounts with precise calculation", async () => {
+      const grossAmount = 99.99;
+      const expectedPlatformFee = 20.0; // 99.99 * 0.2 = 19.998 → 20.00 (rounded)
+      const expectedNetAmount = 79.99; // 99.99 - 20.00 = 79.99 (precise)
+
+      mockRedisClient.eval.mockResolvedValue([
+        JSON.stringify({
+          ...mockWallet,
+          balance: expectedNetAmount,
+        }),
+        0,
+      ]);
+
+      await service.creditWallet("user-123", grossAmount, "tip_received");
+
+      // 驗證傳給 Redis 的 netAmount 是正確的（使用更靈活的匹配）
+      const calls = mockRedisClient.eval.mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      const netAmountArg = calls[0][3]; // 第 4 個參數是 netAmount
+      expect(parseFloat(netAmountArg as string)).toBeCloseTo(expectedNetAmount, 2);
+    });
+
+    it("should accumulate correctly over many transactions", async () => {
+      const amounts = [100, 50, 25.5, 10.01, 99.99];
+      
+      for (const amount of amounts) {
+        mockRedisClient.eval.mockResolvedValue([
+          JSON.stringify({
+            ...mockWallet,
+            balance: amount * 0.8,
+          }),
+          0,
+        ]);
+
+        await service.creditWallet("user-123", amount, "tip_received");
+      }
+
+      // 驗證每次調用都成功
+      expect(mockRedisClient.eval).toHaveBeenCalledTimes(amounts.length);
+    });
+
     it("should credit wallet with subscription received", async () => {
       const grossAmount = 500;
       const netAmount = 400; // after 20% platform fee

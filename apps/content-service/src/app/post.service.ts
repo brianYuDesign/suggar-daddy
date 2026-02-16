@@ -329,7 +329,8 @@ export class PostService {
   async unlikePost(postId: string, userId: string): Promise<Post> {
     const post = await this.findOne(postId);
     await this.redis.sRem(POST_LIKES(postId), userId);
-    post.likeCount = Math.max(0, (post.likeCount || 1) - 1);
+    // ✅ Bug 3 修復: 使用 ?? 而非 || 避免 0 被視為 falsy
+    post.likeCount = Math.max(0, (post.likeCount ?? 0) - 1);
     await this.redis.set(POST_KEY(postId), JSON.stringify(post));
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_UNLIKED, {
       postId,
@@ -364,7 +365,8 @@ export class PostService {
     if (removed === 0) {
       throw new NotFoundException('Bookmark not found');
     }
-    post.bookmarkCount = Math.max(0, (post.bookmarkCount || 1) - 1);
+    // ✅ Bug 3 修復: 使用 ?? 而非 || 避免 0 被視為 falsy
+    post.bookmarkCount = Math.max(0, (post.bookmarkCount ?? 0) - 1);
     await this.redis.set(POST_KEY(postId), JSON.stringify(post));
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_UNBOOKMARKED, {
       postId,
@@ -460,7 +462,8 @@ export class PostService {
       const parentRaw = await this.redis.get(COMMENT_KEY(comment.parentCommentId));
       if (parentRaw) {
         const parent: PostComment = JSON.parse(parentRaw);
-        parent.replyCount = Math.max(0, (parent.replyCount || 1) - 1);
+        // ✅ Bug 3 修復: 使用 ?? 而非 || 避免 0 被視為 falsy
+        parent.replyCount = Math.max(0, (parent.replyCount ?? 0) - 1);
         await this.redis.set(COMMENT_KEY(comment.parentCommentId), JSON.stringify(parent));
       }
     } else {
@@ -470,8 +473,8 @@ export class PostService {
     // Delete the comment key
     await this.redis.del(COMMENT_KEY(commentId));
 
-    // Decrement post comment count
-    post.commentCount = Math.max(0, (post.commentCount || 1) - 1);
+    // Decrement post comment count - ✅ Bug 3 修復
+    post.commentCount = Math.max(0, (post.commentCount ?? 0) - 1);
     await this.redis.set(POST_KEY(postId), JSON.stringify(post));
 
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.COMMENT_DELETED, {

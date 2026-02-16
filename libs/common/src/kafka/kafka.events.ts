@@ -30,6 +30,7 @@ export const SUBSCRIPTION_EVENTS = {
 export const PAYMENT_EVENTS = {
   PAYMENT_COMPLETED: 'payment.completed',
   PAYMENT_FAILED: 'payment.failed',
+  PAYMENT_FAILED_ORPHAN: 'payment.failed.orphan', // ✅ Bug 2: 新增孤兒交易事件
   PAYMENT_REFUNDED: 'payment.refunded',
   TIP_SENT: 'payment.tip.sent',
   POST_PURCHASED: 'payment.post.purchased',
