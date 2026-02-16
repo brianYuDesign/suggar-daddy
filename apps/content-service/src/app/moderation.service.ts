@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { CONTENT_EVENTS } from '@suggar-daddy/common';
+import { CONTENT_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import { PostService } from './post.service';
 
 const REPORT_KEY = (id: string) => `content:report:${id}`;
@@ -27,7 +27,7 @@ interface ContentReport {
 
 @Injectable()
 export class ModerationService {
-  private readonly logger = new Logger(ModerationService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly redis: RedisService,

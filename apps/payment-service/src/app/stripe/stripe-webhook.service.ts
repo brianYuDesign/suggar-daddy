@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { PAYMENT_EVENTS } from '@suggar-daddy/common';
+import { PAYMENT_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import { TransactionService } from '../transaction.service';
 import { PostPurchaseService } from '../post-purchase.service';
 import { TipService } from '../tip.service';
@@ -12,7 +12,7 @@ const WEBHOOK_IDEMPOTENCY_TTL_SEC = 86400; // 24h
 
 @Injectable()
 export class StripeWebhookService {
-  private readonly logger = new Logger(StripeWebhookService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly transactionService: TransactionService,

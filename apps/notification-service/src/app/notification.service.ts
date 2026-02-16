@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { InjectLogger } from '@suggar-daddy/common';
 import type {
   InternalSendNotificationDto,
   NotificationItemDto,
@@ -16,7 +17,7 @@ interface StoredNotification extends Omit<NotificationItemDto, 'createdAt'> {
 
 @Injectable()
 export class NotificationService {
-  private readonly logger = new Logger(NotificationService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly redis: RedisService,

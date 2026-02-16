@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance, AxiosRequestConfig, Method } from 'axios';
+import {
+  CircuitBreakerService,
+  API_GATEWAY_CONFIG,
+} from '@suggar-daddy/common';
 
 export interface ProxyTarget {
   prefix: string;
@@ -13,7 +17,10 @@ export class ProxyService {
   private readonly client: AxiosInstance;
   private readonly targets: ProxyTarget[] = [];
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly circuitBreaker: CircuitBreakerService
+  ) {
     this.client = axios.create({
       timeout: 30000,
       validateStatus: () => true,
@@ -126,37 +133,79 @@ export class ProxyService {
         headers: {},
       };
     }
+
     const url = `${target.baseUrl}${path}${query ? (path.includes('?') ? '&' : '?') + query : ''}`;
     const forwardHeaders: Record<string, string> = {};
     if (headers['authorization']) forwardHeaders['authorization'] = headers['authorization'];
     if (headers['content-type']) forwardHeaders['content-type'] = headers['content-type'];
+    
     const config: AxiosRequestConfig = {
       method: method.toUpperCase() as Method,
       url,
       headers: forwardHeaders,
       data: body,
     };
+
     this.logger.log(`[PROXY] ${method} ${path} -> ${url}`);
     this.logger.debug(`[PROXY] Headers: ${JSON.stringify(forwardHeaders)}`);
     if (body) {
       this.logger.debug(`[PROXY] Body: ${JSON.stringify(body)}`);
     }
-    
+
+    // 使用 Circuit Breaker 保護請求
+    const serviceName = this.getServiceName(target.prefix);
+    const breakerName = `api-gateway-${serviceName}`;
+
     try {
-      const res = await this.client.request(config);
-      this.logger.log(`[PROXY] Response: ${res.status} from ${url}`);
-      
-      if (res.status >= 400) {
-        this.logger.warn(`[PROXY] Error response: ${res.status} - ${JSON.stringify(res.data)}`);
-      }
-      
-      const resHeaders: Record<string, string> = {};
-      if (res.headers['content-type']) resHeaders['content-type'] = res.headers['content-type'] as string;
-      return {
-        status: res.status,
-        data: res.data,
-        headers: resHeaders,
+      // 包裝 axios 請求
+      const makeRequest = async () => {
+        const res = await this.client.request(config);
+        this.logger.log(`[PROXY] Response: ${res.status} from ${url}`);
+        
+        if (res.status >= 500) {
+          // 5xx 錯誤視為失敗，觸發熔斷器
+          throw new Error(`Service error: ${res.status}`);
+        }
+        
+        if (res.status >= 400) {
+          this.logger.warn(`[PROXY] Error response: ${res.status} - ${JSON.stringify(res.data)}`);
+        }
+        
+        const resHeaders: Record<string, string> = {};
+        if (res.headers['content-type']) resHeaders['content-type'] = res.headers['content-type'] as string;
+        
+        return {
+          status: res.status,
+          data: res.data,
+          headers: resHeaders,
+        };
       };
+
+      // Fallback 函數：返回服務不可用錯誤
+      const fallback = () => {
+        this.logger.warn(`[CIRCUIT BREAKER] Fallback triggered for ${serviceName}`);
+        return {
+          status: 503,
+          data: {
+            message: 'Service Temporarily Unavailable',
+            service: serviceName,
+            path,
+            error: 'Circuit breaker is open - service is experiencing issues',
+          },
+          headers: {},
+        };
+      };
+
+      // 使用 Circuit Breaker 執行請求
+      const wrappedRequest = this.circuitBreaker.wrap(
+        breakerName,
+        makeRequest,
+        API_GATEWAY_CONFIG,
+        fallback
+      );
+
+      return await wrappedRequest();
+
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string; stack?: string };
       this.logger.error(`[PROXY] Request failed: ${method} ${path} -> ${url}`);
@@ -166,8 +215,28 @@ export class ProxyService {
         this.logger.error(`Gateway timeout: ${method} ${path}`, err.message);
         return { status: 504, data: { message: 'Gateway Timeout', path }, headers: {} };
       }
+      
+      // Circuit breaker rejection or other errors
+      if (err.message?.includes('Circuit breaker is open')) {
+        return {
+          status: 503,
+          data: { message: 'Service Temporarily Unavailable', path, service: serviceName },
+          headers: {},
+        };
+      }
+      
       this.logger.error(`Bad gateway: ${method} ${path}`, err.message);
       return { status: 502, data: { message: 'Bad Gateway', path }, headers: {} };
     }
+  }
+
+  /**
+   * 從路徑前綴提取服務名稱
+   */
+  private getServiceName(prefix: string): string {
+    // '/api/auth' -> 'auth'
+    // '/api/users' -> 'users'
+    const match = prefix.match(/\/api\/([^/]+)/);
+    return match ? match[1] : 'unknown';
   }
 }

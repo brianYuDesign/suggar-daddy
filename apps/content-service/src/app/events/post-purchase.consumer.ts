@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { KafkaConsumerService } from '@suggar-daddy/kafka';
-import { PAYMENT_EVENTS } from '@suggar-daddy/common';
+import { PAYMENT_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import { RedisService } from '@suggar-daddy/redis';
 
 const POST_UNLOCK = (postId: string, userId: string) => `post:unlock:${postId}:${userId}`;
@@ -8,7 +8,7 @@ const UNLOCK_TTL_SEC = 365 * 24 * 60 * 60; // 1 year
 
 @Injectable()
 export class PostPurchaseConsumer implements OnModuleInit {
-  private readonly logger = new Logger(PostPurchaseConsumer.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly kafkaConsumer: KafkaConsumerService,

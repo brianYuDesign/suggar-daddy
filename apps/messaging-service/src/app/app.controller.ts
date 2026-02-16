@@ -1,9 +1,10 @@
 import { Controller, Get, Logger } from '@nestjs/common';
+import { InjectLogger } from '@suggar-daddy/common';
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  private readonly logger = new Logger(AppController.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(private readonly appService: AppService) {}
 

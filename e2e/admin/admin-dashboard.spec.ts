@@ -1,19 +1,27 @@
 import { test, expect, Page } from '@playwright/test';
 import { TEST_USERS, takeScreenshot } from '../utils/test-helpers';
+import {
+  smartWaitForElement,
+  smartWaitForNetworkIdle,
+  waitForElementToDisappear,
+  smartWaitForAPI,
+} from '../utils/smart-wait';
 
 const ADMIN_URL = 'http://localhost:4300';
 
 /**
  * 等待頁面完成載入（Skeleton 消失或內容出現）
+ * 優化：使用智能等待替代固定超時
  */
 async function waitForPageLoad(page: Page, timeout = 10000) {
-  // 等待至少一個 Skeleton 消失或頁面上出現實際內容
-  await Promise.race([
-    page.waitForSelector('h1', { timeout }),
-    page.waitForTimeout(3000),
-  ]);
-  // 額外等待 API 呼叫完成
-  await page.waitForLoadState('networkidle').catch(() => {});
+  // 等待 h1 元素出現（頁面主標題）
+  await smartWaitForElement(page, { selector: 'h1', timeout }).catch(() => {
+    // 如果沒有 h1，嘗試等待其他主要內容
+    return page.waitForSelector('main', { timeout: 5000 }).catch(() => {});
+  });
+  
+  // 等待網路閒置
+  await smartWaitForNetworkIdle(page, { timeout: 5000 });
 }
 
 // ============================================================
@@ -179,8 +187,8 @@ test.describe('Dashboard 概覽', () => {
     // Dashboard 有 5 個 StatsCard: Total Users, Total Posts, Total Revenue, Pending Withdrawals, System Status
     const statsCards = page.locator('main .grid .p-6');
 
-    // 等待至少一些內容載入（可能是 Skeleton 或真實數據）
-    await page.waitForTimeout(2000);
+    // 等待統計卡片載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     // 檢查統計標題是否存在（可能在 Skeleton 後出現）
     const expectedTitles = [
@@ -202,7 +210,8 @@ test.describe('Dashboard 概覽', () => {
   });
 
   test('統計卡片數值應是合理的數字或文字', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待統計數據載入
+    await smartWaitForElement(page, { selector: 'text=Total Users', timeout: 10000 }).catch(() => {});
 
     // Total Users 值應是數字
     const totalUsersCard = page.locator('text=Total Users').locator('..');
@@ -217,7 +226,8 @@ test.describe('Dashboard 概覽', () => {
   });
 
   test('應顯示每日收入圖表區域', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待圖表區域載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     // 檢查 Daily Revenue 卡片
     const revenueChartTitle = page.locator('text=Daily Revenue (14 days)');
@@ -228,7 +238,8 @@ test.describe('Dashboard 概覽', () => {
   });
 
   test('應顯示 System Health 區域', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待健康狀態載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const healthTitle = page.locator('text=System Health').first();
     const visible = await healthTitle.isVisible().catch(() => false);
@@ -238,7 +249,8 @@ test.describe('Dashboard 概覽', () => {
   });
 
   test('應顯示 Users by Role 分佈', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待角色分佈數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const roleTitle = page.locator('text=Users by Role');
     const visible = await roleTitle.isVisible().catch(() => false);
@@ -248,7 +260,8 @@ test.describe('Dashboard 概覽', () => {
   });
 
   test('應顯示 Content Moderation 區域', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待內容審核數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const modTitle = page.locator('text=Content Moderation').first();
     const visible = await modTitle.isVisible().catch(() => false);
@@ -278,8 +291,8 @@ test.describe('用戶管理', () => {
   test('應顯示頁面標題和用戶列表卡片', async ({ page }) => {
     await expect(page.locator('main h1')).toContainText('Users');
 
-    // 等待表格或列表載入
-    await page.waitForTimeout(3000);
+    // 等待用戶列表載入
+    await smartWaitForElement(page, { selector: 'text=User List', timeout: 10000 }).catch(() => {});
 
     // 應有 User List 標題
     const listTitle = page.locator('text=User List');
@@ -314,7 +327,8 @@ test.describe('用戶管理', () => {
   });
 
   test('用戶表格應有正確的欄位標題', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待表格載入
+    await smartWaitForElement(page, { selector: 'table', timeout: 10000 }).catch(() => {});
 
     const table = page.locator('table').first();
     const visible = await table.isVisible().catch(() => false);
@@ -329,7 +343,8 @@ test.describe('用戶管理', () => {
   });
 
   test('應有全選 checkbox', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待表格載入
+    await smartWaitForElement(page, { selector: 'table', timeout: 10000 }).catch(() => {});
 
     const table = page.locator('table').first();
     const visible = await table.isVisible().catch(() => false);
@@ -344,8 +359,8 @@ test.describe('用戶管理', () => {
     await searchInput.fill('test');
     await searchInput.press('Enter');
 
-    // 等待搜尋結果
-    await page.waitForTimeout(2000);
+    // 等待網路請求完成
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     // 頁面不應崩潰
     await expect(page.locator('main h1')).toContainText('Users');
@@ -366,7 +381,8 @@ test.describe('支付分析', () => {
   });
 
   test('應顯示 4 個統計卡片', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待統計數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const expectedTitles = [
       'Total Revenue',
@@ -394,7 +410,8 @@ test.describe('支付分析', () => {
   });
 
   test('應顯示每日收入圖表和天數選擇器', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待圖表載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const dailyTitle = page.locator('text=Daily Revenue').first();
     const visible = await dailyTitle.isVisible().catch(() => false);
@@ -417,7 +434,8 @@ test.describe('支付分析', () => {
   });
 
   test('應顯示 Revenue Report 區域和日期選擇器', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待報表區域載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const reportTitle = page.locator('text=Revenue Report');
     const visible = await reportTitle.isVisible().catch(() => false);
@@ -427,7 +445,8 @@ test.describe('支付分析', () => {
   });
 
   test('應顯示 Top Creators 表格', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待創作者數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const creatorsTitle = page.locator('text=Top Creators by Revenue');
     const visible = await creatorsTitle.isVisible().catch(() => false);
@@ -471,7 +490,8 @@ test.describe('交易記錄', () => {
   });
 
   test('交易表格應有正確的欄位標題', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待表格載入
+    await smartWaitForElement(page, { selector: 'table', timeout: 10000 }).catch(() => {});
 
     const table = page.locator('table').first();
     const visible = await table.isVisible().catch(() => false);
@@ -508,7 +528,8 @@ test.describe('提現管理', () => {
   });
 
   test('應顯示 4 個統計卡片', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待統計數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const expectedTitles = ['Pending', 'Completed', 'Rejected', 'Total Requests'];
     for (const title of expectedTitles) {
@@ -530,7 +551,8 @@ test.describe('提現管理', () => {
   });
 
   test('提現表格應有正確的欄位標題', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待表格載入
+    await smartWaitForElement(page, { selector: 'table', timeout: 10000 }).catch(() => {});
 
     const table = page.locator('table').first();
     const visible = await table.isVisible().catch(() => false);
@@ -545,7 +567,8 @@ test.describe('提現管理', () => {
   });
 
   test('Withdrawal Requests 卡片應顯示 total 數量', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待提現請求卡片載入
+    await smartWaitForElement(page, { selector: 'text=Withdrawal Requests', timeout: 10000 }).catch(() => {});
 
     const title = page.locator('text=Withdrawal Requests');
     const visible = await title.isVisible().catch(() => false);
@@ -569,7 +592,8 @@ test.describe('內容審核', () => {
   });
 
   test('應顯示 4 個統計卡片', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待統計數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const expectedTitles = ['Total Posts', 'Pending Reports', 'Resolved', 'Taken Down'];
     for (const title of expectedTitles) {
@@ -582,7 +606,8 @@ test.describe('內容審核', () => {
   });
 
   test('應有 Reports 和 All Posts 分頁', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待分頁標籤載入
+    await smartWaitForElement(page, { selector: 'button:has-text("Reports")', timeout: 10000 }).catch(() => {});
 
     // TabsTrigger for Reports and All Posts
     const reportsTab = page.locator('button:has-text("Reports")').first();
@@ -596,7 +621,8 @@ test.describe('內容審核', () => {
   });
 
   test('Reports 分頁應有狀態篩選和表格', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待 Reports 內容載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     // Reports 分頁的 status 篩選
     const statusFilter = page.locator('select').filter({ hasText: 'All' }).first();
@@ -618,13 +644,15 @@ test.describe('內容審核', () => {
   });
 
   test('切換到 All Posts 分頁應顯示搜尋和表格', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待分頁標籤載入
+    await smartWaitForElement(page, { selector: 'button:has-text("All Posts")', timeout: 10000 }).catch(() => {});
 
     const postsTab = page.locator('button:has-text("All Posts")').first();
     const visible = await postsTab.isVisible().catch(() => false);
     if (visible) {
       await postsTab.click();
-      await page.waitForTimeout(2000);
+      // 等待分頁切換完成
+      await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
       // 搜尋框
       const searchInput = page.locator('input[placeholder*="Search by caption"]');
@@ -657,7 +685,8 @@ test.describe('訂閱管理', () => {
   });
 
   test('應顯示 5 個統計卡片', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待統計數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const expectedTitles = ['Active', 'Cancelled', 'Expired', 'Total', 'MRR'];
     for (const title of expectedTitles) {
@@ -670,7 +699,8 @@ test.describe('訂閱管理', () => {
   });
 
   test('應有 Subscriptions 和 Tiers 分頁', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待分頁標籤載入
+    await smartWaitForElement(page, { selector: 'button:has-text("Subscriptions")', timeout: 10000 }).catch(() => {});
 
     const subsTab = page.locator('button:has-text("Subscriptions")').first();
     const tiersTab = page.locator('button:has-text("Tiers")').first();
@@ -683,7 +713,8 @@ test.describe('訂閱管理', () => {
   });
 
   test('Subscriptions 表格應有正確欄位', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待表格載入
+    await smartWaitForElement(page, { selector: 'table', timeout: 10000 }).catch(() => {});
 
     const table = page.locator('table').first();
     const visible = await table.isVisible().catch(() => false);
@@ -697,13 +728,15 @@ test.describe('訂閱管理', () => {
   });
 
   test('切換到 Tiers 分頁應顯示訂閱方案', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待分頁標籤載入
+    await smartWaitForElement(page, { selector: 'button:has-text("Tiers")', timeout: 10000 }).catch(() => {});
 
     const tiersTab = page.locator('button:has-text("Tiers")').first();
     const visible = await tiersTab.isVisible().catch(() => false);
     if (visible) {
       await tiersTab.click();
-      await page.waitForTimeout(2000);
+      // 等待分頁切換完成
+      await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
       // Tiers 表格
       const table = page.locator('table').first();
@@ -733,7 +766,8 @@ test.describe('進階分析', () => {
   });
 
   test('應顯示 Matching Statistics 區域', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待統計數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const matchTitle = page.locator('text=Matching Statistics');
     const visible = await matchTitle.isVisible().catch(() => false);
@@ -752,7 +786,8 @@ test.describe('進階分析', () => {
   });
 
   test('應顯示 DAU/MAU 區域和天數選擇器', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待 DAU/MAU 數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const dauTitle = page.locator('text=Daily / Monthly Active Users');
     const visible = await dauTitle.isVisible().catch(() => false);
@@ -771,7 +806,8 @@ test.describe('進階分析', () => {
   });
 
   test('應顯示 Subscription Churn Rate 區域', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待流失率數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const churnTitle = page.locator('text=Subscription Churn Rate');
     const visible = await churnTitle.isVisible().catch(() => false);
@@ -790,7 +826,8 @@ test.describe('進階分析', () => {
   });
 
   test('應顯示 Creator Revenue Ranking 和 Popular Content', async ({ page }) => {
-    await page.waitForTimeout(2000);
+    // 等待排名數據載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     for (const title of ['Creator Revenue Ranking', 'Popular Content']) {
       const el = page.locator(`text=${title}`);
@@ -833,7 +870,8 @@ test.describe('審計日誌', () => {
   });
 
   test('審計日誌表格應有正確欄位', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待審計日誌表格載入
+    await smartWaitForElement(page, { selector: 'table', timeout: 10000 }).catch(() => {});
 
     const table = page.locator('table').first();
     const visible = await table.isVisible().catch(() => false);
@@ -866,7 +904,8 @@ test.describe('系統監控', () => {
   });
 
   test('應顯示 System Health 卡片', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待系統健康狀態載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const healthTitle = page.locator('text=System Health').first();
     const visible = await healthTitle.isVisible().catch(() => false);
@@ -876,7 +915,8 @@ test.describe('系統監控', () => {
   });
 
   test('應顯示 Kafka Status 卡片', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待 Kafka 狀態載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const kafkaTitle = page.locator('text=Kafka Status');
     const visible = await kafkaTitle.isVisible().catch(() => false);
@@ -886,7 +926,8 @@ test.describe('系統監控', () => {
   });
 
   test('應顯示 Dead Letter Queue 卡片', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待 DLQ 狀態載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const dlqTitle = page.locator('text=Dead Letter Queue');
     const visible = await dlqTitle.isVisible().catch(() => false);
@@ -896,7 +937,8 @@ test.describe('系統監控', () => {
   });
 
   test('應顯示 DLQ Messages 區域和操作按鈕', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待 DLQ 訊息區域載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const dlqMsgTitle = page.locator('text=DLQ Messages');
     const visible = await dlqMsgTitle.isVisible().catch(() => false);
@@ -912,7 +954,8 @@ test.describe('系統監控', () => {
   });
 
   test('應顯示 Data Consistency Metrics', async ({ page }) => {
-    await page.waitForTimeout(3000);
+    // 等待數據一致性指標載入
+    await smartWaitForNetworkIdle(page, { timeout: 10000 });
 
     const title = page.locator('text=Data Consistency Metrics');
     const visible = await title.isVisible().catch(() => false);

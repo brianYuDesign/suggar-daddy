@@ -7,6 +7,12 @@ import { CreatePostDto, UpdatePostDto } from './dto/post.dto';
 import { CreatePostCommentDto } from './dto/post-comment.dto';
 import { SubscriptionServiceClient } from './subscription-service.client';
 
+// ✅ Redis 快取 TTL 設定（秒）
+const POST_CACHE_TTL = 3600; // 1 小時
+const FEED_CACHE_TTL = 300; // 5 分鐘
+const USER_PROFILE_CACHE_TTL = 1800; // 30 分鐘
+const SUBSCRIPTION_CHECK_CACHE_TTL = 600; // 10 分鐘
+
 const POST_KEY = (id: string) => `post:${id}`;
 const POSTS_PUBLIC_IDS = 'posts:public:ids';
 const POSTS_CREATOR = (creatorId: string) => `posts:creator:${creatorId}`;
@@ -17,6 +23,8 @@ const COMMENT_REPLIES = (commentId: string) => `comment:${commentId}:replies`;
 const USER_BOOKMARKS = (userId: string) => `user:bookmarks:${userId}`;
 const USER_BLOCKS = (userId: string) => `user:blocks:${userId}`;
 const USER_BLOCKED_BY = (userId: string) => `user:blocked-by:${userId}`;
+const SUBSCRIPTION_CHECK_KEY = (viewerId: string, creatorId: string) => 
+  `subscription:check:${viewerId}:${creatorId}`;
 
 export interface VideoMeta {
   mediaId: string;
@@ -289,7 +297,8 @@ export class PostService {
     if (updateDto.visibility !== undefined) post.visibility = updateDto.visibility as Post['visibility'];
     if (updateDto.requiredTierId !== undefined) post.requiredTierId = updateDto.requiredTierId;
     if (updateDto.ppvPrice !== undefined) post.ppvPrice = updateDto.ppvPrice;
-    await this.redis.set(POST_KEY(id), JSON.stringify(post));
+    // ✅ 更新快取並重置 TTL
+    await this.redis.setex(POST_KEY(id), POST_CACHE_TTL, JSON.stringify(post));
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_UPDATED, {
       postId: id,
       ...updateDto,
@@ -317,7 +326,8 @@ export class PostService {
       throw new ConflictException('Already liked this post');
     }
     post.likeCount = (post.likeCount || 0) + 1;
-    await this.redis.set(POST_KEY(postId), JSON.stringify(post));
+    // ✅ 設置 TTL
+    await this.redis.setex(POST_KEY(postId), POST_CACHE_TTL, JSON.stringify(post));
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_LIKED, {
       postId,
       userId,
@@ -331,7 +341,8 @@ export class PostService {
     await this.redis.sRem(POST_LIKES(postId), userId);
     // ✅ Bug 3 修復: 使用 ?? 而非 || 避免 0 被視為 falsy
     post.likeCount = Math.max(0, (post.likeCount ?? 0) - 1);
-    await this.redis.set(POST_KEY(postId), JSON.stringify(post));
+    // ✅ 設置 TTL
+    await this.redis.setex(POST_KEY(postId), POST_CACHE_TTL, JSON.stringify(post));
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_UNLIKED, {
       postId,
       userId,
@@ -350,7 +361,8 @@ export class PostService {
     }
     await this.redis.zAdd(USER_BOOKMARKS(userId), Date.now(), postId);
     post.bookmarkCount = (post.bookmarkCount || 0) + 1;
-    await this.redis.set(POST_KEY(postId), JSON.stringify(post));
+    // ✅ 設置 TTL
+    await this.redis.setex(POST_KEY(postId), POST_CACHE_TTL, JSON.stringify(post));
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_BOOKMARKED, {
       postId,
       userId,
@@ -367,7 +379,8 @@ export class PostService {
     }
     // ✅ Bug 3 修復: 使用 ?? 而非 || 避免 0 被視為 falsy
     post.bookmarkCount = Math.max(0, (post.bookmarkCount ?? 0) - 1);
-    await this.redis.set(POST_KEY(postId), JSON.stringify(post));
+    // ✅ 設置 TTL
+    await this.redis.setex(POST_KEY(postId), POST_CACHE_TTL, JSON.stringify(post));
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.POST_UNBOOKMARKED, {
       postId,
       userId,
@@ -410,8 +423,8 @@ export class PostService {
       createdAt: now,
     };
 
-    // Store comment JSON at its own key
-    await this.redis.set(COMMENT_KEY(commentId), JSON.stringify(comment));
+    // Store comment JSON at its own key with TTL
+    await this.redis.setex(COMMENT_KEY(commentId), POST_CACHE_TTL, JSON.stringify(comment));
 
     if (parentCommentId) {
       // It's a reply: push to parent's reply list, increment parent replyCount
@@ -420,7 +433,8 @@ export class PostService {
       if (parentRaw) {
         const parent: PostComment = JSON.parse(parentRaw);
         parent.replyCount = (parent.replyCount || 0) + 1;
-        await this.redis.set(COMMENT_KEY(parentCommentId), JSON.stringify(parent));
+        // ✅ 設置 TTL
+        await this.redis.setex(COMMENT_KEY(parentCommentId), POST_CACHE_TTL, JSON.stringify(parent));
       }
     } else {
       // Top-level comment
@@ -429,7 +443,8 @@ export class PostService {
 
     // Increment post comment count
     post.commentCount = (post.commentCount || 0) + 1;
-    await this.redis.set(POST_KEY(postId), JSON.stringify(post));
+    // ✅ 設置 TTL
+    await this.redis.setex(POST_KEY(postId), POST_CACHE_TTL, JSON.stringify(post));
 
     await this.kafkaProducer.sendEvent(CONTENT_EVENTS.COMMENT_CREATED, {
       postId,

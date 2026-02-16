@@ -11,11 +11,12 @@ import {
 } from '@nestjs/common';
 import { SendMessageDto, SendBroadcastDto } from '@suggar-daddy/dto';
 import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
+import { InjectLogger } from '@suggar-daddy/common';
 import { MessagingService } from './messaging.service';
 
 @Controller()
 export class MessagingController {
-  private readonly logger = new Logger(MessagingController.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(private readonly messagingService: MessagingService) {}
 

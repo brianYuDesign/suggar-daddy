@@ -50,14 +50,35 @@ export class AnalyticsService {
     const dauCount = await this.getDauCount('analytics:dau:' + today);
     const mauCount = await this.getMauCount();
 
-    const dailyDau: Array<{ date: string; count: number }> = [];
+    // ✅ 優化: 使用批量查詢避免 N+1 問題
+    const dates: string[] = [];
+    const cacheKeys: string[] = [];
+    
     for (let i = 0; i < days; i++) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
-      const count = await this.getDauCount('analytics:dau:' + dateStr);
-      dailyDau.unshift({ date: dateStr, count });
+      dates.push(dateStr);
+      cacheKeys.push('analytics:dau:' + dateStr);
     }
+    
+    // 一次性批量查詢所有日期的 DAU 數據
+    const client = this.redisService.getClient();
+    const dauCounts = await Promise.all(
+      cacheKeys.map(async (key) => {
+        try {
+          return await client.scard(key);
+        } catch {
+          return 0;
+        }
+      })
+    );
+    
+    // 組合結果
+    const dailyDau = dates.map((date, index) => ({
+      date,
+      count: dauCounts[index] || 0,
+    })).reverse();
 
     const result = {
       dau: dauCount,

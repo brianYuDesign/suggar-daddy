@@ -14,14 +14,15 @@ import {
 } from '@nestjs/common';
 import type { CreateUserDto, UpdateProfileDto, LocationUpdateDto, UserProfileDto, UserCardDto, FollowerDto, FollowStatusDto, RecommendedCreatorDto } from '@suggar-daddy/dto';
 import { CurrentUser, Public, Roles, RolesGuard, JwtAuthGuard, OptionalJwtGuard, type CurrentUserData } from '@suggar-daddy/auth';
-import { UserRole } from '@suggar-daddy/common';
+import { UserRole, InjectLogger } from '@suggar-daddy/common';
 import { UserService } from './user.service';
 import { ReportService } from './report.service';
 import type { ReportRecord } from './user.types';
 
 @Controller()
 export class UserController {
-  private readonly logger = new Logger(UserController.name);
+  @InjectLogger()
+  private readonly logger!: Logger;
 
   constructor(
     private readonly userService: UserService,

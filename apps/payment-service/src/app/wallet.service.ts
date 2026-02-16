@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { PAYMENT_EVENTS } from '@suggar-daddy/common';
+import { PAYMENT_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import Decimal from 'decimal.js';
 
 const WALLET_KEY = (userId: string) => `wallet:${userId}`;
@@ -47,7 +47,7 @@ interface WithdrawalRecord {
 
 @Injectable()
 export class WalletService {
-  private readonly logger = new Logger(WalletService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly redis: RedisService,

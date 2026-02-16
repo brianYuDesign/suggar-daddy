@@ -35,6 +35,11 @@ export class MatchingService {
   private readonly MATCH_PREFIX = 'match:';
   private readonly USER_SWIPES_PREFIX = 'user_swipes:';
   private readonly USER_MATCHES_PREFIX = 'user_matches:';
+  
+  // ✅ Swipe 限制設定
+  private readonly DAILY_SWIPE_LIMIT = 100; // 每日 swipe 限制
+  private readonly SWIPE_COUNTER_PREFIX = 'swipe_counter:';
+  private readonly SWIPE_COUNTER_TTL = 86400; // 24 小時
 
   constructor(
     private readonly redisService: RedisService,
@@ -47,6 +52,20 @@ export class MatchingService {
     targetUserId: string,
     action: SwipeAction
   ): Promise<SwipeResponseDto> {
+    // ✅ 檢查每日 swipe 限制
+    const today = new Date().toISOString().split('T')[0];
+    const counterKey = `${this.SWIPE_COUNTER_PREFIX}${swiperId}:${today}`;
+    
+    const currentCount = await this.redisService.get(counterKey);
+    const swipeCount = currentCount ? parseInt(currentCount, 10) : 0;
+    
+    if (swipeCount >= this.DAILY_SWIPE_LIMIT) {
+      this.logger.warn(`Daily swipe limit reached for user ${swiperId}`);
+      throw new Error(
+        `Daily swipe limit reached (${this.DAILY_SWIPE_LIMIT}). Try again tomorrow!`
+      );
+    }
+    
     // 檢查是否已經 swipe 過
     const swipeKey = `${this.SWIPE_PREFIX}${swiperId}:${targetUserId}`;
     const existing = await this.redisService.get(swipeKey);
@@ -65,7 +84,14 @@ export class MatchingService {
       const userSwipesKey = `${this.USER_SWIPES_PREFIX}${swiperId}`;
       await this.redisService.sAdd(userSwipesKey, targetUserId);
       
-      this.logger.log(`swipe recorded swiperId=${swiperId} targetUserId=${targetUserId} action=${action}`);
+      // ✅ 增加每日 swipe 計數器
+      const newCount = await this.redisService.incr(counterKey);
+      if (newCount === 1) {
+        // 第一次 swipe，設置過期時間為今天結束
+        await this.redisService.expire(counterKey, this.SWIPE_COUNTER_TTL);
+      }
+      
+      this.logger.log(`swipe recorded swiperId=${swiperId} targetUserId=${targetUserId} action=${action} dailyCount=${newCount}`);
     }
 
     // 檢查是否雙向喜歡
@@ -141,14 +167,21 @@ export class MatchingService {
     // 取得當前用戶座標
     const userPos = await this.redisService.geoPos(this.GEO_KEY, userId);
 
-    // 取得已滑過的用戶
+    // ✅ 優化: 限制載入的 swipes 數量，避免記憶體問題
+    // 只取最近的 swipes（最多 1000 個）
     const userSwipesKey = `${this.USER_SWIPES_PREFIX}${userId}`;
-    const [swipedIdsArray, blockedIds, blockedByIds] = await Promise.all([
-      this.redisService.sMembers(userSwipesKey),
+    const swipedIdsArray = await this.redisService.sMembers(userSwipesKey);
+    
+    // 如果 swipes 太多，只取子集（這是臨時方案，長期應使用 ZSET）
+    const limitedSwipedIds = swipedIdsArray.length > 1000 
+      ? swipedIdsArray.slice(0, 1000) 
+      : swipedIdsArray;
+    
+    const [blockedIds, blockedByIds] = await Promise.all([
       this.redisService.sMembers(`user:blocks:${userId}`),
       this.redisService.sMembers(`user:blocked-by:${userId}`),
     ]);
-    const excludeSet = new Set([userId, ...swipedIdsArray, ...blockedIds, ...blockedByIds]);
+    const excludeSet = new Set([userId, ...limitedSwipedIds, ...blockedIds, ...blockedByIds]);
 
     // 如果用戶有座標，使用 GEO 篩選
     if (userPos) {

@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { KafkaConsumerService } from '@suggar-daddy/kafka';
-import { CONTENT_EVENTS } from '@suggar-daddy/common';
+import { CONTENT_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { FeedService } from '../feed.service';
 
@@ -8,7 +8,7 @@ const USER_FOLLOWERS = (userId: string) => `user:followers:${userId}`;
 
 @Injectable()
 export class FeedConsumer implements OnModuleInit {
-  private readonly logger = new Logger(FeedConsumer.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly kafkaConsumer: KafkaConsumerService,

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { MESSAGING_EVENTS } from '@suggar-daddy/common';
+import { MESSAGING_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import { TransactionService } from './transaction.service';
 
 const DM_UNLOCK_KEY = (buyerId: string, creatorId: string) =>
@@ -15,7 +15,7 @@ const USER_KEY = (id: string) => `user:${id}`;
 
 @Injectable()
 export class DmPurchaseService {
-  private readonly logger = new Logger(DmPurchaseService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly redis: RedisService,

@@ -1,11 +1,11 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { KafkaConsumerService } from '@suggar-daddy/kafka';
-import { SOCIAL_EVENTS, CONTENT_EVENTS, MESSAGING_EVENTS } from '@suggar-daddy/common';
+import { SOCIAL_EVENTS, CONTENT_EVENTS, MESSAGING_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import { NotificationService } from './notification.service';
 
 @Injectable()
 export class SocialEventConsumer implements OnModuleInit {
-  private readonly logger = new Logger(SocialEventConsumer.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly kafkaConsumer: KafkaConsumerService,

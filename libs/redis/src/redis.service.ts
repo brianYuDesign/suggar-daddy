@@ -200,6 +200,16 @@ export class RedisService implements OnModuleDestroy {
 
   // ── Key expiry ──────────────────────────────────────────────
 
+  /** Increment key by 1, returns new value */
+  async incr(key: string): Promise<number> {
+    return this.client.incr(key);
+  }
+
+  /** Decrement key by 1, returns new value */
+  async decr(key: string): Promise<number> {
+    return this.client.decr(key);
+  }
+
   /** Set TTL on an existing key (seconds) */
   async expire(key: string, seconds: number): Promise<boolean> {
     return (await this.client.expire(key, seconds)) === 1;

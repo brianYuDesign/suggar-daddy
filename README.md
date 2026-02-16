@@ -119,44 +119,78 @@ cd suggar-daddy
 
 ### 2. Environment Setup
 
+#### a. 設置環境變數
+
 Create a `.env` file in the project root based on `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-Key environment variables:
+#### b. 設置 Docker Secrets（推薦）
+
+**重要**：為了安全管理敏感資料（密碼、API keys），我們使用 Docker Secrets。
+
+執行自動設置腳本：
+
+```bash
+./scripts/setup-secrets.sh
+```
+
+這會自動生成所有需要的 secrets：
+- ✅ 資料庫密碼
+- ✅ JWT 簽名密鑰
+- ✅ Stripe API keys（測試用）
+- ✅ Cloudinary keys（測試用）
+- ✅ 其他認證資訊
+
+**查看生成的 secrets**：
+
+```bash
+ls -la secrets/
+```
+
+**生產環境**：
+
+```bash
+# 生成強密碼
+./scripts/setup-secrets.sh --production
+
+# 然後手動更新真實的 API keys
+echo "sk_live_YOUR_KEY" > secrets/stripe_secret_key.txt
+```
+
+**詳細文檔**：請參閱 [Secrets 管理指南](./docs/devops/secrets-management.md)
+
+#### c. 主要環境變數
+
+`.env` 檔案中的主要配置：
 
 ```env
-# Database
-DATABASE_HOST=postgres
-DATABASE_PORT=5432
-DATABASE_USER=postgres
-DATABASE_PASSWORD=postgres
-DATABASE_NAME=suggar_daddy
+# Node 環境
+NODE_ENV=development
+
+# Database（密碼使用 Docker Secrets）
+POSTGRES_HOST=postgres-master
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_DB=suggar_daddy
 
 # Redis
-REDIS_HOST=redis
+REDIS_HOST=redis-master
 REDIS_PORT=6379
 
-# Stripe
-STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_WEBHOOK_SECRET=your_webhook_secret
-
-# JWT
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRES_IN=7d
-
-# API Gateway
-API_GATEWAY_PORT=3000
+# Kafka
+KAFKA_BROKERS=kafka:9092
 
 # Service Ports
-AUTH_SERVICE_PORT=3001
-PAYMENT_SERVICE_PORT=3002
-DB_WRITER_SERVICE_PORT=3003
-NOTIFICATION_SERVICE_PORT=3004
-WEBSOCKET_SERVICE_PORT=3005
+PORT=3000                    # API Gateway
+AUTH_SERVICE_PORT=3002       # Auth Service
+USER_SERVICE_PORT=3001       # User Service
+PAYMENT_SERVICE_PORT=3007    # Payment Service
 ```
+
+**注意**：敏感資料（如密碼、API keys）不應該放在 `.env` 中，而是使用 Docker Secrets 管理。
 
 ### 3. Start Services with Docker Compose
 
@@ -231,6 +265,32 @@ docker-compose down -v
 
 ## Development
 
+### 🚀 快速開始指南
+
+我們提供了全新的**智能腳本系統**，讓開發環境管理變得更簡單！
+
+> 📖 **詳細文檔**: [腳本系統完整指南](./scripts/README.md)
+
+#### 最常用命令
+
+```bash
+# 🎯 一鍵啟動開發環境（推薦）
+npm run dev
+
+# 🛑 停止所有服務
+npm run dev:stop
+
+# 🔄 重置開發環境
+npm run dev:reset
+
+# ✅ 運行測試
+npm run test:unit        # 單元測試
+npm run test:e2e         # E2E 測試
+
+# 🔨 建置項目
+npm run build:all        # 建置所有項目
+```
+
 ### Local Development Setup
 
 #### 1. Install Dependencies
@@ -241,75 +301,136 @@ npm install
 
 #### 2. Database Setup
 
-Run migrations:
-
 ```bash
-npm run migration:run
-```
+# 運行資料庫遷移
+npm run db:migrate
 
-Seed database (optional):
+# 載入種子資料（可選）
+npm run db:seed
 
-```bash
-npm run seed
+# 備份資料庫
+npm run db:backup
 ```
 
 #### 3. Start Services Locally
 
-Start all services in development mode:
-
 ```bash
-npm run dev
+# 🎯 啟動開發環境（推薦）
+npm run dev              # 啟動核心服務 + web 前端
+
+# 🚀 進階啟動選項
+npm run dev:all          # 啟動所有服務（包含可選服務）
+npm run dev:core         # 只啟動核心後端服務
+
+# 使用底層腳本獲得更多控制
+./scripts/dev/start.sh --help           # 查看所有選項
+./scripts/dev/start.sh --core-only      # 只啟動核心服務
+./scripts/dev/start.sh --no-web         # 不啟動前端
+./scripts/dev/start.sh --admin          # 啟動 admin 前端
 ```
 
-Start specific service:
+#### 4. 啟動特定服務
+
+使用 Nx 直接啟動單個服務：
 
 ```bash
-# Auth service
+# 後端服務
+nx serve api-gateway
 nx serve auth-service
-
-# Payment service
+nx serve user-service
 nx serve payment-service
 
-# Frontend
-nx serve web
+# 前端應用
+nx serve web            # 用戶端
+nx serve admin          # 管理後台
 ```
 
-### Available NPM Scripts
+### 📜 NPM Scripts 完整列表
+
+#### 🔧 開發相關
 
 ```bash
-# Development
-npm run dev                    # Start all services
-npm run dev:gateway            # Start API Gateway only
-npm run dev:auth               # Start Auth Service only
-npm run dev:payment            # Start Payment Service only
-npm run dev:web                # Start Frontend only
-
-# Build
-npm run build                  # Build all projects
-npm run build:gateway          # Build API Gateway
-npm run build:auth             # Build Auth Service
-npm run build:payment          # Build Payment Service
-
-# Database
-npm run migration:generate     # Generate new migration
-npm run migration:run          # Run pending migrations
-npm run migration:revert       # Revert last migration
-npm run seed                   # Seed database
-
-# Testing
-npm test                       # Run all tests
-npm run test:watch             # Run tests in watch mode
-npm run test:cov               # Run tests with coverage
-npm run test:e2e               # Run E2E tests
-
-# Linting
-npm run lint                   # Lint all projects
-npm run lint:fix               # Lint and auto-fix
-
-# Code Quality
-npm run format                 # Format code with Prettier
-npm run type-check             # TypeScript type checking
+npm run dev              # 啟動開發環境（核心 + 推薦服務 + web）
+npm run dev:all          # 啟動所有服務
+npm run dev:core         # 只啟動核心服務
+npm run dev:stop         # 停止所有服務
+npm run dev:reset        # 重置開發環境（清理資料）
 ```
+
+#### 🧪 測試相關
+
+```bash
+npm run test:unit              # 單元測試
+npm run test:e2e               # E2E 測試
+npm run test:integration       # 整合測試
+npm run test:coverage          # 生成覆蓋率報告
+
+# 進階測試選項
+npm run test:unit -- --help                # 查看測試選項
+npm run test:unit -- --watch               # 監聽模式
+npm run test:unit -- --coverage            # 帶覆蓋率
+npm run test:unit -- api-gateway           # 只測試特定項目
+```
+
+#### 🔨 建置相關
+
+```bash
+npm run build:all          # 建置所有項目
+npm run build:backend      # 建置所有後端服務
+npm run build:frontend     # 建置所有前端應用
+
+# 進階建置選項
+npm run build:all -- --help                # 查看建置選項
+npm run build:all -- --production          # 生產環境建置
+npm run build:backend -- api-gateway       # 只建置特定服務
+```
+
+#### 💾 資料庫相關
+
+```bash
+npm run db:migrate         # 運行資料庫遷移
+npm run db:seed            # 載入種子資料
+npm run db:backup          # 備份資料庫
+
+# 進階資料庫選項
+npm run db:migrate -- --help               # 查看遷移選項
+npm run db:migrate -- --rollback           # 回滾遷移
+npm run db:migrate -- --dry-run            # 預覽遷移
+npm run db:seed -- --force                 # 強制重新載入
+```
+
+#### 📝 代碼品質
+
+```bash
+npm run lint               # 檢查代碼風格
+npm run format             # 格式化代碼
+```
+
+### 🎯 智能腳本系統特色
+
+我們的新腳本系統提供：
+
+- ✅ **智能等待** - 基於健康檢查，不浪費時間
+- ✅ **並行啟動** - 多服務同時啟動，節省 70% 時間
+- ✅ **清晰日誌** - 彩色輸出，一目了然
+- ✅ **錯誤處理** - 友好的錯誤提示和自動清理
+- ✅ **豐富選項** - 靈活的啟動配置
+- ✅ **完整文檔** - 每個腳本都有 `--help`
+
+**範例**:
+
+```bash
+# 查看所有可用選項
+./scripts/dev/start.sh --help
+
+# 強制重啟（清理舊進程）
+./scripts/dev/start.sh --force
+
+# 跳過 Docker 基礎設施啟動
+./scripts/dev/start.sh --skip-docker
+```
+
+> 💡 **提示**: 所有腳本都支援 `--help` 選項，顯示詳細的使用說明！
 
 ### Environment Variables Reference
 

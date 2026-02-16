@@ -20,6 +20,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { KafkaConsumerService } from '@suggar-daddy/kafka';
+import { InjectLogger } from '@suggar-daddy/common';
 import { NotificationService } from './notification.service';
 
 interface JoinPayload {
@@ -42,7 +43,7 @@ interface MarkAllReadPayload {
 export class NotificationGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
 {
-  private readonly logger = new Logger(NotificationGateway.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   /** 追蹤在線用戶：userId -> Socket */
   private onlineUsers: Map<string, Socket> = new Map();

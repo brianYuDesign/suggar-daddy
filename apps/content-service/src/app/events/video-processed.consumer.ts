@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { KafkaConsumerService } from '@suggar-daddy/kafka';
-import { MEDIA_EVENTS } from '@suggar-daddy/common';
+import { MEDIA_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import { RedisService } from '@suggar-daddy/redis';
 
 const POST_KEY = (id: string) => `post:${id}`;
@@ -8,7 +8,7 @@ const MEDIA_POST_INDEX = (mediaId: string) => `media:post:${mediaId}`;
 
 @Injectable()
 export class VideoProcessedConsumer implements OnModuleInit {
-  private readonly logger = new Logger(VideoProcessedConsumer.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly kafkaConsumer: KafkaConsumerService,

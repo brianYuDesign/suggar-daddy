@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { login, TEST_USERS, takeScreenshot } from '../utils/test-helpers';
+import {
+  smartWaitForNavigation,
+  smartWaitForNetworkIdle,
+  smartWaitForAPI,
+  smartWaitForElement,
+} from '../utils/smart-wait';
 
 /**
  * 安全性測試
@@ -49,7 +55,7 @@ test.describe('認證與授權', () => {
     await page.goto('/feed');
 
     // 應該被導向登入頁面或顯示過期訊息
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
     const url = page.url();
     const isLoginPage = url.includes('/login') || url.includes('/auth');
 
@@ -79,7 +85,7 @@ test.describe('認證與授權', () => {
     });
 
     await page.goto('/feed');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
 
     // If auth is via localStorage (not cookies), the invalid cookie won't trigger 401
     // Accept either outcome
@@ -102,7 +108,7 @@ test.describe('認證與授權', () => {
     // This may not be accessible if admin app is not running
     try {
       const response = await page.goto('http://localhost:4300/dashboard', { timeout: 5000 });
-      await page.waitForTimeout(2000);
+      await smartWaitForNetworkIdle(page, { timeout: 3000 });
       const url = page.url();
       const isBlocked = url.includes('/403') || url.includes('/unauthorized') || url.includes('/login');
       console.log(`Regular user accessing admin: ${isBlocked ? 'blocked' : 'not blocked'} (url: ${url})`);
@@ -120,7 +126,7 @@ test.describe('XSS 攻擊防護', () => {
   test('應該過濾用戶輸入中的腳本標籤', async ({ page }) => {
 
     await page.goto('/post/create');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     const titleInput = page.locator('input[name="title"], textarea[name="title"]').first();
     const contentInput = page.locator('textarea[name="content"], [contenteditable]').first();
@@ -133,7 +139,7 @@ test.describe('XSS 攻擊防護', () => {
       const submitButton = page.locator('button[type="submit"], button:has-text("發布")').first();
       if (await submitButton.isVisible()) {
         await submitButton.click();
-        await page.waitForTimeout(2000);
+        await smartWaitForNetworkIdle(page, { timeout: 3000 });
       }
 
       const pageContent = await page.content();
@@ -150,7 +156,7 @@ test.describe('XSS 攻擊防護', () => {
 
   test('應該 escape HTML 實體', async ({ page }) => {
     await page.goto('/profile/edit');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     const bioInput = page.locator('textarea[name="bio"], textarea').first();
 
@@ -161,7 +167,7 @@ test.describe('XSS 攻擊防護', () => {
       const submitButton = page.locator('button[type="submit"], button:has-text("保存"), button:has-text("儲存")').first();
       if (await submitButton.isVisible()) {
         await submitButton.click();
-        await page.waitForTimeout(2000);
+        await smartWaitForNetworkIdle(page, { timeout: 3000 });
       }
 
       const pageContent = await page.content();
@@ -197,7 +203,7 @@ test.describe('CSRF 防護', () => {
     await page.fill('input[name="email"]', TEST_USERS.subscriber.email);
     await page.fill('input[name="password"]', TEST_USERS.subscriber.password);
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
 
     // CSRF may not be implemented - just log the results
     console.log(`POST requests count: ${postRequests.length}`);
@@ -219,7 +225,7 @@ test.describe('CSRF 防護', () => {
     await page.fill('input[name="email"]', TEST_USERS.subscriber.email);
     await page.fill('input[name="password"]', TEST_USERS.subscriber.password);
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
 
     // CSRF protection may not be implemented yet
     await takeScreenshot(page, 'csrf-token-missing');
@@ -238,13 +244,16 @@ test.describe('SQL Injection 防護', () => {
 
     for (const payload of sqlInjectionPayloads) {
       await page.goto('/discover');
-      await page.waitForTimeout(1000);
+      await smartWaitForElement(page, { 
+        selector: 'input[type="search"], input[placeholder*="搜"], input[placeholder*="search"]', 
+        timeout: 2000 
+      }).catch(() => {});
 
       const searchInput = page.locator('input[type="search"], input[placeholder*="搜"], input[placeholder*="search"]').first();
 
       if (await searchInput.isVisible()) {
         await searchInput.fill(payload);
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(500); // Keep short delay for search input debounce
 
         const hasError = await page.locator('.error, [role="alert"]').count() > 0;
         console.log(`SQL Injection "${payload}": ${hasError ? 'blocked' : 'handled gracefully'}`);
@@ -265,7 +274,7 @@ test.describe('SQL Injection 防護', () => {
     await page.fill('input[name="email"]', "admin'--");
     await page.fill('input[name="password"]', 'anything');
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
 
     // 不應該成功登入
     const url = page.url();
@@ -284,7 +293,7 @@ test.describe('檔案上傳安全', () => {
   test('應該驗證檔案類型', async ({ page }) => {
 
     await page.goto('/post/create');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     const fileInput = page.locator('input[type="file"]').first();
 
@@ -295,7 +304,7 @@ test.describe('檔案上傳安全', () => {
 
   test('應該限制檔案大小', async ({ page }) => {
     await page.goto('/post/create');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     const fileSizeHint = page.locator(':text("大小"), :text("MB"), :text("限制")');
     const hasSizeLimit = await fileSizeHint.count() > 0;
@@ -322,7 +331,7 @@ test.describe('Rate Limiting', () => {
       await page.fill('input[name="email"]', 'test@test.com');
       await page.fill('input[name="password"]', 'wrongpassword');
       await page.click('button[type="submit"]');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(500); // Keep short delay for rate limit test
       console.log(`Login attempt ${i + 1}/6`);
     }
 
@@ -351,7 +360,7 @@ test.describe('Rate Limiting', () => {
     // Fast repeated requests
     for (let i = 0; i < 20; i++) {
       await page.reload();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(50); // Keep very short delay for rate limit stress test
     }
 
     console.log(`Rate limit triggered: ${hasRateLimitResponse}`);
@@ -404,7 +413,7 @@ test.describe('敏感資料保護', () => {
     await page.fill('input[name="email"]', TEST_USERS.subscriber.email);
     await page.fill('input[name="password"]', TEST_USERS.subscriber.password);
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
 
     const hasSensitiveInConsole = consoleMessages.some(msg =>
       msg.includes('password') || msg.includes(TEST_USERS.subscriber.password)
@@ -422,7 +431,7 @@ test.describe('Session 管理', () => {
     const logoutButton = page.locator('button:has-text("登出"), a:has-text("登出"), button:has-text("Logout"), button:has-text("Sign out")').first();
     if (await logoutButton.isVisible()) {
       await logoutButton.click();
-      await page.waitForTimeout(2000);
+      await smartWaitForNavigation(page, '/login|/auth|/$', { timeout: 3000 }).catch(() => {});
 
       const cookies = await context.cookies();
       const hasAuthToken = cookies.some(c => c.name === 'auth_token' || c.name === 'session');
@@ -446,7 +455,7 @@ test.describe('Session 管理', () => {
     await page.fill('input[name="email"]', TEST_USERS.subscriber.email);
     await page.fill('input[name="password"]', TEST_USERS.subscriber.password);
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
 
     const cookiesAfter = await context.cookies();
     const sessionAfter = cookiesAfter.find(c => c.name === 'session' || c.name === 'sessionId');

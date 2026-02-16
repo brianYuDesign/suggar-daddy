@@ -3,7 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { RedisModule } from "@suggar-daddy/redis";
-import { EnvConfigModule } from "@suggar-daddy/common";
+import { EnvConfigModule, CircuitBreakerModule } from "@suggar-daddy/common";
 import { ProxyController } from "./proxy.controller";
 import { ProxyService } from "./proxy.service";
 import { AppController } from "./app.controller";
@@ -19,6 +19,7 @@ import { createThrottlerOptions } from "./throttler.config";
     }),
     EnvConfigModule,
     RedisModule.forRoot(),
+    CircuitBreakerModule,
     // Throttler Module with Redis Storage
     ThrottlerModule.forRoot(createThrottlerOptions()),
   ],

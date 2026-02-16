@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
+import { InjectLogger } from '@suggar-daddy/common';
 import { PaginatedResponse } from '@suggar-daddy/dto';
 import { Post } from './post.service';
 
@@ -12,7 +13,7 @@ const MAX_FEED_SIZE = 1000;
 
 @Injectable()
 export class FeedService {
-  private readonly logger = new Logger(FeedService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(private readonly redis: RedisService) {}
 

@@ -2,6 +2,11 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { RedisService } from "@suggar-daddy/redis";
 import { KafkaConsumerService } from "@suggar-daddy/kafka";
+import {
+  CircuitBreakerService,
+  NOTIFICATION_SERVICE_CONFIG,
+  InjectLogger,
+} from "@suggar-daddy/common";
 // 注意：firebase-admin 可能尚未加入 package.json，部署前需執行 npm install firebase-admin
 import * as admin from "firebase-admin";
 
@@ -19,7 +24,7 @@ const DEVICE_TOKENS_KEY = (userId: string) => `device-tokens:${userId}`;
  */
 @Injectable()
 export class FcmService implements OnModuleInit {
-  private readonly logger = new Logger(FcmService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   /** Firebase 是否已成功初始化 */
   private firebaseInitialized = false;
@@ -28,6 +33,7 @@ export class FcmService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly redis: RedisService,
     private readonly kafkaConsumer: KafkaConsumerService,
+    private readonly circuitBreaker: CircuitBreakerService,
   ) {}
 
   /**
@@ -94,14 +100,30 @@ export class FcmService implements OnModuleInit {
       return;
     }
 
+    // 使用 Circuit Breaker 包裝 FCM 調用
+    const sendWithBreaker = this.circuitBreaker.wrap(
+      'fcm-send-notification',
+      async () => {
+        const message: admin.messaging.Message = {
+          token,
+          notification: { title, body },
+          ...(data ? { data } : {}),
+        };
+        return await admin.messaging().send(message);
+      },
+      NOTIFICATION_SERVICE_CONFIG,
+      async () => {
+        // Fallback: 通知發送失敗，記錄錯誤但不中斷
+        this.logger.warn(`[CIRCUIT BREAKER] FCM fallback triggered for token=${token.slice(0, 10)}...`);
+        return 'fallback-message-id';
+      }
+    );
+
     try {
-      const message: admin.messaging.Message = {
-        token,
-        notification: { title, body },
-        ...(data ? { data } : {}),
-      };
-      const messageId = await admin.messaging().send(message);
-      this.logger.log(`推播已送出 token=${token.slice(0, 10)}... messageId=${messageId}`);
+      const messageId = await sendWithBreaker();
+      if (messageId !== 'fallback-message-id') {
+        this.logger.log(`推播已送出 token=${token.slice(0, 10)}... messageId=${messageId}`);
+      }
     } catch (error) {
       this.logger.error(`推播失敗 token=${token.slice(0, 10)}...`, error);
     }

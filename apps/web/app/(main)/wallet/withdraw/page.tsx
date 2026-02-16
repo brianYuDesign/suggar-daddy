@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 import {
   ArrowLeft,
   Loader2,
@@ -44,20 +45,61 @@ interface Withdrawal {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
+const WITHDRAWAL_RULES = {
+  MIN_AMOUNT: 20,           // 最低提款金額 $20
+  MAX_AMOUNT: 50000,        // 最高提款金額 $50,000
+  MAX_DECIMALS: 2,          // 最多兩位小數
+};
+
+/* ------------------------------------------------------------------ */
 /*  Validation schema                                                  */
 /* ------------------------------------------------------------------ */
-const withdrawSchema = z.object({
+/**
+ * 動態創建提款驗證 schema
+ * @param availableBalance - 可用餘額（已扣除待處理提款）
+ */
+const createWithdrawSchema = (availableBalance: number) => z.object({
   amount: z
-    .number({ message: '請輸入金額' })
+    .number({
+      invalid_type_error: '請輸入有效的數字',
+    })
     .positive('金額必須大於 0')
-    .min(1, '最低提款金額為 1'),
-  payoutMethod: z.enum(['bank_transfer', 'paypal'], {
-    message: '請選擇提款方式',
+    .min(WITHDRAWAL_RULES.MIN_AMOUNT, `最低提款金額為 $${WITHDRAWAL_RULES.MIN_AMOUNT}`)
+    .max(WITHDRAWAL_RULES.MAX_AMOUNT, `單次提款不能超過 $${WITHDRAWAL_RULES.MAX_AMOUNT.toLocaleString()}`)
+    .refine(
+      (val) => {
+        // 檢查小數位數
+        const decimalPlaces = (val.toString().split('.')[1] || '').length;
+        return decimalPlaces <= WITHDRAWAL_RULES.MAX_DECIMALS;
+      },
+      `金額最多 ${WITHDRAWAL_RULES.MAX_DECIMALS} 位小數`
+    )
+    .refine(
+      (val) => val <= availableBalance,
+      `可用餘額不足（可用：$${availableBalance.toFixed(2)}）`
+    ),
+  payoutMethod: z.enum(['bank_transfer', 'paypal'] as const, {
+    errorMap: () => ({ message: '請選擇提款方式' }),
   }),
-  payoutDetails: z.string().min(1, '請輸入收款帳戶資訊'),
+  payoutDetails: z.string()
+    .min(1, '請輸入收款帳戶資訊')
+    .max(200, '帳戶資訊過長')
+    .superRefine((val, ctx) => {
+      const formData = ctx.path.length > 0 ? undefined : ctx;
+      // 由於無法直接訪問 parent，我們簡化驗證
+      // 實際的格式驗證可以在提交時進行
+      if (val.length < 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: '帳戶資訊過短',
+        });
+      }
+    }),
 });
 
-type WithdrawFormValues = z.infer<typeof withdrawSchema>;
+type WithdrawFormValues = z.infer<ReturnType<typeof createWithdrawSchema>>;
 
 /* ------------------------------------------------------------------ */
 /*  Status helpers                                                     */
@@ -109,10 +151,21 @@ export default function WithdrawPage() {
     null
   );
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   /* withdrawals list */
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [withdrawalsLoading, setWithdrawalsLoading] = useState(true);
+  
+  /* idempotency key - 生成一次，用於防止重複提交 */
+  const idempotencyKeyRef = useRef<string>(uuidv4());
+
+  /* 計算可用餘額（扣除待處理提款） */
+  const availableBalance = balance !== null 
+    ? balance - withdrawals
+        .filter(w => w.status === 'pending' || w.status === 'processing')
+        .reduce((sum, w) => sum + w.amount, 0)
+    : 0;
 
   /* load wallet + withdrawals */
   useEffect(() => {
@@ -143,15 +196,15 @@ export default function WithdrawPage() {
     };
   }, []);
 
-  /* form */
+  /* form - 使用動態 schema */
   const {
     register,
     handleSubmit,
     watch,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<WithdrawFormValues>({
-    resolver: zodResolver(withdrawSchema),
+    resolver: zodResolver(createWithdrawSchema(availableBalance)),
     defaultValues: {
       amount: undefined,
       payoutMethod: 'bank_transfer',
@@ -162,45 +215,90 @@ export default function WithdrawPage() {
   /* step 1: show confirmation dialog */
   function onFormSubmit(data: WithdrawFormValues) {
     setSubmitError(null);
-    if (balance !== null && data.amount > balance) {
-      setSubmitError(`餘額不足。目前可用餘額為 ${formatAmount(balance)}`);
+    
+    // 驗證收款帳戶格式
+    const { payoutMethod, payoutDetails } = data;
+    if (payoutMethod === 'bank_transfer') {
+      const cleanedAccount = payoutDetails.replace(/[\s-]/g, '');
+      if (!/^\d{10,20}$/.test(cleanedAccount)) {
+        setSubmitError('請輸入有效的銀行帳號（10-20 位數字）');
+        return;
+      }
+    } else if (payoutMethod === 'paypal') {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payoutDetails)) {
+        setSubmitError('請輸入有效的 PayPal 電子郵件地址');
+        return;
+      }
+    }
+    
+    // 再次檢查餘額（防止競態條件）
+    if (balance !== null && data.amount > availableBalance) {
+      setSubmitError(
+        `可用餘額不足。可用餘額為 ${formatAmount(availableBalance)}（總餘額 ${formatAmount(balance)}，待處理提款 ${formatAmount(balance - availableBalance)}）`
+      );
       return;
     }
+    
     setPendingData(data);
     setShowConfirm(true);
   }
 
   /* step 2: confirm and submit */
   const confirmWithdraw = useCallback(async () => {
-    if (!pendingData) return;
+    if (!pendingData || isSubmitting) return;
+    
     setShowConfirm(false);
     setSubmitError(null);
+    setIsSubmitting(true);
 
     try {
+      // 使用幂等性鍵防止重複提交
+      const requestId = idempotencyKeyRef.current;
+      
       await paymentsApi.requestWithdrawal(
         pendingData.amount,
         pendingData.payoutMethod,
-        pendingData.payoutDetails
+        pendingData.payoutDetails,
+        requestId // 傳遞幂等性鍵給後端
       );
+      
       setSuccessMessage(
         `提款申請已送出：${formatAmount(pendingData.amount)}`
       );
+      
+      // 生成新的幂等性鍵供下次使用
+      idempotencyKeyRef.current = uuidv4();
+      
       reset();
+      
       // refresh balance & withdrawals
-      paymentsApi
-        .getWallet()
-        .then((data) => setBalance(data.balance ?? 0))
-        .catch(() => {});
-      paymentsApi
-        .getWithdrawals()
-        .then((data) => setWithdrawals(data as unknown as Withdrawal[]))
-        .catch(() => {});
+      const [walletData, withdrawalsData] = await Promise.allSettled([
+        paymentsApi.getWallet(),
+        paymentsApi.getWithdrawals(),
+      ]);
+      
+      if (walletData.status === 'fulfilled') {
+        setBalance(walletData.value.balance ?? 0);
+      }
+      
+      if (withdrawalsData.status === 'fulfilled') {
+        setWithdrawals(withdrawalsData.value as unknown as Withdrawal[]);
+      }
     } catch (err) {
-      setSubmitError(
-        err instanceof ApiError ? err.message : '提款申請失敗，請稍後再試'
-      );
+      const errorMessage = err instanceof ApiError 
+        ? err.message 
+        : '提款申請失敗，請稍後再試';
+      
+      setSubmitError(errorMessage);
+      
+      // 如果是重複請求錯誤，生成新的幂等性鍵
+      if (err instanceof ApiError && err.message.includes('重複')) {
+        idempotencyKeyRef.current = uuidv4();
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [pendingData, reset]);
+  }, [pendingData, reset, isSubmitting]);
 
   /* ---------- render ---------- */
   return (
@@ -244,14 +342,37 @@ export default function WithdrawPage() {
           >
             {/* Available balance */}
             <div className="mb-2 rounded-lg bg-brand-50 p-3">
-              <p className="text-xs text-gray-500">可用餘額</p>
-              {balanceLoading ? (
-                <Skeleton className="mt-1 h-6 w-24" />
-              ) : (
-                <p className="text-lg font-bold text-brand-600">
-                  {formatAmount(balance ?? 0)}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500">總餘額</p>
+                  {balanceLoading ? (
+                    <Skeleton className="mt-1 h-6 w-24" />
+                  ) : (
+                    <p className="text-lg font-bold text-brand-600">
+                      {formatAmount(balance ?? 0)}
+                    </p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">可用餘額</p>
+                  {balanceLoading ? (
+                    <Skeleton className="mt-1 h-6 w-24" />
+                  ) : (
+                    <p className="text-lg font-bold text-green-600">
+                      {formatAmount(availableBalance)}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {!balanceLoading && availableBalance < (balance ?? 0) && (
+                <p className="mt-2 text-xs text-amber-600">
+                  <AlertCircle className="mr-1 inline h-3 w-3" />
+                  有待處理的提款申請：{formatAmount((balance ?? 0) - availableBalance)}
                 </p>
               )}
+              <p className="mt-1 text-xs text-gray-400">
+                提款範圍：${WITHDRAWAL_RULES.MIN_AMOUNT} - ${WITHDRAWAL_RULES.MAX_AMOUNT.toLocaleString()}
+              </p>
             </div>
 
             {/* Amount */}

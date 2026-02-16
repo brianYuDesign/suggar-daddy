@@ -1,9 +1,11 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, OnModuleInit } from '@nestjs/common';
 import Stripe from 'stripe';
+import { CircuitBreakerService, PAYMENT_SERVICE_CONFIG } from '@suggar-daddy/common';
 
 @Injectable()
-export class StripeService {
+export class StripeService implements OnModuleInit {
   private stripe: Stripe | null = null;
+  private circuitBreaker: CircuitBreakerService | null = null;
 
   constructor() {
     const apiKey = process.env['STRIPE_SECRET_KEY'];
@@ -12,6 +14,18 @@ export class StripeService {
         apiVersion: '2023-10-16',
       });
     }
+  }
+
+  /**
+   * 依賴注入 CircuitBreakerService（可選）
+   * 如果有注入則使用 Circuit Breaker 保護 Stripe API 調用
+   */
+  setCircuitBreaker(circuitBreaker: CircuitBreakerService): void {
+    this.circuitBreaker = circuitBreaker;
+  }
+
+  onModuleInit() {
+    // Module initialization hook
   }
 
   getStripeInstance(): Stripe {
@@ -29,15 +43,19 @@ export class StripeService {
 
   // Customer Management
   async createCustomer(email: string, name: string, userId: string) {
-    return this.getStripeInstance().customers.create({
-      email,
-      name,
-      metadata: { userId },
+    return this.withCircuitBreaker('create-customer', async () => {
+      return this.getStripeInstance().customers.create({
+        email,
+        name,
+        metadata: { userId },
+      });
     });
   }
 
   async getCustomer(customerId: string) {
-    return this.getStripeInstance().customers.retrieve(customerId);
+    return this.withCircuitBreaker('get-customer', async () => {
+      return this.getStripeInstance().customers.retrieve(customerId);
+    });
   }
 
   // Subscription Management
@@ -46,31 +64,63 @@ export class StripeService {
     priceId: string,
     metadata?: Record<string, string>
   ) {
-    return this.getStripeInstance().subscriptions.create({
-      customer: customerId,
-      items: [{ price: priceId }],
-      payment_behavior: 'default_incomplete',
-      payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice.payment_intent'],
-      metadata,
+    return this.withCircuitBreaker('create-subscription', async () => {
+      return this.getStripeInstance().subscriptions.create({
+        customer: customerId,
+        items: [{ price: priceId }],
+        payment_behavior: 'default_incomplete',
+        payment_settings: { save_default_payment_method: 'on_subscription' },
+        expand: ['latest_invoice.payment_intent'],
+        metadata,
+      });
     });
   }
 
   async cancelSubscription(subscriptionId: string) {
-    return this.getStripeInstance().subscriptions.cancel(subscriptionId);
+    return this.withCircuitBreaker('cancel-subscription', async () => {
+      return this.getStripeInstance().subscriptions.cancel(subscriptionId);
+    });
+  }
+
+  /**
+   * 使用 Circuit Breaker 包裝 Stripe API 調用
+   * 如果沒有注入 CircuitBreaker，則直接執行
+   */
+  private async withCircuitBreaker<T>(
+    name: string,
+    action: () => Promise<T>,
+    fallback?: () => T | Promise<T>
+  ): Promise<T> {
+    if (!this.circuitBreaker) {
+      return action();
+    }
+
+    const wrappedAction = this.circuitBreaker.wrap(
+      `stripe-${name}`,
+      action,
+      PAYMENT_SERVICE_CONFIG,
+      fallback
+    );
+
+    return wrappedAction();
   }
 
   async updateSubscription(subscriptionId: string, priceId: string) {
-    const stripe = this.getStripeInstance();
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    return stripe.subscriptions.update(subscriptionId, {
-      items: [
-        {
-          id: subscription.items.data[0].id,
-          price: priceId,
-        },
-      ],
-    });
+    return this.withCircuitBreaker(
+      'update-subscription',
+      async () => {
+        const stripe = this.getStripeInstance();
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        return stripe.subscriptions.update(subscriptionId, {
+          items: [
+            {
+              id: subscription.items.data[0].id,
+              price: priceId,
+            },
+          ],
+        });
+      }
+    );
   }
 
   // Payment Intent for one-time purchases
@@ -80,12 +130,14 @@ export class StripeService {
     customerId: string,
     metadata?: Record<string, string>
   ) {
-    return this.getStripeInstance().paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency,
-      customer: customerId,
-      metadata,
-      automatic_payment_methods: { enabled: true },
+    return this.withCircuitBreaker('create-payment-intent', async () => {
+      return this.getStripeInstance().paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency,
+        customer: customerId,
+        metadata,
+        automatic_payment_methods: { enabled: true },
+      });
     });
   }
 
@@ -123,17 +175,19 @@ export class StripeService {
     amount?: number,
     reason?: string,
   ) {
-    const params: Stripe.RefundCreateParams = {
-      payment_intent: paymentIntentId,
-    };
-    if (amount !== undefined) {
-      params.amount = Math.round(amount * 100); // Convert to cents
-    }
-    if (reason) {
-      params.reason = 'requested_by_customer';
-      params.metadata = { reason };
-    }
-    return this.getStripeInstance().refunds.create(params);
+    return this.withCircuitBreaker('create-refund', async () => {
+      const params: Stripe.RefundCreateParams = {
+        payment_intent: paymentIntentId,
+      };
+      if (amount !== undefined) {
+        params.amount = Math.round(amount * 100); // Convert to cents
+      }
+      if (reason) {
+        params.reason = 'requested_by_customer';
+        params.metadata = { reason };
+      }
+      return this.getStripeInstance().refunds.create(params);
+    });
   }
 
   // Webhook signature verification（僅需 STRIPE_WEBHOOK_SECRET，不依賴 STRIPE_SECRET_KEY）

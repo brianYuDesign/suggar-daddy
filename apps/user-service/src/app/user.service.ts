@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { USER_EVENTS, SOCIAL_EVENTS, PermissionRole } from '@suggar-daddy/common';
+import { USER_EVENTS, SOCIAL_EVENTS, PermissionRole, InjectLogger } from '@suggar-daddy/common';
 import type {
   UserProfileDto,
   CreateUserDto,
@@ -22,7 +22,8 @@ import {
 
 @Injectable()
 export class UserService {
-  private readonly logger = new Logger(UserService.name);
+  @InjectLogger()
+  private readonly logger!: Logger;
   private readonly USER_PREFIX = 'user:';
 
   constructor(
@@ -482,30 +483,58 @@ export class UserService {
   async searchUsers(query: string, limit = 20): Promise<FollowerDto[]> {
     if (!query || query.trim().length === 0) return [];
     const lowerQuery = query.toLowerCase();
-    // Use users:all Set instead of SCAN
-    const userIds = await this.redisService.sMembers(USERS_ALL_SET);
-
-    if (userIds.length === 0) return [];
-
-    const userKeys = userIds.map(id => `${this.USER_PREFIX}${id}`);
-    const values = await this.redisService.mget(...userKeys);
-
+    
+    // ✅ 優化: 使用 SSCAN 分頁，避免載入所有用戶到記憶體
     const results: FollowerDto[] = [];
-    for (const value of values) {
-      if (!value) continue;
-      if (results.length >= limit) break;
+    let cursor = 0;
+    let scannedCount = 0;
+    const MAX_SCAN_LIMIT = 1000; // 最多掃描 1000 個用戶
+    const SCAN_COUNT = 100; // 每次掃描 100 個用戶
+    
+    do {
+      // 使用 SSCAN 分批掃描
+      const scanResult = await this.redisService.getClient().sscan(
+        USERS_ALL_SET,
+        cursor,
+        'COUNT',
+        SCAN_COUNT
+      );
       
-      const user = JSON.parse(value) as UserRecord;
-      if (user.displayName.toLowerCase().includes(lowerQuery)) {
-        results.push({
-          id: user.id,
-          displayName: user.displayName,
-          avatarUrl: user.avatarUrl,
-          userType: user.userType,
-          permissionRole: user.permissionRole,
-        });
+      cursor = parseInt(scanResult[0], 10);
+      const userIds = scanResult[1];
+      
+      if (userIds.length === 0) break;
+      
+      // 批量獲取這批用戶數據
+      const userKeys = userIds.map(id => `${this.USER_PREFIX}${id}`);
+      const values = await this.redisService.mget(...userKeys);
+      
+      // 過濾匹配的用戶
+      for (const value of values) {
+        if (!value) continue;
+        if (results.length >= limit) break;
+        
+        const user = JSON.parse(value) as UserRecord;
+        // 搜尋 displayName 或 email（如果需要）
+        if (user.displayName.toLowerCase().includes(lowerQuery)) {
+          results.push({
+            id: user.id,
+            displayName: user.displayName,
+            avatarUrl: user.avatarUrl,
+            userType: user.userType,
+            permissionRole: user.permissionRole,
+          });
+        }
       }
-    }
+      
+      scannedCount += userIds.length;
+      
+      // 如果已找到足夠的結果或掃描超過限制，停止
+      if (results.length >= limit || scannedCount >= MAX_SCAN_LIMIT) {
+        break;
+      }
+      
+    } while (cursor !== 0);
     
     return results;
   }

@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { login, TEST_USERS, takeScreenshot } from '../utils/test-helpers';
+import {
+  smartWaitForAPI,
+  smartWaitForNetworkIdle,
+  smartWaitForElement,
+} from '../utils/smart-wait';
 
 /**
  * 效能測試
@@ -116,7 +121,7 @@ test.describe('API 響應時間', () => {
     await page.fill('input[name="email"]', TEST_USERS.subscriber.email);
     await page.fill('input[name="password"]', TEST_USERS.subscriber.password);
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
 
     if (apiResponseTime > 0) {
       expect(apiResponseTime).toBeLessThan(2000);
@@ -144,7 +149,7 @@ test.describe('API 響應時間', () => {
     });
 
     await page.goto('/feed');
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
 
     if (apiResponseTime > 0) {
       expect(apiResponseTime).toBeLessThan(2000);
@@ -172,7 +177,7 @@ test.describe('API 響應時間', () => {
     });
 
     await page.goto('/profile');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     if (apiResponseTime > 0) {
       expect(apiResponseTime).toBeLessThan(2000);
@@ -185,7 +190,7 @@ test.describe('API 響應時間', () => {
 test.describe('資源載入優化', () => {
   test('應該使用圖片懶載入', async ({ page }) => {
     await page.goto('/feed');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     const images = page.locator('img');
     const imageCount = await images.count();
@@ -275,7 +280,7 @@ test.describe('資源載入優化', () => {
       }
     });
 
-    await page.waitForTimeout(3000);
+    await smartWaitForNetworkIdle(page, { timeout: 5000 });
 
     responses.forEach(r => {
       if (r.size > 0) {
@@ -306,7 +311,8 @@ test.describe('無限滾動效能', () => {
       const scrollStartTime = Date.now();
 
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(1000);
+      // Wait for new content to load
+      await smartWaitForNetworkIdle(page, { timeout: 2000 }).catch(() => {});
 
       const scrollLoadTime = Date.now() - scrollStartTime;
       console.log(`Scroll ${i + 1} load time: ${scrollLoadTime}ms`);
@@ -325,12 +331,12 @@ test.describe('無限滾動效能', () => {
 
   test('滾動時不應該出現卡頓', async ({ page }) => {
     await page.goto('/feed');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     // Test multiple fast scrolls
     for (let i = 0; i < 10; i++) {
       await page.evaluate(() => window.scrollBy(0, 500));
-      await page.waitForTimeout(50);
+      await page.waitForTimeout(30); // Keep very short delay for scroll test
     }
 
     await takeScreenshot(page, 'smooth-scrolling');
@@ -340,14 +346,14 @@ test.describe('無限滾動效能', () => {
 test.describe('互動響應時間', () => {
   test('點贊按鈕響應時間應該 < 1000ms', async ({ page }) => {
     await page.goto('/feed');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     const likeButton = page.locator('button:has-text("贊"), button:has-text("讚"), button[aria-label*="like"]').first();
 
     if (await likeButton.isVisible()) {
       const clickStartTime = Date.now();
       await likeButton.click();
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300); // Keep short delay for UI feedback
 
       const responseTime = Date.now() - clickStartTime;
       console.log(`Like button response time: ${responseTime}ms`);
@@ -360,7 +366,7 @@ test.describe('互動響應時間', () => {
 
   test('搜尋輸入響應應該即時', async ({ page }) => {
     await page.goto('/discover');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     const searchInput = page.locator('input[type="search"], input[placeholder*="搜"], input[placeholder*="search"]').first();
 
@@ -368,7 +374,7 @@ test.describe('互動響應時間', () => {
       const typeStartTime = Date.now();
 
       await searchInput.fill('test');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300); // Keep short delay for debounce
 
       const responseTime = Date.now() - typeStartTime;
       console.log(`Search response time: ${responseTime}ms`);
@@ -381,7 +387,7 @@ test.describe('互動響應時間', () => {
 
   test('導航切換應該快速', async ({ page }) => {
     await page.goto('/feed');
-    await page.waitForTimeout(1000);
+    await smartWaitForNetworkIdle(page, { timeout: 2000 }).catch(() => {});
 
     const navigationStartTime = Date.now();
 
@@ -401,13 +407,13 @@ test.describe('記憶體使用', () => {
     test.setTimeout(60000);
     for (let i = 0; i < 5; i++) {
       await page.goto('/feed');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300); // Keep minimal delay
 
       await page.goto('/discover');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300); // Keep minimal delay
 
       await page.goto('/profile');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300); // Keep minimal delay
 
       console.log(`Cycle ${i + 1}/5 completed`);
     }
@@ -486,7 +492,7 @@ test.describe('快取效能', () => {
     });
 
     await page.goto('/feed');
-    await page.waitForTimeout(2000);
+    await smartWaitForNetworkIdle(page, { timeout: 3000 });
 
     console.log(`API has cache headers: ${hasCacheHeaders}`);
   });

@@ -5,6 +5,7 @@ import { KafkaModule } from "@suggar-daddy/kafka";
 import {
   EnvConfigModule,
   AppConfigService,
+  CircuitBreakerModule,
 } from "@suggar-daddy/common";
 import { AuthModule, JwtStrategy } from "@suggar-daddy/auth";
 import { AppController } from "./app.controller";
@@ -26,6 +27,7 @@ import { NotificationGateway } from "./notification.gateway";
     EnvConfigModule,
     AuthModule,
     RedisModule.forRoot(),
+    CircuitBreakerModule,
     KafkaModule.forRootAsync({
       useFactory: (config: AppConfigService) => ({
         clientId: config.kafkaClientId,

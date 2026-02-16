@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
+import { InjectLogger } from '@suggar-daddy/common';
 import { PaginatedResponse } from '@suggar-daddy/dto';
 import { Post } from './post.service';
 
@@ -14,7 +15,7 @@ const SCORE_BOOKMARK = 3;
 
 @Injectable()
 export class DiscoveryService {
-  private readonly logger = new Logger(DiscoveryService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(private readonly redis: RedisService) {}
 

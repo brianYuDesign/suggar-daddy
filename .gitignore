@@ -55,6 +55,12 @@ infrastructure/**/*.tfstate.*
 infrastructure/**/.terraform/
 *.pem
 
+# Docker Secrets - NEVER commit these!
+secrets/
+!secrets/.gitkeep
+!secrets/README.md
+!secrets/.example
+
 # Next.js
 .next/
 out/

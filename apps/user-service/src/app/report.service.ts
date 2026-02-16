@@ -1,12 +1,13 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { USER_EVENTS } from '@suggar-daddy/common';
+import { USER_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import { ReportRecord, REPORT_KEY, REPORTS_PENDING, REPORTS_BY_USER } from './user.types';
 
 @Injectable()
 export class ReportService {
-  private readonly logger = new Logger(ReportService.name);
+  @InjectLogger()
+  private readonly logger!: Logger;
 
   constructor(
     private readonly redisService: RedisService,

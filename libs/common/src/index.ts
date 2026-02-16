@@ -9,6 +9,8 @@ export * from "./s3";
 export * from "./cloudfront";
 export * from "./email";
 export * from "./types";
+export * from "./circuit-breaker";
+export * from "./decorators";
 
 // Exception handling exports
 export * from "./lib/error-codes.enum";

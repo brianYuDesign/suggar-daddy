@@ -25,6 +25,7 @@ import {
 import { Server, Socket } from "socket.io";
 import { MessagingService } from "./messaging.service";
 import { KafkaConsumerService } from "@suggar-daddy/kafka";
+import { InjectLogger } from "@suggar-daddy/common";
 
 /** 加入房間的資料結構 */
 interface JoinPayload {
@@ -52,7 +53,7 @@ interface TypingPayload {
 export class MessagingGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
 {
-  private readonly logger = new Logger(MessagingGateway.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   /** 追蹤在線用戶：userId -> Socket */
   private onlineUsers: Map<string, Socket> = new Map();

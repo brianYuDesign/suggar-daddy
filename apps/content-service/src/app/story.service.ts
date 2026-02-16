@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { CONTENT_EVENTS } from '@suggar-daddy/common';
+import { CONTENT_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import { CreateStoryDto, StoryDto, PaginatedResponse } from '@suggar-daddy/dto';
 
 const STORY_KEY = (storyId: string) => `story:${storyId}`;
@@ -14,7 +14,7 @@ const STORY_TTL_SEC = 24 * 60 * 60; // 24 hours
 
 @Injectable()
 export class StoryService {
-  private readonly logger = new Logger(StoryService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly redis: RedisService,

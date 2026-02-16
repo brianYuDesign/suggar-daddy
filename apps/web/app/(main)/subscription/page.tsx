@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Crown, Check, Loader2 } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { Crown, Check, Loader2, AlertCircle } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 import {
   Button,
   Card,
@@ -43,6 +44,16 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  
+  /* 幂等性保護 - 防止重複點擊 */
+  const lastActionRef = useRef<{ action: string; timestamp: number } | null>(null);
+  const DEBOUNCE_MS = 2000; // 2 秒內不允許重複操作
+  
+  /* 確認對話框狀態 */
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showSubscribeConfirm, setShowSubscribeConfirm] = useState<{
+    tier: SubscriptionTier;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,30 +91,97 @@ export default function SubscriptionPage() {
   }, []);
 
   /* ---------- actions ---------- */
-  async function handleSubscribe(tierId: string) {
-    setActionLoading(tierId);
+  
+  /**
+   * 防抖檢查 - 防止短時間內重複操作
+   */
+  const canPerformAction = useCallback((actionId: string): boolean => {
+    const now = Date.now();
+    const last = lastActionRef.current;
+    
+    if (last && last.action === actionId && (now - last.timestamp) < DEBOUNCE_MS) {
+      return false; // 在防抖時間內
+    }
+    
+    return true;
+  }, []);
+  
+  /**
+   * 記錄操作時間
+   */
+  const recordAction = useCallback((actionId: string) => {
+    lastActionRef.current = {
+      action: actionId,
+      timestamp: Date.now(),
+    };
+  }, []);
+  
+  /**
+   * 訂閱方案 - 顯示確認對話框
+   */
+  const handleSubscribeClick = useCallback((tier: SubscriptionTier) => {
+    if (!canPerformAction(`subscribe-${tier.id}`)) {
+      return; // 忽略重複點擊
+    }
+    
+    setShowSubscribeConfirm({ tier });
+  }, [canPerformAction]);
+  
+  /**
+   * 確認訂閱
+   */
+  const confirmSubscribe = useCallback(async () => {
+    if (!showSubscribeConfirm) return;
+    
+    const { tier } = showSubscribeConfirm;
+    const actionId = `subscribe-${tier.id}`;
+    
+    setShowSubscribeConfirm(null);
+    setActionLoading(tier.id);
+    recordAction(actionId);
+    
     try {
-      const sub = (await subscriptionsApi.subscribe(tierId)) as unknown as Subscription;
+      const idempotencyKey = uuidv4();
+      const sub = await subscriptionsApi.subscribe(tier.id, idempotencyKey) as unknown as Subscription;
       setCurrentSub(sub);
-    } catch (_err) {
-      /* optionally show toast */
+    } catch (err) {
+      // 顯示錯誤訊息（可以加 toast）
+      console.error('Subscription failed:', err);
     } finally {
       setActionLoading(null);
     }
-  }
-
-  async function handleCancel() {
+  }, [showSubscribeConfirm, recordAction]);
+  
+  /**
+   * 取消訂閱 - 顯示確認對話框
+   */
+  const handleCancelClick = useCallback(() => {
+    if (!currentSub || !canPerformAction('cancel')) {
+      return;
+    }
+    
+    setShowCancelConfirm(true);
+  }, [currentSub, canPerformAction]);
+  
+  /**
+   * 確認取消訂閱
+   */
+  const confirmCancel = useCallback(async () => {
     if (!currentSub) return;
+    
+    setShowCancelConfirm(false);
     setActionLoading('cancel');
+    recordAction('cancel');
+    
     try {
       await subscriptionsApi.cancel();
       setCurrentSub(null);
-    } catch {
-      /* optionally show toast */
+    } catch (err) {
+      console.error('Cancel failed:', err);
     } finally {
       setActionLoading(null);
     }
-  }
+  }, [currentSub, recordAction]);
 
   /* ---------- helpers ---------- */
   function formatCurrency(amount: number, currency: string) {
@@ -217,7 +295,7 @@ export default function SubscriptionPage() {
                   <Button
                     variant="outline"
                     className="w-full border-red-300 text-red-600 hover:bg-red-50"
-                    onClick={handleCancel}
+                    onClick={handleCancelClick}
                     disabled={actionLoading === 'cancel'}
                   >
                     {actionLoading === 'cancel' ? (
@@ -228,8 +306,8 @@ export default function SubscriptionPage() {
                 ) : (
                   <Button
                     className="w-full bg-brand-500 hover:bg-brand-600"
-                    onClick={() => handleSubscribe(tier.id)}
-                    disabled={actionLoading === tier.id}
+                    onClick={() => handleSubscribeClick(tier)}
+                    disabled={!!actionLoading}
                   >
                     {actionLoading === tier.id ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -242,6 +320,90 @@ export default function SubscriptionPage() {
           );
         })}
       </div>
+      
+      {/* 訂閱確認對話框 */}
+      {showSubscribeConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="text-lg font-bold text-gray-900">確認訂閱</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              您即將訂閱 <span className="font-semibold">{showSubscribeConfirm.tier.name}</span>
+            </p>
+            <div className="mt-3 rounded-lg bg-brand-50 p-3">
+              <p className="text-2xl font-bold text-brand-600">
+                {formatCurrency(showSubscribeConfirm.tier.price, showSubscribeConfirm.tier.currency)}
+                <span className="text-sm font-normal text-gray-500"> / 月</span>
+              </p>
+            </div>
+            <p className="mt-3 text-xs text-gray-400">
+              訂閱後將自動扣款，您可以隨時取消訂閱。
+            </p>
+            <div className="mt-4 flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowSubscribeConfirm(null)}
+                disabled={!!actionLoading}
+              >
+                取消
+              </Button>
+              <Button
+                className="flex-1 bg-brand-500 hover:bg-brand-600"
+                onClick={confirmSubscribe}
+                disabled={!!actionLoading}
+              >
+                {actionLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                確認訂閱
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 取消訂閱確認對話框 */}
+      {showCancelConfirm && currentSub && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-red-100 p-2">
+                <AlertCircle className="h-5 w-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-gray-900">確認取消訂閱</h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  取消訂閱後，您將無法繼續享受會員權益。訂閱將在當前週期結束後停止。
+                </p>
+                <p className="mt-2 text-xs text-gray-500">
+                  到期日：{new Date(currentSub.currentPeriodEnd).toLocaleDateString('zh-TW')}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowCancelConfirm(false)}
+                disabled={actionLoading === 'cancel'}
+              >
+                保留訂閱
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={confirmCancel}
+                disabled={actionLoading === 'cancel'}
+              >
+                {actionLoading === 'cancel' ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                確認取消
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

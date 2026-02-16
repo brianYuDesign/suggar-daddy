@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { takeScreenshot } from '../utils/test-helpers';
+import {
+  smartWaitForNetworkIdle,
+  smartWaitForElement,
+  smartWaitForModal,
+} from '../utils/smart-wait';
 
 /**
  * 訂閱流程測試
@@ -13,12 +18,12 @@ import { takeScreenshot } from '../utils/test-helpers';
 async function waitForSubscriptionPage(page: import('@playwright/test').Page) {
   await page.goto('/subscription');
   // Wait for either the gradient header (loaded state), error text, login page, or give enough time for API
-  await page.waitForSelector(
-    '.text-red-500, [class*="gradient"], button:has-text("立即訂閱"), button:has-text("取消訂閱"), button:has-text("登入"), h1:has-text("訂閱方案")',
-    { timeout: 10000 },
-  ).catch(() => {});
-  // Give the page a moment to finish loading
-  await page.waitForTimeout(1000);
+  await smartWaitForElement(page, {
+    selector: '.text-red-500, [class*="gradient"], button:has-text("立即訂閱"), button:has-text("取消訂閱"), button:has-text("登入"), h1:has-text("訂閱方案")',
+    timeout: 10000,
+  }).catch(() => {});
+  // Wait for network to settle
+  await smartWaitForNetworkIdle(page, { timeout: 3000 }).catch(() => {});
 }
 
 /** Helper: check if on login page (auth expired) */
@@ -67,7 +72,7 @@ test.describe('創建訂閱', () => {
 
     if (await subscribeButton.isVisible().catch(() => false)) {
       await subscribeButton.click();
-      await page.waitForTimeout(2000);
+      await smartWaitForNetworkIdle(page, { timeout: 3000 }).catch(() => {});
     }
 
     await takeScreenshot(page, 'subscription-checkout', { fullPage: true });
@@ -83,7 +88,7 @@ test.describe('創建訂閱', () => {
 
     if (count > 1) {
       await subscribeButtons.nth(1).click();
-      await page.waitForTimeout(2000);
+      await smartWaitForNetworkIdle(page, { timeout: 3000 }).catch(() => {});
       await takeScreenshot(page, 'subscription-yearly-checkout', { fullPage: true });
     }
   });
@@ -162,7 +167,7 @@ test.describe('訂閱升級', () => {
 
     if (await upgradeButton.isVisible().catch(() => false)) {
       await upgradeButton.click();
-      await page.waitForTimeout(1000);
+      await smartWaitForNetworkIdle(page, { timeout: 2000 }).catch(() => {});
       await takeScreenshot(page, 'subscription-upgrade-page', { fullPage: true });
     }
 
@@ -175,7 +180,7 @@ test.describe('訂閱升級', () => {
     const upgradeButton = page.locator('button:has-text("升級")').first();
     if (await upgradeButton.isVisible().catch(() => false)) {
       await upgradeButton.click();
-      await page.waitForTimeout(1000);
+      await smartWaitForNetworkIdle(page, { timeout: 2000 }).catch(() => {});
 
       const prorateInfo = page.locator(':text("差額"), :text("按比例")');
       const hasProrateInfo = await prorateInfo.count() > 0;
@@ -225,13 +230,13 @@ test.describe('訂閱降級', () => {
 
     if (await downgradeButton.isVisible().catch(() => false)) {
       await downgradeButton.click();
-      await page.waitForTimeout(1000);
+      await smartWaitForNetworkIdle(page, { timeout: 2000 }).catch(() => {});
       await takeScreenshot(page, 'subscription-downgrade-page', { fullPage: true });
 
       const basicButton = page.locator('button:has-text("Basic"), button:has-text("基礎")').first();
       if (await basicButton.isVisible().catch(() => false)) {
         await basicButton.click();
-        await page.waitForTimeout(2000);
+        await smartWaitForNetworkIdle(page, { timeout: 3000 }).catch(() => {});
         await takeScreenshot(page, 'subscription-downgrade-confirm', { fullPage: true });
       }
     }
@@ -245,7 +250,7 @@ test.describe('訂閱降級', () => {
     const downgradeButton = page.locator('button:has-text("降級"), button:has-text("變更")').first();
     if (await downgradeButton.isVisible().catch(() => false)) {
       await downgradeButton.click();
-      await page.waitForTimeout(1000);
+      await smartWaitForNetworkIdle(page, { timeout: 2000 }).catch(() => {});
 
       const warningText = page.locator('[role="alert"], .warning, :text("功能限制"), :text("將失去")');
       const hasWarning = await warningText.count() > 0;
@@ -340,7 +345,7 @@ test.describe('訂閱取消', () => {
       if (await confirmBtn.isVisible().catch(() => false)) {
         await confirmBtn.click();
       }
-      await page.waitForTimeout(2000);
+      await smartWaitForNetworkIdle(page, { timeout: 3000 }).catch(() => {});
 
       const resubscribeButton = page.locator('button:has-text("重新訂閱"), button:has-text("立即訂閱")');
       const hasResubscribe = await resubscribeButton.count() > 0;
@@ -374,7 +379,7 @@ test.describe('免費試用', () => {
 
     if (await freeTrialButton.isVisible().catch(() => false)) {
       await freeTrialButton.click();
-      await page.waitForTimeout(2000);
+      await smartWaitForNetworkIdle(page, { timeout: 3000 }).catch(() => {});
       await takeScreenshot(page, 'free-trial-started', { fullPage: true });
     }
 
@@ -437,7 +442,7 @@ test.describe('訂閱自動續費', () => {
 
     if (await autoRenewToggle.isVisible().catch(() => false)) {
       await autoRenewToggle.click();
-      await page.waitForTimeout(1000);
+      await smartWaitForNetworkIdle(page, { timeout: 2000 }).catch(() => {});
       await takeScreenshot(page, 'auto-renew-disabled');
     }
   });
@@ -481,7 +486,7 @@ test.describe('訂閱錯誤處理', () => {
     const subscribeButton = page.locator('button:has-text("立即訂閱")').first();
     if (await subscribeButton.isVisible().catch(() => false)) {
       await subscribeButton.click();
-      await page.waitForTimeout(2000);
+      await smartWaitForNetworkIdle(page, { timeout: 3000 }).catch(() => {});
       // Page may show error via toast or inline
       await takeScreenshot(page, 'subscription-payment-error');
     }

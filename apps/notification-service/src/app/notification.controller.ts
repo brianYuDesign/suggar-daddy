@@ -11,12 +11,12 @@ import {
 import { SendNotificationDto } from '@suggar-daddy/dto';
 import { JwtAuthGuard, CurrentUser, Public, Roles } from '@suggar-daddy/auth';
 import type { CurrentUserData } from '@suggar-daddy/auth';
-import { UserRole } from '@suggar-daddy/common';
+import { UserRole, InjectLogger } from '@suggar-daddy/common';
 import { NotificationService } from './notification.service';
 
 @Controller()
 export class NotificationController {
-  private readonly logger = new Logger(NotificationController.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(private readonly notificationService: NotificationService) {}
 

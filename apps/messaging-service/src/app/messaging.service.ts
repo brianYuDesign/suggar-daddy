@@ -1,7 +1,7 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { MESSAGING_EVENTS } from '@suggar-daddy/common';
+import { MESSAGING_EVENTS, InjectLogger } from '@suggar-daddy/common';
 import type {
   MessageDto,
   ConversationDto,
@@ -40,7 +40,7 @@ interface StoredMessage {
 
 @Injectable()
 export class MessagingService {
-  private readonly logger = new Logger(MessagingService.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(
     private readonly redis: RedisService,

@@ -2,6 +2,17 @@ const TOKEN_KEY = 'admin_token';
 const TOKEN_EXPIRY_KEY = 'admin_token_expiry';
 const REFRESH_TOKEN_KEY = 'admin_refresh_token';
 
+/**
+ * JWT Payload 類型
+ */
+interface JWTPayload {
+  userId: string;
+  email: string;
+  role: string;
+  exp: number;
+  iat: number;
+}
+
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
   const token = localStorage.getItem(TOKEN_KEY);
@@ -57,4 +68,53 @@ export function getTokenTTL(): number {
   if (!expiry) return 0;
   const ttl = Number(expiry) - Date.now();
   return ttl > 0 ? ttl : 0;
+}
+
+/**
+ * 驗證 JWT token 並返回 payload
+ * 注意：這只做基本的格式驗證和解碼，不驗證簽名
+ * 簽名驗證應該在後端進行
+ */
+export function verifyToken(token: string): JWTPayload {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      throw new Error('Invalid JWT format');
+    }
+
+    const payload = JSON.parse(atob(parts[1]));
+
+    // 驗證必要字段
+    if (!payload.userId || !payload.role || !payload.exp) {
+      throw new Error('Invalid JWT payload');
+    }
+
+    return payload as JWTPayload;
+  } catch (error) {
+    throw new Error(`Token verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * 檢查 token 是否已過期
+ */
+export function isTokenExpired(token: string): boolean {
+  try {
+    const payload = verifyToken(token);
+    const now = Math.floor(Date.now() / 1000); // 轉換為秒
+    return payload.exp < now;
+  } catch {
+    return true; // 如果無法驗證，視為已過期
+  }
+}
+
+/**
+ * 獲取 token payload（不驗證簽名）
+ */
+export function getTokenPayload(token: string): JWTPayload | null {
+  try {
+    return verifyToken(token);
+  } catch {
+    return null;
+  }
 }

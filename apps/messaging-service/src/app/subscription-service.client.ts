@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectLogger } from '@suggar-daddy/common';
 import axios from 'axios';
 
 @Injectable()
 export class SubscriptionServiceClient {
-  private readonly logger = new Logger(SubscriptionServiceClient.name);
+  @InjectLogger() private readonly logger!: Logger;
   private readonly baseUrl: string;
 
   constructor(private readonly config: ConfigService) {

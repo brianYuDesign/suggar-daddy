@@ -6,11 +6,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
+import { InjectLogger } from '@suggar-daddy/common';
 import { DmPurchaseService } from './dm-purchase.service';
 
 @Controller('dm-purchases')
 export class DmPurchaseController {
-  private readonly logger = new Logger(DmPurchaseController.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(private readonly dmPurchaseService: DmPurchaseService) {}
 

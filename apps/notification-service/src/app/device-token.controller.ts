@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { JwtAuthGuard, CurrentUser, type CurrentUserData } from "@suggar-daddy/auth";
+import { InjectLogger } from "@suggar-daddy/common";
 import { FcmService } from "./fcm.service";
 
 /**
@@ -21,7 +22,7 @@ import { FcmService } from "./fcm.service";
 @Controller("device-tokens")
 @UseGuards(JwtAuthGuard)
 export class DeviceTokenController {
-  private readonly logger = new Logger(DeviceTokenController.name);
+  @InjectLogger() private readonly logger!: Logger;
 
   constructor(private readonly fcmService: FcmService) {}
 
