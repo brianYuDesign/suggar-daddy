@@ -1,0 +1,6 @@
+{
+  "task_name": "e2e-team-testing-1771166492",
+  "telegram_group": "-5298003529",
+  "prompt": "設置完整的 sugar-daddy E2E 測試環境並運行測試\n\n分工協作（團隊 agent）：\n1. **Infrastructure Agent**：確保所有必要的外部依賴都已啟動（PostgreSQL、Redis、Kafka）\n2. **Backend Agent**：啟動所有後端服務（auth、user、matching、messaging、notification、content、subscription、payment、media、db-writer、admin-service）。驗證所有服務健康檢查通過（port 3000-3011）\n3. **Frontend Agent**：啟動 admin 前端（port 4300）和 web 前端（port 4200）\n4. **QA Agent**：運行完整的 E2E 測試套件（npm run test），修復任何失敗的測試，生成測試報告\n\n工作流程：\n- 所有 agent 並行工作，但檢查點前需同步\n- 先驗證基礎設施（1 完成）\n- 再啟動所有服務（2+3 並行）\n- 確認所有服務健康後（health check）\n- 最後運行 E2E 測試（4）\n- 如有測試失敗，自動修復並重試\n- 生成最終測試覆蓋報告\n\n目標：100% E2E 測試通過率，所有服務健康檢查正常，Admin 後台完整可用",
+  "workdir": "/Users/brianyu/.openclaw/workspace"
+}
