@@ -10,8 +10,8 @@
  */
 
 import { ThrottlerModuleOptions, seconds } from '@nestjs/throttler';
-import { RedisThrottlerStorage } from '@nestjs-redis/throttler-storage';
 import Redis from 'ioredis';
+import { RedisThrottlerStorage } from './redis-throttler-storage';
 
 export interface ThrottlerConfig {
   globalLimit: number;
@@ -115,15 +115,17 @@ function createRedisClient(): Redis {
     });
   } else {
     // 單機模式
-    const host = process.env.REDIS_HOST ?? 'redis-master';
+    const host = process.env.REDIS_HOST ?? 'localhost';
     const port = Number(process.env.REDIS_PORT ?? 6379);
     const url = process.env.REDIS_URL;
     
     console.log(`[Throttler] 📍 使用單機 Redis 進行 Rate Limiting: ${url ?? `redis://${host}:${port}`}`);
     
     const redisOptions: import('ioredis').RedisOptions = {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: null, // 重要：Throttler 需要設為 null
       connectTimeout: 10000,
+      enableOfflineQueue: false, // 禁用離線隊列
+      lazyConnect: false, // 立即連接
       retryStrategy: (times) => {
         const delay = Math.min(times * 200, 2000);
         return times > 3 ? null : delay;

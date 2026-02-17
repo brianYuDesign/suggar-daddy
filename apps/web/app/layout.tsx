@@ -24,16 +24,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
   return (
     <html lang="zh-Hant">
       <body>
-        <ErrorBoundary
-          showDetails={process.env.NODE_ENV === 'development'}
-          onError={(error, errorInfo) => {
-            // 在生產環境可以發送到錯誤監控服務（如 Sentry）
-            console.error('Application Error:', error, errorInfo);
-          }}
-        >
+        <ErrorBoundary showDetails={isDevelopment}>
           <AuthProvider>
             <ToastProvider>{children}</ToastProvider>
           </AuthProvider>

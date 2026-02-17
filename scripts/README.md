@@ -1,6 +1,6 @@
 # Scripts 使用指南
 
-Sugar Daddy 項目腳本系統 - 統一、高效、智能的開發工具集
+Sugar Daddy 專案腳本系統 - 統一、高效、智能的開發工具集
 
 ## 🚀 快速開始
 
@@ -20,23 +20,7 @@ npm run dev:core
 npm run dev:stop
 
 # 重置環境
-npm run dev:reset --all
-```
-
-### 測試
-
-```bash
-# 單元測試
-npm run test:unit
-
-# E2E 測試
-npm run test:e2e
-
-# 整合測試
-npm run test:integration
-
-# 覆蓋率報告
-npm run test:coverage
+npm run dev:reset
 ```
 
 ### 建構
@@ -65,17 +49,40 @@ npm run db:seed
 npm run db:backup
 ```
 
+### PM2 進程管理
+
+```bash
+# 啟動所有服務
+npm run pm2:start
+
+# 停止所有服務
+npm run pm2:stop
+
+# 重啟服務
+npm run pm2:restart
+
+# 查看狀態
+npm run pm2:status
+
+# 查看日誌
+npm run pm2:logs
+
+# 健康檢查
+npm run pm2:health
+```
+
 ## 📁 目錄結構
 
 ```
 scripts/
-├── core/          # 核心工具庫（錯誤處理、端口檢查、智能等待、並行啟動）
+├── core/          # 核心工具庫（錯誤處理、端口檢查、服務等待、並行啟動）
 ├── dev/           # 開發環境管理（start、stop、reset）
-├── test/          # 測試腳本（unit、e2e、integration、coverage）
 ├── build/         # 建構腳本（all、backend、frontend）
 ├── deploy/        # 部署腳本（dev、staging、prod）
 ├── db/            # 資料庫管理（migrate、seed、backup）
-└── legacy/        # 舊腳本備份
+├── pm2/           # PM2 進程管理腳本
+├── migrations/    # SQL 遷移腳本
+└── archive/       # 已歸檔的舊腳本
 ```
 
 ## ✨ 核心特性
