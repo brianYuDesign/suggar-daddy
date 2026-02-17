@@ -38,11 +38,15 @@ npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 
 # Test
 coverage/
 .nyc_output/
 *.lcov
+test-results/
+playwright-report/
+test/coverage/
 
 # Docker
 *.pid
@@ -80,12 +84,18 @@ screenshots/
 # Temporary work files
 claudedocs/
 backups/
-
-# Generated reports
-playwright-report/
+*.tmp
+*.temp
 
 # Backup files
 *.backup
+*.bak
 
-# PM2 logs
+# PM2
 logs/pm2/
+.pm2/
+pids/
+
+# TypeScript incremental build
+*.tsbuildinfo
+tsconfig.tsbuildinfo

@@ -31,6 +31,8 @@ nx show projects
 
 **Nx monorepo** with NestJS microservices + Next.js frontends.
 
+詳細架構說明請參考：[服務總覽文檔](docs/architecture/SERVICES_OVERVIEW.md)
+
 ### Data flow pattern (critical)
 
 ```
@@ -44,28 +46,30 @@ Services do NOT write to PostgreSQL directly. `db-writer-service` is the sole Ka
 
 ### Backend services (apps/)
 
-| Service | Port | Route prefix |
-|---------|------|--------------|
-| api-gateway | 3000 | Proxies all `/api/*` routes |
-| user-service | 3001 | `/api/users` |
-| auth-service | 3002 | `/api/auth` |
-| matching-service | 3003 | `/api/matching` |
-| subscription-service | 3005 | `/api/subscription-tiers`, `/api/subscriptions` |
-| content-service | 3006 | `/api/posts` |
-| payment-service | 3007 | `/api/tips`, `/api/post-purchases`, `/api/transactions`, `/api/stripe` |
-| media-service | 3008 | `/api/upload`, `/api/media` |
-| notification-service | — | Kafka-driven |
-| messaging-service | — | Kafka-driven |
-| db-writer-service | — | Kafka consumer only |
+| Service | Port | Route prefix | README |
+|---------|------|--------------|--------|
+| api-gateway | 3000 | Proxies all `/api/*` routes | [README](apps/api-gateway/README.md) |
+| user-service | 3001 | `/api/users` | [README](apps/user-service/README.md) |
+| auth-service | 3002 | `/api/auth` | [README](apps/auth-service/README.md) |
+| matching-service | 3003 | `/api/matching` | [README](apps/matching-service/README.md) |
+| subscription-service | 3005 | `/api/subscription-tiers`, `/api/subscriptions` | [README](apps/subscription-service/README.md) |
+| content-service | 3006 | `/api/posts` | [README](apps/content-service/README.md) |
+| payment-service | 3007 | `/api/tips`, `/api/post-purchases`, `/api/transactions`, `/api/stripe` | [README](apps/payment-service/README.md) |
+| media-service | 3008 | `/api/upload`, `/api/media` | [README](apps/media-service/README.md) |
+| skill-service | 3009 | `/api/skills` | [README](apps/skill-service/README.md) |
+| admin-service | 3010 | `/api/admin` | [README](apps/admin-service/README.md) |
+| notification-service | — | Kafka-driven | [README](apps/notification-service/README.md) |
+| messaging-service | — | Kafka-driven | [README](apps/messaging-service/README.md) |
+| db-writer-service | — | Kafka consumer only | [README](apps/db-writer-service/README.md) |
 
 Route-to-service mapping is in `apps/api-gateway/src/app/proxy.service.ts`.
 
 ### Frontend apps (apps/)
 
-| App | Port | Stack |
-|-----|------|-------|
-| web | 4200 | Next.js 14 (App Router) + Tailwind |
-| admin | 4300 | Next.js 14 (App Router) + Tailwind + shadcn/ui |
+| App | Port | Stack | README |
+|-----|------|-------|--------|
+| web | 4200 | Next.js 14 (App Router) + Tailwind | [README](apps/web/README.md) |
+| admin | 4300 | Next.js 14 (App Router) + Tailwind + shadcn/ui | [README](apps/admin/README.md) |
 
 Both use `next.config.js` rewrites to proxy `/api/*` → `localhost:3000` in development.
 
@@ -113,8 +117,24 @@ Services use `ConfigModule.forRoot()` with defaults in code. Key vars: `DB_HOST`
 
 ## Documentation
 
-Detailed Chinese-language docs in `docs/` — see `docs/README.md` for index. Key files:
-- `02-開發指南.md` — API docs, JWT auth, Kafka integration
-- `BUSINESS_LOGIC_GAPS.md` — Known gaps per service
-- `STRIPE.md` — Stripe integration details
-- `TESTING.md` — Test coverage summary
+完整的專案文檔在 `docs/` 目錄。詳見：[文檔索引 (docs/README.md)](docs/README.md)
+
+### 核心文檔
+
+**架構與服務**
+- [服務總覽](docs/architecture/SERVICES_OVERVIEW.md) — 所有微服務的職責與架構圖
+- [技術架構](docs/technical/architecture.md) — 系統架構設計
+- [API 文檔](docs/technical/api.md) — API 設計與使用
+
+**開發指南**
+- [開發指南](docs/technical/development.md) — 本地開發環境設置
+- [環境變數完整說明](docs/technical/environment-variables.md) — 所有環境變數的詳細說明
+- [快速開始](docs/guides/QUICK_START.md) — 新手入門
+
+**部署與維運**
+- [部署指南](docs/technical/deployment.md) — Docker 和生產環境部署
+- [Secrets 管理](docs/devops/secrets-management.md) — 敏感資料管理
+- [監控告警](docs/devops/MONITORING_ALERTING_SETUP.md) — 系統監控設置
+
+**測試**
+- [QA 文檔](docs/qa/) — 測試策略與報告

@@ -125,26 +125,6 @@ services:
       - "postgres.role=replica"
       - "postgres.cluster=suggar-daddy"
 
-  # Legacy alias for backward compatibility
-  # Services can still connect to 'postgres'
-  # Using healthcheck instead of tail -f for proper lifecycle management
-  postgres:
-    image: alpine:latest
-    container_name: suggar-daddy-postgres-proxy
-    command: /bin/sh -c "echo 'Legacy postgres service - use postgres-master or postgres-replica' && sleep infinity"
-    depends_on:
-      - postgres-master
-    healthcheck:
-      test: ["CMD", "true"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
-    networks:
-      - suggar-daddy-network
-    profiles:
-      - legacy
-
   # Redis Sentinel Architecture for High Availability
   # =====================================================
 
@@ -376,6 +356,9 @@ services:
       USER_SERVICE_URL: http://user-service:3001
       PAYMENT_SERVICE_URL: http://payment-service:3007
       SUBSCRIPTION_SERVICE_URL: http://subscription-service:3009
+      # Redis
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
       # OpenTelemetry / Jaeger
       JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
       OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
@@ -437,11 +420,11 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3002
       # Database
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       # Redis
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
@@ -496,11 +479,11 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3001
       # Database
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       # Redis
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
@@ -541,11 +524,11 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3007
       # Database
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       # Redis
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
@@ -588,11 +571,11 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3009
       # Database
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       # Redis
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
@@ -631,11 +614,11 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3010
       # Database
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       # Redis
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
@@ -675,11 +658,12 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3003
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Database
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
       # Kafka
@@ -716,11 +700,12 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3004
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Database
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
       KAFKA_BROKERS: kafka:9092
@@ -758,11 +743,12 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3005
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Database
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
       # Kafka
@@ -800,11 +786,12 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3011
       ADMIN_SERVICE_PORT: 3011
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Database
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
       # Kafka
@@ -843,11 +830,12 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3006
       CONTENT_SERVICE_PORT: 3006
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Database
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
       KAFKA_BROKERS: kafka:9092
@@ -885,11 +873,12 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3008
       MEDIA_SERVICE_PORT: 3008
-      POSTGRES_HOST: postgres-master
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-suggar_daddy}
+      # Database
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
       KAFKA_BROKERS: kafka:9092
@@ -1023,9 +1012,6 @@ volumes:
     driver: local
   postgres_wal_archive:
     driver: local
-  # Legacy volume (kept for backward compatibility)
-  postgres_data:
-    driver: local
 
   # Redis High Availability Volumes
   redis_master_data:
@@ -1033,9 +1019,6 @@ volumes:
   redis_replica_1_data:
     driver: local
   redis_replica_2_data:
-    driver: local
-  # Legacy volume (kept for backward compatibility)
-  redis_data:
     driver: local
 
   # Kafka & Zookeeper Volumes
