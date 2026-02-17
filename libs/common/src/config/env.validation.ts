@@ -8,7 +8,7 @@ import * as Joi from "joi";
 export const envValidationSchema = Joi.object({
   // ─── Core & Environment ───
   NODE_ENV: Joi.string()
-    .valid("development", "staging", "production")
+    .valid("development", "staging", "production", "test")
     .default("development"),
   LOG_LEVEL: Joi.string()
     .valid("debug", "info", "warn", "error")

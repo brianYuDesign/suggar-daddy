@@ -10,8 +10,8 @@ export class AppConfigService {
   constructor(private configService: ConfigService) {}
 
   // ─── Core Environment ───
-  get nodeEnv(): "development" | "staging" | "production" {
-    return this.configService.get<"development" | "staging" | "production">(
+  get nodeEnv(): "development" | "staging" | "production" | "test" {
+    return this.configService.get<"development" | "staging" | "production" | "test">(
       "NODE_ENV",
       "development",
     );
