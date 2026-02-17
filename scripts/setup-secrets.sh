@@ -130,8 +130,8 @@ if [ "$PRODUCTION" = true ]; then
   write_secret "stripe_publishable_key.txt" "pk_live_REPLACE_WITH_REAL_KEY" "Stripe Publishable Key (生產)"
 else
   write_secret "stripe_secret_key.txt" "sk_test_REPLACE_WITH_TEST_KEY" "Stripe Secret Key (測試)"
-  write_secret "stripe_webhook_secret.txt" "whsec_test_webhook_secret_mock" "Stripe Webhook Secret (測試)"
-  write_secret "stripe_publishable_key.txt" "pk_test_51QeKDeDtnPiAKkXYTestMock" "Stripe Publishable Key (測試)"
+  write_secret "stripe_webhook_secret.txt" "whsec_REPLACE_WITH_TEST_SECRET" "Stripe Webhook Secret (測試)"
+  write_secret "stripe_publishable_key.txt" "pk_test_REPLACE_WITH_TEST_KEY" "Stripe Publishable Key (測試)"
 fi
 
 # 5. Cloudinary (開發環境使用佔位符)
