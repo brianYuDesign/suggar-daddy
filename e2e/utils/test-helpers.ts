@@ -32,13 +32,13 @@ export const TEST_USERS = {
 export async function login(
   page: Page,
   credentials: { email: string; password: string },
-  baseURL = 'http://localhost:4200'
+  baseURL = 'http://127.0.0.1:4200'
 ) {
   // 先導航到任意頁面以建立 origin context
   await page.goto(`${baseURL}/login`);
 
   // 透過 API 直接登入取得 token（含 rate limit 重試）
-  const apiBase = 'http://localhost:3000';
+  const apiBase = 'http://127.0.0.1:3000';
   let res = await page.request.post(`${apiBase}/api/auth/login`, {
     data: { email: credentials.email, password: credentials.password },
   });

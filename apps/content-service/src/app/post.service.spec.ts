@@ -7,7 +7,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('PostService', () => {
   let service: PostService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'mget'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'setex' | 'del' | 'lPush' | 'lRange' | 'mget'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
   let subscriptionClient: jest.Mocked<Pick<SubscriptionServiceClient, 'hasActiveSubscription'>>;
 
@@ -15,6 +15,8 @@ describe('PostService', () => {
     redis = {
       get: jest.fn(),
       set: jest.fn(),
+      setex: jest.fn(),
+      del: jest.fn(),
       lPush: jest.fn(),
       lRange: jest.fn(),
       mget: jest.fn().mockResolvedValue([]),
@@ -185,7 +187,7 @@ describe('PostService', () => {
       };
       
       redis.get = jest.fn().mockResolvedValue(JSON.stringify(post));
-      redis.set = jest.fn().mockResolvedValue('OK');
+      redis.setex = jest.fn().mockResolvedValue('OK');
       
       const mockRedis = {
         sRem: jest.fn().mockResolvedValue(1),
@@ -194,7 +196,7 @@ describe('PostService', () => {
       
       await service.unlikePost('post-1', 'user-1');
       
-      const savedPost = JSON.parse((redis.set as jest.Mock).mock.calls[0][1]);
+      const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
       expect(savedPost.likeCount).toBe(0); // 不應變為負數
     });
 
@@ -211,7 +213,7 @@ describe('PostService', () => {
       };
       
       redis.get = jest.fn().mockResolvedValue(JSON.stringify(post));
-      redis.set = jest.fn().mockResolvedValue('OK');
+      redis.setex = jest.fn().mockResolvedValue('OK');
       
       const mockRedis = {
         sRem: jest.fn().mockResolvedValue(1),
@@ -220,7 +222,7 @@ describe('PostService', () => {
       
       await service.unlikePost('post-2', 'user-1');
       
-      const savedPost = JSON.parse((redis.set as jest.Mock).mock.calls[0][1]);
+      const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
       expect(savedPost.likeCount).toBe(0); // 應該是 0，不是 NaN 或負數
     });
 
@@ -237,7 +239,7 @@ describe('PostService', () => {
       };
       
       redis.get = jest.fn().mockResolvedValue(JSON.stringify(post));
-      redis.set = jest.fn().mockResolvedValue('OK');
+      redis.setex = jest.fn().mockResolvedValue('OK');
       
       const mockRedis = {
         sRem: jest.fn().mockResolvedValue(1),
@@ -246,7 +248,7 @@ describe('PostService', () => {
       
       await service.unlikePost('post-3', 'user-1');
       
-      const savedPost = JSON.parse((redis.set as jest.Mock).mock.calls[0][1]);
+      const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
       expect(savedPost.likeCount).toBe(4);
     });
   });
@@ -265,7 +267,7 @@ describe('PostService', () => {
       };
       
       redis.get = jest.fn().mockResolvedValue(JSON.stringify(post));
-      redis.set = jest.fn().mockResolvedValue('OK');
+      redis.setex = jest.fn().mockResolvedValue('OK');
       
       const mockRedis = {
         zRem: jest.fn().mockResolvedValue(1),
@@ -274,7 +276,7 @@ describe('PostService', () => {
       
       await service.unbookmarkPost('post-1', 'user-1');
       
-      const savedPost = JSON.parse((redis.set as jest.Mock).mock.calls[0][1]);
+      const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
       expect(savedPost.bookmarkCount).toBe(0);
     });
   });

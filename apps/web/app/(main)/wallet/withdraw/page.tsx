@@ -62,9 +62,7 @@ const WITHDRAWAL_RULES = {
  */
 const createWithdrawSchema = (availableBalance: number) => z.object({
   amount: z
-    .number({
-      invalid_type_error: '請輸入有效的數字',
-    })
+    .number()
     .positive('金額必須大於 0')
     .min(WITHDRAWAL_RULES.MIN_AMOUNT, `最低提款金額為 $${WITHDRAWAL_RULES.MIN_AMOUNT}`)
     .max(WITHDRAWAL_RULES.MAX_AMOUNT, `單次提款不能超過 $${WITHDRAWAL_RULES.MAX_AMOUNT.toLocaleString()}`)
@@ -80,23 +78,13 @@ const createWithdrawSchema = (availableBalance: number) => z.object({
       (val) => val <= availableBalance,
       `可用餘額不足（可用：$${availableBalance.toFixed(2)}）`
     ),
-  payoutMethod: z.enum(['bank_transfer', 'paypal'] as const, {
-    errorMap: () => ({ message: '請選擇提款方式' }),
-  }),
+  payoutMethod: z.enum(['bank_transfer', 'paypal'] as const).refine(
+    (val) => val !== undefined,
+    { message: '請選擇提款方式' }
+  ),
   payoutDetails: z.string()
-    .min(1, '請輸入收款帳戶資訊')
-    .max(200, '帳戶資訊過長')
-    .superRefine((val, ctx) => {
-      const formData = ctx.path.length > 0 ? undefined : ctx;
-      // 由於無法直接訪問 parent，我們簡化驗證
-      // 實際的格式驗證可以在提交時進行
-      if (val.length < 5) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: '帳戶資訊過短',
-        });
-      }
-    }),
+    .min(5, '帳戶資訊過短（至少 5 個字元）')
+    .max(200, '帳戶資訊過長'),
 });
 
 type WithdrawFormValues = z.infer<ReturnType<typeof createWithdrawSchema>>;
@@ -258,8 +246,7 @@ export default function WithdrawPage() {
       await paymentsApi.requestWithdrawal(
         pendingData.amount,
         pendingData.payoutMethod,
-        pendingData.payoutDetails,
-        requestId // 傳遞幂等性鍵給後端
+        pendingData.payoutDetails
       );
       
       setSuccessMessage(
@@ -377,29 +364,55 @@ export default function WithdrawPage() {
 
             {/* Amount */}
             <div className="space-y-2">
-              <Label htmlFor="amount">提款金額</Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="輸入金額"
-                {...register('amount', { valueAsNumber: true })}
-              />
+              <Label htmlFor="amount" className="flex items-center justify-between">
+                <span>提款金額</span>
+                {!balanceLoading && (
+                  <span className="text-xs font-normal text-gray-500">
+                    可用: {formatAmount(availableBalance)}
+                  </span>
+                )}
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="輸入金額"
+                  min={WITHDRAWAL_RULES.MIN_AMOUNT}
+                  max={availableBalance}
+                  step="0.01"
+                  className="pl-7"
+                  aria-required="true"
+                  aria-invalid={!!errors.amount}
+                  aria-describedby={errors.amount ? "amount-error amount-hint" : "amount-hint"}
+                  {...register('amount', { valueAsNumber: true })}
+                />
+              </div>
               {errors.amount && (
-                <p className="text-xs text-red-500">
+                <p id="amount-error" className="text-xs text-red-500" role="alert">
                   {errors.amount.message}
                 </p>
               )}
+              <p id="amount-hint" className="text-xs text-gray-500">
+                最低提款金額：${WITHDRAWAL_RULES.MIN_AMOUNT}，最高提款金額：${WITHDRAWAL_RULES.MAX_AMOUNT.toLocaleString()}
+              </p>
             </div>
 
             {/* Payout method */}
             <div className="space-y-2">
               <Label htmlFor="payoutMethod">提款方式</Label>
-              <Select id="payoutMethod" {...register('payoutMethod')}>
+              <Select 
+                id="payoutMethod" 
+                aria-required="true"
+                aria-invalid={!!errors.payoutMethod}
+                aria-describedby={errors.payoutMethod ? "payoutMethod-error" : undefined}
+                {...register('payoutMethod')}
+              >
                 <option value="bank_transfer">銀行轉帳</option>
                 <option value="paypal">PayPal</option>
               </Select>
               {errors.payoutMethod && (
-                <p className="text-xs text-red-500">
+                <p id="payoutMethod-error" className="text-xs text-red-500" role="alert">
                   {errors.payoutMethod.message}
                 </p>
               )}
@@ -415,14 +428,17 @@ export default function WithdrawPage() {
                     ? '輸入 PayPal 電子郵件'
                     : '輸入銀行帳號'
                 }
+                aria-required="true"
+                aria-invalid={!!errors.payoutDetails}
+                aria-describedby={errors.payoutDetails ? "payoutDetails-error payoutDetails-hint" : "payoutDetails-hint"}
                 {...register('payoutDetails')}
               />
               {errors.payoutDetails && (
-                <p className="text-xs text-red-500">
+                <p id="payoutDetails-error" className="text-xs text-red-500" role="alert">
                   {errors.payoutDetails.message}
                 </p>
               )}
-              <p className="text-xs text-gray-400">
+              <p id="payoutDetails-hint" className="text-xs text-gray-400">
                 {watch('payoutMethod') === 'paypal'
                   ? '請輸入您的 PayPal 電子郵件地址'
                   : '請輸入您的銀行帳號（含分行代碼）'}
@@ -444,17 +460,16 @@ export default function WithdrawPage() {
                 variant="outline"
                 className="flex-1"
                 onClick={() => router.push('/wallet')}
+                disabled={isSubmitting}
               >
                 取消
               </Button>
               <Button
                 type="submit"
                 className="flex-1 bg-brand-500 hover:bg-brand-600"
-                disabled={isSubmitting}
+                loading={isSubmitting}
+                loadingText="處理中..."
               >
-                {isSubmitting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
                 確認提款
               </Button>
             </div>
@@ -499,17 +514,16 @@ export default function WithdrawPage() {
                 variant="outline"
                 className="flex-1"
                 onClick={() => setShowConfirm(false)}
+                disabled={isSubmitting}
               >
                 取消
               </Button>
               <Button
                 className="flex-1 bg-brand-500 hover:bg-brand-600"
                 onClick={confirmWithdraw}
-                disabled={isSubmitting}
+                loading={isSubmitting}
+                loadingText="送出中..."
               >
-                {isSubmitting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
                 確認送出
               </Button>
             </div>

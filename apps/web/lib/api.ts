@@ -15,4 +15,4 @@ export const notificationsApi = new NotificationsApi(apiClient);
 export const storiesApi = new StoriesApi(apiClient);
 
 export { apiClient };
-export { ApiError } from '@suggar-daddy/api-client';
+export { ApiError, type UserCard } from '@suggar-daddy/api-client';

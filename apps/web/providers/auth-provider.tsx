@@ -170,11 +170,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (data: {
       email: string;
       password: string;
-      userType: string;
+      userType: 'SUGAR_DADDY' | 'SUGAR_BABY';
       displayName: string;
       bio?: string;
     }) => {
-      const res = await authApi.register(data);
+      const res = await authApi.register(data as any);
       setTokens(res.accessToken, res.refreshToken);
       scheduleRefresh(res.expiresIn);
       const user = await fetchUser();

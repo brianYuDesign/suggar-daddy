@@ -9,7 +9,7 @@ import { useSelection } from '@/lib/use-selection';
 import { useToast } from '@/components/toast';
 import { SortableTableHead } from '@/components/sortable-table-head';
 import { BatchActionBar } from '@/components/batch-action-bar';
-import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge, Select, Avatar, Skeleton, Input, Button } from '@suggar-daddy/ui';
+import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge, Select, Avatar, Skeleton, Input, Button, ConfirmDialog } from '@suggar-daddy/ui';
 import { Pagination } from '@/components/pagination';
 
 export default function UsersPage() {
@@ -20,6 +20,7 @@ export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [batchLoading, setBatchLoading] = useState(false);
+  const [showDisableConfirm, setShowDisableConfirm] = useState(false);
   const limit = 20;
 
   const { data, loading, refetch } = useAdminQuery(
@@ -37,17 +38,22 @@ export default function UsersPage() {
 
   const handleBatchDisable = async () => {
     if (selection.selectedCount === 0) return;
+    setShowDisableConfirm(true);
+  };
+
+  const confirmBatchDisable = async () => {
     setBatchLoading(true);
     try {
       const result = await adminApi.batchDisableUsers(selection.selectedIds);
-      toast.success(`${result.disabledCount} user(s) disabled`);
+      toast.success(`已禁用 ${result.disabledCount} 位用戶`);
       selection.clear();
       refetch();
     } catch (err) {
       console.error('Batch disable failed:', err);
-      toast.error('Batch disable failed');
+      toast.error('批量禁用失敗，請重試');
     } finally {
       setBatchLoading(false);
+      setShowDisableConfirm(false);
     }
   };
 
@@ -185,6 +191,20 @@ export default function UsersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={showDisableConfirm}
+        title="確認批量禁用用戶"
+        description={`您即將禁用 ${selection.selectedCount} 位用戶。禁用後，這些用戶將無法登入系統。此操作可以在用戶詳情頁面中恢復。確定要繼續嗎？`}
+        confirmText="確認禁用"
+        cancelText="取消"
+        isDestructive={true}
+        isLoading={batchLoading}
+        onConfirm={confirmBatchDisable}
+        onCancel={() => setShowDisableConfirm(false)}
+        disableOverlayClick={batchLoading}
+      />
     </div>
   );
 }

@@ -62,14 +62,14 @@ groups:
           impact: "大量用戶請求失敗，用戶體驗嚴重下降"
           action: "1. 查看錯誤日誌\n2. 檢查資料庫連線\n3. 檢查依賴服務"
 
-      # 錯誤率 > 1%（5 分鐘）
+      # 錯誤率 > 0.5%（5 分鐘）- 上線標準
       - alert: ElevatedErrorRate
         expr: |
           (
             sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
             / 
             sum(rate(http_requests_total[5m])) by (service)
-          ) > 0.01
+          ) > 0.005
         for: 5m
         labels:
           severity: warning
@@ -77,7 +77,9 @@ groups:
           priority: P1
         annotations:
           summary: "服務 {{ $labels.service }} 錯誤率升高"
-          description: "服務 {{ $labels.service }} 的 5xx 錯誤率超過 1%\n當前錯誤率: {{ $value | humanizePercentage }}"
+          description: "服務 {{ $labels.service }} 的 5xx 錯誤率超過 0.5%\n當前錯誤率: {{ $value | humanizePercentage }}"
+          impact: "錯誤率超過上線標準（0.5%），需要關注"
+          action: "1. 查看錯誤日誌\n2. 檢查最近的部署變更\n3. 監控是否持續升高"
 
       # 4xx 錯誤率異常（可能是客戶端問題或 API 變更）
       - alert: High4xxRate
@@ -457,3 +459,261 @@ groups:
         annotations:
           summary: "Alertmanager 不可用"
           description: "告警通知系統故障，告警可能無法發送"
+
+  # ============================================
+  # Circuit Breaker 告警（P0 - 上線準備新增）
+  # ============================================
+  - name: circuit_breaker
+    interval: 1m
+    rules:
+      # Circuit Breaker 開路
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state{state="open"} == 1
+        for: 2m
+        labels:
+          severity: critical
+          category: resilience
+          priority: P0
+        annotations:
+          summary: "Circuit Breaker {{ $labels.service }} 已開路"
+          description: "服務 {{ $labels.service }} 的 Circuit Breaker 處於開路狀態，請求被阻斷\n目標服務: {{ $labels.target_service }}"
+          impact: "對下游服務的請求被阻斷，功能可能受限"
+          action: "1. 檢查下游服務狀態\n2. 查看錯誤日誌\n3. 確認是否需要擴容或修復"
+
+      # Circuit Breaker 半開路
+      - alert: CircuitBreakerHalfOpen
+        expr: circuit_breaker_state{state="half_open"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          category: resilience
+          priority: P1
+        annotations:
+          summary: "Circuit Breaker {{ $labels.service }} 處於半開路狀態"
+          description: "服務正在嘗試恢復，但仍不穩定"
+          action: "監控服務恢復情況"
+
+      # Circuit Breaker 開路次數過多
+      - alert: CircuitBreakerOpeningFrequently
+        expr: rate(circuit_breaker_opened_total[10m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: resilience
+          priority: P1
+        annotations:
+          summary: "Circuit Breaker {{ $labels.service }} 頻繁開路"
+          description: "在 10 分鐘內開路超過 6 次\n當前開路頻率: {{ $value | humanize }}/s"
+          impact: "服務不穩定，用戶體驗受影響"
+          action: "1. 檢查下游服務穩定性\n2. 調整 Circuit Breaker 閾值\n3. 增加重試機制"
+
+      # Circuit Breaker 拒絕請求數異常
+      - alert: HighCircuitBreakerRejections
+        expr: rate(circuit_breaker_rejected_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: resilience
+          priority: P1
+        annotations:
+          summary: "Circuit Breaker {{ $labels.service }} 大量拒絕請求"
+          description: "每秒拒絕超過 10 個請求\n當前拒絕率: {{ $value | humanize }}/s"
+          impact: "大量請求被拒絕，用戶功能受限"
+          action: "檢查 Circuit Breaker 狀態和下游服務"
+
+  # ============================================
+  # Rate Limiting 告警（P0 - 上線準備新增）
+  # ============================================
+  - name: rate_limiting
+    interval: 1m
+    rules:
+      # Rate Limit 觸發頻率過高
+      - alert: HighRateLimitHitRate
+        expr: rate(rate_limit_hits_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+          priority: P1
+        annotations:
+          summary: "Rate Limit 觸發頻率過高"
+          description: "每秒觸發 Rate Limit 超過 5 次\n當前觸發率: {{ $value | humanize }}/s\nEndpoint: {{ $labels.endpoint }}"
+          impact: "可能遭受 DDoS 攻擊或有惡意行為"
+          action: "1. 檢查請求來源 IP\n2. 分析請求模式\n3. 考慮加強防護或封鎖 IP"
+
+      # 認證端點 Rate Limit 觸發
+      - alert: AuthRateLimitHit
+        expr: rate(rate_limit_hits_total{endpoint=~".*auth.*|.*login.*"}[5m]) > 1
+        for: 3m
+        labels:
+          severity: critical
+          category: security
+          priority: P0
+        annotations:
+          summary: "認證端點 Rate Limit 觸發"
+          description: "認證端點頻繁觸發限流\nEndpoint: {{ $labels.endpoint }}\nIP: {{ $labels.ip }}"
+          impact: "可能是暴力破解攻擊"
+          action: "1. 立即檢查來源 IP\n2. 考慮封鎖可疑 IP\n3. 啟用 CAPTCHA"
+
+      # 支付端點 Rate Limit 觸發
+      - alert: PaymentRateLimitHit
+        expr: rate(rate_limit_hits_total{endpoint=~".*payment.*"}[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: critical
+          category: security
+          priority: P0
+        annotations:
+          summary: "支付端點 Rate Limit 觸發"
+          description: "支付端點頻繁觸發限流\nUser: {{ $labels.user_id }}"
+          impact: "可能是惡意支付請求或測試"
+          action: "1. 檢查用戶行為\n2. 聯絡風控團隊\n3. 暫停可疑帳戶"
+
+      # Rate Limit 總拒絕率過高
+      - alert: HighRateLimitRejectionRate
+        expr: |
+          (
+            sum(rate(rate_limit_hits_total[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+          priority: P2
+        annotations:
+          summary: "Rate Limit 拒絕率過高"
+          description: "超過 10% 的請求被限流拒絕\n當前拒絕率: {{ $value | humanizePercentage }}"
+          impact: "大量正常用戶請求可能被誤殺"
+          action: "1. 檢查 Rate Limit 配置\n2. 分析請求模式\n3. 考慮調整限流閾值"
+
+  # ============================================
+  # 孤兒交易告警（P0 - 上線準備新增）
+  # ============================================
+  - name: orphan_transactions
+    interval: 5m
+    rules:
+      # 檢測到孤兒交易
+      - alert: OrphanTransactionDetected
+        expr: orphan_transactions_detected_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: business
+          priority: P0
+          domain: payment
+        annotations:
+          summary: "檢測到孤兒交易"
+          description: "系統檢測到 {{ $value }} 筆孤兒交易\nTransaction IDs: {{ $labels.transaction_ids }}"
+          impact: "用戶已付款但系統未正確記錄，可能導致營收損失和用戶投訴"
+          action: "1. 立即檢查孤兒交易處理器運行狀態\n2. 手動檢查交易記錄\n3. 聯絡支付團隊協調處理\n4. 通知客服團隊"
+
+      # 孤兒交易處理失敗
+      - alert: OrphanTransactionProcessingFailed
+        expr: rate(orphan_transaction_processing_failures_total[10m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          category: business
+          priority: P0
+          domain: payment
+        annotations:
+          summary: "孤兒交易處理失敗"
+          description: "孤兒交易處理器無法處理部分交易\n失敗率: {{ $value | humanize }}/s"
+          impact: "孤兒交易累積，用戶體驗受影響"
+          action: "1. 檢查處理器日誌\n2. 檢查 Stripe webhook 配置\n3. 手動重試失敗的交易"
+
+      # 孤兒交易數量異常增長
+      - alert: OrphanTransactionSurge
+        expr: |
+          rate(orphan_transactions_detected_total[10m]) > 
+          rate(orphan_transactions_detected_total[10m] offset 1h) * 3
+        for: 10m
+        labels:
+          severity: warning
+          category: business
+          priority: P1
+          domain: payment
+        annotations:
+          summary: "孤兒交易數量異常增長"
+          description: "孤兒交易檢測數量較一小時前增長 3 倍以上"
+          impact: "可能系統出現問題，導致大量交易無法正確處理"
+          action: "1. 檢查支付服務狀態\n2. 檢查資料庫連線\n3. 查看最近的部署變更"
+
+      # 孤兒交易處理延遲過高
+      - alert: OrphanTransactionProcessingDelay
+        expr: orphan_transaction_processing_delay_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+          priority: P1
+          domain: payment
+        annotations:
+          summary: "孤兒交易處理延遲過高"
+          description: "孤兒交易處理延遲超過 5 分鐘\n當前延遲: {{ $value | humanizeDuration }}"
+          impact: "用戶等待時間過長，可能引起投訴"
+          action: "1. 檢查處理器負載\n2. 增加處理器實例\n3. 優化處理邏輯"
+
+  # ============================================
+  # 健康檢查告警（P0 - 上線準備新增）
+  # ============================================
+  - name: health_checks
+    interval: 30s
+    rules:
+      # 服務健康檢查失敗
+      - alert: ServiceHealthCheckFailed
+        expr: health_check_status{status="unhealthy"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+          priority: P0
+        annotations:
+          summary: "服務 {{ $labels.service }} 健康檢查失敗"
+          description: "健康檢查端點返回 unhealthy 狀態\nEndpoint: {{ $labels.endpoint }}\nReason: {{ $labels.reason }}"
+          impact: "服務可能無法正常工作，用戶請求可能失敗"
+          action: "1. 檢查服務日誌\n2. 檢查依賴服務（資料庫、Redis、Kafka）\n3. 檢查資源使用情況"
+
+      # 資料庫連線健康檢查失敗
+      - alert: DatabaseHealthCheckFailed
+        expr: health_check_status{component="database",status="unhealthy"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+          priority: P0
+        annotations:
+          summary: "資料庫健康檢查失敗 - {{ $labels.service }}"
+          description: "無法連線到資料庫或資料庫響應異常"
+          impact: "所有需要資料庫的功能將無法使用"
+          action: "1. 檢查 PostgreSQL 狀態\n2. 檢查連線池配置\n3. 檢查網路連線"
+
+      # Redis 連線健康檢查失敗
+      - alert: RedisHealthCheckFailed
+        expr: health_check_status{component="redis",status="unhealthy"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          category: cache
+          priority: P0
+        annotations:
+          summary: "Redis 健康檢查失敗 - {{ $labels.service }}"
+          description: "無法連線到 Redis 或 Redis 響應異常"
+          impact: "快取功能失效，系統效能下降，Rate Limiting 可能失效"
+          action: "1. 檢查 Redis 狀態\n2. 檢查 Redis Sentinel\n3. 檢查網路連線"
+
+      # Kafka 連線健康檢查失敗
+      - alert: KafkaHealthCheckFailed
+        expr: health_check_status{component="kafka",status="unhealthy"} == 1
+        for: 2m
+        labels:
+          severity: warning
+          category: messaging
+          priority: P1
+        annotations:
+          summary: "Kafka 健康檢查失敗 - {{ $labels.service }}"
+          description: "無法連線到 Kafka 或 Kafka 響應異常"
+          impact: "異步處理功能可能受影響，事件可能遺失"
+          action: "1. 檢查 Kafka broker 狀態\n2. 檢查 Zookeeper 狀態\n3. 檢查網路連線"

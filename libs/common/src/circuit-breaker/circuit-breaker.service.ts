@@ -110,7 +110,7 @@ export class CircuitBreakerService implements OnModuleInit {
     if (!breaker) {
       throw new Error(`Circuit Breaker not found: ${name}`);
     }
-    return breaker.fire(...args);
+    return breaker.fire(...args) as Promise<R>;
   }
 
   /**
@@ -168,7 +168,7 @@ export class CircuitBreakerService implements OnModuleInit {
         total,
         errorRate: Math.round(errorRate * 100) / 100,
       },
-      config: breaker.options as CircuitBreakerConfig,
+      config: (breaker as any).options as CircuitBreakerConfig,
     };
   }
 
@@ -193,7 +193,7 @@ export class CircuitBreakerService implements OnModuleInit {
   clearStats(name: string): void {
     const breaker = this.breakers.get(name);
     if (breaker) {
-      breaker.stats.reset();
+      (breaker.stats as any).reset();
       this.logger.log(`Circuit Breaker stats cleared: ${name}`);
     }
   }
@@ -267,12 +267,12 @@ export class CircuitBreakerService implements OnModuleInit {
     });
 
     // 健康檢查（半開時成功）
-    breaker.on('health-check-success', () => {
+    (breaker as any).on('health-check-success', () => {
       this.logger.log(`💚 Circuit Breaker HEALTH CHECK SUCCESS: ${name}`);
     });
 
     // 健康檢查失敗（半開時失敗）
-    breaker.on('health-check-failed', (error) => {
+    (breaker as any).on('health-check-failed', (error: Error) => {
       this.logger.warn(`💔 Circuit Breaker HEALTH CHECK FAILED: ${name} - ${error.message}`);
     });
   }

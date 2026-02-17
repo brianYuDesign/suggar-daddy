@@ -7,6 +7,7 @@ import {
   EnvConfigModule,
   AppConfigService,
   CircuitBreakerModule,
+  MetricsModule,
 } from "@suggar-daddy/common";
 import { AuthModule } from "@suggar-daddy/auth";
 import { AppController } from "./app.controller";
@@ -35,6 +36,7 @@ import { DmPurchaseService } from "./dm-purchase.service";
     AuthModule,
     RedisModule.forRoot(),
     CircuitBreakerModule,
+    MetricsModule,
     KafkaModule.forRootAsync({
       useFactory: (config: AppConfigService) => ({
         clientId: config.kafkaClientId,

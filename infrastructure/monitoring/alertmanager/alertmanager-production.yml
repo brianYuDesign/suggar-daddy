@@ -1,0 +1,446 @@
+# Alertmanager 配置文件 - 生產環境版本
+# Suggar Daddy 監控系統
+# Version: 1.0.0
+
+# 全局配置
+global:
+  # 解析超時
+  resolve_timeout: 5m
+  
+  # Slack 全局配置
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  
+  # SMTP 配置（Email 通知）
+  smtp_from: '${ALERT_EMAIL_FROM:-alerts@suggar-daddy.com}'
+  smtp_smarthost: '${SMTP_HOST:-smtp.gmail.com:587}'
+  smtp_auth_username: '${SMTP_USER}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+# 告警模板
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# 告警路由配置
+route:
+  # 默認接收者
+  receiver: 'default-notifications'
+  
+  # 分組標籤（相同標籤的告警會被分組）
+  group_by: ['alertname', 'service', 'severity', 'category']
+  
+  # 分組等待時間（收到第一個告警後等待時間，收集更多告警一起發送）
+  group_wait: 10s
+  
+  # 分組間隔（相同分組的告警多久發送一次）
+  group_interval: 5m
+  
+  # 重複告警間隔（已發送的告警多久後再次發送）
+  repeat_interval: 4h
+
+  # 子路由（根據不同條件路由到不同接收者）
+  routes:
+    # ============================================
+    # P0 Critical 告警 - 立即通知所有渠道
+    # ============================================
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      group_interval: 2m
+      repeat_interval: 30m
+      continue: false  # 不再繼續匹配其他路由
+      
+      # Critical 告警的子分類
+      routes:
+        # 服務完全不可用
+        - match:
+            category: availability
+          receiver: 'critical-availability'
+          group_wait: 5s
+          repeat_interval: 15m
+        
+        # 支付系統告警
+        - match:
+            domain: payment
+          receiver: 'critical-payment'
+          group_wait: 5s
+          repeat_interval: 15m
+        
+        # 資料庫問題
+        - match:
+            category: database
+          receiver: 'critical-database'
+          group_wait: 5s
+          repeat_interval: 15m
+
+    # ============================================
+    # P1 Warning 告警 - 通知開發團隊
+    # ============================================
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      group_interval: 10m
+      repeat_interval: 2h
+      
+      routes:
+        # 效能問題
+        - match:
+            category: performance
+          receiver: 'performance-team'
+        
+        # 資源使用警告
+        - match:
+            category: resources
+          receiver: 'devops-team'
+        
+        # Rate Limiting 觸發
+        - match:
+            alertname: 'RateLimitHit'
+          receiver: 'security-team'
+        
+        # Circuit Breaker 開路
+        - match:
+            alertname: 'CircuitBreakerOpen'
+          receiver: 'backend-team'
+
+    # ============================================
+    # P2 Info 告警 - 記錄為主
+    # ============================================
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      group_wait: 5m
+      group_interval: 30m
+      repeat_interval: 12h
+
+    # ============================================
+    # 業務指標告警
+    # ============================================
+    - match:
+        category: business
+      receiver: 'business-team'
+      group_wait: 2m
+      group_interval: 15m
+      repeat_interval: 1h
+      
+      routes:
+        # 孤兒交易告警
+        - match:
+            alertname: 'OrphanTransactionDetected'
+          receiver: 'payment-ops-team'
+          group_wait: 1m
+          repeat_interval: 30m
+
+# 抑制規則（當某些告警觸發時，抑制其他相關告警）
+inhibit_rules:
+  # 服務不可用時，抑制該服務的其他告警
+  - source_match:
+      severity: 'critical'
+      alertname: 'ServiceDown'
+    target_match:
+      severity: 'warning'
+    equal: ['service']
+  
+  # Critical 告警觸發時，抑制同服務的 Warning 告警
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['service']
+  
+  # 資料庫不可用時，抑制所有服務的資料庫連線告警
+  - source_match:
+      severity: 'critical'
+      component: 'database'
+    target_match:
+      severity: 'warning'
+    equal: ['component']
+  
+  # API Gateway 不可用時，抑制後端服務的告警
+  - source_match:
+      severity: 'critical'
+      service: 'api-gateway'
+    target_match:
+      severity: 'warning'
+      component: 'backend'
+
+# ============================================
+# 接收者配置 - 生產環境版本
+# ============================================
+receivers:
+  # 默認接收者 - 發送到主 Slack 頻道
+  - name: 'default-notifications'
+    slack_configs:
+      - channel: '#alerts'
+        title: '🔔 系統告警'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          *Description:* {{ .Annotations.description }}
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        send_resolved: true
+
+  # ============================================
+  # Critical 告警接收者
+  # ============================================
+  
+  # Critical 總接收者 - 所有渠道
+  - name: 'critical-alerts'
+    slack_configs:
+      - channel: '#critical-alerts'
+        username: 'Alertmanager Critical'
+        icon_emoji: ':rotating_light:'
+        title: '🚨 CRITICAL ALERT 🚨'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          *Category:* {{ .Labels.category }}
+          *Priority:* {{ .Labels.priority }}
+          
+          *Description:* {{ .Annotations.description }}
+          *Impact:* {{ .Annotations.impact }}
+          *Action:* {{ .Annotations.action }}
+          
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          *Duration:* {{ .StartsAt.Sub now }}
+          {{ end }}
+        send_resolved: true
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+    
+    email_configs:
+      - to: '${CRITICAL_ALERT_EMAIL:-devops@suggar-daddy.com}'
+        headers:
+          Subject: '[CRITICAL] {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        html: |
+          <h2 style="color: red;">🚨 CRITICAL ALERT</h2>
+          {{ range .Alerts }}
+          <h3>{{ .Labels.alertname }}</h3>
+          <ul>
+            <li><strong>Service:</strong> {{ .Labels.service }}</li>
+            <li><strong>Severity:</strong> {{ .Labels.severity }}</li>
+            <li><strong>Category:</strong> {{ .Labels.category }}</li>
+            <li><strong>Priority:</strong> {{ .Labels.priority }}</li>
+          </ul>
+          <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+          <p><strong>Impact:</strong> {{ .Annotations.impact }}</p>
+          <p><strong>Action Required:</strong></p>
+          <pre>{{ .Annotations.action }}</pre>
+          <p><strong>Started At:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05" }}</p>
+          {{ end }}
+        send_resolved: true
+  
+  # Critical - 可用性問題
+  - name: 'critical-availability'
+    slack_configs:
+      - channel: '#critical-availability'
+        title: '🚨 服務不可用'
+        text: |
+          {{ range .Alerts }}
+          *Service Down:* {{ .Labels.service }}
+          *Instance:* {{ .Labels.instance }}
+          *Since:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          ⚠️ *立即處理！用戶無法訪問服務*
+          {{ end }}
+        send_resolved: true
+        color: 'danger'
+    
+    email_configs:
+      - to: '${ON_CALL_EMAIL:-oncall@suggar-daddy.com}'
+        headers:
+          Subject: '[URGENT] Service Down - {{ .GroupLabels.service }}'
+        send_resolved: true
+  
+  # Critical - 支付系統
+  - name: 'critical-payment'
+    slack_configs:
+      - channel: '#payment-alerts'
+        title: '💳 支付系統告警'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Description:* {{ .Annotations.description }}
+          *Impact:* 直接影響營收，請立即處理！
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        send_resolved: true
+        color: 'danger'
+    
+    email_configs:
+      - to: '${PAYMENT_TEAM_EMAIL:-payment-team@suggar-daddy.com}'
+        headers:
+          Subject: '[CRITICAL] Payment System Alert - {{ .GroupLabels.alertname }}'
+        send_resolved: true
+  
+  # Critical - 資料庫
+  - name: 'critical-database'
+    slack_configs:
+      - channel: '#database-alerts'
+        title: '🗄️ 資料庫緊急告警'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Database:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          *Action:* {{ .Annotations.action }}
+          {{ end }}
+        send_resolved: true
+        color: 'danger'
+    
+    email_configs:
+      - to: '${DBA_EMAIL:-dba@suggar-daddy.com}'
+        headers:
+          Subject: '[CRITICAL] Database Alert - {{ .GroupLabels.alertname }}'
+        send_resolved: true
+
+  # ============================================
+  # Warning 告警接收者
+  # ============================================
+  
+  - name: 'warning-alerts'
+    slack_configs:
+      - channel: '#warnings'
+        title: '⚠️ Warning Alert'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true
+        color: 'warning'
+  
+  # 效能團隊
+  - name: 'performance-team'
+    slack_configs:
+      - channel: '#performance'
+        title: '⚡ 效能告警'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          *Current Value:* {{ .Value }}
+          {{ end }}
+        send_resolved: true
+  
+  # DevOps 團隊
+  - name: 'devops-team'
+    slack_configs:
+      - channel: '#devops'
+        title: '🔧 基礎設施告警'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Resource:* {{ .Labels.container }}
+          *Description:* {{ .Annotations.description }}
+          *Action:* {{ .Annotations.action }}
+          {{ end }}
+        send_resolved: true
+  
+  # 安全團隊（Rate Limiting）
+  - name: 'security-team'
+    slack_configs:
+      - channel: '#security'
+        title: '🔒 安全告警'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Description:* {{ .Annotations.description }}
+          *IP:* {{ .Labels.ip }}
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        send_resolved: true
+  
+  # 後端團隊（Circuit Breaker）
+  - name: 'backend-team'
+    slack_configs:
+      - channel: '#backend'
+        title: '⚡ 後端服務告警'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          *Action:* {{ .Annotations.action }}
+          {{ end }}
+        send_resolved: true
+
+  # ============================================
+  # Info 告警接收者
+  # ============================================
+  
+  - name: 'info-alerts'
+    slack_configs:
+      - channel: '#info-alerts'
+        title: 'ℹ️ Info Alert'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true
+        color: '#439FE0'
+
+  # ============================================
+  # 業務指標接收者
+  # ============================================
+  
+  - name: 'business-team'
+    slack_configs:
+      - channel: '#business-metrics'
+        title: '📊 業務指標告警'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Description:* {{ .Annotations.description }}
+          *Impact:* {{ .Annotations.impact }}
+          {{ end }}
+        send_resolved: true
+    
+    email_configs:
+      - to: '${BUSINESS_TEAM_EMAIL:-business@suggar-daddy.com}'
+        headers:
+          Subject: '[Business Alert] {{ .GroupLabels.alertname }}'
+        send_resolved: true
+  
+  # 支付運營團隊（孤兒交易）
+  - name: 'payment-ops-team'
+    slack_configs:
+      - channel: '#payment-ops'
+        title: '🔍 孤兒交易告警'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Description:* {{ .Annotations.description }}
+          *Count:* {{ .Value }}
+          *Action:* 請檢查孤兒交易處理器運行狀態
+          {{ end }}
+        send_resolved: true
+        color: 'warning'
+    
+    email_configs:
+      - to: '${PAYMENT_OPS_EMAIL:-payment-ops@suggar-daddy.com}'
+        headers:
+          Subject: '[Payment Ops] Orphan Transaction Detected'
+        send_resolved: true
+
+# ============================================
+# 時間靜默配置（可選）
+# ============================================
+# 例如：在維護窗口期間靜默告警
+# time_intervals:
+#   - name: maintenance_window
+#     time_intervals:
+#       - weekdays: ['saturday', 'sunday']
+#         times:
+#           - start_time: '02:00'
+#             end_time: '04:00'

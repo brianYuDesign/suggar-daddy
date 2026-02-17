@@ -2,7 +2,10 @@ import { test as setup } from '@playwright/test';
 import { TEST_USERS } from './utils/test-helpers';
 import { getRedisTestHelper, closeRedisTestHelper } from './utils/redis-helper';
 
-const API_BASE = 'http://localhost:3000';
+// 使用 IPv4 避免 IPv6 連接問題
+const API_BASE = 'http://127.0.0.1:3000';
+const WEB_BASE = 'http://127.0.0.1:4200';
+const ADMIN_BASE = 'http://127.0.0.1:4300';
 
 async function authenticateAs(
   page: Parameters<Parameters<typeof setup>[1]>[0]['page'],
@@ -10,7 +13,7 @@ async function authenticateAs(
   storageStatePath: string,
 ) {
   // Navigate to establish origin context
-  await page.goto('http://localhost:4200/login');
+  await page.goto(`${WEB_BASE}/login`);
 
   // Login via API
   const res = await page.request.post(`${API_BASE}/api/auth/login`, {
@@ -128,27 +131,24 @@ setup('authenticate as creator', async ({ page }) => {
 });
 
 setup('authenticate as admin', async ({ page }) => {
-  const ADMIN_URL = 'http://localhost:4300';
-  const API_BASE = 'http://localhost:3000';
-
   // 先嘗試連接 admin app；如果不可用則使用 web app 建立 fallback
   let adminAvailable = false;
   try {
-    const check = await page.request.get(`${ADMIN_URL}/login`, { timeout: 3000 });
+    const check = await page.request.get(`${ADMIN_BASE}/login`, { timeout: 3000 });
     adminAvailable = check.ok();
   } catch {
     adminAvailable = false;
   }
 
   if (!adminAvailable) {
-    console.warn(`[Setup] Admin app (${ADMIN_URL}) 不可用，寫入空 admin storageState`);
+    console.warn(`[Setup] Admin app (${ADMIN_BASE}) 不可用，寫入空 admin storageState`);
     // 寫入空的 storageState 避免使用過期檔案
     await page.context().storageState({ path: 'e2e/.auth/admin.json' });
     return;
   }
 
   // 導航到 admin app 建立 origin context
-  await page.goto(`${ADMIN_URL}/login`);
+  await page.goto(`${ADMIN_BASE}/login`);
 
   // 透過 API 登入取得 token
   const res = await page.request.post(`${API_BASE}/api/auth/login`, {

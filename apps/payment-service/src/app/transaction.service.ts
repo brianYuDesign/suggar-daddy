@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { PAYMENT_EVENTS, StripeService } from '@suggar-daddy/common';
+import { PAYMENT_EVENTS, StripeService, PaymentMetricsService } from '@suggar-daddy/common';
 import { PaginatedResponse } from '@suggar-daddy/dto';
 import { CreateTransactionDto, UpdateTransactionDto } from './dto/transaction.dto';
 
@@ -30,6 +30,7 @@ export class TransactionService {
     private readonly redis: RedisService,
     private readonly kafkaProducer: KafkaProducerService,
     private readonly stripeService: StripeService,
+    private readonly metricsService: PaymentMetricsService,
   ) {}
 
   private genId(): string {
@@ -51,6 +52,9 @@ export class TransactionService {
       metadata: (createDto.metadata as Record<string, unknown>) ?? null,
       createdAt: now,
     };
+
+    // 🔥 記錄交易狀態 metrics
+    this.metricsService.recordTransactionStatus('pending');
 
     // Use pipeline for atomic batch write
     const pipeline = this.redis.getClient().pipeline();
@@ -118,6 +122,12 @@ export class TransactionService {
     const tx = await this.findOne(id);
     Object.assign(tx, updateDto);
     await this.redis.set(TX_KEY(id), JSON.stringify(tx));
+    
+    // 🔥 記錄交易狀態變更 metrics
+    if (updateDto.status) {
+      this.metricsService.recordTransactionStatus(updateDto.status as any);
+    }
+    
     if (tx.status === 'succeeded') {
       await this.kafkaProducer.sendEvent(PAYMENT_EVENTS.PAYMENT_COMPLETED, {
         transactionId: id,

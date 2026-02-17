@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { PAYMENT_EVENTS, InjectLogger } from '@suggar-daddy/common';
+import { PAYMENT_EVENTS, InjectLogger, PaymentMetricsService } from '@suggar-daddy/common';
 import { TransactionService } from '../transaction.service';
 import { PostPurchaseService } from '../post-purchase.service';
 import { TipService } from '../tip.service';
@@ -20,6 +20,7 @@ export class StripeWebhookService {
     private readonly redis: RedisService,
     private readonly postPurchaseService: PostPurchaseService,
     private readonly tipService: TipService,
+    private readonly metricsService: PaymentMetricsService,
   ) {}
 
   async handleEvent(event: Stripe.Event): Promise<void> {
@@ -101,6 +102,13 @@ export class StripeWebhookService {
         }
       );
       
+      // 🔥 記錄孤兒交易 metrics
+      this.metricsService.recordOrphanTransactionDetected(paymentIntent.id, {
+        amount: paymentIntent.amount / 100,
+        currency: paymentIntent.currency,
+        customer: paymentIntent.customer,
+      });
+      
       // 創建孤兒交易記錄
       try {
         const orphanTransaction = await this.transactionService.createOrphan({
@@ -130,6 +138,12 @@ export class StripeWebhookService {
           `Orphan transaction created: ${orphanTransaction.id} for payment ${paymentIntent.id}`
         );
       } catch (error) {
+        // 🔥 記錄孤兒交易處理失敗 metrics
+        this.metricsService.recordOrphanProcessingFailure(
+          paymentIntent.id,
+          error instanceof Error ? error : new Error(String(error))
+        );
+        
         this.logger.error(
           `Failed to create orphan transaction for ${paymentIntent.id}`,
           error

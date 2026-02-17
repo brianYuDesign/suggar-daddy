@@ -16,7 +16,7 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: 'http://127.0.0.1:4200', // 使用 IPv4 避免 IPv6 連接問題
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: isHeaded ? 'retain-on-failure' : 'on', // headed 模式只在失敗時保留視頻
@@ -76,7 +76,7 @@ export default defineConfig({
     : [
         {
           command: 'npm run serve:web',
-          url: 'http://localhost:4200',
+          url: 'http://127.0.0.1:4200', // 使用 IPv4
           reuseExistingServer: !process.env.CI,
           timeout: 120000,
         },

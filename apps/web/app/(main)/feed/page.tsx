@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../providers/auth-provider';
+import { useToast } from '../../../providers/toast-provider';
 import { contentApi, usersApi, ApiError } from '../../../lib/api';
 import { timeAgo } from '../../../lib/utils';
 import {
@@ -14,7 +15,9 @@ import {
   CardContent,
   CardFooter,
   Skeleton,
+  EmptyState,
   cn,
+  getFriendlyErrorMessage,
 } from '@suggar-daddy/ui';
 import {
   Heart,
@@ -23,6 +26,7 @@ import {
   Lock,
   Sparkles,
   RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import { StoriesBar } from '../../../components/stories/stories-bar';
 import { StoryViewer } from '../../../components/stories/story-viewer';
@@ -205,6 +209,7 @@ function PostCard({ post, currentUserId, onLikeToggle, likedPosts, authorName }:
 
 export default function FeedPage() {
   const { user } = useAuth();
+  const toast = useToast();
   const [state, setState] = useState<FeedState>({
     posts: [],
     nextCursor: undefined,
@@ -218,6 +223,7 @@ export default function FeedPage() {
     groups: StoryGroup[];
     startIndex: number;
   } | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const handleStoryClick = (groups: StoryGroup[], startIndex: number) => {
     setStoryViewerData({ groups, startIndex });
@@ -234,19 +240,20 @@ export default function FeedPage() {
         isLoadingMore: false,
         error: null,
       }));
+      setRetryCount(0); // 重置重試計數
     } catch (err) {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : '無法載入動態，請稍後再試';
+      const friendlyMessage = getFriendlyErrorMessage(err);
       setState((prev) => ({
         ...prev,
         isLoading: false,
         isLoadingMore: false,
-        error: message,
+        error: friendlyMessage,
       }));
+      
+      // 顯示 toast 通知
+      toast.error(friendlyMessage);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchPosts();
@@ -303,7 +310,7 @@ export default function FeedPage() {
       } else {
         await contentApi.likePost(postId);
       }
-    } catch {
+    } catch (err) {
       // Revert on failure
       setLikedPosts((prev) => {
         const next = new Set(prev);
@@ -314,11 +321,16 @@ export default function FeedPage() {
         }
         return next;
       });
+      
+      // 顯示錯誤提示
+      const friendlyMessage = getFriendlyErrorMessage(err);
+      toast.error(friendlyMessage);
     }
   };
 
   const handleRefresh = () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    setRetryCount(0);
     fetchPosts();
   };
 
@@ -351,24 +363,31 @@ export default function FeedPage() {
       {/* Error state */}
       {state.error && (
         <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex items-center justify-between py-4">
-            <p className="text-sm text-red-600">{state.error}</p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRefresh}
-              className="text-red-600 hover:text-red-700"
-            >
-              <RefreshCw className="mr-1 h-4 w-4" />
-              重試
-            </Button>
+          <CardContent className="py-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-800 mb-1">載入動態時發生錯誤</p>
+                <p className="text-sm text-red-600">{state.error}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  className="mt-3 text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+                >
+                  <RefreshCw className="mr-1 h-4 w-4" aria-hidden="true" />
+                  重試
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* Loading skeletons */}
       {state.isLoading && (
-        <div className="space-y-4">
+        <div className="space-y-4" role="status" aria-live="polite" aria-label="載入動態中">
+          <span className="sr-only">載入中，請稍候...</span>
           <PostCardSkeleton />
           <PostCardSkeleton />
           <PostCardSkeleton />
@@ -414,23 +433,19 @@ export default function FeedPage() {
 
       {/* Empty state */}
       {!state.isLoading && !state.error && state.posts.length === 0 && (
-        <div className="flex flex-col items-center py-16 text-center">
-          <div className="mb-4 rounded-full bg-brand-50 p-4">
-            <Sparkles className="h-8 w-8 text-brand-500" />
-          </div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            還沒有任何動態
-          </h2>
-          <p className="mt-2 max-w-xs text-sm text-gray-500">
-            目前還沒有人發布內容。成為第一個分享精彩動態的人吧！
-          </p>
-          <Link href="/post/create">
-            <Button className="mt-6 bg-brand-500 hover:bg-brand-600 text-white">
-              <Plus className="mr-2 h-4 w-4" />
-              發布動態
-            </Button>
-          </Link>
-        </div>
+        <EmptyState
+          icon={Sparkles}
+          title="還沒有任何動態"
+          description="目前還沒有人發布內容。成為第一個分享精彩動態的人吧！"
+          action={
+            <Link href="/post/create">
+              <Button className="bg-brand-500 hover:bg-brand-600 text-white">
+                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                發布動態
+              </Button>
+            </Link>
+          }
+        />
       )}
 
       {/* FAB - mobile create post button */}

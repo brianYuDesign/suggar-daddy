@@ -141,8 +141,7 @@ export default function SubscriptionPage() {
     recordAction(actionId);
     
     try {
-      const idempotencyKey = uuidv4();
-      const sub = await subscriptionsApi.subscribe(tier.id, idempotencyKey) as unknown as Subscription;
+      const sub = await subscriptionsApi.subscribe(tier.id) as unknown as Subscription;
       setCurrentSub(sub);
     } catch (err) {
       // 顯示錯誤訊息（可以加 toast）

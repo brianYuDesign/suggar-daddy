@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { PAYMENT_EVENTS, InjectLogger } from '@suggar-daddy/common';
+import { PAYMENT_EVENTS, InjectLogger, AuditAmountCalculation, AuditPaymentOperation } from '@suggar-daddy/common';
 import Decimal from 'decimal.js';
 
 const WALLET_KEY = (userId: string) => `wallet:${userId}`;
@@ -180,6 +180,7 @@ export class WalletService {
     return wallet;
   }
 
+  @AuditAmountCalculation('Credit Wallet with Platform Fee')
   async creditWallet(
     userId: string,
     grossAmount: number,
@@ -266,6 +267,7 @@ export class WalletService {
 
   // ── Withdrawal ──────────────────────────────────────────────────
 
+  @AuditPaymentOperation('Request Withdrawal')
   async requestWithdrawal(
     userId: string,
     amount: number,
@@ -364,6 +366,7 @@ export class WalletService {
     return out.sort((a, b) => (a.requestedAt > b.requestedAt ? 1 : -1));
   }
 
+  @AuditPaymentOperation('Process Withdrawal (Admin)')
   async processWithdrawal(
     withdrawalId: string,
     action: 'approve' | 'reject',

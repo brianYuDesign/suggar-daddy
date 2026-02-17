@@ -24,6 +24,9 @@ export * from "./lib/request-tracking.interceptor";
 // Distributed tracing
 export * from "./lib/tracing";
 
+// Metrics and monitoring
+export * from "./lib/metrics";
+
 // Error testing (development only) - REMOVED from main exports to avoid frontend build issues
 // export * from "./lib/error-testing.controller";
 

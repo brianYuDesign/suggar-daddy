@@ -60,10 +60,15 @@ export default function LoginPage() {
             type="email"
             placeholder="your@email.com"
             autoComplete="email"
+            aria-required="true"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "email-error" : undefined}
             {...register('email')}
           />
           {errors.email && (
-            <p className="text-xs text-red-500">{errors.email.message}</p>
+            <p id="email-error" className="text-xs text-red-500" role="alert">
+              {errors.email.message}
+            </p>
           )}
         </div>
 
@@ -75,6 +80,9 @@ export default function LoginPage() {
               type={showPassword ? 'text' : 'password'}
               placeholder="輸入密碼"
               autoComplete="current-password"
+              aria-required="true"
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? "password-error" : undefined}
               {...register('password')}
             />
             <button
@@ -82,16 +90,21 @@ export default function LoginPage() {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               onClick={() => setShowPassword(!showPassword)}
               tabIndex={-1}
+              aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
+              aria-pressed={showPassword}
+              title={showPassword ? '隱藏密碼' : '顯示密碼'}
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4" />
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
               ) : (
-                <Eye className="h-4 w-4" />
+                <Eye className="h-4 w-4" aria-hidden="true" />
               )}
             </button>
           </div>
           {errors.password && (
-            <p className="text-xs text-red-500">{errors.password.message}</p>
+            <p id="password-error" className="text-xs text-red-500" role="alert">
+              {errors.password.message}
+            </p>
           )}
           <div className="flex justify-end">
             <Link
@@ -105,10 +118,11 @@ export default function LoginPage() {
 
         <Button
           type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-brand-500 py-2.5 font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          loading={isSubmitting}
+          loadingText="登入中..."
+          className="w-full bg-brand-500 py-2.5 font-semibold text-white hover:bg-brand-600"
         >
-          {isSubmitting ? '登入中...' : '登入'}
+          登入
         </Button>
       </form>
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../../../providers/auth-provider';
 import { usersApi, ApiError } from '../../../../lib/api';
+import type { UserProfileDto } from '@suggar-daddy/dto';
 import { useToast } from '../../../../providers/toast-provider';
 import { TipModal } from '../../../components/TipModal';
 import {
@@ -30,19 +31,6 @@ import {
   Loader2,
 } from 'lucide-react';
 import { FollowButton } from '../../../../components/FollowButton';
-
-interface UserProfile {
-  id: string;
-  role: string;
-  displayName: string;
-  bio?: string;
-  avatarUrl?: string;
-  birthDate?: Date;
-  verificationStatus: string;
-  lastActiveAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 function getRoleLabel(role: string): string {
   switch (role) {
@@ -74,7 +62,7 @@ export default function UserProfilePage() {
   const { user: currentUser } = useAuth();
   const userId = params.userId as string;
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfileDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -105,7 +93,7 @@ export default function UserProfilePage() {
     setError('');
     try {
       const data = await usersApi.getProfile(userId);
-      setProfile(data as unknown as UserProfile);
+      setProfile(data);
     } catch (err: unknown) {
       const message = ApiError.getMessage(err, '無法載入使用者資料');
       setError(message);

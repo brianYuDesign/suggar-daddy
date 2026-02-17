@@ -24,7 +24,7 @@ import { Logger } from '@nestjs/common';
 export function InjectLogger(): PropertyDecorator {
   return (target: any, propertyKey: string | symbol) => {
     // 在屬性初始化時創建 logger
-    const getter = function () {
+    const getter = function (this: any) {
       // 創建 logger 實例，使用類名作為 context
       const logger = new Logger(this.constructor.name);
       

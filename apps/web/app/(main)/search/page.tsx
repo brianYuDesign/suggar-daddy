@@ -22,11 +22,10 @@ import {
   Lock,
   TrendingUp,
 } from 'lucide-react';
-import { usersApi, contentApi, ApiError } from '../../../lib/api';
+import { usersApi, contentApi, ApiError, UserCard } from '../../../lib/api';
 import { timeAgo } from '../../../lib/utils';
 import { FollowButton } from '../../../components/FollowButton';
 import { useAuth } from '../../../providers/auth-provider';
-import type { UserCard } from '../../../types/user';
 
 interface Post {
   id: string;
@@ -102,7 +101,7 @@ function UserResultCard({
               </p>
             )}
           </div>
-          {!isOwnProfile && (
+          {!isOwnProfile && user.userId && (
             <FollowButton targetUserId={user.userId} size="sm" />
           )}
         </div>

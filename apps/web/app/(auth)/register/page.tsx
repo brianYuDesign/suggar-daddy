@@ -99,6 +99,8 @@ export default function RegisterPage() {
                   onClick={() =>
                     setValue('userType', r.value, { shouldValidate: true })
                   }
+                  aria-label={`選擇 ${r.label}`}
+                  aria-pressed={isSelected}
                   className={`flex flex-col items-center rounded-xl border-2 p-4 transition-all ${
                     isSelected
                       ? 'border-brand-500 bg-brand-50'
@@ -109,6 +111,7 @@ export default function RegisterPage() {
                     className={`mb-2 h-6 w-6 ${
                       isSelected ? 'text-brand-600' : 'text-gray-400'
                     }`}
+                    aria-hidden="true"
                   />
                   <span
                     className={`text-sm font-semibold ${
@@ -125,7 +128,7 @@ export default function RegisterPage() {
             })}
           </div>
           {errors.userType && (
-            <p className="text-xs text-red-500">{errors.userType.message}</p>
+            <p className="text-xs text-red-500" role="alert">{errors.userType.message}</p>
           )}
         </div>
 
@@ -136,10 +139,13 @@ export default function RegisterPage() {
             type="text"
             placeholder="你的暱稱"
             autoComplete="nickname"
+            aria-required="true"
+            aria-invalid={!!errors.displayName}
+            aria-describedby={errors.displayName ? "displayName-error" : undefined}
             {...register('displayName')}
           />
           {errors.displayName && (
-            <p className="text-xs text-red-500">
+            <p id="displayName-error" className="text-xs text-red-500" role="alert">
               {errors.displayName.message}
             </p>
           )}
@@ -152,10 +158,13 @@ export default function RegisterPage() {
             type="email"
             placeholder="your@email.com"
             autoComplete="email"
+            aria-required="true"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "email-error" : undefined}
             {...register('email')}
           />
           {errors.email && (
-            <p className="text-xs text-red-500">{errors.email.message}</p>
+            <p id="email-error" className="text-xs text-red-500" role="alert">{errors.email.message}</p>
           )}
         </div>
 
@@ -167,6 +176,9 @@ export default function RegisterPage() {
               type={showPassword ? 'text' : 'password'}
               placeholder="至少 8 個字元"
               autoComplete="new-password"
+              aria-required="true"
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? "password-error password-hint" : "password-hint"}
               {...register('password')}
             />
             <button
@@ -174,25 +186,32 @@ export default function RegisterPage() {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               onClick={() => setShowPassword(!showPassword)}
               tabIndex={-1}
+              aria-label={showPassword ? '隱藏密碼' : '顯示密碼'}
+              aria-pressed={showPassword}
+              title={showPassword ? '隱藏密碼' : '顯示密碼'}
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4" />
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
               ) : (
-                <Eye className="h-4 w-4" />
+                <Eye className="h-4 w-4" aria-hidden="true" />
               )}
             </button>
           </div>
           {errors.password && (
-            <p className="text-xs text-red-500">{errors.password.message}</p>
+            <p id="password-error" className="text-xs text-red-500" role="alert">{errors.password.message}</p>
           )}
+          <p id="password-hint" className="text-xs text-gray-500">
+            密碼須至少 8 個字元，最多 128 個字元
+          </p>
         </div>
 
         <Button
           type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-brand-500 py-2.5 font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          loading={isSubmitting}
+          loadingText="建立中..."
+          className="w-full bg-brand-500 py-2.5 font-semibold text-white hover:bg-brand-600"
         >
-          {isSubmitting ? '建立中...' : '建立帳號'}
+          建立帳號
         </Button>
       </form>
 

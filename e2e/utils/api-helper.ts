@@ -7,7 +7,7 @@ import { APIRequestContext } from '@playwright/test';
 export class ApiHelper {
   private baseURL: string;
 
-  constructor(private request: APIRequestContext, baseURL = 'http://localhost:3000') {
+  constructor(private request: APIRequestContext, baseURL = 'http://127.0.0.1:3000') {
     this.baseURL = baseURL;
   }
 
