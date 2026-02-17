@@ -1,0 +1,112 @@
+version: "3.8"
+
+# 微服務整合測試專用 Docker Compose
+# 使用輕量化配置，專注於測試所需服務
+
+services:
+  # PostgreSQL - 測試資料庫
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: suggar-daddy-postgres-test
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: suggar_daddy_test
+      POSTGRES_MAX_CONNECTIONS: 100
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ../../scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - test-network
+    tmpfs:
+      - /var/lib/postgresql/data:rw,size=512M
+
+  # Redis - 測試快取
+  redis-test:
+    image: redis:7-alpine
+    container_name: suggar-daddy-redis-test
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly no --save "" --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - test-network
+    tmpfs:
+      - /data
+
+  # Zookeeper - Kafka 依賴
+  zookeeper-test:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: suggar-daddy-zookeeper-test
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_HEAP_OPTS: "-Xmx128M -Xms128M"
+    ports:
+      - "2182:2181"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - test-network
+    tmpfs:
+      - /var/lib/zookeeper
+
+  # Kafka - 測試訊息佇列
+  kafka-test:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: suggar-daddy-kafka-test
+    depends_on:
+      zookeeper-test:
+        condition: service_healthy
+    ports:
+      - "9093:9092"
+      - "9095:9094"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-test:9092,PLAINTEXT_HOST://localhost:9095
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_NETWORK_THREADS: 2
+      KAFKA_NUM_IO_THREADS: 2
+      KAFKA_LOG_RETENTION_HOURS: 1
+      KAFKA_LOG_SEGMENT_BYTES: 104857600
+      KAFKA_HEAP_OPTS: "-Xmx256M -Xms256M"
+      KAFKA_COMPRESSION_TYPE: lz4
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - test-network
+    tmpfs:
+      - /var/lib/kafka/data
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  postgres_test_data:
+    driver: local

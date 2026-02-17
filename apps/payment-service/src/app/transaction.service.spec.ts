@@ -3,7 +3,7 @@ import { TransactionService } from "./transaction.service";
 import { RedisService } from "@suggar-daddy/redis";
 import { KafkaProducerService } from "@suggar-daddy/kafka";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
-import { PAYMENT_EVENTS, StripeService } from "@suggar-daddy/common";
+import { PAYMENT_EVENTS, StripeService, PaymentMetricsService } from "@suggar-daddy/common";
 
 // Mock implementations to match actual Redis methods
 const _createMockRedisClient = () => ({
@@ -67,6 +67,12 @@ describe("TransactionService", () => {
     getStripeInstance: jest.fn(),
   };
 
+  const mockPaymentMetricsService = {
+    recordTransactionStatus: jest.fn(),
+    recordTransactionAmount: jest.fn(),
+    recordRefundAmount: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -82,6 +88,10 @@ describe("TransactionService", () => {
         {
           provide: StripeService,
           useValue: mockStripeService,
+        },
+        {
+          provide: PaymentMetricsService,
+          useValue: mockPaymentMetricsService,
         },
       ],
     }).compile();

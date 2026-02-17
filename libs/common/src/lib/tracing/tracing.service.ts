@@ -20,14 +20,14 @@ export class TracingService {
       } = await import('@opentelemetry/semantic-conventions');
 
       const traceExporter = new OTLPTraceExporter({
-        url: process.env.JAEGER_ENDPOINT || 'http://localhost:4318/v1/traces',
+        url: process.env['JAEGER_ENDPOINT'] || 'http://localhost:4318/v1/traces',
       });
 
       this.sdk = new NodeSDK({
         resource: resourceFromAttributes({
           [SEMRESATTRS_SERVICE_NAME]: serviceName,
-          [SEMRESATTRS_SERVICE_VERSION]: process.env.APP_VERSION || '1.0.0',
-          [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'development',
+          [SEMRESATTRS_SERVICE_VERSION]: process.env['APP_VERSION'] || '1.0.0',
+          [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: process.env['NODE_ENV'] || 'development',
         }),
         traceExporter,
         instrumentations: [

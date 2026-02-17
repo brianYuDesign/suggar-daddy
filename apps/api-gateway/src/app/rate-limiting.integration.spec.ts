@@ -22,8 +22,9 @@ describe.skip('Rate Limiting (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     
-    // 設置 trust proxy
-    app.set('trust proxy', true);
+    // 設置 trust proxy - 使用正確的 NestExpressApplication 類型
+    const expressApp = app.getHttpAdapter().getInstance();
+    expressApp.set('trust proxy', true);
     
     await app.init();
   });

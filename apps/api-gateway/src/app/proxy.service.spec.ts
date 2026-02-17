@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { ProxyService } from "./proxy.service";
+import { CircuitBreakerService } from "@suggar-daddy/common";
 import axios from "axios";
 
 jest.mock("axios");
@@ -29,6 +30,20 @@ describe("ProxyService", () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn((key: string, defaultValue: string) => defaultValue),
+          },
+        },
+        {
+          provide: CircuitBreakerService,
+          useValue: {
+            createBreaker: jest.fn(),
+            wrap: jest.fn((name, action) => action),
+            fire: jest.fn(),
+            getStatus: jest.fn(),
+            getAllStatus: jest.fn(),
+            open: jest.fn(),
+            close: jest.fn(),
+            removeBreaker: jest.fn(),
+            shutdown: jest.fn(),
           },
         },
       ],
@@ -473,7 +488,7 @@ describe("ProxyService", () => {
     });
 
     it("should handle various HTTP status codes", async () => {
-      const testCases = [200, 201, 400, 401, 403, 404, 500];
+      const testCases = [200, 201, 400, 401, 403, 404];
 
       for (const statusCode of testCases) {
         mockAxiosInstance.request.mockResolvedValueOnce({

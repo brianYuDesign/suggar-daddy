@@ -37,10 +37,10 @@ export default defineConfig({
     // Base URL
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:4200',
     
-    // 追蹤設定（總是記錄測試過程）
-    trace: 'on',
-    screenshot: 'on',
-    video: 'on',
+    // 追蹤設定（失敗時記錄）
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
     
     // 瀏覽器設定
     viewport: { width: 1280, height: 720 },
@@ -49,6 +49,9 @@ export default defineConfig({
     // 等待設定
     actionTimeout: 15 * 1000,
     navigationTimeout: 30 * 1000,
+    
+    // 自動重試失敗的操作
+    testIdAttribute: 'data-testid',
   },
   
   // 測試專案（多瀏覽器）

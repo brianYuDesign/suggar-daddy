@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+
+# 測試覆蓋率報告
+coverage/
+*.lcov
+
+# 日誌
+*.log
+logs/
+
+# 環境變數（如果有）
+.env
+.env.local
+.env.test
+
+# OS 檔案
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+tmp/

@@ -143,16 +143,16 @@ describe('CircuitBreakerService', () => {
       const action = jest.fn().mockResolvedValue('success');
       const breaker = service.createBreaker('api-gateway-test', action, API_GATEWAY_CONFIG);
       
-      expect(breaker.options.timeout).toBe(5000);
-      expect(breaker.options.errorThresholdPercentage).toBe(60);
+      expect((breaker as any).options.timeout).toBe(5000);
+      expect((breaker as any).options.errorThresholdPercentage).toBe(60);
     });
 
     it('should use Payment Service config correctly', () => {
       const action = jest.fn().mockResolvedValue('success');
       const breaker = service.createBreaker('payment-test', action, PAYMENT_SERVICE_CONFIG);
       
-      expect(breaker.options.timeout).toBe(10000);
-      expect(breaker.options.errorThresholdPercentage).toBe(40);
+      expect((breaker as any).options.timeout).toBe(10000);
+      expect((breaker as any).options.errorThresholdPercentage).toBe(40);
     });
   });
 
