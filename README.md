@@ -19,59 +19,54 @@ A microservices-based dating platform built with NestJS, Next.js, and PostgreSQL
 
 ### 統一文檔中心
 
-所有專案文檔已整合至 `docs/` 目錄，請訪問 **[文檔索引 (docs/INDEX.md)](./docs/INDEX.md)** 查看完整導航。
+所有專案文檔已整合至 `docs/` 目錄，請訪問 **[文檔索引 (docs/README.md)](./docs/README.md)** 查看完整導航。
 
 ### 核心文檔快速鏈接
 
-| 文檔 | 描述 | 適合人員 |
-|------|------|---------|
-| **[DevOps 完整指南](./docs/devops/README.md)** | CI/CD、Docker、監控、安全性 | DevOps 工程師、系統管理員 |
-| **[基礎設施完整指南](./docs/infrastructure/README.md)** | 架構圖、運維操作、效能調優 | 架構師、後端開發者、DBA |
-| **[API 文檔指南](./docs/api/README.md)** | Swagger 配置、API 訪問 | 前後端開發者、QA 工程師 |
-| **[測試策略指南](./docs/testing/README.md)** | 測試覆蓋率、最佳實踐 | QA 工程師、後端開發者 |
+| 分類 | 文檔 | 描述 |
+|------|------|------|
+| 🚀 **快速開始** | [Quick Start](./docs/guides/QUICK_START.md) | 新手入門指南 |
+| 📖 **指南** | [操作指南](./docs/guides/) | 最佳實踐、FAQ、部署指南 |
+| 🔧 **技術** | [技術文檔](./docs/technical/) | 架構、API、開發指南 |
+| 👥 **團隊** | [Backend](./docs/backend/) · [Frontend](./docs/frontend/) · [DevOps](./docs/devops/) · [QA](./docs/qa/) | 各團隊專屬文檔 |
+| 📊 **報告** | [Reports](./docs/reports/) | 各類專案報告與審查 |
 
 ### 快速開始
 
-- **DevOps**: [30分鐘快速設置 CI/CD](./docs/devops/README.md#快速開始)
-- **基礎設施**: [Docker 快速啟動](./docs/infrastructure/README.md#快速開始)
-- **API**: [訪問所有 Swagger 文檔](./docs/api/README.md#訪問-swagger-文檔)
-- **測試**: [運行測試命令](./docs/testing/README.md#運行測試)
+- **新手**: [快速開始](./docs/guides/QUICK_START.md)
+- **開發**: [開發指南](./docs/technical/development.md)
+- **部署**: [部署指南](./docs/technical/deployment.md)
+- **監控**: [監控告警](./docs/devops/MONITORING_ALERTING_SETUP.md)
 
 ### 按角色導航
 
-#### 👔 專案經理 / 管理層
-- [DevOps 評估總覽](./docs/devops/README.md#評估總覽) - ROI 和關鍵指標
-- [基礎設施優化總結](./docs/infrastructure/README.md#優化總結) - 已完成改進
-- [測試執行摘要](./docs/testing/README.md#執行摘要) - 測試覆蓋率
+#### 🚀 新手開發者
+- [快速開始](./docs/guides/QUICK_START.md)
+- [常見問題](./docs/guides/FAQ.md)
+- [開發指南](./docs/technical/development.md)
+
+#### 👨‍💻 後端工程師
+- [API 設計](./docs/technical/api.md)
+- [架構概覽](./docs/technical/architecture.md)
+- [後端文檔](./docs/backend/)
+
+#### 🎨 前端工程師
+- [前端文檔](./docs/frontend/)
+- [UI/UX 指南](./docs/frontend/component-guidelines.md)
 
 #### 🔧 DevOps 工程師
-- [CI/CD 設置](./docs/devops/README.md#快速開始)
-- [基礎設施運維](./docs/infrastructure/README.md#運維操作)
-- [監控與告警](./docs/devops/README.md#監控與告警)
-
-#### 💻 後端開發者
-- [API 文檔配置](./docs/api/README.md#swagger-配置指南)
-- [資料庫連接](./docs/infrastructure/README.md#連接配置)
-- [測試最佳實踐](./docs/testing/README.md#測試最佳實踐)
-
-#### 🎨 前端開發者
-- [所有 API Swagger UI](./docs/api/README.md#訪問-swagger-文檔)
-- [API Gateway 文檔](http://localhost:3000/api/docs)
+- [部署指南](./docs/technical/deployment.md)
+- [監控告警](./docs/devops/MONITORING_ALERTING_SETUP.md)
+- [災難恢復](./docs/devops/DISASTER_RECOVERY.md)
 
 #### 🧪 QA 工程師
-- [測試覆蓋率分析](./docs/testing/README.md#測試覆蓋率分析)
-- [E2E 測試狀態](./docs/testing/README.md#當前狀態)
-- [優先級改進計劃](./docs/testing/README.md#優先級改進計劃)
+- [測試文檔](./docs/qa/)
+- [E2E 測試優化](./docs/qa/test-optimization.md)
 
-### 關鍵指標概覽
-
-| 指標 | 數值 | 狀態 |
-|------|------|------|
-| DevOps 總體評分 | ⭐⭐⭐⭐☆ (3.5/5) | 🟢 良好 |
-| 基礎設施優化成功率 | 91.67% | 🟢 優秀 |
-| 測試覆蓋率 | ~25-35% | 🟡 改善中 |
-| API 文檔配置 | 80% | 🟢 良好 |
-| E2E 測試通過率 | 91% (212/233) | 🟢 優秀 |
+#### 📋 專案經理
+- [專案進度](./docs/pm/PROGRESS.md)
+- [上線檢查清單](./docs/pm/LAUNCH_CHECKLIST.md)
+- [營運手冊](./docs/pm/OPERATIONS_MANUAL.md)
 
 ---
 
