@@ -86,3 +86,6 @@ playwright-report/
 
 # Backup files
 *.backup
+
+# PM2 logs
+logs/pm2/
