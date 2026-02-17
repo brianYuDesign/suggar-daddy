@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { Eye, EyeOff, Crown, Heart } from 'lucide-react';
 import { Button, Input, Label } from '@suggar-daddy/ui';
 import { useAuth } from '../../../providers/auth-provider';
+import { useToast } from '../../../providers/toast-provider';
 import { ApiError } from '../../../lib/api';
 
 // 直接定義 UserType 以避免從後端模組導入
@@ -48,6 +49,7 @@ const roles = [
 
 export default function RegisterPage() {
   const { register: registerUser } = useAuth();
+  const toast = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
@@ -66,9 +68,17 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setError('');
     try {
-      await registerUser(data);
+      // 轉換 userType 為大寫格式
+      const registerData = {
+        ...data,
+        userType: data.userType === 'sugar_baby' ? 'SUGAR_BABY' as const : 'SUGAR_DADDY' as const,
+      };
+      await registerUser(registerData);
+      toast.success('註冊成功！即將跳轉...');
     } catch (err) {
-      setError(ApiError.getMessage(err, '註冊失敗，請稍後再試'));
+      const errorMessage = ApiError.getMessage(err, '註冊失敗，請稍後再試');
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 

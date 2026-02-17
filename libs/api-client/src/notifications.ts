@@ -3,7 +3,7 @@ import type {
   NotificationItemDto, 
   SendNotificationDto,
   NotificationResultDto,
-} from '@suggar-daddy/dto';
+} from './types';
 
 export class NotificationsApi {
   constructor(private readonly client: ApiClient) {}

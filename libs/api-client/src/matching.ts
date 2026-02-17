@@ -4,7 +4,7 @@ import type {
   SwipeResponseDto,
   CardsResponseDto,
   MatchesResponseDto,
-} from '@suggar-daddy/dto';
+} from './types';
 
 export class MatchingApi {
   constructor(private readonly client: ApiClient) {}

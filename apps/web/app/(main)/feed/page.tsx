@@ -16,6 +16,7 @@ import {
   CardFooter,
   Skeleton,
   EmptyState,
+  Tooltip,
   cn,
   getFriendlyErrorMessage,
 } from '@suggar-daddy/ui';
@@ -175,32 +176,36 @@ function PostCard({ post, currentUserId, onLikeToggle, likedPosts, authorName }:
 
       {/* Actions */}
       <CardFooter className="gap-2 border-t px-4 py-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            'gap-1.5 text-gray-500',
-            isLiked && 'text-red-500 hover:text-red-600'
-          )}
-          onClick={() => onLikeToggle(post.id)}
-        >
-          <Heart
-            className={cn('h-4 w-4', isLiked && 'fill-current')}
-          />
-          <span className="text-xs">
-            {isLiked ? '已喜歡' : '喜歡'}
-          </span>
-        </Button>
-
-        <Link href={`/post/${post.id}`}>
+        <Tooltip content={isLiked ? '取消喜歡' : '喜歡此貼文'}>
           <Button
             variant="ghost"
             size="sm"
-            className="gap-1.5 text-gray-500"
+            className={cn(
+              'gap-1.5 text-gray-500',
+              isLiked && 'text-red-500 hover:text-red-600'
+            )}
+            onClick={() => onLikeToggle(post.id)}
           >
-            <DollarSign className="h-4 w-4" />
-            <span className="text-xs">打賞</span>
+            <Heart
+              className={cn('h-4 w-4', isLiked && 'fill-current')}
+            />
+            <span className="text-xs">
+              {isLiked ? '已喜歡' : '喜歡'}
+            </span>
           </Button>
+        </Tooltip>
+
+        <Link href={`/post/${post.id}`}>
+          <Tooltip content="打賞創作者">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-gray-500"
+            >
+              <DollarSign className="h-4 w-4" />
+              <span className="text-xs">打賞</span>
+            </Button>
+          </Tooltip>
         </Link>
       </CardFooter>
     </Card>
@@ -309,6 +314,7 @@ export default function FeedPage() {
         await contentApi.unlikePost(postId);
       } else {
         await contentApi.likePost(postId);
+        toast.success('已喜歡此貼文');
       }
     } catch (err) {
       // Revert on failure

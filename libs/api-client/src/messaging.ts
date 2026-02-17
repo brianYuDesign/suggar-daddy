@@ -7,7 +7,7 @@ import type {
   BroadcastResultDto,
   BroadcastDto,
   CursorPaginatedResponse,
-} from '@suggar-daddy/dto';
+} from './types';
 
 export class MessagingApi {
   constructor(private readonly client: ApiClient) {}

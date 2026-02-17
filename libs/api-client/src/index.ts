@@ -15,12 +15,54 @@ export { PaymentsApi } from './payments';
 export { AdminApi } from './admin';
 export { StoriesApi } from './stories';
 
+// Re-export shared types
+export type {
+  // Enums
+  UserType,
+  PermissionRole,
+  // Pagination
+  PaginatedResponse,
+  CursorPaginatedResponse,
+  // Auth
+  LoginDto,
+  RegisterDto,
+  RefreshTokenDto,
+  TokenResponseDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  ChangePasswordDto,
+  // User
+  UserCardDto,
+  UserProfileDto,
+  UpdateProfileDto,
+  LocationUpdateDto,
+  // Matching
+  SwipeAction,
+  SwipeRequestDto,
+  SwipeResponseDto,
+  MatchDto,
+  CardsResponseDto,
+  MatchesResponseDto,
+  // Messaging
+  MessageAttachmentDto,
+  SendMessageDto,
+  SendBroadcastDto,
+  MessageDto,
+  ConversationDto,
+  BroadcastDto,
+  BroadcastResultDto,
+  // Notification
+  SendNotificationDto,
+  NotificationItemDto,
+  NotificationResultDto,
+} from './types';
+
 // Re-export types from individual modules
-export type { Post, CreatePostDto, ContentReport, Comment, PaginatedResponse } from './content';
+export type { Post, CreatePostDto, ContentReport, Comment } from './content';
 export type { Story, StoryGroup, StoryViewer, CreateStoryDto } from './stories';
 export type { SubscriptionTier, Subscription, CreateTierDto, UpdateTierDto, SubscriptionTierDetail } from './subscriptions';
 export type { Tip, Transaction, TransactionDetail, TransactionStatus, TransactionType, PostPurchase, Wallet, Withdrawal, DmPurchase } from './payments';
-export type { ReportDto, UserCard, CreateUserDto, CursorPaginatedResponse, FollowStatus } from './users';
+export type { ReportDto, UserCard, CreateUserDto, FollowStatus } from './users';
 export type {
   PaginatedResponse as AdminPaginatedResponse,
   AdminUser,
@@ -59,3 +101,4 @@ export type {
   ConsistencyMetrics,
   AuditLogRecord,
 } from './admin';
+

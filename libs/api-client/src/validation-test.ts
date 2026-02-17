@@ -6,11 +6,11 @@
 import { ApiClient } from './client';
 import { ContentApi } from './content';
 import { StoriesApi } from './stories';
+import type { CursorPaginatedResponse } from './types';
 
 // 模擬 API Client
 const mockClient = new ApiClient({
   baseURL: 'https://api.example.com',
-  getAccessToken: async () => 'mock-token',
 });
 
 const contentApi = new ContentApi(mockClient);
@@ -111,13 +111,13 @@ function validateTypes() {
   };
   console.log('  ✓ Comment');
 
-  // PaginatedResponse 類型
-  const paginated: import('./content').PaginatedResponse<import('./content').Comment> = {
+  // CursorPaginatedResponse 類型
+  const paginated: CursorPaginatedResponse<import('./content').Comment> = {
     data: [comment],
-    nextCursor: 'cursor_next',
+    cursor: 'cursor_next',
     hasMore: true,
   };
-  console.log('  ✓ PaginatedResponse<T>');
+  console.log('  ✓ CursorPaginatedResponse<T>');
 
   // Story 類型
   const story: import('./stories').Story = {

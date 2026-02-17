@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../../../providers/auth-provider';
 import { usersApi, ApiError } from '../../../../lib/api';
-import type { UserProfileDto } from '@suggar-daddy/dto';
+import type { UserProfileDto } from '@suggar-daddy/api-client';
 import { useToast } from '../../../../providers/toast-provider';
 import { TipModal } from '../../../components/TipModal';
 import {

@@ -163,7 +163,7 @@ export default function PostDetailPage() {
         setComments((prev) =>
           cursor ? [...prev, ...result.data] : result.data
         );
-        setCommentsNextCursor(result.nextCursor);
+        setCommentsNextCursor(result.cursor || undefined);
         setCommentsHasMore(result.hasMore);
       } catch {
         // Silently fail for comments

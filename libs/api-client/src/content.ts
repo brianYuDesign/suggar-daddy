@@ -1,4 +1,5 @@
 import type { ApiClient } from './client';
+import type { CursorPaginatedResponse } from './types';
 
 export interface Post {
   id: string;
@@ -39,15 +40,6 @@ export interface Comment {
   createdAt: string;
   likesCount: number;
   repliesCount: number;
-}
-
-/**
- * 分頁回應
- */
-export interface PaginatedResponse<T> {
-  data: T[];
-  nextCursor?: string;
-  hasMore: boolean;
 }
 
 export class ContentApi {
@@ -125,7 +117,7 @@ export class ContentApi {
    */
   getComments(postId: string, cursor?: string) {
     const params = cursor ? { cursor } : undefined;
-    return this.client.get<PaginatedResponse<Comment>>(`/api/posts/${postId}/comments`, { params });
+    return this.client.get<CursorPaginatedResponse<Comment>>(`/api/posts/${postId}/comments`, { params });
   }
 
   /**
@@ -158,6 +150,6 @@ export class ContentApi {
     if (cursor) {
       params['cursor'] = cursor;
     }
-    return this.client.get<PaginatedResponse<Post>>('/api/posts/search', { params });
+    return this.client.get<CursorPaginatedResponse<Post>>('/api/posts/search', { params });
   }
 }

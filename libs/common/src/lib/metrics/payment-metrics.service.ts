@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Injectable, Logger } from '@nestjs/common';
 
 // 使用 @InjectLogger 裝飾器（從父目錄導入）

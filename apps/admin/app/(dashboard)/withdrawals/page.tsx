@@ -12,12 +12,6 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
   Badge,
   Select,
   Avatar,
@@ -29,6 +23,9 @@ import {
   DialogDescription,
   DialogFooter,
   Label,
+  Tooltip,
+  ResponsiveTable,
+  type Column,
 } from '@suggar-daddy/ui';
 import {
   Wallet,
@@ -43,6 +40,22 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'destructive'> = {
   completed: 'default',
   rejected: 'destructive',
 };
+
+// 定義 Withdrawal 類型
+interface Withdrawal {
+  id: string;
+  userId: string;
+  amount: number;
+  payoutMethod: string;
+  status: string;
+  requestedAt: string;
+  processedAt?: string;
+  user?: {
+    displayName?: string;
+    email?: string;
+    avatarUrl?: string;
+  } | null;
+}
 
 export default function WithdrawalsPage() {
   const toast = useToast();
@@ -70,6 +83,186 @@ export default function WithdrawalsPage() {
   );
 
   const totalPages = data ? Math.ceil(data.total / limit) : 0;
+
+  // 定義表格列
+  const columns: Column<Withdrawal>[] = [
+    {
+      key: 'creator',
+      header: 'Creator',
+      render: (w) => (
+        <div className="flex items-center gap-3">
+          <Avatar
+            src={w.user?.avatarUrl}
+            fallback={w.user?.displayName || w.userId}
+            size="sm"
+          />
+          <div>
+            <p className="font-medium">
+              {w.user?.displayName || 'Unknown'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {w.user?.email || w.userId}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      render: (w) => (
+        <span className="font-semibold">
+          ${w.amount.toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      key: 'method',
+      header: 'Method',
+      hideOnMobile: true,
+      render: (w) => (
+        <span className="text-muted-foreground">
+          {w.payoutMethod}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (w) => (
+        <Badge variant={statusVariant[w.status] || 'secondary'}>
+          {w.status}
+        </Badge>
+      ),
+    },
+    {
+      key: 'requested',
+      header: 'Requested',
+      hideOnMobile: true,
+      render: (w) => (
+        <span className="text-muted-foreground">
+          {new Date(w.requestedAt).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      hideOnMobile: true,
+      render: (w) => {
+        if (w.status === 'pending') {
+          return (
+            <div className="flex gap-2">
+              <Tooltip content="批准此提款請求">
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    setActionDialog({
+                      id: w.id,
+                      type: 'approve',
+                      amount: w.amount,
+                      userName: w.user?.displayName || w.userId,
+                    })
+                  }
+                >
+                  Approve
+                </Button>
+              </Tooltip>
+              <Tooltip content="拒絕此提款請求">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    setActionDialog({
+                      id: w.id,
+                      type: 'reject',
+                      amount: w.amount,
+                      userName: w.user?.displayName || w.userId,
+                    })
+                  }
+                >
+                  Reject
+                </Button>
+              </Tooltip>
+            </div>
+          );
+        }
+        return (
+          <span className="text-xs text-muted-foreground">
+            {w.processedAt
+              ? new Date(w.processedAt).toLocaleDateString()
+              : '—'}
+          </span>
+        );
+      },
+    },
+  ];
+
+  // 自定義移動端卡片渲染
+  const renderMobileCard = (w: Withdrawal) => (
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <Avatar
+            src={w.user?.avatarUrl}
+            fallback={w.user?.displayName || w.userId}
+            size="sm"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm truncate">
+              {w.user?.displayName || 'Unknown'}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
+              {w.user?.email || w.userId}
+            </p>
+          </div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <p className="font-semibold text-sm">${w.amount.toFixed(2)}</p>
+          <Badge variant={statusVariant[w.status] || 'secondary'} className="text-[10px] mt-1">
+            {w.status}
+          </Badge>
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+        <span>{w.payoutMethod}</span>
+        <span>{new Date(w.requestedAt).toLocaleDateString()}</span>
+      </div>
+      {w.status === 'pending' && (
+        <div className="flex gap-2 pt-2">
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={() =>
+              setActionDialog({
+                id: w.id,
+                type: 'approve',
+                amount: w.amount,
+                userName: w.user?.displayName || w.userId,
+              })
+            }
+          >
+            Approve
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() =>
+              setActionDialog({
+                id: w.id,
+                type: 'reject',
+                amount: w.amount,
+                userName: w.user?.displayName || w.userId,
+              })
+            }
+          >
+            Reject
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 
   const handleAction = async () => {
     if (!actionDialog) return;
@@ -173,106 +366,17 @@ export default function WithdrawalsPage() {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Creator</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Requested</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data?.data.map((w) => (
-                    <TableRow key={w.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar
-                            src={w.user?.avatarUrl}
-                            fallback={w.user?.displayName || w.userId}
-                            size="sm"
-                          />
-                          <div>
-                            <p className="font-medium">
-                              {w.user?.displayName || 'Unknown'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {w.user?.email || w.userId}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-semibold">
-                          ${w.amount.toFixed(2)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {w.payoutMethod}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={statusVariant[w.status] || 'secondary'}>
-                          {w.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(w.requestedAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {w.status === 'pending' ? (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                setActionDialog({
-                                  id: w.id,
-                                  type: 'approve',
-                                  amount: w.amount,
-                                  userName: w.user?.displayName || w.userId,
-                                })
-                              }
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                setActionDialog({
-                                  id: w.id,
-                                  type: 'reject',
-                                  amount: w.amount,
-                                  userName: w.user?.displayName || w.userId,
-                                })
-                              }
-                            >
-                              Reject
-                            </Button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            {w.processedAt
-                              ? new Date(w.processedAt).toLocaleDateString()
-                              : '—'}
-                          </span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {data?.data.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="text-center text-muted-foreground"
-                      >
-                        No withdrawal requests found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+              <ResponsiveTable
+                data={data?.data || []}
+                columns={columns}
+                getRowKey={(w) => w.id}
+                mobileCard={renderMobileCard}
+                emptyState={
+                  <div className="text-center py-8 text-muted-foreground">
+                    No withdrawal requests found
+                  </div>
+                }
+              />
               <div className="mt-4 flex justify-center">
                 <Pagination
                   page={page}

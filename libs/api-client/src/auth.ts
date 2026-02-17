@@ -7,7 +7,7 @@ import type {
   ForgotPasswordDto,
   ResetPasswordDto,
   ChangePasswordDto,
-} from '@suggar-daddy/dto';
+} from './types';
 
 /**
  * 基本成功回應

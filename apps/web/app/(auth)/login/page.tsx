@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button, Input, Label } from '@suggar-daddy/ui';
 import { useAuth } from '../../../providers/auth-provider';
+import { useToast } from '../../../providers/toast-provider';
 import { ApiError } from '../../../lib/api';
 
 const loginSchema = z.object({
@@ -19,6 +20,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const toast = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
@@ -34,8 +36,11 @@ export default function LoginPage() {
     setError('');
     try {
       await login(data.email, data.password);
+      toast.success('登入成功！');
     } catch (err) {
-      setError(ApiError.getMessage(err, '登入失敗，請檢查帳號密碼'));
+      const errorMessage = ApiError.getMessage(err, '登入失敗，請檢查帳號密碼');
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 

@@ -26,9 +26,11 @@ import {
   Skeleton,
   Badge,
   Separator,
+  Tooltip,
   cn,
 } from '@suggar-daddy/ui';
 import { paymentsApi, ApiError } from '../../../../lib/api';
+import { useToast } from '../../../../providers/toast-provider';
 import { timeAgo } from '../../../../lib/utils';
 
 /* ------------------------------------------------------------------ */
@@ -129,6 +131,7 @@ function formatAmount(amount: number) {
 /* ------------------------------------------------------------------ */
 export default function WithdrawPage() {
   const router = useRouter();
+  const toast = useToast();
 
   /* state */
   const [balance, setBalance] = useState<number | null>(null);
@@ -249,9 +252,9 @@ export default function WithdrawPage() {
         pendingData.payoutDetails
       );
       
-      setSuccessMessage(
-        `提款申請已送出：${formatAmount(pendingData.amount)}`
-      );
+      const successMsg = `提款申請已送出：${formatAmount(pendingData.amount)}`;
+      setSuccessMessage(successMsg);
+      toast.success(successMsg);
       
       // 生成新的幂等性鍵供下次使用
       idempotencyKeyRef.current = uuidv4();
@@ -277,6 +280,7 @@ export default function WithdrawPage() {
         : '提款申請失敗，請稍後再試';
       
       setSubmitError(errorMessage);
+      toast.error(errorMessage);
       
       // 如果是重複請求錯誤，生成新的幂等性鍵
       if (err instanceof ApiError && err.message.includes('重複')) {
@@ -285,7 +289,7 @@ export default function WithdrawPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [pendingData, reset, isSubmitting]);
+  }, [pendingData, reset, isSubmitting, toast]);
 
   /* ---------- render ---------- */
   return (
@@ -365,7 +369,14 @@ export default function WithdrawPage() {
             {/* Amount */}
             <div className="space-y-2">
               <Label htmlFor="amount" className="flex items-center justify-between">
-                <span>提款金額</span>
+                <span className="flex items-center gap-1">
+                  提款金額
+                  <Tooltip content="輸入您要提領的金額，須在可用餘額範圍內">
+                    <span className="inline-flex items-center justify-center w-4 h-4 text-xs text-gray-500 border border-gray-300 rounded-full cursor-help">
+                      ?
+                    </span>
+                  </Tooltip>
+                </span>
                 {!balanceLoading && (
                   <span className="text-xs font-normal text-gray-500">
                     可用: {formatAmount(availableBalance)}
@@ -400,7 +411,14 @@ export default function WithdrawPage() {
 
             {/* Payout method */}
             <div className="space-y-2">
-              <Label htmlFor="payoutMethod">提款方式</Label>
+              <Label htmlFor="payoutMethod" className="flex items-center gap-1">
+                提款方式
+                <Tooltip content="選擇您偏好的收款方式">
+                  <span className="inline-flex items-center justify-center w-4 h-4 text-xs text-gray-500 border border-gray-300 rounded-full cursor-help">
+                    ?
+                  </span>
+                </Tooltip>
+              </Label>
               <Select 
                 id="payoutMethod" 
                 aria-required="true"
@@ -420,7 +438,14 @@ export default function WithdrawPage() {
 
             {/* Payout details */}
             <div className="space-y-2">
-              <Label htmlFor="payoutDetails">收款帳戶資訊</Label>
+              <Label htmlFor="payoutDetails" className="flex items-center gap-1">
+                收款帳戶資訊
+                <Tooltip content={watch('payoutMethod') === 'paypal' ? '請輸入您的 PayPal 電子郵件地址' : '請輸入您的銀行帳號'}>
+                  <span className="inline-flex items-center justify-center w-4 h-4 text-xs text-gray-500 border border-gray-300 rounded-full cursor-help">
+                    ?
+                  </span>
+                </Tooltip>
+              </Label>
               <Input
                 id="payoutDetails"
                 placeholder={

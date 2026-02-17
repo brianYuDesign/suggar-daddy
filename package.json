@@ -48,6 +48,12 @@
     "e2e:admin:test": "bash scripts/e2e-admin-start.sh --test",
     "e2e:journeys": "playwright test e2e/user-journeys.spec.ts",
     "e2e:report": "playwright show-report",
+    "e2e:full": "bash scripts/e2e/run-full-test.sh",
+    "e2e:user": "playwright test e2e/user-flows/ --project=chromium",
+    "e2e:content": "playwright test e2e/content-flows/ --project=chromium",
+    "e2e:payment": "playwright test e2e/payment-flows/ --project=chromium",
+    "e2e:wallet": "playwright test e2e/wallet-flows/ --project=chromium",
+    "e2e:admin-flows": "playwright test e2e/admin-flows/ --project=admin",
     "e2e:full": "FULL_BROWSER_TEST=1 playwright test",
     "e2e:clean": "rm -rf test-results/ playwright-report/ screenshots/",
     "migrate:redis-indexes": "ts-node scripts/migrate-redis-indexes.ts"

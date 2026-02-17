@@ -9,8 +9,18 @@ import { useSelection } from '@/lib/use-selection';
 import { useToast } from '@/components/toast';
 import { SortableTableHead } from '@/components/sortable-table-head';
 import { BatchActionBar } from '@/components/batch-action-bar';
-import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge, Select, Avatar, Skeleton, Input, Button, ConfirmDialog } from '@suggar-daddy/ui';
+import { Card, CardHeader, CardTitle, CardContent, Badge, Select, Avatar, Skeleton, Input, Button, ConfirmDialog, Tooltip, ResponsiveTable, type Column } from '@suggar-daddy/ui';
 import { Pagination } from '@/components/pagination';
+
+// 定義 User 類型（匹配 AdminUser）
+interface User {
+  id: string;
+  email: string;
+  displayName?: string;
+  avatarUrl?: string | null;
+  role: string;
+  createdAt: string;
+}
 
 export default function UsersPage() {
   const toast = useToast();
@@ -59,6 +69,122 @@ export default function UsersPage() {
 
   const totalPages = data ? Math.ceil(data.total / limit) : 0;
 
+  // 定義表格列
+  const columns: Column<User>[] = [
+    {
+      key: 'checkbox',
+      header: '',
+      hideOnMobile: true,
+      render: (user) => (
+        <input
+          type="checkbox"
+          checked={selection.isSelected(user.id)}
+          onChange={() => selection.toggle(user.id)}
+          className="h-4 w-4 rounded border-gray-300"
+        />
+      ),
+      className: 'w-10',
+    },
+    {
+      key: 'user',
+      header: 'User',
+      render: (user) => (
+        <div className="flex items-center gap-3">
+          <Avatar
+            src={user.avatarUrl}
+            fallback={user.displayName || user.email}
+            size="sm"
+          />
+          <span className="font-medium">
+            {user.displayName || 'No name'}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'email',
+      header: 'Email',
+      render: (user) => (
+        <span className="text-muted-foreground">{user.email}</span>
+      ),
+    },
+    {
+      key: 'role',
+      header: 'Role',
+      render: (user) => (
+        <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
+          {user.role}
+        </Badge>
+      ),
+    },
+    {
+      key: 'joined',
+      header: 'Joined',
+      hideOnMobile: true,
+      render: (user) => (
+        <span className="text-muted-foreground">
+          {new Date(user.createdAt).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      hideOnMobile: true,
+      render: (user) => (
+        <Tooltip content="查看用戶詳情">
+          <Link
+            href={`/users/${user.id}`}
+            className="text-sm text-primary hover:underline"
+          >
+            View
+          </Link>
+        </Tooltip>
+      ),
+    },
+  ];
+
+  // 自定義移動端卡片渲染
+  const renderMobileCard = (user: User) => (
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1">
+          <input
+            type="checkbox"
+            checked={selection.isSelected(user.id)}
+            onChange={() => selection.toggle(user.id)}
+            className="h-4 w-4 rounded border-gray-300 mt-1"
+          />
+          <Avatar
+            src={user.avatarUrl}
+            fallback={user.displayName || user.email}
+            size="sm"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm truncate">
+              {user.displayName || 'No name'}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          </div>
+        </div>
+        <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
+          {user.role}
+        </Badge>
+      </div>
+      <div className="flex items-center justify-between pt-2 border-t">
+        <span className="text-xs text-muted-foreground">
+          {new Date(user.createdAt).toLocaleDateString()}
+        </span>
+        <Link
+          href={`/users/${user.id}`}
+          className="text-sm text-primary hover:underline"
+        >
+          View Details
+        </Link>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -90,14 +216,16 @@ export default function UsersPage() {
 
       {/* Batch Action Bar */}
       <BatchActionBar selectedCount={selection.selectedCount} onClear={selection.clear}>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleBatchDisable}
-          disabled={batchLoading}
-        >
-          {batchLoading ? 'Disabling...' : 'Disable Selected'}
-        </Button>
+        <Tooltip content={selection.selectedCount === 0 ? '請先選擇要禁用的用戶' : `禁用選中的 ${selection.selectedCount} 位用戶`}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleBatchDisable}
+            disabled={batchLoading || selection.selectedCount === 0}
+          >
+            {batchLoading ? 'Disabling...' : 'Disable Selected'}
+          </Button>
+        </Tooltip>
       </BatchActionBar>
 
       <Card>
@@ -115,75 +243,31 @@ export default function UsersPage() {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10">
-                      <input
-                        type="checkbox"
-                        checked={selection.allSelected}
-                        onChange={selection.toggleAll}
-                        className="h-4 w-4 rounded border-gray-300"
-                      />
-                    </TableHead>
-                    <TableHead>User</TableHead>
-                    <SortableTableHead label="Email" sortKey="email" sort={sort} onToggle={toggleSort} />
-                    <SortableTableHead label="Role" sortKey="role" sort={sort} onToggle={toggleSort} />
-                    <SortableTableHead label="Joined" sortKey="createdAt" sort={sort} onToggle={toggleSort} />
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sorted?.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <input
-                          type="checkbox"
-                          checked={selection.isSelected(user.id)}
-                          onChange={() => selection.toggle(user.id)}
-                          className="h-4 w-4 rounded border-gray-300"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar
-                            src={user.avatarUrl}
-                            fallback={user.displayName || user.email}
-                            size="sm"
-                          />
-                          <span className="font-medium">
-                            {user.displayName || 'No name'}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                      <TableCell>
-                        <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                          {user.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Link
-                          href={`/users/${user.id}`}
-                          className="text-sm text-primary hover:underline"
-                        >
-                          View
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {sorted?.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
-                        No users found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+              {/* Desktop: 顯示全選複選框 */}
+              <div className="hidden md:block mb-3">
+                <label className="flex items-center gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={selection.allSelected}
+                    onChange={selection.toggleAll}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <span>Select All</span>
+                </label>
+              </div>
+
+              <ResponsiveTable
+                data={sorted || []}
+                columns={columns}
+                getRowKey={(user) => user.id}
+                mobileCard={renderMobileCard}
+                emptyState={
+                  <div className="text-center py-8 text-muted-foreground">
+                    No users found
+                  </div>
+                }
+              />
+
               <div className="mt-4 flex justify-center">
                 <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
               </div>

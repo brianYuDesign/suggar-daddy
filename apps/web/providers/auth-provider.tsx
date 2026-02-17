@@ -43,7 +43,7 @@ interface AuthContextValue extends AuthState {
   register: (data: {
     email: string;
     password: string;
-    userType: string;
+    userType: 'SUGAR_DADDY' | 'SUGAR_BABY';
     displayName: string;
     bio?: string;
   }) => Promise<void>;

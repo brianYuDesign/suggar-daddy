@@ -7,6 +7,10 @@ const { composePlugins, withNx } = require('@nx/next');
  */
 const nextConfig = {
   nx: {},
+  typescript: {
+    ignoreBuildErrors: false,
+    tsconfigPath: './tsconfig.json',
+  },
   async rewrites() {
     return [
       {

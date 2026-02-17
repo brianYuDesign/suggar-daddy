@@ -1,5 +1,5 @@
 import type { ApiClient } from './client';
-import type { UserProfileDto, UpdateProfileDto } from '@suggar-daddy/dto';
+import type { UserProfileDto, UpdateProfileDto, CursorPaginatedResponse } from './types';
 
 export interface ReportDto {
   targetType: 'user' | 'post' | 'comment';
@@ -30,15 +30,6 @@ export interface CreateUserDto {
   password: string;
   role?: 'ADMIN' | 'CREATOR' | 'SUBSCRIBER';
   displayName?: string;
-}
-
-/**
- * Cursor-based 分頁回應
- */
-export interface CursorPaginatedResponse<T> {
-  data: T[];
-  cursor?: string;
-  hasMore: boolean;
 }
 
 /**

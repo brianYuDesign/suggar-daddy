@@ -72,7 +72,7 @@
     "**/*.spec.tsx",
     "../../libs/dto/src/**/*.dto.ts",
     "../../libs/common/src/lib/data-consistency*.ts",
-    "../../libs/common/src/lib/metrics/*.ts",
+    "../../libs/common/src/lib/metrics",
     "../../libs/auth/src/**/*.controller.ts",
     "../../libs/auth/src/**/*.service.ts",
     "../../libs/auth/src/**/*.guard.ts",
