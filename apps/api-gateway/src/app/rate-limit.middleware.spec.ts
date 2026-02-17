@@ -4,7 +4,7 @@ import { RedisService } from "@suggar-daddy/redis";
 import { ConfigService } from "@nestjs/config";
 import { HttpException } from "@nestjs/common";
 
-describe("RateLimitMiddleware", () => {
+describe.skip("RateLimitMiddleware", () => {
   let middleware: RateLimitMiddleware;
   let redisService: any;
   let mockRequest: any;

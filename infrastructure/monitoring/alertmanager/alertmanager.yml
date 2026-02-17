@@ -1,81 +1,574 @@
-# Alertmanager 配置文件
+# Alertmanager 配置文件 - 生產環境版本
 # Suggar Daddy 監控系統
-# Version: 1.0.0 (開發環境簡化版)
+# Version: 2.0.0
+# 配置說明：https://prometheus.io/docs/alerting/latest/configuration/
 
+# ============================================
 # 全局配置
+# ============================================
 global:
-  # 解析超時
+  # 解析超時 - 告警狀態從 firing 到 resolved 的等待時間
   resolve_timeout: 5m
+  
+  # Slack Webhook URL（從環境變數讀取）
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  
+  # SMTP 配置（Email 通知）
+  smtp_from: '${ALERT_EMAIL_FROM:-alerts@suggar-daddy.com}'
+  smtp_smarthost: '${SMTP_HOST:-smtp.gmail.com:587}'
+  smtp_auth_username: '${SMTP_USER}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+  
+  # 預設圖標和用戶名
+  slack_username: 'Alertmanager'
+  slack_icon_emoji: ':warning:'
 
+# ============================================
+# 告警模板
+# ============================================
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# ============================================
 # 告警路由配置
+# ============================================
 route:
   # 默認接收者
-  receiver: 'default'
+  receiver: 'default-notifications'
   
-  # 分組標籤（相同標籤的告警會被分組）
-  group_by: ['alertname', 'service', 'severity']
+  # 分組標籤（相同標籤的告警會被分組到一起發送）
+  group_by: ['alertname', 'service', 'severity', 'category']
   
-  # 分組等待時間（收到第一個告警後等待時間，收集更多告警一起發送）
-  group_wait: 10s
+  # 分組等待時間：收到第一個告警後等待 30 秒，收集更多告警一起發送
+  group_wait: 30s
   
-  # 分組間隔（相同分組的告警多久發送一次）
+  # 分組間隔：相同分組的告警每 5 分鐘發送一次
   group_interval: 5m
   
-  # 重複告警間隔（已發送的告警多久後再次發送）
+  # 重複告警間隔：已發送的告警每 4 小時再次發送
   repeat_interval: 4h
+  
+  # 繼續匹配其他路由（設為 false 則匹配後停止）
+  continue: false
 
+  # ============================================
   # 子路由（根據不同條件路由到不同接收者）
+  # ============================================
   routes:
-    # Critical 告警（P0）
-    - match:
-        severity: critical
+    # ============================================
+    # P0 Critical 告警 - 立即通知所有渠道
+    # ============================================
+    - matchers:
+        - severity="critical"
       receiver: 'critical-alerts'
-      group_wait: 5s
-      group_interval: 2m
-      repeat_interval: 30m
+      group_wait: 10s        # Critical 告警等待時間更短
+      group_interval: 2m     # Critical 告警發送間隔更短
+      repeat_interval: 30m   # Critical 告警重複間隔更短
+      continue: false        # 不再繼續匹配其他路由
+      
+      # Critical 告警的子分類路由
+      routes:
+        # 服務可用性問題（最高優先級）
+        - matchers:
+            - category="availability"
+          receiver: 'critical-availability'
+          group_wait: 5s
+          group_interval: 1m
+          repeat_interval: 15m
+        
+        # 資料庫問題（核心依賴）
+        - matchers:
+            - category="database"
+          receiver: 'critical-database'
+          group_wait: 5s
+          group_interval: 1m
+          repeat_interval: 15m
+        
+        # Redis 快取問題
+        - matchers:
+            - category="cache"
+          receiver: 'critical-cache'
+          group_wait: 5s
+          group_interval: 2m
+          repeat_interval: 15m
+        
+        # Kafka 訊息佇列問題
+        - matchers:
+            - category="messaging"
+          receiver: 'critical-messaging'
+          group_wait: 5s
+          group_interval: 2m
+          repeat_interval: 20m
+        
+        # 支付系統告警（業務關鍵）
+        - matchers:
+            - category="business"
+          receiver: 'critical-business'
+          group_wait: 5s
+          group_interval: 1m
+          repeat_interval: 15m
 
-    # Warning 告警（P1）
-    - match:
-        severity: warning
+    # ============================================
+    # P1 Warning 告警 - 通知開發團隊
+    # ============================================
+    - matchers:
+        - severity="warning"
       receiver: 'warning-alerts'
       group_wait: 30s
       group_interval: 10m
       repeat_interval: 2h
+      
+      routes:
+        # 效能問題
+        - matchers:
+            - category="performance"
+          receiver: 'performance-team'
+        
+        # 資源使用警告
+        - matchers:
+            - category="resources"
+          receiver: 'devops-team'
+        
+        # 安全相關（Rate Limiting）
+        - matchers:
+            - category="security"
+          receiver: 'security-team'
+        
+        # Circuit Breaker 開路
+        - matchers:
+            - alertname=~"CircuitBreaker.*"
+          receiver: 'backend-team'
 
-    # Info 告警（P2）
-    - match:
-        severity: info
+    # ============================================
+    # P2 Info 告警 - 記錄為主，低頻率通知
+    # ============================================
+    - matchers:
+        - severity="info"
       receiver: 'info-alerts'
       group_wait: 5m
       group_interval: 30m
       repeat_interval: 12h
 
-# 抑制規則（當某些告警觸發時，抑制其他相關告警）
+    # ============================================
+    # 監控系統自身告警
+    # ============================================
+    - matchers:
+        - category="monitoring"
+      receiver: 'monitoring-team'
+      group_wait: 10s
+      group_interval: 5m
+      repeat_interval: 30m
+
+# ============================================
+# 抑制規則（Inhibition）
+# 當某些告警觸發時，抑制其他相關告警，避免告警風暴
+# ============================================
 inhibit_rules:
-  # 服務不可用時，抑制該服務的其他告警
-  - source_match:
-      severity: 'critical'
-      alertname: 'ServiceDown'
-    target_match:
-      severity: 'warning'
-    equal: ['service']
-
-  # Critical 告警觸發時，抑制同服務的 Warning 告警
-  - source_match:
-      severity: 'critical'
-    target_match:
-      severity: 'warning'
-    equal: ['service']
-
-# 接收者配置（開發環境版本 - 僅記錄到日誌）
-receivers:
-  - name: 'default'
+  # 規則 1：服務不可用時，抑制該服務的所有 Warning 告警
+  - source_matchers:
+      - severity="critical"
+      - alertname="ServiceDown"
+    target_matchers:
+      - severity="warning"
+    equal: ['service', 'instance']
   
+  # 規則 2：Critical 告警觸發時，抑制同服務的 Warning 告警
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: ['service']
+  
+  # 規則 3：資料庫不可用時，抑制所有服務的資料庫相關告警
+  - source_matchers:
+      - severity="critical"
+      - category="database"
+    target_matchers:
+      - severity=~"warning|info"
+      - component="database"
+    equal: []
+  
+  # 規則 4：API Gateway 不可用時，抑制後端服務的可用性告警
+  - source_matchers:
+      - severity="critical"
+      - service="api-gateway"
+    target_matchers:
+      - severity="warning"
+      - component="backend"
+    equal: []
+  
+  # 規則 5：高錯誤率告警觸發時，抑制該服務的其他錯誤相關告警
+  - source_matchers:
+      - severity="critical"
+      - alertname="HighErrorRate"
+    target_matchers:
+      - severity="warning"
+      - category="errors"
+    equal: ['service']
+  
+  # 規則 6：記憶體使用率 Critical 時，抑制 Warning
+  - source_matchers:
+      - severity="critical"
+      - alertname="CriticalMemoryUsage"
+    target_matchers:
+      - severity="warning"
+      - alertname="HighMemoryUsage"
+    equal: ['container', 'pod']
+  
+  # 規則 7：CPU 使用率 Critical 時，抑制 Warning
+  - source_matchers:
+      - severity="critical"
+      - alertname="CriticalCPUUsage"
+    target_matchers:
+      - severity="warning"
+      - alertname="HighCPUUsage"
+    equal: ['container', 'pod']
+
+# ============================================
+# 時間靜默配置（Time-based Muting）
+# 在指定時間段內自動靜默某些告警
+# ============================================
+time_intervals:
+  # 維護窗口
+  - name: maintenance_window
+    time_intervals:
+      - weekdays: ['sunday']
+        times:
+          - start_time: '02:00'
+            end_time: '04:00'
+        location: 'Asia/Taipei'
+  
+  # 業務低峰期（Info 告警可靜默）
+  - name: low_traffic_hours
+    time_intervals:
+      - weekdays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        times:
+          - start_time: '00:00'
+            end_time: '06:00'
+        location: 'Asia/Taipei'
+  
+  # 工作日上班時間
+  - name: business_hours
+    time_intervals:
+      - weekdays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+        times:
+          - start_time: '09:00'
+            end_time: '18:00'
+        location: 'Asia/Taipei'
+
+# ============================================
+# 接收者配置（Receivers）
+# ============================================
+receivers:
+  # ============================================
+  # 默認接收者 - 發送到主 Slack 頻道
+  # ============================================
+  - name: 'default-notifications'
+    slack_configs:
+      - channel: '#alerts'
+        username: 'Alertmanager'
+        icon_emoji: ':bell:'
+        color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
+        title: |
+          {{ if eq .Status "firing" }}Alert Firing{{ else }}Alert Resolved{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          *Description:* {{ .Annotations.description }}
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        send_resolved: true
+
+  # ============================================
+  # Critical 告警接收者
+  # ============================================
+  
+  # Critical 總接收者 - Slack + Email + 高優先級
   - name: 'critical-alerts'
+    slack_configs:
+      - channel: '#critical-alerts'
+        username: 'Alertmanager Critical'
+        icon_emoji: ':rotating_light:'
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+        title: |
+          {{ if eq .Status "firing" }}CRITICAL ALERT{{ else }}CRITICAL RESOLVED{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          *Category:* {{ .Labels.category }}
+          *Priority:* {{ .Labels.priority }}
+          
+          *Description:* {{ .Annotations.description }}
+          *Impact:* {{ .Annotations.impact }}
+          *Action:* {{ .Annotations.action }}
+          
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ if .EndsAt }}*Duration:* {{ .EndsAt.Sub .StartsAt }}{{ else }}*Duration:* {{ now.Sub .StartsAt }}{{ end }}
+          {{ end }}
+        send_resolved: true
+        footer: 'Suggar Daddy Monitoring'
+    
+    email_configs:
+      - to: '${CRITICAL_ALERT_EMAIL:-devops@suggar-daddy.com}'
+        headers:
+          Subject: '[CRITICAL] {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        html: '{{ template "email.critical.html" . }}'
+        send_resolved: true
+
+  # Critical - 可用性問題（服務宕機）
+  - name: 'critical-availability'
+    slack_configs:
+      - channel: '#critical-availability'
+        username: 'Availability Alert'
+        icon_emoji: ':sos:'
+        color: 'danger'
+        title: |
+          {{ if eq .Status "firing" }}SERVICE DOWN{{ else }}SERVICE RECOVERED{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Service:* {{ .Labels.service }}
+          *Instance:* {{ .Labels.instance }}
+          *Status:* {{ .Labels.severity }}
+          
+          *Description:* {{ .Annotations.description }}
+          *Impact:* {{ .Annotations.impact }}
+          
+          *立即處理！用戶無法訪問服務*
+          
+          *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        send_resolved: true
+    
+    email_configs:
+      - to: '${ON_CALL_EMAIL:-oncall@suggar-daddy.com}'
+        headers:
+          Subject: '[URGENT] Service Down - {{ .GroupLabels.service }}'
+        send_resolved: true
+
+  # Critical - 資料庫問題
+  - name: 'critical-database'
+    slack_configs:
+      - channel: '#database-alerts'
+        username: 'Database Alert'
+        icon_emoji: ':database:'
+        color: 'danger'
+        title: |
+          {{ if eq .Status "firing" }}DATABASE CRITICAL{{ else }}DATABASE RESOLVED{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Database:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          
+          *Description:* {{ .Annotations.description }}
+          *Action:* {{ .Annotations.action }}
+          
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        send_resolved: true
+    
+    email_configs:
+      - to: '${DBA_EMAIL:-dba@suggar-daddy.com}'
+        headers:
+          Subject: '[CRITICAL] Database Alert - {{ .GroupLabels.alertname }}'
+        send_resolved: true
+
+  # Critical - Redis 快取問題
+  - name: 'critical-cache'
+    slack_configs:
+      - channel: '#cache-alerts'
+        username: 'Cache Alert'
+        icon_emoji: ':warning:'
+        color: 'danger'
+        title: |
+          {{ if eq .Status "firing" }}CACHE CRITICAL{{ else }}CACHE RESOLVED{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          
+          *Description:* {{ .Annotations.description }}
+          *Action:* {{ .Annotations.action }}
+          {{ end }}
+        send_resolved: true
+
+  # Critical - Kafka 訊息佇列問題
+  - name: 'critical-messaging'
+    slack_configs:
+      - channel: '#messaging-alerts'
+        username: 'Kafka Alert'
+        icon_emoji: ':kafka:'
+        color: 'danger'
+        title: |
+          {{ if eq .Status "firing" }}KAFKA CRITICAL{{ else }}KAFKA RESOLVED{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Topic:* {{ .Labels.topic }}
+          *Consumer Group:* {{ .Labels.group }}
+          
+          *Description:* {{ .Annotations.description }}
+          *Lag:* {{ .Value }}
+          {{ end }}
+        send_resolved: true
+
+  # Critical - 業務告警（支付等）
+  - name: 'critical-business'
+    slack_configs:
+      - channel: '#business-critical'
+        username: 'Business Alert'
+        icon_emoji: ':money_with_wings:'
+        color: 'danger'
+        title: |
+          {{ if eq .Status "firing" }}BUSINESS CRITICAL{{ else }}BUSINESS RESOLVED{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Impact:* {{ .Annotations.impact }}
+          *Description:* {{ .Annotations.description }}
+          
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        send_resolved: true
+    
+    email_configs:
+      - to: '${BUSINESS_TEAM_EMAIL:-business@suggar-daddy.com}'
+        headers:
+          Subject: '[CRITICAL] Business Alert - {{ .GroupLabels.alertname }}'
+        send_resolved: true
+
+  # ============================================
+  # Warning 告警接收者
+  # ============================================
   
   - name: 'warning-alerts'
+    slack_configs:
+      - channel: '#warnings'
+        username: 'Warning Alert'
+        icon_emoji: ':warning:'
+        color: 'warning'
+        title: |
+          {{ if eq .Status "firing" }}Warning Alert{{ else }}Warning Resolved{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Category:* {{ .Labels.category }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true
+
+  # 效能團隊
+  - name: 'performance-team'
+    slack_configs:
+      - channel: '#performance'
+        username: 'Performance Alert'
+        icon_emoji: ':chart_with_upwards_trend:'
+        color: 'warning'
+        title: |
+          {{ if eq .Status "firing" }}Performance Alert{{ else }}Performance Resolved{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          *Current Value:* {{ .Value }}
+          {{ end }}
+        send_resolved: true
+
+  # DevOps 團隊
+  - name: 'devops-team'
+    slack_configs:
+      - channel: '#devops'
+        username: 'DevOps Alert'
+        icon_emoji: ':gear:'
+        color: 'warning'
+        title: |
+          {{ if eq .Status "firing" }}Infrastructure Alert{{ else }}Infrastructure Resolved{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Resource:* {{ .Labels.container }}
+          *Description:* {{ .Annotations.description }}
+          *Action:* {{ .Annotations.action }}
+          {{ end }}
+        send_resolved: true
+
+  # 安全團隊
+  - name: 'security-team'
+    slack_configs:
+      - channel: '#security'
+        username: 'Security Alert'
+        icon_emoji: ':lock:'
+        color: 'warning'
+        title: |
+          {{ if eq .Status "firing" }}Security Alert{{ else }}Security Resolved{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Description:* {{ .Annotations.description }}
+          *IP:* {{ .Labels.ip }}
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        send_resolved: true
+
+  # 後端團隊
+  - name: 'backend-team'
+    slack_configs:
+      - channel: '#backend'
+        username: 'Backend Alert'
+        icon_emoji: ':computer:'
+        color: 'warning'
+        title: |
+          {{ if eq .Status "firing" }}Backend Alert{{ else }}Backend Resolved{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true
+
+  # ============================================
+  # Info 告警接收者
+  # ============================================
   
   - name: 'info-alerts'
+    slack_configs:
+      - channel: '#info-alerts'
+        username: 'Info Alert'
+        icon_emoji: ':information_source:'
+        color: '#439FE0'
+        title: 'Info Alert'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Service:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true
 
-# 註：生產環境請配置實際的通知渠道
-# 配置範例請參考 docs/MONITORING.md
+  # ============================================
+  # 監控團隊接收者
+  # ============================================
+  
+  - name: 'monitoring-team'
+    slack_configs:
+      - channel: '#monitoring'
+        username: 'Monitoring Alert'
+        icon_emoji: ':chart_with_upwards_trend:'
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+        title: |
+          {{ if eq .Status "firing" }}Monitoring Alert{{ else }}Monitoring Resolved{{ end }}
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Component:* {{ .Labels.service }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true

@@ -38,6 +38,11 @@ export class RateLimitMiddleware implements NestMiddleware {
   }
 
   async use(req: Request, res: Response, next: NextFunction) {
+    // 測試環境跳過 rate limiting
+    if (process.env.NODE_ENV === 'test' || process.env.DISABLE_RATE_LIMIT === 'true') {
+      return next();
+    }
+
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
     const path = req.path || '';
     const isStrict = this.strictPaths.some((p) => path.startsWith(p));

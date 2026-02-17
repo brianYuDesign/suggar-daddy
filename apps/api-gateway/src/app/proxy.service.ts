@@ -95,12 +95,16 @@ export class ProxyService {
         baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3009'),
       },
       {
+        prefix: '/api/skills',
+        baseUrl: this.config.get<string>('SKILL_SERVICE_URL', 'http://localhost:3010'),
+      },
+      {
         prefix: '/api/upload',
-        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3010'),
+        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3008'),
       },
       {
         prefix: '/api/media',
-        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3010'),
+        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3008'),
       },
       {
         prefix: '/api/admin',

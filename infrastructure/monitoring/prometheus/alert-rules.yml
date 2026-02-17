@@ -1,0 +1,828 @@
+# Prometheus 告警規則
+# Suggar Daddy 監控系統
+# Version: 2.0.0 - 生產環境完整版
+
+groups:
+  # ============================================
+  # 服務可用性告警（Critical - P0）
+  # ============================================
+  - name: service_availability
+    interval: 30s
+    rules:
+      # 服務宕機 - 核心告警
+      - alert: ServiceDown
+        expr: up{job=~".*-service|api-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+          priority: P0
+        annotations:
+          summary: "🚨 服務 {{ $labels.service }} 宕機"
+          description: "服務 {{ $labels.service }} 已停止響應超過 1 分鐘\n實例: {{ $labels.instance }}\n當前狀態: DOWN"
+          impact: "用戶無法訪問該服務的功能，可能導致業務中斷"
+          action: "1. 檢查容器狀態: docker ps | grep {{ $labels.service }}\n2. 查看服務日誌: docker logs {{ $labels.service }}\n3. 檢查資源使用情況\n4. 確認是否需要重啟服務"
+          runbook_url: "https://wiki.suggar-daddy.com/runbooks/service-down"
+
+      # 服務部分實例不可用
+      - alert: ServicePartiallyDown
+        expr: |
+          (count by (job) (up{job=~".*-service|api-gateway"} == 0) 
+          / count by (job) (up{job=~".*-service|api-gateway"})) > 0.3
+        for: 2m
+        labels:
+          severity: warning
+          category: availability
+          priority: P1
+        annotations:
+          summary: "⚠️ 服務 {{ $labels.job }} 部分實例不可用"
+          description: "超過 30% 的服務實例不可用，可能影響服務品質"
+          impact: "服務容量下降，可能導致響應變慢或部分請求失敗"
+          action: "1. 檢查不可用實例的狀態\n2. 確認是否需要擴容\n3. 查看負載均衡器狀態"
+
+      # 服務啟動時間過長
+      - alert: ServiceStartupTooSlow
+        expr: |
+          time() - process_start_time_seconds{job=~".*-service|api-gateway"} < 300
+          and up{job=~".*-service|api-gateway"} == 1
+        for: 5m
+        labels:
+          severity: info
+          category: availability
+          priority: P2
+        annotations:
+          summary: "服務 {{ $labels.service }} 剛剛啟動"
+          description: "服務在過去 5 分鐘內啟動或重啟"
+          impact: "可能是正常的部署或異常重啟"
+          action: "確認是否為計劃中的部署，如果不是請檢查重啟原因"
+
+  # ============================================
+  # 錯誤率告警（Critical - P0）
+  # ============================================
+  - name: error_rate
+    interval: 1m
+    rules:
+      # 高錯誤率 > 1%（核心需求）
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            / 
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.01
+        for: 2m
+        labels:
+          severity: critical
+          category: errors
+          priority: P0
+        annotations:
+          summary: "🚨 服務 {{ $labels.service }} 錯誤率過高 (>1%)"
+          description: "服務 {{ $labels.service }} 的 5xx 錯誤率超過 1%\n當前錯誤率: {{ $value | humanizePercentage }}"
+          impact: "大量用戶請求失敗，用戶體驗嚴重下降，可能導致用戶流失"
+          action: "1. 立即查看錯誤日誌: kubectl logs -f deployment/{{ $labels.service }}\n2. 檢查資料庫連線狀態\n3. 檢查依賴服務是否正常\n4. 考慮回滾最近的部署"
+          dashboard_url: "http://localhost:3001/d/errors/error-rate-dashboard?var-service={{ $labels.service }}"
+
+      # 錯誤率 > 0.1%（早期預警）
+      - alert: ElevatedErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            / 
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.001
+        for: 5m
+        labels:
+          severity: warning
+          category: errors
+          priority: P1
+        annotations:
+          summary: "⚠️ 服務 {{ $labels.service }} 錯誤率升高"
+          description: "服務 {{ $labels.service }} 的 5xx 錯誤率超過 0.1%\n當前錯誤率: {{ $value | humanizePercentage }}"
+          impact: "錯誤率異常，需要關注是否持續上升"
+          action: "1. 查看錯誤日誌\n2. 檢查最近的部署變更\n3. 監控是否持續升高"
+
+      # 錯誤率暴增（短期內大幅上升）
+      - alert: ErrorRateSpike
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[1m])) by (service)
+            / 
+            sum(rate(http_requests_total[1m])) by (service)
+          ) > 0.05
+        for: 1m
+        labels:
+          severity: critical
+          category: errors
+          priority: P0
+        annotations:
+          summary: "🚨 服務 {{ $labels.service }} 錯誤率暴增"
+          description: "錯誤率在短時間內急劇上升超過 5%"
+          impact: "可能是嚴重的系統問題或攻擊"
+          action: "立即調查，可能需要啟動應急響應流程"
+
+      # 4xx 錯誤率異常
+      - alert: High4xxRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"4.."}[5m])) by (service)
+            / 
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: client_errors
+          priority: P2
+        annotations:
+          summary: "⚠️ 服務 {{ $labels.service }} 客戶端錯誤率過高"
+          description: "4xx 錯誤率超過 10%，可能是 API 使用不當或文檔問題\n當前錯誤率: {{ $value | humanizePercentage }}"
+          impact: "可能影響用戶體驗或表示 API 變更未通知客戶端"
+          action: "1. 分析 4xx 錯誤的類型分布\n2. 檢查是否有 API 變更\n3. 更新 API 文檔"
+
+  # ============================================
+  # API 延遲告警（Critical - P0）
+  # ============================================
+  - name: api_latency
+    interval: 1m
+    rules:
+      # P95 延遲 > 1000ms（核心需求）
+      - alert: HighP95Latency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+          ) > 1
+        for: 3m
+        labels:
+          severity: critical
+          category: performance
+          priority: P0
+        annotations:
+          summary: "🚨 服務 {{ $labels.service }} P95 響應時間過高 (>1000ms)"
+          description: "P95 延遲超過 1000ms\n當前 P95: {{ $value | humanizeDuration }}"
+          impact: "用戶體驗嚴重下降，頁面載入緩慢，可能導致用戶流失"
+          action: "1. 檢查資料庫查詢效能\n2. 檢查外部 API 調用\n3. 分析慢請求日誌\n4. 考慮啟用快取或增加資源"
+          dashboard_url: "http://localhost:3001/d/latency/latency-dashboard?var-service={{ $labels.service }}"
+
+      # P95 延遲 > 500ms（早期預警）
+      - alert: ElevatedP95Latency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          priority: P1
+        annotations:
+          summary: "⚠️ 服務 {{ $labels.service }} P95 響應時間升高 (>500ms)"
+          description: "P95 延遲超過 500ms\n當前 P95: {{ $value | humanizeDuration }}"
+          impact: "用戶體驗下降，需要關注是否持續惡化"
+          action: "1. 檢查資料庫慢查詢\n2. 分析請求模式\n3. 監控趨勢"
+
+      # P99 延遲 > 2s
+      - alert: HighP99Latency
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+          ) > 2
+        for: 3m
+        labels:
+          severity: critical
+          category: performance
+          priority: P0
+        annotations:
+          summary: "🚨 服務 {{ $labels.service }} P99 響應時間過高 (>2s)"
+          description: "P99 延遲超過 2 秒\n當前 P99: {{ $value | humanizeDuration }}"
+          impact: "最慢的 1% 請求響應極慢，嚴重影響用戶體驗"
+          action: "1. 找出最慢的端點\n2. 檢查是否有超時配置問題\n3. 優化慢查詢"
+
+      # 平均延遲 > 200ms
+      - alert: HighAverageLatency
+        expr: |
+          sum(rate(http_request_duration_seconds_sum[5m])) by (service)
+          /
+          sum(rate(http_request_duration_seconds_count[5m])) by (service)
+          > 0.2
+        for: 10m
+        labels:
+          severity: info
+          category: performance
+          priority: P2
+        annotations:
+          summary: "ℹ️ 服務 {{ $labels.service }} 平均延遲升高"
+          description: "平均延遲超過 200ms\n當前值: {{ $value | humanizeDuration }}"
+          impact: "整體效能下降"
+          action: "持續監控，評估是否需要優化"
+
+  # ============================================
+  # 資料庫告警（Critical - P0）
+  # ============================================
+  - name: database
+    interval: 1m
+    rules:
+      # 資料庫連線池耗盡（核心需求）
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          (
+            pg_stat_database_numbackends{datname="suggar_daddy"}
+            /
+            pg_settings_max_connections
+          ) > 0.9
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+          priority: P0
+        annotations:
+          summary: "🚨 資料庫連線池即將耗盡"
+          description: "PostgreSQL 連線使用率超過 90%\n當前使用率: {{ $value | humanizePercentage }}\n當前連線數: {{ $labels.pg_stat_database_numbackends }}"
+          impact: "新連線將被拒絕，服務可能完全不可用，導致系統癱瘓"
+          action: "1. 立即檢查長時間執行的查詢\n2. 檢查連線池洩漏\n3. 臨時增加最大連線數\n4. 考慮重啟連線池"
+          runbook_url: "https://wiki.suggar-daddy.com/runbooks/db-connection-pool"
+
+      # PostgreSQL 連線數 > 80%
+      - alert: PostgresHighConnections
+        expr: |
+          (
+            pg_stat_database_numbackends{datname="suggar_daddy"}
+            /
+            pg_settings_max_connections
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+          priority: P1
+        annotations:
+          summary: "⚠️ PostgreSQL 連線數過高"
+          description: "連線使用率: {{ $value | humanizePercentage }}"
+          action: "1. 檢查連線池配置\n2. 查找長時間執行的查詢\n3. 考慮增加最大連線數"
+
+      # PostgreSQL 連線數 > 95%
+      - alert: PostgresCriticalConnections
+        expr: |
+          (
+            pg_stat_database_numbackends{datname="suggar_daddy"}
+            /
+            pg_settings_max_connections
+          ) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+          priority: P0
+        annotations:
+          summary: "🚨 PostgreSQL 連線數危險"
+          description: "連線池即將耗盡，新連線可能被拒絕"
+          impact: "系統可能完全不可用"
+          action: "緊急處理，立即增加連線數限制或重啟服務"
+
+      # 資料庫複製延遲過高
+      - alert: PostgresReplicationLag
+        expr: pg_replication_lag_seconds > 60
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+          priority: P1
+        annotations:
+          summary: "⚠️ PostgreSQL 複製延遲過高"
+          description: "複製延遲: {{ $value | humanizeDuration }}"
+          impact: "讀取副本數據可能過期"
+          action: "1. 檢查複製狀態\n2. 檢查網路延遲\n3. 考慮增加複製資源"
+
+      # 資料庫交易 ID 即將耗盡
+      - alert: PostgresXIDWraparound
+        expr: |
+          pg_database_datfrozenxid{datname="suggar_daddy"} > 1500000000
+        for: 5m
+        labels:
+          severity: critical
+          category: database
+          priority: P0
+        annotations:
+          summary: "🚨 PostgreSQL XID 即將耗盡"
+          description: "數據庫需要緊急 vacuum"
+          impact: "數據庫將停止接受寫入"
+          action: "立即執行 vacuum freeze"
+
+      # 慢查詢過多
+      - alert: PostgresSlowQueries
+        expr: |
+          rate(pg_stat_statements_total{query_time="slow"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+          priority: P1
+        annotations:
+          summary: "⚠️ PostgreSQL 慢查詢過多"
+          description: "每秒超過 10 個慢查詢"
+          impact: "數據庫效能下降，影響整體系統"
+          action: "1. 檢查慢查詢日誌\n2. 優化索引\n3. 優化查詢語句"
+
+  # ============================================
+  # Redis 告警（Critical - P0）
+  # ============================================
+  - name: redis
+    interval: 1m
+    rules:
+      # Redis 記憶體不足（核心需求）
+      - alert: RedisMemoryCritical
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          category: cache
+          priority: P0
+        annotations:
+          summary: "🚨 Redis 記憶體嚴重不足"
+          description: "Redis 記憶體使用率超過 90%\n當前使用率: {{ $value | humanizePercentage }}\n已使用: {{ humanize1024 $labels.redis_memory_used_bytes }}B"
+          impact: "即將觸發記憶體淘汰策略，可能導致快取命中率下降，資料庫壓力增加"
+          action: "1. 立即檢查快取策略\n2. 考慮增加 Redis 記憶體\n3. 清理不必要的快取\n4. 評估是否需要分片"
+          runbook_url: "https://wiki.suggar-daddy.com/runbooks/redis-memory"
+
+      # Redis 記憶體使用率 > 80%
+      - alert: RedisHighMemory
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+          priority: P1
+        annotations:
+          summary: "⚠️ Redis 記憶體使用率過高"
+          description: "記憶體使用率: {{ $value | humanizePercentage }}"
+          action: "1. 檢查快取過期策略\n2. 監控記憶體增長趨勢\n3. 準備擴容計劃"
+
+      # Redis 連線數異常
+      - alert: RedisHighConnections
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+          priority: P2
+        annotations:
+          summary: "⚠️ Redis 連線數異常"
+          description: "當前連線數: {{ $value }}"
+          action: "1. 檢查連線池配置\n2. 檢查是否有連線洩漏"
+
+      # Redis 命中率低
+      - alert: RedisLowHitRate
+        expr: |
+          (
+            rate(redis_keyspace_hits_total[5m])
+            /
+            (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+          ) < 0.8
+        for: 15m
+        labels:
+          severity: info
+          category: cache
+          priority: P2
+        annotations:
+          summary: "ℹ️ Redis 快取命中率低"
+          description: "命中率: {{ $value | humanizePercentage }}"
+          action: "可能需要優化快取策略或增加快取容量"
+
+      # Redis 持久化失敗
+      - alert: RedisPersistenceFailed
+        expr: redis_rdb_last_save_status != 1
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+          priority: P1
+        annotations:
+          summary: "⚠️ Redis 持久化失敗"
+          description: "RDB 持久化失敗"
+          impact: "數據可能遺失"
+          action: "檢查磁碟空間和權限"
+
+  # ============================================
+  # Kafka 告警（Critical - P0）
+  # ============================================
+  - name: kafka
+    interval: 1m
+    rules:
+      # Kafka Consumer Lag 過高（核心需求）
+      - alert: KafkaConsumerLagHigh
+        expr: |
+          kafka_consumer_group_lag{group=~"suggar-daddy-.*"} > 10000
+        for: 5m
+        labels:
+          severity: critical
+          category: messaging
+          priority: P0
+        annotations:
+          summary: "🚨 Kafka Consumer Lag 過高"
+          description: "Consumer Group {{ $labels.group }} 的 Topic {{ $labels.topic }} Lag 超過 10,000\n當前 Lag: {{ $value }}"
+          impact: "消息處理嚴重延遲，可能導致數據不一致，實時功能失效"
+          action: "1. 檢查消費者是否正常運行\n2. 檢查消費者處理速度\n3. 考慮增加消費者實例\n4. 檢查是否有消費者卡死"
+          dashboard_url: "http://localhost:3001/d/kafka/kafka-dashboard"
+
+      # Kafka Consumer Lag 警告
+      - alert: KafkaConsumerLagWarning
+        expr: |
+          kafka_consumer_group_lag{group=~"suggar-daddy-.*"} > 1000
+        for: 10m
+        labels:
+          severity: warning
+          category: messaging
+          priority: P1
+        annotations:
+          summary: "⚠️ Kafka Consumer Lag 升高"
+          description: "Consumer Group {{ $labels.group }} 的 Lag 超過 1,000\n當前 Lag: {{ $value }}"
+          action: "1. 監控消費者處理速度\n2. 檢查是否有處理瓶頸"
+
+      # Kafka Broker 不可用
+      - alert: KafkaBrokerDown
+        expr: up{job="kafka"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: messaging
+          priority: P0
+        annotations:
+          summary: "🚨 Kafka Broker 不可用"
+          description: "Kafka Broker 停止響應"
+          impact: "消息佇列服務中斷，異步處理功能失效"
+          action: "1. 檢查 Kafka 容器狀態\n2. 檢查 Zookeeper 狀態\n3. 檢查磁碟空間"
+
+      # Kafka 磁碟使用率過高
+      - alert: KafkaDiskUsageHigh
+        expr: |
+          (
+            kafka_log_size
+            /
+            kafka_log_capacity
+          ) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          category: messaging
+          priority: P1
+        annotations:
+          summary: "⚠️ Kafka 磁碟使用率過高"
+          description: "磁碟使用率: {{ $value | humanizePercentage }}"
+          action: "1. 調整 retention 策略\n2. 增加磁碟空間\n3. 清理舊數據"
+
+      # Kafka 請求處理時間過長
+      - alert: KafkaRequestLatencyHigh
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(kafka_network_request_metrics_time_ms_bucket[5m])) by (le, request)
+          ) > 500
+        for: 5m
+        labels:
+          severity: warning
+          category: messaging
+          priority: P1
+        annotations:
+          summary: "⚠️ Kafka 請求延遲過高"
+          description: "P99 請求延遲超過 500ms"
+          action: "1. 檢查 Kafka 負載\n2. 檢查磁碟 I/O\n3. 考慮增加分區"
+
+  # ============================================
+  # 系統資源告警
+  # ============================================
+  - name: system_resources
+    interval: 1m
+    rules:
+      # CPU 使用率 > 80%
+      - alert: HighCPUUsage
+        expr: |
+          (
+            rate(container_cpu_usage_seconds_total{container!=""}[5m])
+            /
+            (container_spec_cpu_quota{container!=""} / 100000)
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+          priority: P1
+        annotations:
+          summary: "⚠️ 容器 {{ $labels.container }} CPU 使用率過高"
+          description: "CPU 使用率: {{ $value | humanizePercentage }}"
+          action: "1. 檢查是否有 CPU 密集型操作\n2. 考慮擴展實例\n3. 優化程式碼效能"
+
+      # CPU 使用率 > 90%（Critical）
+      - alert: CriticalCPUUsage
+        expr: |
+          (
+            rate(container_cpu_usage_seconds_total{container!=""}[5m])
+            /
+            (container_spec_cpu_quota{container!=""} / 100000)
+          ) > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          category: resources
+          priority: P0
+        annotations:
+          summary: "🚨 容器 {{ $labels.container }} CPU 使用率危險"
+          description: "CPU 使用率超過 90%，服務可能受到影響"
+          action: "立即擴容或優化"
+
+      # 記憶體使用率 > 80%
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            container_memory_working_set_bytes{container!=""}
+            /
+            container_spec_memory_limit_bytes{container!=""} 
+          ) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+          priority: P1
+        annotations:
+          summary: "⚠️ 容器 {{ $labels.container }} 記憶體使用率過高"
+          description: "記憶體使用率: {{ $value | humanizePercentage }}"
+          action: "1. 檢查記憶體洩漏\n2. 檢查快取大小\n3. 考慮增加記憶體限制"
+
+      # 記憶體使用率 > 90%（Critical）
+      - alert: CriticalMemoryUsage
+        expr: |
+          (
+            container_memory_working_set_bytes{container!=""}
+            /
+            container_spec_memory_limit_bytes{container!=""} 
+          ) > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          category: resources
+          priority: P0
+        annotations:
+          summary: "🚨 容器 {{ $labels.container }} 記憶體使用率危險"
+          description: "記憶體使用率超過 90%，可能發生 OOM"
+          action: "緊急處理，增加記憶體或重啟服務"
+
+      # 磁碟使用率 > 85%
+      - alert: HighDiskUsage
+        expr: |
+          (
+            node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}
+          ) / node_filesystem_size_bytes{fstype!="tmpfs"} > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          category: resources
+          priority: P1
+        annotations:
+          summary: "⚠️ 磁碟空間不足"
+          description: "磁碟 {{ $labels.mountpoint }} 使用率: {{ $value | humanizePercentage }}"
+          action: "1. 清理日誌\n2. 清理舊數據\n3. 增加磁碟空間"
+
+      # 磁碟使用率 > 95%（Critical）
+      - alert: CriticalDiskUsage
+        expr: |
+          (
+            node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}
+          ) / node_filesystem_size_bytes{fstype!="tmpfs"} > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          category: resources
+          priority: P0
+        annotations:
+          summary: "🚨 磁碟空間嚴重不足"
+          description: "磁碟使用率: {{ $value | humanizePercentage }}"
+          action: "緊急清理磁碟空間"
+
+  # ============================================
+  # 容器重啟告警
+  # ============================================
+  - name: container_restarts
+    interval: 5m
+    rules:
+      # 容器頻繁重啟
+      - alert: ContainerRestartingFrequently
+        expr: rate(container_restart_count[15m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: stability
+          priority: P1
+        annotations:
+          summary: "⚠️ 容器 {{ $labels.container }} 頻繁重啟"
+          description: "容器在 15 分鐘內重啟超過 1 次"
+          action: "1. 查看容器日誌\n2. 檢查健康檢查配置\n3. 檢查資源限制"
+
+      # 容器持續重啟（CrashLoopBackOff）
+      - alert: ContainerCrashLooping
+        expr: rate(container_restart_count[15m]) > 0.3
+        for: 5m
+        labels:
+          severity: critical
+          category: stability
+          priority: P0
+        annotations:
+          summary: "🚨 容器 {{ $labels.container }} 崩潰循環"
+          description: "容器持續崩潰重啟，服務不穩定"
+          action: "立即調查崩潰原因"
+
+  # ============================================
+  # 業務指標告警
+  # ============================================
+  - name: business_metrics
+    interval: 5m
+    rules:
+      # 支付成功率 < 95%
+      - alert: LowPaymentSuccessRate
+        expr: |
+          (
+            sum(rate(payment_transactions_total{status="success"}[10m]))
+            /
+            sum(rate(payment_transactions_total[10m]))
+          ) < 0.95
+        for: 10m
+        labels:
+          severity: critical
+          category: business
+          priority: P0
+        annotations:
+          summary: "🚨 支付成功率過低"
+          description: "支付成功率: {{ $value | humanizePercentage }}"
+          impact: "用戶無法完成支付，營收損失"
+          action: "1. 檢查 Stripe 服務狀態\n2. 查看支付失敗原因\n3. 聯絡支付團隊"
+
+      # 註冊轉化率異常下降
+      - alert: LowRegistrationRate
+        expr: |
+          (
+            sum(rate(user_registrations_total[1h]))
+            /
+            sum(rate(user_registrations_total[1h] offset 24h))
+          ) < 0.7
+        for: 30m
+        labels:
+          severity: warning
+          category: business
+          priority: P2
+        annotations:
+          summary: "⚠️ 註冊轉化率下降"
+          description: "註冊率較昨日同期下降超過 30%"
+
+  # ============================================
+  # 監控系統自身告警
+  # ============================================
+  - name: monitoring_health
+    interval: 1m
+    rules:
+      # Prometheus 抓取失敗
+      - alert: PrometheusTargetDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: monitoring
+          priority: P0
+        annotations:
+          summary: "🚨 Prometheus 目標不可用"
+          description: "監控系統本身出現問題"
+
+      # 告警管理器不可用
+      - alert: AlertmanagerDown
+        expr: up{job="alertmanager"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: monitoring
+          priority: P0
+        annotations:
+          summary: "🚨 Alertmanager 不可用"
+          description: "告警通知系統故障，告警可能無法發送"
+
+      # Prometheus 配置重載失敗
+      - alert: PrometheusConfigurationReloadFailed
+        expr: prometheus_config_last_reload_successful != 1
+        for: 1m
+        labels:
+          severity: warning
+          category: monitoring
+          priority: P1
+        annotations:
+          summary: "⚠️ Prometheus 配置重載失敗"
+          description: "最新的配置變更未生效"
+
+  # ============================================
+  # Circuit Breaker 告警
+  # ============================================
+  - name: circuit_breaker
+    interval: 1m
+    rules:
+      # Circuit Breaker 開路
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state{state="open"} == 1
+        for: 2m
+        labels:
+          severity: critical
+          category: resilience
+          priority: P0
+        annotations:
+          summary: "🚨 Circuit Breaker {{ $labels.service }} 已開路"
+          description: "對下游服務的請求被阻斷"
+          action: "1. 檢查下游服務狀態\n2. 查看錯誤日誌"
+
+  # ============================================
+  # Rate Limiting 告警
+  # ============================================
+  - name: rate_limiting
+    interval: 1m
+    rules:
+      # Rate Limit 觸發頻率過高
+      - alert: HighRateLimitHitRate
+        expr: rate(rate_limit_hits_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+          priority: P1
+        annotations:
+          summary: "⚠️ Rate Limit 觸發頻率過高"
+          description: "可能是 DDoS 攻擊或惡意行為"
+          action: "檢查請求來源 IP 和模式"
+
+      # 認證端點 Rate Limit 觸發
+      - alert: AuthRateLimitHit
+        expr: rate(rate_limit_hits_total{endpoint=~".*auth.*|.*login.*"}[5m]) > 1
+        for: 3m
+        labels:
+          severity: critical
+          category: security
+          priority: P0
+        annotations:
+          summary: "🚨 認證端點 Rate Limit 觸發"
+          description: "可能是暴力破解攻擊"
+          action: "檢查來源 IP，考慮封鎖"
+
+  # ============================================
+  # 健康檢查告警
+  # ============================================
+  - name: health_checks
+    interval: 30s
+    rules:
+      # 服務健康檢查失敗
+      - alert: ServiceHealthCheckFailed
+        expr: health_check_status{status="unhealthy"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+          priority: P0
+        annotations:
+          summary: "🚨 服務 {{ $labels.service }} 健康檢查失敗"
+          description: "健康檢查端點返回 unhealthy 狀態"
+          action: "1. 檢查服務日誌\n2. 檢查依賴服務"
+
+      # 資料庫健康檢查失敗
+      - alert: DatabaseHealthCheckFailed
+        expr: health_check_status{component="database",status="unhealthy"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+          priority: P0
+        annotations:
+          summary: "🚨 資料庫健康檢查失敗 - {{ $labels.service }}"
+          description: "無法連線到資料庫或資料庫響應異常"
+
+      # Redis 健康檢查失敗
+      - alert: RedisHealthCheckFailed
+        expr: health_check_status{component="redis",status="unhealthy"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          category: cache
+          priority: P0
+        annotations:
+          summary: "🚨 Redis 健康檢查失敗 - {{ $labels.service }}"
+          description: "無法連線到 Redis 或 Redis 響應異常"
+
+      # Kafka 健康檢查失敗
+      - alert: KafkaHealthCheckFailed
+        expr: health_check_status{component="kafka",status="unhealthy"} == 1
+        for: 2m
+        labels:
+          severity: warning
+          category: messaging
+          priority: P1
+        annotations:
+          summary: "⚠️ Kafka 健康檢查失敗 - {{ $labels.service }}"
+          description: "無法連線到 Kafka 或 Kafka 響應異常"

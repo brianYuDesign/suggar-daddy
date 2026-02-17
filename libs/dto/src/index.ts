@@ -12,4 +12,5 @@ export * from './pagination.dto';
 export * from './social.dto';
 export * from './story.dto';
 export * from './feed.dto';
+export * from './skill.dto';
 export * from './lib/stripe-connect.dto';

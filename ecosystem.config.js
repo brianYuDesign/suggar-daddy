@@ -128,6 +128,22 @@ module.exports = {
       },
     },
     {
+      name: 'skill-service',
+      script: 'npx',
+      args: 'nx serve skill-service',
+      cwd: PROJECT_ROOT,
+      watch: false,
+      max_memory_restart: '500M',
+      error_file: path.join(LOG_DIR, 'skill-service-error.log'),
+      out_file: path.join(LOG_DIR, 'skill-service-out.log'),
+      log_date_format: 'YYYY-MM-DD HH:mm:ss',
+      env_file: path.join(PROJECT_ROOT, '.env'),
+      env: {
+        NODE_ENV: 'development',
+        PORT: 3010,
+      },
+    },
+    {
       name: 'db-writer-service',
       script: 'npx',
       args: 'nx serve db-writer-service',

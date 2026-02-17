@@ -181,6 +181,11 @@ register_cleanup() {
 
 # 執行所有清理函數
 run_cleanup() {
+  # 如果沒有註冊任何清理函數，直接返回
+  if [ ${#cleanup_handlers[@]:-0} -eq 0 ]; then
+    return 0
+  fi
+  
   log_info "Running cleanup handlers..."
   for handler in "${cleanup_handlers[@]}"; do
     eval "$handler" || log_warn "Cleanup handler failed: $handler"

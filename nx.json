@@ -37,7 +37,8 @@
       "plugin": "@nx/jest/plugin",
       "options": {
         "targetName": "test"
-      }
+      },
+      "exclude": ["apps/skill-service-e2e/**/*"]
     },
     {
       "plugin": "@nx/next/plugin",
@@ -45,6 +46,17 @@
         "buildTargetName": "build",
         "devTargetName": "serve",
         "startTargetName": "start"
+      }
+    },
+    {
+      "plugin": "@nx/webpack/plugin",
+      "options": {
+        "buildTargetName": "webpack:build",
+        "serveTargetName": "webpack:serve",
+        "previewTargetName": "preview",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps",
+        "serveStaticTargetName": "serve-static"
       }
     }
   ],

@@ -2,13 +2,16 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SwipeEntity } from './entities/swipe.entity';
 import { MatchEntity } from './entities/match.entity';
+import { SkillEntity } from './entities/skill.entity';
+import { UserSkillEntity } from './entities/user-skill.entity';
+import { SkillRequestEntity } from './entities/skill-request.entity';
 
 @Module({})
 export class DatabaseModule {
   static forRoot(): DynamicModule {
     // Determine if High Availability mode is enabled
     const haEnabled = process.env.POSTGRES_HA_ENABLED === 'true';
-    const masterHost = process.env.POSTGRES_MASTER_HOST || process.env.DATABASE_HOST || 'postgres-master';
+    const masterHost = process.env.POSTGRES_MASTER_HOST || process.env.DATABASE_HOST || process.env.POSTGRES_HOST || 'postgres-master';
     const replicaHost = process.env.POSTGRES_REPLICA_HOST || 'postgres-replica';
     const port = parseInt(process.env.DATABASE_PORT || '5432', 10);
     const username = process.env.DATABASE_USER || process.env.POSTGRES_USER || 'postgres';
@@ -21,7 +24,7 @@ export class DatabaseModule {
       password,
       database,
       port,
-      entities: [SwipeEntity, MatchEntity],
+      entities: [SwipeEntity, MatchEntity, SkillEntity, UserSkillEntity, SkillRequestEntity],
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
       // Connection pool settings

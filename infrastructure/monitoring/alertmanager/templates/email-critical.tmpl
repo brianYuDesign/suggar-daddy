@@ -1,0 +1,159 @@
+{{ define "email.critical.subject" }}
+[CRITICAL] {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}
+{{ end }}
+
+{{ define "email.critical.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #dc3545;
+            color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .header.resolved {
+            background-color: #28a745;
+        }
+        .alert {
+            background-color: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 3px;
+        }
+        .label {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 5px;
+            background-color: #dc3545;
+            color: white;
+        }
+        .impact {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 3px;
+        }
+        .action {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 3px;
+        }
+        .timestamp {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 12px;
+        }
+        code {
+            background-color: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="header {{ if eq .Status "resolved" }}resolved{{ end }}">
+        <h1>
+            {{ if eq .Status "firing" }}
+                🚨 CRITICAL ALERT
+            {{ else }}
+                ✅ ALERT RESOLVED
+            {{ end }}
+        </h1>
+        <p>
+            Status: {{ .Status | toUpper }}<br>
+            Firing: {{ .Alerts.Firing | len }}<br>
+            Resolved: {{ .Alerts.Resolved | len }}
+        </p>
+    </div>
+
+    {{ range .Alerts.Firing }}
+    <div class="alert">
+        <h2>{{ .Labels.alertname }}</h2>
+        
+        <p>
+            <span class="label">{{ .Labels.severity | toUpper }}</span>
+            <span class="label" style="background-color: #6c757d;">{{ .Labels.priority }}</span>
+        </p>
+        
+        <p><strong>Service:</strong> <code>{{ .Labels.service }}</code></p>
+        <p><strong>Category:</strong> {{ .Labels.category }}</p>
+        {{ if .Labels.instance }}
+        <p><strong>Instance:</strong> <code>{{ .Labels.instance }}</code></p>
+        {{ end }}
+        
+        <p><strong>Description:</strong><br>{{ .Annotations.description }}</p>
+        
+        {{ if .Annotations.impact }}
+        <div class="impact">
+            <strong>💥 Impact:</strong><br>
+            {{ .Annotations.impact }}
+        </div>
+        {{ end }}
+        
+        {{ if .Annotations.action }}
+        <div class="action">
+            <strong>⚠️ Action Required:</strong>
+            <pre style="background: transparent; border: none;">{{ .Annotations.action }}</pre>
+        </div>
+        {{ end }}
+        
+        <p class="timestamp">
+            <strong>Started:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05" }}<br>
+            <strong>Duration:</strong> {{ now.Sub .StartsAt }}
+        </p>
+    </div>
+    {{ end }}
+
+    {{ range .Alerts.Resolved }}
+    <div class="alert" style="border-left-color: #28a745;">
+        <h2>{{ .Labels.alertname }}</h2>
+        <p><strong>Service:</strong> <code>{{ .Labels.service }}</code></p>
+        <p><strong>Description:</strong><br>{{ .Annotations.description }}</p>
+        <p class="timestamp">
+            <strong>Started:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05" }}<br>
+            <strong>Ended:</strong> {{ .EndsAt.Format "2006-01-02 15:04:05" }}<br>
+            <strong>Duration:</strong> {{ .EndsAt.Sub .StartsAt }}
+        </p>
+    </div>
+    {{ end }}
+
+    <div class="footer">
+        <p>
+            <strong>Alertmanager:</strong> {{ .ExternalURL }}<br>
+            <strong>Cluster:</strong> suggar-daddy-production<br>
+            <strong>Time:</strong> {{ now.Format "2006-01-02 15:04:05" }}
+        </p>
+        <p>
+            This is an automated critical alert from Suggar Daddy Monitoring System.
+        </p>
+    </div>
+</body>
+</html>
+{{ end }}

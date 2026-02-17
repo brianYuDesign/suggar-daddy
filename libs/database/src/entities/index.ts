@@ -17,3 +17,6 @@ export * from './bookmark.entity';
 export * from './dm-purchase.entity';
 export * from './story.entity';
 export * from './story-view.entity';
+export * from './skill.entity';
+export * from './user-skill.entity';
+export * from './skill-request.entity';

@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { 
+  ConflictException, 
+  UnauthorizedException, 
+  BadRequestException,
+  ForbiddenException 
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { RedisService } from '@suggar-daddy/redis';
@@ -12,31 +17,39 @@ jest.mock('bcrypt');
 
 describe('AuthService', () => {
   let service: AuthService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'setex' | 'del'>>;
-  let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
-  let jwt: jest.Mocked<Pick<JwtService, 'sign'>>;
+  let redisService: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'setex' | 'del'>>;
+  let kafkaProducer: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
+  let jwtService: jest.Mocked<Pick<JwtService, 'sign'>>;
+  let tokenRevocation: jest.Mocked<TokenRevocationService>;
+  let emailService: jest.Mocked<EmailService>;
 
   beforeEach(async () => {
-    redis = {
+    redisService = {
       get: jest.fn(),
       set: jest.fn(),
       setex: jest.fn(),
       del: jest.fn(),
     };
-    kafka = { sendEvent: jest.fn() };
-    jwt = { sign: jest.fn().mockReturnValue('access-token') };
+    
+    kafkaProducer = { 
+      sendEvent: jest.fn().mockResolvedValue(undefined) 
+    };
+    
+    jwtService = { 
+      sign: jest.fn().mockReturnValue('mock-access-token') 
+    };
 
-    const mockTokenRevocation = {
+    tokenRevocation = {
       revokeToken: jest.fn().mockResolvedValue(undefined),
       isRevoked: jest.fn().mockResolvedValue(false),
       revokeAllUserTokens: jest.fn().mockResolvedValue(undefined),
       isUserTokenRevoked: jest.fn().mockResolvedValue(false),
-    };
+    } as any;
 
-    const mockEmailService = {
+    emailService = {
       sendEmailVerification: jest.fn().mockResolvedValue(undefined),
       sendPasswordReset: jest.fn().mockResolvedValue(undefined),
-    };
+    } as any;
 
     const mockAppConfig = {
       appBaseUrl: 'http://localhost:4200',
@@ -45,21 +58,24 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: JwtService, useValue: jwt },
-        { provide: RedisService, useValue: redis },
-        { provide: KafkaProducerService, useValue: kafka },
-        { provide: TokenRevocationService, useValue: mockTokenRevocation },
-        { provide: EmailService, useValue: mockEmailService },
+        { provide: JwtService, useValue: jwtService },
+        { provide: RedisService, useValue: redisService },
+        { provide: KafkaProducerService, useValue: kafkaProducer },
+        { provide: TokenRevocationService, useValue: tokenRevocation },
+        { provide: EmailService, useValue: emailService },
         { provide: AppConfigService, useValue: mockAppConfig },
       ],
     }).compile();
 
     service = module.get(AuthService);
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
   describe('register', () => {
-    const dto = {
+    const validDto = {
       email: 'Test@Example.COM',
       password: 'Secret123',
       userType: UserType.SUGAR_BABY,
@@ -67,17 +83,17 @@ describe('AuthService', () => {
       bio: 'Hello',
     };
 
-    it('應註冊成功並回傳 tokens', async () => {
-      (redis.get as jest.Mock).mockResolvedValue(null);
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+    it('should register user successfully when valid data provided', async () => {
+      redisService.get.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
 
-      const result = await service.register(dto);
+      const result = await service.register(validDto);
 
-      expect(result.accessToken).toBe('access-token');
+      expect(result.accessToken).toBe('mock-access-token');
       expect(result.tokenType).toBe('Bearer');
       expect(result.expiresIn).toBe(15 * 60);
-      expect(redis.set).toHaveBeenCalled();
-      expect(kafka.sendEvent).toHaveBeenCalledWith(
+      expect(redisService.set).toHaveBeenCalled();
+      expect(kafkaProducer.sendEvent).toHaveBeenCalledWith(
         'user.created',
         expect.objectContaining({
           email: 'test@example.com',
@@ -87,107 +103,336 @@ describe('AuthService', () => {
       );
     });
 
-    it('應在 email 已註冊時拋出 ConflictException', async () => {
-      (redis.get as jest.Mock).mockResolvedValue('user-123');
+    it('should throw ConflictException when email already exists', async () => {
+      redisService.get.mockResolvedValue('existing-user-id');
 
-      await expect(service.register(dto)).rejects.toThrow(ConflictException);
-      await expect(service.register(dto)).rejects.toThrow('Email already registered');
-      expect(kafka.sendEvent).not.toHaveBeenCalled();
+      await expect(service.register(validDto)).rejects.toThrow(ConflictException);
+      await expect(service.register(validDto)).rejects.toThrow('Email already registered');
+      expect(kafkaProducer.sendEvent).not.toHaveBeenCalled();
+    });
+
+    it('should normalize email to lowercase when registering', async () => {
+      redisService.get.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
+
+      await service.register(validDto);
+
+      expect(kafkaProducer.sendEvent).toHaveBeenCalledWith(
+        'user.created',
+        expect.objectContaining({
+          email: 'test@example.com', // normalized
+        })
+      );
+    });
+
+    it('should hash password correctly when registering', async () => {
+      redisService.get.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
+
+      await service.register(validDto);
+
+      expect(bcrypt.hash).toHaveBeenCalledWith('Secret123', 10);
+    });
+
+    it('should throw BadRequestException when password is too short', async () => {
+      const shortPasswordDto = { ...validDto, password: 'Short1' };
+
+      await expect(service.register(shortPasswordDto)).rejects.toThrow(BadRequestException);
+      await expect(service.register(shortPasswordDto)).rejects.toThrow('Password must be at least 8 characters');
+    });
+
+    it('should throw BadRequestException when password is too long', async () => {
+      const longPasswordDto = { ...validDto, password: 'A'.repeat(129) + '1a' };
+
+      await expect(service.register(longPasswordDto)).rejects.toThrow(BadRequestException);
+      await expect(service.register(longPasswordDto)).rejects.toThrow('Password must not exceed 128 characters');
+    });
+
+    it('should throw BadRequestException when password lacks lowercase letter', async () => {
+      const noLowercaseDto = { ...validDto, password: 'PASSWORD123' };
+
+      await expect(service.register(noLowercaseDto)).rejects.toThrow(BadRequestException);
+      await expect(service.register(noLowercaseDto)).rejects.toThrow('must contain at least one lowercase letter');
+    });
+
+    it('should throw BadRequestException when password lacks uppercase letter', async () => {
+      const noUppercaseDto = { ...validDto, password: 'password123' };
+
+      await expect(service.register(noUppercaseDto)).rejects.toThrow(BadRequestException);
+      await expect(service.register(noUppercaseDto)).rejects.toThrow('must contain at least one uppercase letter');
+    });
+
+    it('should throw BadRequestException when password lacks number', async () => {
+      const noNumberDto = { ...validDto, password: 'PasswordABC' };
+
+      await expect(service.register(noNumberDto)).rejects.toThrow(BadRequestException);
+      await expect(service.register(noNumberDto)).rejects.toThrow('must contain at least one number');
+    });
+
+    it('should throw BadRequestException when email format is invalid', async () => {
+      const invalidEmailDto = { ...validDto, email: 'not-an-email' };
+
+      await expect(service.register(invalidEmailDto)).rejects.toThrow(BadRequestException);
+      await expect(service.register(invalidEmailDto)).rejects.toThrow('Invalid email format');
+    });
+
+    it('should send email verification when registration succeeds', async () => {
+      redisService.get.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
+
+      await service.register(validDto);
+
+      expect(emailService.sendEmailVerification).toHaveBeenCalled();
+    });
+
+    it('should emit user.created event to Kafka when registration succeeds', async () => {
+      redisService.get.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
+
+      await service.register(validDto);
+
+      expect(kafkaProducer.sendEvent).toHaveBeenCalledWith(
+        'user.created',
+        expect.objectContaining({
+          email: 'test@example.com',
+          userType: UserType.SUGAR_BABY,
+        })
+      );
     });
   });
 
   describe('login', () => {
     const storedUser = {
       userId: 'user-1',
-      email: 'a@b.com',
-      passwordHash: 'hashed',
+      email: 'test@example.com',
+      passwordHash: 'hashed-password',
       userType: 'sugar_daddy',
-      displayName: 'User',
-      accountStatus: 'active',
-      emailVerified: false,
+      displayName: 'Test User',
+      accountStatus: 'active' as const,
+      emailVerified: true,
       createdAt: new Date().toISOString(),
     };
 
-    it('應在密碼正確時回傳 tokens', async () => {
-      (redis.get as jest.Mock)
-        .mockResolvedValueOnce(null)                       // checkLoginRateLimit
-        .mockResolvedValueOnce('user-1')                   // emailKey lookup
+    const loginDto = {
+      email: 'test@example.com',
+      password: 'ValidPassword123',
+    };
+
+    it('should login successfully when credentials are valid', async () => {
+      redisService.get
+        .mockResolvedValueOnce(null)                         // checkLoginRateLimit
+        .mockResolvedValueOnce('user-1')                     // emailKey lookup
         .mockResolvedValueOnce(JSON.stringify(storedUser)); // user data
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-      const result = await service.login({ email: 'a@b.com', password: 'pwd' });
+      const result = await service.login(loginDto);
 
-      expect(result.accessToken).toBe('access-token');
-      expect(redis.get).toHaveBeenCalledWith('user:email:a@b.com');
-      expect(redis.get).toHaveBeenCalledWith('user:user-1');
+      expect(result.accessToken).toBe('mock-access-token');
+      expect(result.tokenType).toBe('Bearer');
+      expect(result.expiresIn).toBe(15 * 60);
+      expect(redisService.get).toHaveBeenCalledWith('user:email:test@example.com');
+      expect(bcrypt.compare).toHaveBeenCalledWith('ValidPassword123', 'hashed-password');
     });
 
-    it('應在 email 不存在時拋出 UnauthorizedException', async () => {
-      (redis.get as jest.Mock)
+    it('should throw UnauthorizedException when user does not exist', async () => {
+      redisService.get
         .mockResolvedValueOnce(null)  // checkLoginRateLimit
         .mockResolvedValueOnce(null); // emailKey lookup - not found
 
-      await expect(
-        service.login({ email: 'nobody@x.com', password: 'pwd' })
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
 
-    it('應在密碼錯誤時拋出 UnauthorizedException', async () => {
-      (redis.get as jest.Mock)
-        .mockResolvedValueOnce(null)                       // checkLoginRateLimit
-        .mockResolvedValueOnce('user-1')                   // emailKey lookup
+    it('should throw UnauthorizedException when password is incorrect', async () => {
+      redisService.get
+        .mockResolvedValueOnce(null)                         // checkLoginRateLimit
+        .mockResolvedValueOnce('user-1')                     // emailKey lookup
         .mockResolvedValueOnce(JSON.stringify(storedUser)); // user data
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(
-        service.login({ email: 'a@b.com', password: 'wrong' })
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should generate both access and refresh tokens when login succeeds', async () => {
+      redisService.get
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce('user-1')
+        .mockResolvedValueOnce(JSON.stringify(storedUser));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      const result = await service.login(loginDto);
+
+      expect(result.accessToken).toBeDefined();
+      expect(result.refreshToken).toBeDefined();
+      expect(jwtService.sign).toHaveBeenCalled();
+    });
+
+    it('should store refresh token in Redis when login succeeds', async () => {
+      redisService.get
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce('user-1')
+        .mockResolvedValueOnce(JSON.stringify(storedUser));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await service.login(loginDto);
+
+      expect(redisService.setex).toHaveBeenCalledWith(
+        expect.stringContaining('auth:refresh:'),
+        7 * 24 * 60 * 60, // 7 days
+        expect.any(String)
+      );
+    });
+
+    it('should normalize email to lowercase when logging in', async () => {
+      const uppercaseEmailDto = { ...loginDto, email: 'TEST@EXAMPLE.COM' };
+      redisService.get
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce('user-1')
+        .mockResolvedValueOnce(JSON.stringify(storedUser));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await service.login(uppercaseEmailDto);
+
+      expect(redisService.get).toHaveBeenCalledWith('user:email:test@example.com');
+    });
+
+    it('should throw ForbiddenException when account is suspended', async () => {
+      const suspendedUser = { ...storedUser, accountStatus: 'suspended' as const };
+      redisService.get
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce('user-1')
+        .mockResolvedValueOnce(JSON.stringify(suspendedUser));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await expect(service.login(loginDto)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw ForbiddenException when account is banned', async () => {
+      const bannedUser = { ...storedUser, accountStatus: 'banned' as const };
+      redisService.get
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce('user-1')
+        .mockResolvedValueOnce(JSON.stringify(bannedUser));
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await expect(service.login(loginDto)).rejects.toThrow(ForbiddenException);
     });
   });
 
   describe('refresh', () => {
-    it('應在有效 refresh token 時回傳新 tokens', async () => {
-      (redis.get as jest.Mock)
-        .mockResolvedValueOnce(JSON.stringify({ userId: 'user-1', email: 'a@b.com' })) // refresh payload
-        .mockResolvedValueOnce(JSON.stringify({ accountStatus: 'active' }));            // user account check
-      (redis.del as jest.Mock).mockResolvedValue(undefined);
+    const storedRefreshPayload = {
+      userId: 'user-1',
+      email: 'test@example.com',
+    };
 
-      const result = await service.refresh('rt-valid');
+    const storedUser = {
+      accountStatus: 'active' as const,
+      emailVerified: true,
+    };
 
-      expect(result.accessToken).toBe('access-token');
-      expect(redis.del).toHaveBeenCalled();
+    it('should refresh tokens successfully when refresh token is valid', async () => {
+      redisService.get
+        .mockResolvedValueOnce(JSON.stringify(storedRefreshPayload)) // refresh payload
+        .mockResolvedValueOnce(JSON.stringify(storedUser));          // user account check
+      redisService.del.mockResolvedValue(undefined);
+
+      const result = await service.refresh('valid-refresh-token');
+
+      expect(result.accessToken).toBe('mock-access-token');
+      expect(result.refreshToken).toBeDefined();
+      expect(redisService.del).toHaveBeenCalled();
     });
 
-    it('應在無效或過期 refresh token 時拋出 UnauthorizedException', async () => {
-      (redis.get as jest.Mock).mockResolvedValue(null);
+    it('should throw UnauthorizedException when refresh token is invalid', async () => {
+      redisService.get.mockResolvedValue(null);
 
-      await expect(service.refresh('rt-invalid')).rejects.toThrow(
-        UnauthorizedException
+      await expect(service.refresh('invalid-token')).rejects.toThrow(UnauthorizedException);
+      await expect(service.refresh('invalid-token')).rejects.toThrow('Invalid or expired refresh token');
+    });
+
+    it('should throw UnauthorizedException when refresh token is expired', async () => {
+      redisService.get.mockResolvedValue(null); // Token not found = expired
+
+      await expect(service.refresh('expired-token')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should delete old refresh token when generating new tokens', async () => {
+      redisService.get
+        .mockResolvedValueOnce(JSON.stringify(storedRefreshPayload))
+        .mockResolvedValueOnce(JSON.stringify(storedUser));
+      redisService.del.mockResolvedValue(undefined);
+
+      await service.refresh('old-refresh-token');
+
+      expect(redisService.del).toHaveBeenCalledWith('auth:refresh:old-refresh-token');
+    });
+
+    it('should store new refresh token in Redis when refresh succeeds', async () => {
+      redisService.get
+        .mockResolvedValueOnce(JSON.stringify(storedRefreshPayload))
+        .mockResolvedValueOnce(JSON.stringify(storedUser));
+
+      await service.refresh('valid-token');
+
+      expect(redisService.setex).toHaveBeenCalledWith(
+        expect.stringContaining('auth:refresh:'),
+        7 * 24 * 60 * 60,
+        expect.any(String)
       );
-      await expect(service.refresh('rt-invalid')).rejects.toThrow(
-        'Invalid or expired refresh token'
-      );
+    });
+
+    it('should throw ForbiddenException when user account is suspended', async () => {
+      const suspendedUser = { ...storedUser, accountStatus: 'suspended' as const };
+      redisService.get
+        .mockResolvedValueOnce(JSON.stringify(storedRefreshPayload))
+        .mockResolvedValueOnce(JSON.stringify(suspendedUser));
+
+      await expect(service.refresh('valid-token')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw ForbiddenException when user account is banned', async () => {
+      const bannedUser = { ...storedUser, accountStatus: 'banned' as const };
+      redisService.get
+        .mockResolvedValueOnce(JSON.stringify(storedRefreshPayload))
+        .mockResolvedValueOnce(JSON.stringify(bannedUser));
+
+      await expect(service.refresh('valid-token')).rejects.toThrow(ForbiddenException);
     });
   });
 
   describe('logout', () => {
-    it('應刪除 refresh 並回傳 success: true 當 key 存在', async () => {
-      (redis.get as jest.Mock).mockResolvedValue('{}');
-      (redis.del as jest.Mock).mockResolvedValue(undefined);
+    it('should logout successfully when refresh token exists', async () => {
+      redisService.get.mockResolvedValue(JSON.stringify({ userId: 'user-1' }));
+      redisService.del.mockResolvedValue(undefined);
 
-      const result = await service.logout('rt-xxx');
+      const result = await service.logout('valid-refresh-token');
 
       expect(result.success).toBe(true);
-      expect(redis.del).toHaveBeenCalled();
+      expect(redisService.del).toHaveBeenCalledWith('auth:refresh:valid-refresh-token');
     });
 
-    it('應回傳 success: false 當 key 不存在', async () => {
-      (redis.get as jest.Mock).mockResolvedValue(null);
-      (redis.del as jest.Mock).mockResolvedValue(undefined);
+    it('should return success false when refresh token does not exist', async () => {
+      redisService.get.mockResolvedValue(null);
+      redisService.del.mockResolvedValue(undefined);
 
-      const result = await service.logout('rt-missing');
+      const result = await service.logout('non-existent-token');
 
       expect(result.success).toBe(false);
+    });
+
+    it('should delete refresh token from Redis when logging out', async () => {
+      redisService.get.mockResolvedValue(JSON.stringify({ userId: 'user-1' }));
+      redisService.del.mockResolvedValue(undefined);
+
+      await service.logout('token-to-delete');
+
+      expect(redisService.del).toHaveBeenCalledWith('auth:refresh:token-to-delete');
+    });
+
+    it('should handle logout gracefully when Redis delete fails', async () => {
+      redisService.get.mockResolvedValue(JSON.stringify({ userId: 'user-1' }));
+      redisService.del.mockRejectedValue(new Error('Redis connection failed'));
+
+      await expect(service.logout('token')).rejects.toThrow('Redis connection failed');
     });
   });
 });
