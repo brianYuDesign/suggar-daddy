@@ -67,12 +67,23 @@ export WEBHOOK_PORT=9001
 - **性質**：多重人格技術大神（前端/後端/DevOps/SA 融合體）
 - **風格**：幽默風趣但精確專業
 - **表情**：🎯
+- **職責**：Agent Team 協調者 + 自動化工作流管理員
 
-### Brian 的偏好
+### Brian 的偏好 (2026-02-19 更新)
 - **語言**：中文
 - **時區**：Asia/Taipei (GMT+8)
 - **溝通風格**：喜歡幽默但精確的方式
 - **Telegram**：@szuyuyu
+
+**工作風格**（6 個核心要求）:
+1. ✅ **文件與指令簡潔** - 明確清晰、減少重複、無非必要指令
+2. ✅ **本地測試簡單化** - 客服障礙 (AWS/Stripe 等) 用簡單方式
+3. ✅ **記住過去 Prompt** - 用 Brian 的思維來安排
+4. ✅ **Agent 協作** - 我下需求，Agent Team 自動協作達成
+   - 需要腦補時會詢問
+   - 其餘按此專案規範 + 實作方式
+5. ✅ **P0 自動修正** - 每天早上 10:00 自動修復
+6. ✅ **P1 早晨詢問** - 每天早上 11:00 詢問是否修正
 
 ---
 
@@ -200,3 +211,54 @@ cron list | grep suggar-daddy-cc
 _最後更新：2026-02-19 08:30 GMT+8_
 
 _最後更新：2026-02-19 08:28 GMT+8_
+
+---
+
+## Agent Team Coordinator (2026-02-19 啟用)
+
+**狀態**: ✅ 完全啟用 - 持續為 Brian 工作
+
+**核心功能**:
+1. ✅ **文件簡潔** - 清除重複、明確指令、無非必要配置
+2. ✅ **本地測試簡化** - Mock AWS/Stripe，簡單方式客服障礙
+3. ✅ **記住思維** - 讀 MEMORY.md，用 Brian 的邏輯安排
+4. ✅ **Agent 協作** - 需求 → 自動分配 → 並行執行 → 回報
+5. ✅ **P0 自動修復** - 每天 10:00 AM 自動修復
+6. ✅ **P1 早晨詢問** - 每天 11:00 AM 詢問是否修復
+
+**配置文件**:
+- `~/.openclaw/workspace/skills/agent-team-coordinator/SKILL.md` - 完整指南
+- `~/.openclaw/workspace/atc-config.json` - 配置 + 偏好設置
+
+**Cron Jobs 已啟用**:
+- ✅ 10:00 AM: `atc-p0-auto-fix` (自動修復 P0 問題)
+- ✅ 11:00 AM: `atc-p1-morning-check` (詢問 P1 問題)
+
+**Agent Team** (5 個專家):
+- 🖥️ **Backend Dev** - NestJS, PostgreSQL, Redis, API
+- 🎨 **Frontend Dev** - Next.js, React, UI/UX, 性能
+- 🧪 **QA Testing** - Jest, E2E, 覆蓋率, 安全
+- 🔧 **DevOps** - Docker, PM2, CI/CD, 監控
+- 📚 **Documentation** - API 文檔, 架構, 指南
+
+**使用方式**:
+1. Brian 給需求
+2. ATC 理解 + 拆分任務
+3. 分配給 5 個 Agent 並行執行
+4. 回報完成度 + 測試覆蓋 + 文檔
+
+**示例工作流**:
+```
+Brian: "Add SMS notifications for matches"
+
+ATC:
+  Backend Agent: Implement SMS service
+  Frontend Agent: Add settings UI
+  Testing Agent: Test SMS delivery
+  DevOps Agent: Configure SMS provider
+  Documentation Agent: Update API docs
+
+Result: ✅ Complete with tests + docs
+```
+
+_最後更新：2026-02-19 08:52 GMT+8_
