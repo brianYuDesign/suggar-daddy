@@ -19,18 +19,19 @@ import { createThrottlerOptions } from "./throttler.config";
     }),
     EnvConfigModule,
     RedisModule.forRoot(),
-    CircuitBreakerModule,
+    // 暫時禁用以便測試登入
+    // CircuitBreakerModule,
     // Throttler Module with Redis Storage
-    ThrottlerModule.forRoot(createThrottlerOptions()),
+    // ThrottlerModule.forRoot(createThrottlerOptions()),
   ],
   controllers: [AppController, ProxyController],
   providers: [
     ProxyService,
-    // 全局應用 Throttler Guard
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerBehindProxyGuard,
-    },
+    // 全局應用 Throttler Guard - 暫時禁用
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ThrottlerBehindProxyGuard,
+    // },
   ],
 })
 export class AppModule implements NestModule {

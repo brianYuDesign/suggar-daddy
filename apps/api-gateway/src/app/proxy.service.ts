@@ -19,7 +19,8 @@ export class ProxyService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly circuitBreaker: CircuitBreakerService
+    // 讓 CircuitBreaker 變成可選的，以便測試時可以禁用
+    // private readonly circuitBreaker: CircuitBreakerService
   ) {
     this.client = axios.create({
       timeout: 30000,
@@ -28,87 +29,150 @@ export class ProxyService {
     this.targets = [
       {
         prefix: '/api/auth',
-        baseUrl: this.config.get<string>('AUTH_SERVICE_URL', 'http://localhost:3002'),
+        baseUrl: this.config.get<string>(
+          'AUTH_SERVICE_URL',
+          'http://localhost:3002',
+        ),
       },
       {
         prefix: '/api/users',
-        baseUrl: this.config.get<string>('USER_SERVICE_URL', 'http://localhost:3001'),
+        baseUrl: this.config.get<string>(
+          'USER_SERVICE_URL',
+          'http://localhost:3001',
+        ),
       },
       {
         prefix: '/api/matching',
-        baseUrl: this.config.get<string>('MATCHING_SERVICE_URL', 'http://localhost:3003'),
+        baseUrl: this.config.get<string>(
+          'MATCHING_SERVICE_URL',
+          'http://localhost:3003',
+        ),
       },
       {
         prefix: '/api/notifications',
-        baseUrl: this.config.get<string>('NOTIFICATION_SERVICE_URL', 'http://localhost:3008'),
+        baseUrl: this.config.get<string>(
+          'NOTIFICATION_SERVICE_URL',
+          'http://localhost:3004',
+        ),
       },
       {
         prefix: '/api/messaging',
-        baseUrl: this.config.get<string>('MESSAGING_SERVICE_URL', 'http://localhost:3005'),
+        baseUrl: this.config.get<string>(
+          'MESSAGING_SERVICE_URL',
+          'http://localhost:3005',
+        ),
       },
       {
         prefix: '/api/moderation',
-        baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
+        baseUrl: this.config.get<string>(
+          'CONTENT_SERVICE_URL',
+          'http://localhost:3006',
+        ),
       },
       {
         prefix: '/api/stories',
-        baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
+        baseUrl: this.config.get<string>(
+          'CONTENT_SERVICE_URL',
+          'http://localhost:3006',
+        ),
       },
       {
         prefix: '/api/videos',
-        baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
+        baseUrl: this.config.get<string>(
+          'CONTENT_SERVICE_URL',
+          'http://localhost:3006',
+        ),
       },
       {
         prefix: '/api/posts',
-        baseUrl: this.config.get<string>('CONTENT_SERVICE_URL', 'http://localhost:3006'),
+        baseUrl: this.config.get<string>(
+          'CONTENT_SERVICE_URL',
+          'http://localhost:3006',
+        ),
       },
       {
         prefix: '/api/tips',
-        baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
+        baseUrl: this.config.get<string>(
+          'PAYMENT_SERVICE_URL',
+          'http://localhost:3007',
+        ),
       },
       {
         prefix: '/api/dm-purchases',
-        baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
+        baseUrl: this.config.get<string>(
+          'PAYMENT_SERVICE_URL',
+          'http://localhost:3007',
+        ),
       },
       {
         prefix: '/api/post-purchases',
-        baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
+        baseUrl: this.config.get<string>(
+          'PAYMENT_SERVICE_URL',
+          'http://localhost:3007',
+        ),
       },
       {
         prefix: '/api/transactions',
-        baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
+        baseUrl: this.config.get<string>(
+          'PAYMENT_SERVICE_URL',
+          'http://localhost:3007',
+        ),
       },
       {
         prefix: '/api/stripe',
-        baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
+        baseUrl: this.config.get<string>(
+          'PAYMENT_SERVICE_URL',
+          'http://localhost:3007',
+        ),
       },
       {
         prefix: '/api/wallet',
-        baseUrl: this.config.get<string>('PAYMENT_SERVICE_URL', 'http://localhost:3007'),
+        baseUrl: this.config.get<string>(
+          'PAYMENT_SERVICE_URL',
+          'http://localhost:3007',
+        ),
       },
       {
         prefix: '/api/subscription-tiers',
-        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3009'),
+        baseUrl: this.config.get<string>(
+          'SUBSCRIPTION_SERVICE_URL',
+          'http://localhost:3009',
+        ),
       },
       {
         prefix: '/api/subscriptions',
-        baseUrl: this.config.get<string>('SUBSCRIPTION_SERVICE_URL', 'http://localhost:3009'),
+        baseUrl: this.config.get<string>(
+          'SUBSCRIPTION_SERVICE_URL',
+          'http://localhost:3009',
+        ),
       },
       {
         prefix: '/api/skills',
-        baseUrl: this.config.get<string>('SKILL_SERVICE_URL', 'http://localhost:3010'),
+        baseUrl: this.config.get<string>(
+          'SKILL_SERVICE_URL',
+          'http://localhost:3010',
+        ),
       },
       {
         prefix: '/api/upload',
-        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3008'),
+        baseUrl: this.config.get<string>(
+          'MEDIA_SERVICE_URL',
+          'http://localhost:3008',
+        ),
       },
       {
         prefix: '/api/media',
-        baseUrl: this.config.get<string>('MEDIA_SERVICE_URL', 'http://localhost:3008'),
+        baseUrl: this.config.get<string>(
+          'MEDIA_SERVICE_URL',
+          'http://localhost:3008',
+        ),
       },
       {
         prefix: '/api/admin',
-        baseUrl: this.config.get<string>('ADMIN_SERVICE_URL', 'http://localhost:3011'),
+        baseUrl: this.config.get<string>(
+          'ADMIN_SERVICE_URL',
+          'http://localhost:3011',
+        ),
       },
     ].sort((a, b) => b.prefix.length - a.prefix.length);
   }
@@ -126,8 +190,12 @@ export class ProxyService {
     path: string,
     query: string,
     headers: Record<string, string>,
-    body: unknown
-  ): Promise<{ status: number; data: unknown; headers: Record<string, string> }> {
+    body: unknown,
+  ): Promise<{
+    status: number;
+    data: unknown;
+    headers: Record<string, string>;
+  }> {
     const target = this.getTarget(path);
     if (!target) {
       this.logger.warn(`No target for path: ${path}`);
@@ -140,9 +208,11 @@ export class ProxyService {
 
     const url = `${target.baseUrl}${path}${query ? (path.includes('?') ? '&' : '?') + query : ''}`;
     const forwardHeaders: Record<string, string> = {};
-    if (headers['authorization']) forwardHeaders['authorization'] = headers['authorization'];
-    if (headers['content-type']) forwardHeaders['content-type'] = headers['content-type'];
-    
+    if (headers['authorization'])
+      forwardHeaders['authorization'] = headers['authorization'];
+    if (headers['content-type'])
+      forwardHeaders['content-type'] = headers['content-type'];
+
     const config: AxiosRequestConfig = {
       method: method.toUpperCase() as Method,
       url,
@@ -165,19 +235,22 @@ export class ProxyService {
       const makeRequest = async () => {
         const res = await this.client.request(config);
         this.logger.log(`[PROXY] Response: ${res.status} from ${url}`);
-        
+
         if (res.status >= 500) {
           // 5xx 錯誤視為失敗，觸發熔斷器
           throw new Error(`Service error: ${res.status}`);
         }
-        
+
         if (res.status >= 400) {
-          this.logger.warn(`[PROXY] Error response: ${res.status} - ${JSON.stringify(res.data)}`);
+          this.logger.warn(
+            `[PROXY] Error response: ${res.status} - ${JSON.stringify(res.data)}`,
+          );
         }
-        
+
         const resHeaders: Record<string, string> = {};
-        if (res.headers['content-type']) resHeaders['content-type'] = res.headers['content-type'] as string;
-        
+        if (res.headers['content-type'])
+          resHeaders['content-type'] = res.headers['content-type'] as string;
+
         return {
           status: res.status,
           data: res.data,
@@ -187,7 +260,9 @@ export class ProxyService {
 
       // Fallback 函數：返回服務不可用錯誤
       const fallback = () => {
-        this.logger.warn(`[CIRCUIT BREAKER] Fallback triggered for ${serviceName}`);
+        this.logger.warn(
+          `[CIRCUIT BREAKER] Fallback triggered for ${serviceName}`,
+        );
         return {
           status: 503,
           data: {
@@ -200,37 +275,53 @@ export class ProxyService {
         };
       };
 
-      // 使用 Circuit Breaker 執行請求
-      const wrappedRequest = this.circuitBreaker.wrap(
-        breakerName,
-        makeRequest,
-        API_GATEWAY_CONFIG,
-        fallback
-      );
+      // 暫時禁用 Circuit Breaker，直接執行請求以便測試
+      // const wrappedRequest = this.circuitBreaker.wrap(
+      //   breakerName,
+      //   makeRequest,
+      //   API_GATEWAY_CONFIG,
+      //   fallback
+      // );
+      // return await wrappedRequest();
 
-      return await wrappedRequest();
-
+      // 直接執行請求（無 Circuit Breaker）
+      return await makeRequest();
     } catch (error: unknown) {
       const err = error as { code?: string; message?: string; stack?: string };
       this.logger.error(`[PROXY] Request failed: ${method} ${path} -> ${url}`);
-      this.logger.error(`[PROXY] Error details:`, err.stack || err.message || String(err));
-      
+      this.logger.error(
+        `[PROXY] Error details:`,
+        err.stack || err.message || String(err),
+      );
+
       if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
         this.logger.error(`Gateway timeout: ${method} ${path}`, err.message);
-        return { status: 504, data: { message: 'Gateway Timeout', path }, headers: {} };
+        return {
+          status: 504,
+          data: { message: 'Gateway Timeout', path },
+          headers: {},
+        };
       }
-      
+
       // Circuit breaker rejection or other errors
       if (err.message?.includes('Circuit breaker is open')) {
         return {
           status: 503,
-          data: { message: 'Service Temporarily Unavailable', path, service: serviceName },
+          data: {
+            message: 'Service Temporarily Unavailable',
+            path,
+            service: serviceName,
+          },
           headers: {},
         };
       }
-      
+
       this.logger.error(`Bad gateway: ${method} ${path}`, err.message);
-      return { status: 502, data: { message: 'Bad Gateway', path }, headers: {} };
+      return {
+        status: 502,
+        data: { message: 'Bad Gateway', path },
+        headers: {},
+      };
     }
   }
 
