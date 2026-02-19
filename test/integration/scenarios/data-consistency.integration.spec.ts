@@ -3,8 +3,8 @@
  * 測試跨服務的資料一致性和事件處理
  */
 
-import { TestEnvironment, TestClients } from '../../setup';
-import { TestHelpers, TestFixtures } from '../../helpers';
+import { TestEnvironment, TestClients } from '@test/setup';
+import { TestHelpers, TestFixtures } from '@test/helpers';
 import { Consumer } from 'kafkajs';
 
 describe('Data Consistency Integration Tests', () => {
@@ -21,21 +21,21 @@ describe('Data Consistency Integration Tests', () => {
     await TestEnvironment.setup();
     await TestClients.initialize();
 
-    authClient = TestHelpers.createHttpClient('http://localhost:3002');
+    authClient = TestHelpers.createGatewayClient('auth');
 
     // 建立測試使用者
     const creatorData = TestFixtures.createCreator();
-    const creatorResponse = await authClient.post('/auth/register', creatorData);
+    const creatorResponse = await authClient.post('/register', creatorData);
     creatorToken = creatorResponse.data.accessToken;
     creatorId = creatorResponse.data.user.id;
 
     const userData = TestFixtures.createUser();
-    const userResponse = await authClient.post('/auth/register', userData);
+    const userResponse = await authClient.post('/register', userData);
     userToken = userResponse.data.accessToken;
     userId = userResponse.data.user.id;
 
-    paymentClient = TestHelpers.createHttpClient('http://localhost:3007', userToken);
-    contentClient = TestHelpers.createHttpClient('http://localhost:3006', creatorToken);
+    paymentClient = TestHelpers.createGatewayClient('payment', userToken);
+    contentClient = TestHelpers.createGatewayClient('content', creatorToken);
 
     // 建立 Kafka Consumer
     kafkaConsumer = TestClients.createKafkaConsumer('consistency-test-group');
@@ -83,7 +83,7 @@ describe('Data Consistency Integration Tests', () => {
 
       // Act - 觸發一系列相關事件
       // 1. 建立付款
-      const paymentResponse = await paymentClient.post('/payment', {
+      const paymentResponse = await paymentClient.post('/api/tips', {
         amount: 9.99,
         currency: 'USD',
         type: 'subscription',
@@ -140,7 +140,7 @@ describe('Data Consistency Integration Tests', () => {
       }));
 
       await Promise.all(
-        payments.map((payment) => paymentClient.post('/payment', payment))
+        payments.map((payment) => paymentClient.post('/api/tips', payment))
       );
 
       // 等待事件處理
@@ -503,7 +503,7 @@ describe('Data Consistency Integration Tests', () => {
       const transactionRepo = dataSource.getRepository('Transaction');
 
       // Act - 建立付款並完成
-      const paymentResponse = await paymentClient.post('/payment', {
+      const paymentResponse = await paymentClient.post('/api/tips', {
         amount: 25.00,
         currency: 'USD',
         type: 'tip',
@@ -531,7 +531,7 @@ describe('Data Consistency Integration Tests', () => {
 
     it('應該確保狀態轉換的有效性', async () => {
       // Arrange
-      const paymentResponse = await paymentClient.post('/payment', {
+      const paymentResponse = await paymentClient.post('/api/tips', {
         amount: 15.00,
         currency: 'USD',
         type: 'post_purchase',

@@ -3,8 +3,8 @@
  * 測試 Auth Service 與 User Service 的整合
  */
 
-import { TestEnvironment, TestClients } from '../../setup';
-import { TestHelpers, TestFixtures } from '../../helpers';
+import { TestEnvironment, TestClients } from '@test/setup';
+import { TestHelpers, TestFixtures } from '@test/helpers';
 
 describe('Auth Service Integration Tests', () => {
   let authClient: any;
@@ -15,9 +15,9 @@ describe('Auth Service Integration Tests', () => {
     await TestEnvironment.setup();
     await TestClients.initialize();
 
-    // 建立 HTTP 客戶端
-    authClient = TestHelpers.createHttpClient('http://localhost:3002');
-    userClient = TestHelpers.createHttpClient('http://localhost:3001');
+    // 建立 HTTP 客戶端 - 使用 API Gateway
+    authClient = TestHelpers.createGatewayClient('auth');
+    userClient = TestHelpers.createGatewayClient('user');
   }, 60000);
 
   afterAll(async () => {
@@ -91,7 +91,7 @@ describe('Auth Service Integration Tests', () => {
       await authClient.post('/auth/register', userData);
 
       // Act - 登入
-      const loginResponse = await authClient.post('/auth/login', {
+      const loginResponse = await authClient.post('/login', {
         email: userData.email,
         password: userData.password,
       });
@@ -115,7 +115,7 @@ describe('Auth Service Integration Tests', () => {
 
       // Act & Assert
       await expect(
-        authClient.post('/auth/login', {
+        authClient.post('/login', {
           email: userData.email,
           password: 'WrongPassword123!',
         })
@@ -126,14 +126,14 @@ describe('Auth Service Integration Tests', () => {
       });
     });
 
-    it('應該將 Session 資訊儲存到 Redis', async () => {
+    it('應該將 Session 資訊儲存到 Redis', async () => {suggar_daddy
       // Arrange
       const userData = TestFixtures.createUser();
       const registerResponse = await authClient.post('/auth/register', userData);
       const userId = registerResponse.data.user.id;
 
       // Act - 登入
-      const loginResponse = await authClient.post('/auth/login', {
+      const loginResponse = await authClient.post('/login', {
         email: userData.email,
         password: userData.password,
       });
@@ -175,8 +175,8 @@ describe('Auth Service Integration Tests', () => {
 
       // Act & Assert
       await expect(
-        TestHelpers.createHttpClient('http://localhost:3002', invalidToken).get(
-          '/auth/profile'
+        TestHelpers.createGatewayClient('auth', invalidToken).get(
+          '/profile'
         )
       ).rejects.toMatchObject({
         response: {
@@ -195,8 +195,8 @@ describe('Auth Service Integration Tests', () => {
 
       // Act & Assert
       await expect(
-        TestHelpers.createHttpClient('http://localhost:3002', expiredToken).get(
-          '/auth/profile'
+        TestHelpers.createGatewayClient('auth', expiredToken).get(
+          '/profile'
         )
       ).rejects.toMatchObject({
         response: {
@@ -210,7 +210,7 @@ describe('Auth Service Integration Tests', () => {
     it('應該使用 Refresh Token 取得新的 Access Token', async () => {
       // Arrange - 註冊並登入
       const userData = TestFixtures.createUser();
-      const loginResponse = await authClient.post('/auth/login', {
+      const loginResponse = await authClient.post('/login', {
         email: userData.email,
         password: userData.password,
       });
@@ -262,8 +262,8 @@ describe('Auth Service Integration Tests', () => {
 
       // 驗證 Token 已失效
       await expect(
-        TestHelpers.createHttpClient('http://localhost:3002', token).get(
-          '/auth/profile'
+        TestHelpers.createGatewayClient('auth', token).get(
+          '/profile'
         )
       ).rejects.toMatchObject({
         response: {
@@ -276,7 +276,7 @@ describe('Auth Service Integration Tests', () => {
   describe('API Gateway 路由整合', () => {
     it('應該通過 API Gateway 路由到 Auth Service', async () => {
       // Arrange
-      const gatewayClient = TestHelpers.createHttpClient('http://localhost:3000');
+      const gatewayClient = TestHelpers.createGatewayClient();
       const userData = TestFixtures.createUser();
 
       // Act - 通過 Gateway 註冊
@@ -290,7 +290,7 @@ describe('Auth Service Integration Tests', () => {
 
     it('API Gateway 應該驗證 JWT Token', async () => {
       // Arrange - 註冊使用者
-      const gatewayClient = TestHelpers.createHttpClient('http://localhost:3000');
+      const gatewayClient = TestHelpers.createGatewayClient();
       const userData = TestFixtures.createUser();
       const registerResponse = await gatewayClient.post(
         '/api/auth/register',
@@ -299,8 +299,8 @@ describe('Auth Service Integration Tests', () => {
       const token = registerResponse.data.accessToken;
 
       // Act - 通過 Gateway 訪問受保護的路由
-      const profileResponse = await TestHelpers.createHttpClient(
-        'http://localhost:3000',
+      const profileResponse = await TestHelpers.createGatewayClient(
+        undefined,
         token
       ).get('/api/auth/profile');
 

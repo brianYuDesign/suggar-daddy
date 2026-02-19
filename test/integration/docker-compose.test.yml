@@ -34,7 +34,7 @@ services:
     image: redis:7-alpine
     container_name: suggar-daddy-redis-test
     ports:
-      - "6380:6379"
+      - "6382:6379"
     command: redis-server --appendonly no --save "" --maxmemory 256mb --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -56,7 +56,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
       KAFKA_HEAP_OPTS: "-Xmx128M -Xms128M"
     ports:
-      - "2182:2181"
+      - "2183:2181"
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "2181"]
       interval: 5s
@@ -66,7 +66,8 @@ services:
     networks:
       - test-network
     tmpfs:
-      - /var/lib/zookeeper
+      - /var/lib/zookeeper/data:uid=1000,gid=1000
+      - /var/lib/zookeeper/log:uid=1000,gid=1000
 
   # Kafka - 測試訊息佇列
   kafka-test:
@@ -76,8 +77,8 @@ services:
       zookeeper-test:
         condition: service_healthy
     ports:
-      - "9093:9092"
-      - "9095:9094"
+      - "9095:9092"
+      - "9096:9094"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
@@ -93,7 +94,13 @@ services:
       KAFKA_HEAP_OPTS: "-Xmx256M -Xms256M"
       KAFKA_COMPRESSION_TYPE: lz4
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test:
+        [
+          "CMD",
+          "kafka-broker-api-versions",
+          "--bootstrap-server",
+          "localhost:9092",
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -101,7 +108,263 @@ services:
     networks:
       - test-network
     tmpfs:
-      - /var/lib/kafka/data
+      - /var/lib/kafka/data:uid=1000,gid=1000
+
+  # Auth Service - 測試認證服務
+  auth-service-test:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: auth-service
+    container_name: suggar-daddy-auth-service-test
+    ports:
+      - "3102:3002"
+    environment:
+      NODE_ENV: test
+      PORT: 3002
+      DB_HOST: postgres-test
+      DB_PORT: 5432
+      DB_USERNAME: test_user
+      DB_PASSWORD: test_password
+      DB_DATABASE: suggar_daddy_test
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka-test:9092
+      KAFKA_CLIENT_ID: auth-service-test
+      JWT_SECRET: test-jwt-secret-for-integration-tests
+      JWT_EXPIRES_IN: 1d
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+      EMAIL_FROM: test@example.com
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+    command: npm run serve:auth-service
+    networks:
+      - test-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3002/api/auth/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  # User Service - 測試用戶服務
+  user-service-test:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: user-service
+    container_name: suggar-daddy-user-service-test
+    ports:
+      - "3101:3001"
+    environment:
+      NODE_ENV: test
+      PORT: 3001
+      DB_HOST: postgres-test
+      DB_PORT: 5432
+      DB_USERNAME: test_user
+      DB_PASSWORD: test_password
+      DB_DATABASE: suggar_daddy_test
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka-test:9092
+      JWT_SECRET: test-jwt-secret-for-integration-tests
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+    command: npm run serve:user-service
+    networks:
+      - test-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3001/api/users/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  # Content Service - 測試內容服務
+  content-service-test:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: content-service
+    container_name: suggar-daddy-content-service-test
+    ports:
+      - "3106:3006"
+    environment:
+      NODE_ENV: test
+      PORT: 3006
+      DB_HOST: postgres-test
+      DB_PORT: 5432
+      DB_USERNAME: test_user
+      DB_PASSWORD: test_password
+      DB_DATABASE: suggar_daddy_test
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka-test:9092
+      JWT_SECRET: test-jwt-secret-for-integration-tests
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+    command: npm run serve:content-service
+    networks:
+      - test-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3006/api/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  # Payment Service - 測試付款服務
+  payment-service-test:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: payment-service
+    container_name: suggar-daddy-payment-service-test
+    ports:
+      - "3107:3007"
+    environment:
+      NODE_ENV: test
+      PORT: 3007
+      DB_HOST: postgres-test
+      DB_PORT: 5432
+      DB_USERNAME: test_user
+      DB_PASSWORD: test_password
+      DB_DATABASE: suggar_daddy_test
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka-test:9092
+      JWT_SECRET: test-jwt-secret-for-integration-tests
+      STRIPE_SECRET_KEY: sk_test_fake_key_for_testing
+      STRIPE_WEBHOOK_SECRET: whsec_test_fake_secret
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+    command: npm run serve:payment-service
+    networks:
+      - test-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3007/api/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  # API Gateway - 測試閘道器
+  api-gateway-test:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: api-gateway
+    container_name: suggar-daddy-api-gateway-test
+    ports:
+      - "3100:3000"
+    environment:
+      NODE_ENV: test
+      PORT: 3000
+      # Service URLs - 指向測試環境的微服務
+      AUTH_SERVICE_URL: http://auth-service-test:3002
+      USER_SERVICE_URL: http://user-service-test:3001
+      CONTENT_SERVICE_URL: http://content-service-test:3006
+      PAYMENT_SERVICE_URL: http://payment-service-test:3007
+      # Redis for rate limiting
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      # JWT for auth passthrough
+      JWT_SECRET: test-jwt-secret-for-integration-tests
+    depends_on:
+      auth-service-test:
+        condition: service_healthy
+      user-service-test:
+        condition: service_healthy
+      content-service-test:
+        condition: service_healthy
+      payment-service-test:
+        condition: service_healthy
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      kafka-test:
+        condition: service_healthy
+    command: npm run serve:api-gateway
+    networks:
+      - test-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
 
 networks:
   test-network:

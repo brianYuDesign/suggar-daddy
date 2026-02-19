@@ -12,10 +12,9 @@ export class TestFixtures {
   static createUser(overrides = {}) {
     return {
       email: TestHelpers.randomEmail(),
-      username: `user_${TestHelpers.randomString()}`,
+      displayName: `User ${TestHelpers.randomString()}`,
       password: 'Test1234!',
-      role: 'user',
-      status: 'active',
+      userType: 'sugar_baby', // 默認為 sugar_baby
       ...overrides,
     };
   }
@@ -25,12 +24,9 @@ export class TestFixtures {
    */
   static createCreator(overrides = {}) {
     return this.createUser({
-      role: 'creator',
-      profile: {
-        displayName: `Creator ${TestHelpers.randomString()}`,
-        bio: 'Test creator bio',
-        subscriptionPrice: 9.99,
-      },
+      userType: 'sugar_daddy', // Creator 是 sugar_daddy
+      displayName: `Creator ${TestHelpers.randomString()}`,
+      bio: 'Test creator bio',
       ...overrides,
     });
   }

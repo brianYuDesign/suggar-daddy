@@ -5,8 +5,21 @@
 
 import axios, { AxiosInstance } from 'axios';
 import * as jwt from 'jsonwebtoken';
+import { TestEnvironment } from '../setup/test-environment';
 
 export class TestHelpers {
+  /**
+   * 取得 API 端點 URL
+   * 統一通過 API Gateway 訪問，或直接訪問微服務
+   */
+  static getApiUrl(service?: 'auth' | 'user' | 'content' | 'payment'): string {
+    const config = TestEnvironment.getConfig();
+    
+    // 始終返回 Gateway 基礎 URL
+    // 測試中自己拼接完整路徑如 /api/auth/register
+    return config.apiGateway;
+  }
+
   /**
    * 建立 HTTP 客戶端
    */
@@ -24,6 +37,14 @@ export class TestHelpers {
     }
 
     return client;
+  }
+
+  /**
+   * 建立使用 API Gateway 的 HTTP 客戶端
+   */
+  static createGatewayClient(service?: 'auth' | 'user' | 'content' | 'payment' | 'media', token?: string): AxiosInstance {
+    const baseURL = this.getApiUrl();
+    return this.createHttpClient(baseURL, token);
   }
 
   /**

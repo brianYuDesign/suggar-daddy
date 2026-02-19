@@ -14,11 +14,8 @@ const config: Config = {
   // Transform
   transform: {
     '^.+\\.(t|j)s$': ['ts-jest', { 
-      tsconfig: {
-        emitDecoratorMetadata: true,
-        experimentalDecorators: true,
-        esModuleInterop: true,
-      },
+      tsconfig: '<rootDir>/tsconfig.base.json',
+      isolatedModules: true,
     }],
   },
   
@@ -26,7 +23,16 @@ const config: Config = {
   
   // Module name mapper
   moduleNameMapper: {
-    '^@suggar-daddy/(.*)$': '<rootDir>/libs/$1/src/index.ts',
+    '^@suggar-daddy/common$': '<rootDir>/libs/common/src/index.ts',
+    '^@suggar-daddy/dto$': '<rootDir>/libs/dto/src/index.ts',
+    '^@suggar-daddy/database$': '<rootDir>/libs/database/src/index.ts',
+    '^@suggar-daddy/kafka$': '<rootDir>/libs/kafka/src/index.ts',
+    '^@suggar-daddy/redis$': '<rootDir>/libs/redis/src/index.ts',
+    '^@suggar-daddy/auth$': '<rootDir>/libs/auth/src/index.ts',
+    '^@suggar-daddy/ui$': '<rootDir>/libs/ui/src/index.ts',
+    '^@suggar-daddy/api-client$': '<rootDir>/libs/api-client/src/index.ts',
+    '^@test/setup$': '<rootDir>/test/integration/setup/index.ts',
+    '^@test/helpers$': '<rootDir>/test/integration/helpers/index.ts',
   },
   
   // 只匹配整合測試檔案
@@ -35,12 +41,11 @@ const config: Config = {
     '<rootDir>/test/integration/scenarios/**/*.integration.spec.ts',
   ],
   
-  // 排除單元測試和 E2E 測試
+  // 排除單元測試和 E2E 測試（但保留整合測試）
   testPathIgnorePatterns: [
     '/node_modules/',
-    '.spec.ts$',
-    '!.integration.spec.ts$',
-    '.e2e.spec.ts$',
+    '(?<!\\.integration)\\.spec\\.ts$', // 排除非整合的單元測試
+    '\\.e2e\\.spec\\.ts$', // 排除 E2E 測試
   ],
   
   // 覆蓋率設定

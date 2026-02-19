@@ -53,10 +53,10 @@ start_test_environment() {
     cd "$(dirname "$0")/.."
     
     print_info "停止並清理舊的測試容器..."
-    docker-compose -f test/integration/docker-compose.test.yml -p suggar-daddy-test down -v > /dev/null 2>&1 || true
+    docker-compose -f integration/docker-compose.test.yml -p suggar-daddy-test down -v > /dev/null 2>&1 || true
     
     print_info "啟動測試服務..."
-    docker-compose -f test/integration/docker-compose.test.yml -p suggar-daddy-test up -d
+    docker-compose -f integration/docker-compose.test.yml -p suggar-daddy-test up -d
     
     print_info "等待服務啟動..."
     sleep 10
@@ -70,7 +70,7 @@ start_test_environment() {
         max_retries=30
         
         while [ $retries -lt $max_retries ]; do
-            if docker-compose -f test/integration/docker-compose.test.yml -p suggar-daddy-test ps $service | grep -q "(healthy)"; then
+            if docker-compose -f integration/docker-compose.test.yml -p suggar-daddy-test ps $service | grep -q "(healthy)"; then
                 print_success "$service 已就緒"
                 break
             fi
@@ -78,7 +78,7 @@ start_test_environment() {
             retries=$((retries + 1))
             if [ $retries -eq $max_retries ]; then
                 print_error "$service 啟動失敗"
-                docker-compose -f test/integration/docker-compose.test.yml -p suggar-daddy-test logs $service
+                docker-compose -f integration/docker-compose.test.yml -p suggar-daddy-test logs $service
                 exit 1
             fi
             
@@ -110,7 +110,7 @@ stop_test_environment() {
     print_header "清理測試環境"
     
     print_info "停止測試容器..."
-    docker-compose -f test/integration/docker-compose.test.yml -p suggar-daddy-test down -v
+    docker-compose -f integration/docker-compose.test.yml -p suggar-daddy-test down -v
     
     print_success "測試環境已清理"
 }

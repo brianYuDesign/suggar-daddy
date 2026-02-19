@@ -3,8 +3,8 @@
  * 測試 Content Service 與 Media Service 的整合
  */
 
-import { TestEnvironment, TestClients } from '../../setup';
-import { TestHelpers, TestFixtures } from '../../helpers';
+import { TestEnvironment, TestClients } from '@test/setup';
+import { TestHelpers, TestFixtures } from '@test/helpers';
 
 describe('Content Service Integration Tests', () => {
   let contentClient: any;
@@ -20,23 +20,23 @@ describe('Content Service Integration Tests', () => {
     await TestEnvironment.setup();
     await TestClients.initialize();
 
-    authClient = TestHelpers.createHttpClient('http://localhost:3002');
+    authClient = TestHelpers.createGatewayClient('auth');
 
     // 建立創作者
     const creatorData = TestFixtures.createCreator();
-    const creatorResponse = await authClient.post('/auth/register', creatorData);
+    const creatorResponse = await authClient.post('/api/auth/register', creatorData);
     creatorToken = creatorResponse.data.accessToken;
     creatorId = creatorResponse.data.user.id;
 
     // 建立一般使用者
     const userData = TestFixtures.createUser();
-    const userResponse = await authClient.post('/auth/register', userData);
+    const userResponse = await authClient.post('/api/auth/register', userData);
     userToken = userResponse.data.accessToken;
     userId = userResponse.data.user.id;
 
-    contentClient = TestHelpers.createHttpClient('http://localhost:3006', creatorToken);
-    mediaClient = TestHelpers.createHttpClient('http://localhost:3008', creatorToken);
-    paymentClient = TestHelpers.createHttpClient('http://localhost:3007', userToken);
+    contentClient = TestHelpers.createGatewayClient('content', creatorToken);
+    mediaClient = TestHelpers.createGatewayClient('content', creatorToken); // media 通過 content 路徑
+    paymentClient = TestHelpers.createGatewayClient('payment', userToken);
   }, 60000);
 
   afterAll(async () => {

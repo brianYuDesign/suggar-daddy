@@ -24,6 +24,15 @@ export class TestEnvironment {
     console.log('🚀 Starting test environment...');
 
     try {
+      // 檢查服務是否已經運行（由 run-tests.sh 啟動）
+      const isRunning = this.checkServicesRunning();
+      
+      if (isRunning) {
+        console.log('✓ Test services are already running');
+        this.isSetup = true;
+        return;
+      }
+
       // 清理舊的容器
       await this.cleanup();
 
@@ -45,9 +54,35 @@ export class TestEnvironment {
   }
 
   /**
+   * 檢查測試服務是否已運行
+   */
+  private static checkServicesRunning(): boolean {
+    try {
+      const result = execSync(
+        `docker-compose -f ${COMPOSE_FILE} -p ${PROJECT_NAME} ps --services --filter "status=running"`,
+        { encoding: 'utf-8', stdio: 'pipe' }
+      );
+      
+      const runningServices = result.trim().split('\n').filter(s => s);
+      // 至少需要 postgres, redis, kafka 三個服務
+      return runningServices.length >= 3;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
    * 清理測試環境
    */
   static async cleanup(): Promise<void> {
+    // 不要清理由 run-tests.sh 管理的環境
+    // 只重置靜態標記
+    if (this.isSetup && this.checkServicesRunning()) {
+      console.log('✓ Test environment managed by test runner, skipping cleanup');
+      this.isSetup = false;
+      return;
+    }
+
     console.log('🧹 Cleaning up test environment...');
 
     try {
@@ -95,20 +130,38 @@ export class TestEnvironment {
    * 等待所有服務健康
    */
   private static async waitForServices(): Promise<void> {
-    const services = [
+    const infrastructureServices = [
       'postgres-test',
       'redis-test',
       'kafka-test',
     ];
 
-    console.log('⏳ Waiting for services to be healthy...');
+    const microservices = [
+      'auth-service-test',
+      'user-service-test',
+      'content-service-test',
+      'payment-service-test',
+    ];
 
-    for (const service of services) {
+    const gateway = ['api-gateway-test'];
+
+    console.log('⏳ Waiting for infrastructure services...');
+    for (const service of infrastructureServices) {
       await this.waitForService(service);
     }
 
-    // 額外等待 Kafka 完全就緒
-    await this.sleep(3000);
+    console.log('⏳ Waiting for microservices...');
+    for (const service of microservices) {
+      await this.waitForService(service, 60); // 微服務需要更長時間啟動
+    }
+
+    console.log('⏳ Waiting for API Gateway...');
+    for (const service of gateway) {
+      await this.waitForService(service, 60);
+    }
+
+    // 額外等待服務完全就緒
+    await this.sleep(5000);
   }
 
   /**
@@ -160,11 +213,20 @@ export class TestEnvironment {
       },
       redis: {
         host: 'localhost',
-        port: 6380,
+        port: 6382,
       },
       kafka: {
         brokers: ['localhost:9095'],
         clientId: 'test-client',
+      },
+      // API Gateway URL - 統一入口
+      apiGateway: 'http://localhost:3100',
+      // 直接訪問微服務的 URL（如果需要）
+      services: {
+        auth: 'http://localhost:3102',
+        user: 'http://localhost:3101',
+        content: 'http://localhost:3106',
+        payment: 'http://localhost:3107',
       },
     };
   }

@@ -3,8 +3,8 @@
  * 測試 Payment Service, Stripe API, Kafka 和 DB Writer 整合
  */
 
-import { TestEnvironment, TestClients } from '../../setup';
-import { TestHelpers, TestFixtures } from '../../helpers';
+import { TestEnvironment, TestClients } from '@test/setup';
+import { TestHelpers, TestFixtures } from '@test/helpers';
 import { Consumer } from 'kafkajs';
 
 describe('Payment Service Integration Tests', () => {
@@ -18,15 +18,15 @@ describe('Payment Service Integration Tests', () => {
     await TestEnvironment.setup();
     await TestClients.initialize();
 
-    authClient = TestHelpers.createHttpClient('http://localhost:3002');
+    authClient = TestHelpers.createGatewayClient('auth');
     
     // 建立測試使用者
     const userData = TestFixtures.createUser();
-    const registerResponse = await authClient.post('/auth/register', userData);
+    const registerResponse = await authClient.post('/register', userData);
     token = registerResponse.data.accessToken;
     userId = registerResponse.data.user.id;
 
-    paymentClient = TestHelpers.createHttpClient('http://localhost:3007', token);
+    paymentClient = TestHelpers.createGatewayClient('payment', token);
 
     // 建立 Kafka Consumer
     kafkaConsumer = TestClients.createKafkaConsumer('payment-test-group');
@@ -79,7 +79,7 @@ describe('Payment Service Integration Tests', () => {
       const customerId = customerResponse.data.customerId;
 
       // Act
-      const response = await paymentClient.post('/payment/intent', {
+      const response = await paymentClient.post('/api/stripe/intent', {
         amount: 1000, // $10.00
         currency: 'usd',
         customerId,
@@ -97,7 +97,7 @@ describe('Payment Service Integration Tests', () => {
       const customerResponse = await paymentClient.post('/payment/customer', {
         email: 'test@example.com',
       });
-      const intentResponse = await paymentClient.post('/payment/intent', {
+      const intentResponse = await paymentClient.post('/api/stripe/intent', {
         amount: 1000,
         currency: 'usd',
         customerId: customerResponse.data.customerId,
@@ -312,7 +312,7 @@ describe('Payment Service Integration Tests', () => {
     it('應該完成完整的訂閱創建流程', async () => {
       // Arrange - 建立創作者
       const creatorData = TestFixtures.createCreator();
-      const creatorResponse = await authClient.post('/auth/register', creatorData);
+      const creatorResponse = await authClient.post('/register', creatorData);
       const creatorId = creatorResponse.data.user.id;
 
       // Arrange - 訂閱 Kafka
@@ -398,7 +398,7 @@ describe('Payment Service Integration Tests', () => {
     it('應該處理 Stripe API 錯誤', async () => {
       // Arrange - 無效的金額
       await expect(
-        paymentClient.post('/payment/intent', {
+        paymentClient.post('/api/stripe/intent', {
           amount: -100, // 負數金額
           currency: 'usd',
         })
