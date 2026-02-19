@@ -6,9 +6,11 @@ const REFRESH_TOKEN_KEY = 'admin_refresh_token';
  * JWT Payload 類型
  */
 interface JWTPayload {
-  userId: string;
+  sub: string; // userId
+  userId?: string;
   email: string;
-  role: string;
+  role: string; // user type (sugar_daddy, sugar_baby)
+  permissionRole: string; // admin, creator, subscriber
   exp: number;
   iat: number;
 }
@@ -30,15 +32,33 @@ export function getToken(): string | null {
 
 export function setToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token);
+  
+  // Also set as httpOnly-like cookie for middleware
   // Parse JWT to get expiration time
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     if (payload.exp) {
-      localStorage.setItem(TOKEN_EXPIRY_KEY, String(payload.exp * 1000));
+      const expiryTime = payload.exp * 1000;
+      localStorage.setItem(TOKEN_EXPIRY_KEY, String(expiryTime));
+      
+      // Set cookie with same expiration
+      const expiryDate = new Date(expiryTime);
+      document.cookie = `${TOKEN_KEY}=${token}; path=/; expires=${expiryDate.toUTCString()}; SameSite=Strict`;
+    } else {
+      // If JWT parsing fails, set 24h default expiry
+      const defaultExpiry = Date.now() + 24 * 60 * 60 * 1000;
+      localStorage.setItem(TOKEN_EXPIRY_KEY, String(defaultExpiry));
+      
+      const expiryDate = new Date(defaultExpiry);
+      document.cookie = `${TOKEN_KEY}=${token}; path=/; expires=${expiryDate.toUTCString()}; SameSite=Strict`;
     }
   } catch {
     // If JWT parsing fails, set 24h default expiry
-    localStorage.setItem(TOKEN_EXPIRY_KEY, String(Date.now() + 24 * 60 * 60 * 1000));
+    const defaultExpiry = Date.now() + 24 * 60 * 60 * 1000;
+    localStorage.setItem(TOKEN_EXPIRY_KEY, String(defaultExpiry));
+    
+    const expiryDate = new Date(defaultExpiry);
+    document.cookie = `${TOKEN_KEY}=${token}; path=/; expires=${expiryDate.toUTCString()}; SameSite=Strict`;
   }
 }
 
@@ -46,6 +66,9 @@ export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(TOKEN_EXPIRY_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  
+  // Also clear cookie
+  document.cookie = `${TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict`;
 }
 
 export function getRefreshToken(): string | null {
@@ -84,9 +107,14 @@ export function verifyToken(token: string): JWTPayload {
 
     const payload = JSON.parse(atob(parts[1]));
 
-    // 驗證必要字段
-    if (!payload.userId || !payload.role || !payload.exp) {
+    // 驗證必要字段 - sub 是 JWT 標準的用戶ID欄位
+    if (!payload.sub || !payload.role || !payload.exp) {
       throw new Error('Invalid JWT payload');
+    }
+
+    // 向後兼容：如果沒有 userId，使用 sub
+    if (!payload.userId) {
+      payload.userId = payload.sub;
     }
 
     return payload as JWTPayload;

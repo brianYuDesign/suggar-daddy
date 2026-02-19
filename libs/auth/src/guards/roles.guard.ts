@@ -25,9 +25,9 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
-    // 支援檢查 permissionRole 或舊的 role 欄位
-    const userRole = user.permissionRole || user.role;
+    // 支援檢查 permissionRole 或舊的 role 欄位，統一轉小寫比較
+    const userRole = (user.permissionRole || user.role || '').toLowerCase();
 
-    return requiredRoles.some((role) => userRole === role);
+    return requiredRoles.some((role) => userRole === role.toLowerCase());
   }
 }

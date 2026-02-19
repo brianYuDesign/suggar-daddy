@@ -1,4 +1,5 @@
 import { Controller, Get, Logger } from '@nestjs/common';
+import { Public } from '@suggar-daddy/auth';
 import { AppService } from './app.service';
 
 @Controller()
@@ -7,6 +8,7 @@ export class AppController {
 
   constructor(private readonly appService: AppService) {}
 
+  @Public()
   @Get('health')
   getHealth(): { status: string; service: string } {
     this.logger.log('health check');

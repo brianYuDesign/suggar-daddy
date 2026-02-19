@@ -69,12 +69,13 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
-    // 檢查角色權限
-    if (payload.role !== 'ADMIN') {
+    // 檢查角色權限 - 使用 permissionRole，統一轉小寫比較
+    if (payload.permissionRole?.toLowerCase() !== 'admin') {
       console.error('[Middleware] Unauthorized access attempt:', {
         pathname,
         userId: payload.userId,
         role: payload.role,
+        permissionRole: payload.permissionRole,
         ip: request.ip,
       });
 
@@ -112,8 +113,9 @@ export async function middleware(request: NextRequest) {
 
     // 將用戶信息添加到請求頭（可選）
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-user-id', payload.userId);
+    requestHeaders.set('x-user-id', payload.sub || payload.userId || '');
     requestHeaders.set('x-user-role', payload.role);
+    requestHeaders.set('x-permission-role', payload.permissionRole);
 
     return NextResponse.next({
       request: {
