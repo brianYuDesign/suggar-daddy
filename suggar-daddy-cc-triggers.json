@@ -1,0 +1,199 @@
+{
+  "version": "1.0.0",
+  "project": "sugar-daddy",
+  "description": "Automated triggers for CC Agent",
+  "lastUpdated": "2026-02-19T08:30:00Z",
+  "triggers": [
+    {
+      "id": "backend-push",
+      "name": "Backend Push Detected",
+      "enabled": true,
+      "condition": "git commit with [backend] or [api] tag",
+      "actions": [
+        "run-unit-tests",
+        "run-lint",
+        "collect-coverage"
+      ],
+      "channel": "g-backend-devops",
+      "priority": "high",
+      "timeout_seconds": 300,
+      "description": "Automatically run backend tests when code is pushed with [backend] tag"
+    },
+    {
+      "id": "frontend-push",
+      "name": "Frontend Push Detected",
+      "enabled": true,
+      "condition": "git commit with [frontend] or [ui] or [admin] tag",
+      "actions": [
+        "build-admin",
+        "build-frontend",
+        "run-e2e-smoke-tests",
+        "measure-bundle-size"
+      ],
+      "channel": "g-frontend",
+      "priority": "high",
+      "timeout_seconds": 360,
+      "description": "Automatically build and test frontend when code is pushed with [frontend] tag"
+    },
+    {
+      "id": "test-failure",
+      "name": "Test Suite Failure",
+      "enabled": true,
+      "condition": "npm run test:unit returns non-zero exit code",
+      "actions": [
+        "analyze-failure",
+        "categorize-error",
+        "suggest-fix",
+        "notify-critical"
+      ],
+      "channel": "g-backend-devops",
+      "priority": "critical",
+      "timeout_seconds": 120,
+      "description": "Analyze test failures and suggest fixes immediately"
+    },
+    {
+      "id": "docker-health-fail",
+      "name": "Docker Container Health Alert",
+      "enabled": true,
+      "condition": "Docker health check fails",
+      "actions": [
+        "diagnose-container",
+        "check-logs",
+        "check-resources",
+        "attempt-recovery"
+      ],
+      "channel": "g-backend-devops",
+      "priority": "critical",
+      "timeout_seconds": 180,
+      "description": "Monitor and attempt recovery for unhealthy Docker containers"
+    },
+    {
+      "id": "daily-health-check",
+      "name": "Daily System Health Check",
+      "enabled": true,
+      "condition": "Time-based: Every 6 hours",
+      "schedule": {
+        "type": "interval",
+        "every_ms": 21600000,
+        "quiet_hours": "22:00-08:00"
+      },
+      "actions": [
+        "check-docker-health",
+        "check-pm2-services",
+        "check-databases",
+        "check-api-gateway",
+        "compile-health-report"
+      ],
+      "channel": "g-backend-devops",
+      "priority": "medium",
+      "timeout_seconds": 180,
+      "description": "Check overall system health and report status"
+    },
+    {
+      "id": "docs-push",
+      "name": "Documentation Change",
+      "enabled": true,
+      "condition": "git commit with [docs] tag or *.md files modified",
+      "actions": [
+        "validate-markdown",
+        "check-links",
+        "verify-code-examples"
+      ],
+      "channel": "g-sa-specs",
+      "priority": "medium",
+      "timeout_seconds": 60,
+      "description": "Validate documentation changes"
+    },
+    {
+      "id": "schema-change",
+      "name": "Schema Change Detected",
+      "enabled": true,
+      "condition": "Files in schema/ directories modified",
+      "actions": [
+        "validate-schema",
+        "check-breaking-changes",
+        "notify-teams"
+      ],
+      "channel": "g-sa-specs",
+      "priority": "high",
+      "notify_secondary": ["g-backend-devops"],
+      "timeout_seconds": 120,
+      "description": "Alert when API or database schemas change"
+    },
+    {
+      "id": "deploy-tag-created",
+      "name": "Release Tag Created",
+      "enabled": true,
+      "condition": "git tag created with v*.*.* or release/* format",
+      "actions": [
+        "run-full-test-suite",
+        "build-docker-images",
+        "security-scan",
+        "generate-release-notes"
+      ],
+      "channel": "g-sa-specs",
+      "priority": "critical",
+      "timeout_seconds": 600,
+      "description": "Validate and prepare release for deployment"
+    },
+    {
+      "id": "performance-degradation",
+      "name": "Performance Degradation Alert",
+      "enabled": true,
+      "condition": "API response time > 500ms (5-min average)",
+      "actions": [
+        "analyze-performance",
+        "check-database",
+        "check-redis",
+        "suggest-optimization"
+      ],
+      "channel": "g-sa-specs",
+      "priority": "high",
+      "notify_secondary": ["g-backend-devops"],
+      "timeout_seconds": 180,
+      "description": "Alert on performance issues and suggest optimizations"
+    },
+    {
+      "id": "error-rate-spike",
+      "name": "Error Rate Spike",
+      "enabled": true,
+      "condition": "Error rate > 5% of requests",
+      "actions": [
+        "analyze-errors",
+        "identify-affected-services",
+        "check-recent-deployments",
+        "suggest-rollback"
+      ],
+      "channel": "g-backend-devops",
+      "priority": "critical",
+      "timeout_seconds": 180,
+      "description": "Alert when error rate increases significantly"
+    }
+  ],
+  "safety_constraints": {
+    "quiet_hours": {
+      "enabled": true,
+      "start": "22:00",
+      "end": "08:00",
+      "critical_only": true
+    },
+    "production_operations": {
+      "require_approval": true,
+      "operations": ["deploy-to-production", "database-migration", "destructive-action"]
+    },
+    "max_parallel_workflows": 2,
+    "confidence_threshold": 0.7
+  },
+  "notification_batching": {
+    "enabled": true,
+    "batch_size": 5,
+    "batch_timeout_seconds": 300,
+    "exclude_from_batching": ["test-failure", "docker-health-fail", "error-rate-spike", "deploy-tag-created"]
+  },
+  "learning": {
+    "enabled": true,
+    "store_decisions": true,
+    "update_patterns": true,
+    "min_samples_for_pattern": 5
+  }
+}
