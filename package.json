@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@adamchanadam/openclaw-workspace-governance": "^0.1.4"
+  }
+}
