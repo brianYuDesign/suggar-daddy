@@ -62,7 +62,8 @@ export class CircuitBreaker {
       this.onSuccess(operationName);
       return result;
     } catch (error) {
-      this.onFailure(operationName, error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.onFailure(operationName, err);
       
       if (fallback) {
         this.logger.warn(`⚠️ [${operationName}] Operation failed, using fallback`);
@@ -199,7 +200,8 @@ export class ConnectionPoolService {
         this.logger.log('✅ Connection pool health check passed');
       }
     } catch (error) {
-      this.logger.error('❌ Connection pool health check failed:', error.message);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error('❌ Connection pool health check failed:', errorMsg);
     }
   }
 

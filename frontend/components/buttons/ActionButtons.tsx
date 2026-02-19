@@ -4,7 +4,6 @@ import React from 'react'
 import { ActionButtonsProps } from '@/types/recommendation'
 
 export default function ActionButtons({
-  cardId,
   isLiked = false,
   isSubscribed = false,
   onLike,
@@ -12,7 +11,6 @@ export default function ActionButtons({
   onShare,
   onComment,
   likesCount = 0,
-  subscribersCount = 0,
 }: ActionButtonsProps) {
   return (
     <div

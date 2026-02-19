@@ -1,12 +1,7 @@
 import { useCallback, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from './redux';
+import { useAppSelector } from './redux';
 import {
-  loginUser,
-  registerUser,
-  logoutUser,
-  getCurrentUser,
-  updateProfile,
-  changePassword,
+  authApi,
   LoginRequest,
   RegisterRequest,
   UpdateProfileRequest,
@@ -19,7 +14,6 @@ import { tokenManager } from '@/lib/api';
  * Provides login, register, logout, and user management
  */
 export const useAuth = () => {
-  const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
 
   // Check if user has valid token on mount
@@ -28,59 +22,94 @@ export const useAuth = () => {
       const token = tokenManager.getToken();
       if (token && !auth.user) {
         // Token exists but user not in state, fetch current user
-        dispatch(getCurrentUser());
+        try {
+          await authApi.getCurrentUser();
+        } catch (error) {
+          console.error('Failed to fetch current user:', error);
+        }
       }
     };
 
     checkAuth();
-  }, [dispatch, auth.user]);
+  }, [auth.user]);
 
   // Login
   const login = useCallback(
     async (credentials: LoginRequest) => {
-      const result = await dispatch(loginUser(credentials));
-      return result.payload;
+      try {
+        const result = await authApi.login(credentials);
+        return result;
+      } catch (error) {
+        console.error('Login failed:', error);
+        throw error;
+      }
     },
-    [dispatch]
+    []
   );
 
   // Register
   const register = useCallback(
     async (data: RegisterRequest) => {
-      const result = await dispatch(registerUser(data));
-      return result.payload;
+      try {
+        const result = await authApi.register(data);
+        return result;
+      } catch (error) {
+        console.error('Register failed:', error);
+        throw error;
+      }
     },
-    [dispatch]
+    []
   );
 
   // Logout
   const logout = useCallback(async () => {
-    await dispatch(logoutUser());
-  }, [dispatch]);
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
+  }, []);
 
   // Update Profile
   const updateUserProfile = useCallback(
     async (profile: UpdateProfileRequest) => {
-      const result = await dispatch(updateProfile(profile));
-      return result.payload;
+      try {
+        const result = await authApi.updateProfile(profile);
+        return result;
+      } catch (error) {
+        console.error('Update profile failed:', error);
+        throw error;
+      }
     },
-    [dispatch]
+    []
   );
 
   // Change Password
   const changeUserPassword = useCallback(
     async (data: ChangePasswordRequest) => {
-      await dispatch(changePassword(data));
+      try {
+        await authApi.changePassword(data);
+      } catch (error) {
+        console.error('Change password failed:', error);
+        throw error;
+      }
     },
-    [dispatch]
+    []
   );
 
   // Refresh Token
   const refreshToken = useCallback(async () => {
-    // Dispatch refresh thunk
-    const token = tokenManager.getRefreshToken();
-    if (!token) {
-      throw new Error('No refresh token available');
+    try {
+      const token = tokenManager.getRefreshToken();
+      if (!token) {
+        throw new Error('No refresh token available');
+      }
+      const result = await authApi.refreshToken(token);
+      return result;
+    } catch (error) {
+      console.error('Refresh token failed:', error);
+      throw error;
     }
   }, []);
 

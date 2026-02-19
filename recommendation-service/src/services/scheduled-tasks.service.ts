@@ -17,8 +17,9 @@ export class ScheduledTasksService {
     try {
       await this.recommendationService.updateContentEngagementScores();
       this.logger.log('✅ Engagement scores updated successfully');
-    } catch (err: any) {
-      this.logger.error(`❌ Failed to update engagement scores: ${err.message}`);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      this.logger.error(`❌ Failed to update engagement scores: ${errorMsg}`);
     }
   }
 
@@ -31,8 +32,9 @@ export class ScheduledTasksService {
     try {
       await this.recommendationService.clearAllCache();
       this.logger.log('✅ Cache cleared successfully');
-    } catch (err: any) {
-      this.logger.error(`❌ Failed to clear cache: ${err.message}`);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      this.logger.error(`❌ Failed to clear cache: ${errorMsg}`);
     }
   }
 }

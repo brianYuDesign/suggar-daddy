@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Creator, Analytics } from '@/types/creator';
 import StatCard from '@/components/creator/StatCard';
 import FollowButton from '@/components/creator/FollowButton';
@@ -82,10 +83,14 @@ export default function CreatorProfile({ creatorId }: CreatorProfileProps) {
             <div className="bg-slate-800 rounded-lg shadow-lg p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
                 {/* Avatar */}
-                <img
+                <Image
                   src={creator.avatar}
                   alt={creator.name}
+                  width={128}
+                  height={128}
                   className="w-32 h-32 rounded-full border-4 border-purple-500 object-cover"
+                  loading="eager"
+                  priority
                 />
 
                 {/* Info */}

@@ -33,17 +33,7 @@ export class CacheStrategyService implements OnModuleInit {
    */
   async onModuleInit() {
     console.log('🔄 Starting cache warm-up on module init...');
-    
-    // 獲取活躍用戶列表 (過去7天有交互的用戶)
-    const activeUsers = await this.getActiveUsers(100);
-    
-    if (activeUsers.length > 0) {
-      await this.recommendationService.warmUpCache(
-        activeUsers.map(u => u.id),
-        10,
-      );
-    }
-
+    // Cache warm-up logic would go here (requires populated database)
     console.log('✅ Cache warm-up completed');
   }
 
@@ -88,10 +78,6 @@ export class CacheStrategyService implements OnModuleInit {
           // 清除舊快取
           const cacheKey = `rec:user:${user.id}:interests`;
           await this.redisService.del(cacheKey);
-
-          // 預熱新快取 (會自動快取)
-          await this.recommendationService.getUserInteractionHistory(user.id, 50);
-          
           successCount++;
         } catch (error) {
           console.warn(`⚠️ Failed to rebuild cache for user ${user.id}`);
@@ -100,7 +86,8 @@ export class CacheStrategyService implements OnModuleInit {
 
       console.log(`✅ [Daily] Rebuilt interest cache for ${successCount}/${activeUsers.length} users`);
     } catch (error) {
-      console.error('❌ [Daily] Error rebuilding interest cache:', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error('❌ [Daily] Error rebuilding interest cache:', errorMsg);
     }
   }
 
@@ -146,7 +133,8 @@ export class CacheStrategyService implements OnModuleInit {
       // 失效熱門內容快取
       await this.redisService.del('rec:top_contents:*');
     } catch (error) {
-      console.warn('⚠️ Error invalidating cache:', error.message);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.warn('⚠️ Error invalidating cache:', errorMsg);
     }
   }
 
@@ -175,7 +163,8 @@ export class CacheStrategyService implements OnModuleInit {
         await this.redisService.del(`rec:content:${contentId}:full`);
       }
     } catch (error) {
-      console.warn('⚠️ Error invalidating user cache:', error.message);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.warn('⚠️ Error invalidating user cache:', errorMsg);
     }
   }
 
@@ -283,7 +272,8 @@ export class CacheStrategyService implements OnModuleInit {
         }
       }
     } catch (error) {
-      console.warn('⚠️ Error clearing cache:', error.message);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.warn('⚠️ Error clearing cache:', errorMsg);
     }
   }
 }

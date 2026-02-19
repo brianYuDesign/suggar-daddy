@@ -2,7 +2,6 @@ import {
   configureStore,
   ThunkAction,
   Action,
-  PreloadedState,
 } from '@reduxjs/toolkit';
 import {
   persistStore,
@@ -29,7 +28,7 @@ const authPersistConfig = {
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 
 // Create store
-const createStore = (preloadedState?: PreloadedState<RootState>) => {
+const createStore = (preloadedState?: object) => {
   return configureStore({
     reducer: {
       auth: persistedAuthReducer,

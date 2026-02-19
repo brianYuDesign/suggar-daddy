@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Analytics } from '@/types/creator';
 import StatCard from '@/components/creator/StatCard';
 import AnalyticsChart from '@/components/analytics/AnalyticsChart';
@@ -154,10 +155,13 @@ export default function AnalyticsDashboard() {
                 className="bg-slate-900/50 rounded-lg border border-slate-600 p-4 hover:border-slate-500 transition-colors"
               >
                 <div className="flex gap-4">
-                  <img
+                  <Image
                     src={content.thumbnail}
                     alt={content.title}
+                    width={96}
+                    height={96}
                     className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
+                    loading="lazy"
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-white font-semibold line-clamp-2 mb-2">

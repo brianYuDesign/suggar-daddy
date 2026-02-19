@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Content } from '@/types/creator';
 
 interface ContentCardProps {
@@ -31,10 +32,12 @@ export default function ContentCard({
     <div className="bg-slate-800/50 rounded-lg border border-slate-700 overflow-hidden hover:border-slate-600 transition-all group">
       {/* Thumbnail */}
       <div className="relative h-40 overflow-hidden bg-slate-900">
-        <img
+        <Image
           src={content.thumbnail}
           alt={content.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+          fill
+          className="object-cover group-hover:scale-105 transition-transform"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
 

@@ -195,7 +195,8 @@ export class RecommendationService {
         }
       }
     } catch (err) {
-      console.warn('⚠️ Warning: Could not clear cache (Redis might be unavailable):', err.message);
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.warn('⚠️ Warning: Could not clear cache (Redis might be unavailable):', errorMsg);
       // 優雅地處理 - Redis 不可用時不中斷服務
       return;
     }
@@ -267,7 +268,8 @@ export class RecommendationService {
         await this.getRecommendations(userId, limit);
         successCount++;
       } catch (error) {
-        console.warn(`⚠️ Failed to warm cache for user ${userId}:`, error.message);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.warn(`⚠️ Failed to warm cache for user ${userId}:`, errorMsg);
       }
     }
 

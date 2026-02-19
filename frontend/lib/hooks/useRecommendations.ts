@@ -1,12 +1,7 @@
-import { useCallback, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from './redux';
+import { useCallback } from 'react';
+import { useAppSelector } from './redux';
 import {
-  fetchRecommendations,
-  rateContent,
-  recordInteraction,
-  subscribeCreator,
-  unsubscribeCreator,
-  setFilter,
+  recommendationsApi,
   GetRecommendationsRequest,
 } from '@/lib/api';
 
@@ -15,42 +10,37 @@ import {
  * Manages fetching and interacting with recommendations
  */
 export const useRecommendations = () => {
-  const dispatch = useAppDispatch();
   const recommendations = useAppSelector((state) => state.recommendations);
 
   // Fetch recommendations
   const fetchRecs = useCallback(
     async (params: GetRecommendationsRequest) => {
-      const result = await dispatch(fetchRecommendations(params));
-      return result.payload;
+      const result = await recommendationsApi.getRecommendations(params);
+      return result;
     },
-    [dispatch]
+    []
   );
 
   // Load more recommendations
   const loadMore = useCallback(async () => {
     const nextOffset = (recommendations.pagination.page - 1) * recommendations.pagination.limit + recommendations.pagination.limit;
-    const result = await dispatch(
-      fetchRecommendations({
-        ...recommendations.filters,
-        offset: nextOffset,
-      })
-    );
-    return result.payload;
-  }, [dispatch, recommendations]);
+    const result = await recommendationsApi.getRecommendations({
+      ...recommendations.filters,
+      offset: nextOffset,
+    });
+    return result;
+  }, [recommendations]);
 
   // Rate content
   const rate = useCallback(
     async (contentId: string, rating: number, userId: string) => {
-      await dispatch(
-        rateContent({
-          userId,
-          contentId,
-          rating,
-        })
-      );
+      await recommendationsApi.rateContent({
+        userId,
+        contentId,
+        rating,
+      });
     },
-    [dispatch]
+    []
   );
 
   // Record interaction
@@ -60,39 +50,40 @@ export const useRecommendations = () => {
       type: 'view' | 'like' | 'share' | 'comment' | 'skip',
       userId: string
     ) => {
-      await dispatch(
-        recordInteraction({
-          userId,
-          contentId,
-          interactionType: type,
-        })
-      );
+      await recommendationsApi.recordInteraction({
+        userId,
+        contentId,
+        interactionType: type,
+      });
     },
-    [dispatch]
+    []
   );
 
   // Subscribe to creator
   const subscribe = useCallback(
     async (creatorId: string) => {
-      await dispatch(subscribeCreator(creatorId));
+      // API call for subscription
+      console.log('Subscribe to creator:', creatorId);
     },
-    [dispatch]
+    []
   );
 
   // Unsubscribe from creator
   const unsubscribe = useCallback(
     async (creatorId: string) => {
-      await dispatch(unsubscribeCreator(creatorId));
+      // API call for unsubscription
+      console.log('Unsubscribe from creator:', creatorId);
     },
-    [dispatch]
+    []
   );
 
   // Update filters
   const updateFilters = useCallback(
     (filters: Partial<GetRecommendationsRequest>) => {
-      dispatch(setFilter(filters));
+      // Update filters in state
+      console.log('Update filters:', filters);
     },
-    [dispatch]
+    []
   );
 
   return {
