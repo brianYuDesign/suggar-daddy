@@ -28,7 +28,7 @@ async function bootstrap() {
 
     logger.log(`🚀 Recommendation Service running on http://localhost:${port}`);
     logger.log(`📚 API docs: http://localhost:${port}/api/v1`);
-  } catch (err) {
+  } catch (err: any) {
     logger.error(`Failed to start application: ${err.message}`);
     process.exit(1);
   }

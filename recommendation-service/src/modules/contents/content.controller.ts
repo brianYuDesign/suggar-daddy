@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Put, Delete, Param, Query, Body, HttpCode, Logger } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Content, ContentTag } from '../database/entities';
-import { CreateContentDto, UpdateContentDto, ContentResponseDto } from '../dtos/content.dto';
+import { Content, ContentTag } from '../../database/entities';
+import { CreateContentDto, UpdateContentDto, ContentResponseDto } from '../../dtos/content.dto';
 
 @Controller('api/v1/contents')
 export class ContentController {
@@ -152,7 +152,7 @@ export class ContentController {
       like_count: content.like_count,
       share_count: content.share_count,
       engagement_score: content.engagement_score,
-      tags: content.tags?.map((t) => t.name) || [],
+      tags: content.tags?.map((t: ContentTag) => t.name) || [],
       created_at: content.created_at,
       updated_at: content.updated_at,
     };

@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
-import { User, Content, ContentTag, UserInterest, UserInteraction } from '../database/entities';
-import { RedisService } from '../cache/redis.service';
-import { RecommendationService } from '../services/recommendation.service';
-import { RecommendationController } from '../modules/recommendations/recommendation.controller';
-import { ContentController } from '../modules/contents/content.controller';
-import { ScheduledTasksService } from '../services/scheduled-tasks.service';
+import { User, Content, ContentTag, UserInterest, UserInteraction } from './database/entities';
+import { RedisService } from './cache/redis.service';
+import { RecommendationService } from './services/recommendation.service';
+import { RecommendationController } from './modules/recommendations/recommendation.controller';
+import { ContentController } from './modules/contents/content.controller';
+import { ScheduledTasksService } from './services/scheduled-tasks.service';
 
 @Module({
   imports: [

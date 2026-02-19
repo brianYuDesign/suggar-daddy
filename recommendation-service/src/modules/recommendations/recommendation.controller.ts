@@ -75,10 +75,10 @@ export class RecommendationController {
       this.logger.debug(`Recorded ${dto.interaction_type} for user ${dto.user_id}`);
 
       // 異步清理推薦快取（非阻塞）
-      this.invalidateUserCache(dto.user_id).catch((err) =>
+      this.invalidateUserCache(dto.user_id).catch((err: any) =>
         this.logger.error(`Cache invalidation failed: ${err.message}`),
       );
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`Failed to record interaction: ${err.message}`);
       throw new BadRequestException('Failed to record interaction');
     }
@@ -120,7 +120,7 @@ export class RecommendationController {
         message: 'Engagement scores updated successfully',
         timestamp: new Date(),
       };
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`Failed to update scores: ${err.message}`);
       throw new BadRequestException('Failed to update engagement scores');
     }
@@ -138,7 +138,7 @@ export class RecommendationController {
         message: 'All recommendation caches cleared',
         timestamp: new Date(),
       };
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`Failed to clear cache: ${err.message}`);
       throw new BadRequestException('Failed to clear cache');
     }
@@ -161,11 +161,17 @@ export class RecommendationController {
   /**
    * 異步失效用戶推薦快取
    */
-  private async invalidateUserCache(userId: string): Promise<void> {
-    setTimeout(() => {
-      this.recommendationService.clearAllCache().catch((err) => {
-        this.logger.error(`Cache invalidation error: ${err.message}`);
-      });
-    }, 100);
+  private invalidateUserCache(userId: string): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(async () => {
+        try {
+          await this.recommendationService.clearAllCache();
+          resolve();
+        } catch (err: any) {
+          this.logger.error(`Cache invalidation error: ${err.message}`);
+          resolve();
+        }
+      }, 100);
+    });
   }
 }

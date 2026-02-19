@@ -16,7 +16,7 @@ export class RecommendationResponseDto implements RecommendationResult {
 export class RecommendationsListDto {
   user_id: string;
   count: number;
-  recommendations: RecommendationResponseDto[];
+  recommendations: RecommendationResult[];
   generated_at: Date;
   cache_hit: boolean;
 }

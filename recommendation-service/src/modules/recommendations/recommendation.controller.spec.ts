@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BadRequestException } from '@nestjs/common';
-import { RecommendationController } from '../modules/recommendations/recommendation.controller';
-import { RecommendationService } from '../services/recommendation.service';
-import { UserInteraction } from '../database/entities';
+import { RecommendationController } from './recommendation.controller';
+import { RecommendationService } from '../../services/recommendation.service';
+import { UserInteraction } from '../../database/entities';
 
 describe('RecommendationController', () => {
   let controller: RecommendationController;
@@ -57,7 +57,7 @@ describe('RecommendationController', () => {
         },
       ];
 
-      recommendationService.getRecommendations.mockResolvedValue(mockRecs);
+      recommendationService.getRecommendations.mockResolvedValue(mockRecs as any);
 
       const result = await controller.getRecommendations(userId, '20');
 
@@ -85,19 +85,17 @@ describe('RecommendationController', () => {
         interaction_type: 'like' as const,
       };
 
-      const mockInteraction: UserInteraction = {
+      const mockInteraction: Partial<UserInteraction> = {
         id: 'interaction-1',
         user_id: dto.user_id,
         content_id: dto.content_id,
-        interaction_type: dto.interaction_type,
+        interaction_type: 'like' as any,
         weight: 5,
         created_at: new Date(),
-        user: null,
-        content: null,
       };
 
-      interactionRepo.create.mockReturnValue(mockInteraction);
-      interactionRepo.save.mockResolvedValue(mockInteraction);
+      interactionRepo.create.mockReturnValue(mockInteraction as UserInteraction);
+      interactionRepo.save.mockResolvedValue(mockInteraction as UserInteraction);
 
       await controller.recordInteraction(dto);
 
@@ -128,7 +126,7 @@ describe('RecommendationController', () => {
         },
       ];
 
-      recommendationService.getRecommendations.mockResolvedValue(mockRecs);
+      recommendationService.getRecommendations.mockResolvedValue(mockRecs as any);
 
       const result = await controller.refreshRecommendations(userId);
 
