@@ -354,8 +354,15 @@ services:
       # Service URLs
       AUTH_SERVICE_URL: http://auth-service:3002
       USER_SERVICE_URL: http://user-service:3001
+      MATCHING_SERVICE_URL: http://matching-service:3003
+      NOTIFICATION_SERVICE_URL: http://notification-service:3004
+      MESSAGING_SERVICE_URL: http://messaging-service:3005
+      CONTENT_SERVICE_URL: http://content-service:3006
       PAYMENT_SERVICE_URL: http://payment-service:3007
       SUBSCRIPTION_SERVICE_URL: http://subscription-service:3009
+      SKILL_SERVICE_URL: http://skill-service:3010
+      MEDIA_SERVICE_URL: http://media-service:3008
+      ADMIN_SERVICE_URL: http://admin-service:3011
       # Redis
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
@@ -489,6 +496,8 @@ services:
       REDIS_PORT: 6379
       # Kafka
       KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       # Cloudinary (for file uploads)
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
@@ -534,6 +543,8 @@ services:
       REDIS_PORT: 6379
       # Kafka
       KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       # Stripe
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
@@ -581,6 +592,8 @@ services:
       REDIS_PORT: 6379
       # Kafka
       KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       # OpenTelemetry / Jaeger
       JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
       OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
@@ -668,6 +681,8 @@ services:
       REDIS_PORT: 6379
       # Kafka
       KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       # OpenTelemetry / Jaeger
       JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
       OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
@@ -796,6 +811,8 @@ services:
       REDIS_PORT: 6379
       # Kafka
       KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       # OpenTelemetry / Jaeger
       JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
       OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
@@ -839,6 +856,8 @@ services:
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
       KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       # OpenTelemetry / Jaeger
       JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
       OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
@@ -882,6 +901,8 @@ services:
       REDIS_HOST: redis-master
       REDIS_PORT: 6379
       KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       # Cloudinary (for media uploads)
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
