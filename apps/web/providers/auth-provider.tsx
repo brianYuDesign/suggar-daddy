@@ -43,7 +43,7 @@ interface AuthContextValue extends AuthState {
   register: (data: {
     email: string;
     password: string;
-    userType: 'SUGAR_DADDY' | 'SUGAR_BABY';
+    userType: 'sugar_daddy' | 'sugar_baby';
     displayName: string;
     bio?: string;
   }) => Promise<void>;
@@ -170,7 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (data: {
       email: string;
       password: string;
-      userType: 'SUGAR_DADDY' | 'SUGAR_BABY';
+      userType: 'sugar_daddy' | 'sugar_baby';
       displayName: string;
       bio?: string;
     }) => {

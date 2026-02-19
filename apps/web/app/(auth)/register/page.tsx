@@ -68,12 +68,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setError('');
     try {
-      // 轉換 userType 為大寫格式
-      const registerData = {
-        ...data,
-        userType: data.userType === 'sugar_baby' ? 'SUGAR_BABY' as const : 'SUGAR_DADDY' as const,
-      };
-      await registerUser(registerData);
+      await registerUser(data);
       toast.success('註冊成功！即將跳轉...');
     } catch (err) {
       const errorMessage = ApiError.getMessage(err, '註冊失敗，請稍後再試');
