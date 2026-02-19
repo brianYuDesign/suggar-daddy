@@ -450,9 +450,14 @@ DevOps: 0% → 100%
 ✅ QA-002: E2E 測試 (Playwright, 64 test cases, 13 min)
 ⚡ HOTFIX: Recommendation Service (P0 修復, 55/55 tests ✅)
 
-**Week 3 準備中**: 聯調、集成、API 串接
+**Week 3 - ⏳ 開始執行**:
+⏳ BACK-005: Backend API Integration & Testing (3-4 days)
+⏳ FRONT-003: Frontend API Integration & E2E Testing (3-4 days)
+⏳ QA-003: Full System Integration Testing (2-3 days)
+⏳ DEVOPS-003: Production Readiness & Deployment (2-3 days)
+⏳ BACK-006: Database Optimization & Performance (2-3 days)
 
-**整體進度**: 40% (10/25 tasks 完成 + 1 hotfix)
+**整體進度**: 40% (10/25 tasks 完成 + Week 3 5 tasks 派發中)
 
 **時間表**:
 - Week 1-2: ✅ 完成 (架構 + 業務邏輯)
