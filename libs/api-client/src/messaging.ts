@@ -24,12 +24,13 @@ export class MessagingApi {
    * @param conversationId - 對話 ID
    * @param cursor - 分頁游標（可選）
    */
-  getMessages(conversationId: string, cursor?: string) {
+  async getMessages(conversationId: string, cursor?: string): Promise<MessageDto[]> {
     const params = cursor ? { cursor } : undefined;
-    return this.client.get<MessageDto[]>(
+    const raw = await this.client.get<{ messages: MessageDto[]; nextCursor?: string }>(
       `/api/messaging/conversations/${conversationId}/messages`,
       { params }
     );
+    return raw.messages || [];
   }
 
   /**
@@ -37,7 +38,7 @@ export class MessagingApi {
    * @param dto - 訊息內容
    */
   sendMessage(dto: SendMessageDto) {
-    return this.client.post<MessageDto>('/api/messaging/messages', dto);
+    return this.client.post<MessageDto>('/api/messaging/send', dto);
   }
 
   /**
@@ -90,11 +91,16 @@ export class MessagingApi {
    * }
    * ```
    */
-  getBroadcasts(cursor?: string) {
-    const params = cursor ? { cursor } : undefined;
-    return this.client.get<CursorPaginatedResponse<BroadcastDto>>(
-      '/api/messaging/broadcasts',
-      { params }
-    );
+  async getBroadcasts(cursor?: string): Promise<CursorPaginatedResponse<BroadcastDto>> {
+    const page = cursor ? parseInt(cursor, 10) : 1;
+    const params: Record<string, string> = { page: String(page), limit: '20' };
+    const raw = await this.client.get<{
+      data: BroadcastDto[];
+      total: number;
+      page: number;
+      limit: number;
+    }>('/api/messaging/broadcasts', { params });
+    const hasMore = raw.page * raw.limit < raw.total;
+    return { data: raw.data || [], hasMore, cursor: hasMore ? String(raw.page + 1) : undefined };
   }
 }

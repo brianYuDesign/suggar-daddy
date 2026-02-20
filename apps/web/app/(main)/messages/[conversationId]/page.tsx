@@ -109,24 +109,17 @@ export default function ChatRoomPage() {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  /* ---------- send message via WebSocket ---------- */
+  /* ---------- send message via REST API (JWT auth) ---------- */
   async function handleSend() {
     const trimmed = input.trim();
     if (!trimmed || sending || !conversationId || !user?.id) return;
 
     setSending(true);
-    const socket = getMessagingSocket();
-
-    // 透過 WebSocket 發送（gateway 會存到 Redis + Kafka + 廣播）
-    socket.emit('send_message', {
-      senderId: user.id,
-      conversationId,
-      content: trimmed,
-    });
 
     // 樂觀更新：立即顯示在畫面
+    const tempId = `temp-${Date.now()}`;
     const optimistic: Message = {
-      id: `temp-${Date.now()}`,
+      id: tempId,
       conversationId,
       senderId: user.id,
       content: trimmed,
@@ -134,7 +127,30 @@ export default function ChatRoomPage() {
     };
     setMessages((prev) => [...prev, optimistic]);
     setInput('');
-    setSending(false);
+
+    try {
+      // 透過 REST API 發送（使用 JWT 認證，比 WebSocket 更可靠）
+      const saved = await messagingApi.sendMessage({
+        conversationId,
+        content: trimmed,
+      });
+      // 替換樂觀訊息為伺服器回傳的實際訊息
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempId
+            ? { ...m, id: saved.id, createdAt: saved.createdAt }
+            : m
+        )
+      );
+    } catch (err) {
+      // 發送失敗：移除樂觀訊息
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      const msg = err instanceof ApiError ? err.message : '發送訊息失敗，請稍後再試';
+      setError(msg);
+      setInput(trimmed); // 恢復輸入
+    } finally {
+      setSending(false);
+    }
   }
 
   /* ---------- typing indicator ---------- */

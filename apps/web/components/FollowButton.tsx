@@ -37,7 +37,11 @@ export function FollowButton({
         await usersApi.followUser(targetUserId);
       }
     } catch (err) {
-      // Revert on failure
+      // 409 = already following/unfollowed — keep the optimistic state
+      if (err instanceof ApiError && err.statusCode === 409) {
+        return;
+      }
+      // Revert on other failures
       setIsFollowing(previousState);
       onFollowChange?.(previousState);
       console.error(

@@ -41,6 +41,7 @@ export interface CursorPaginatedResponse<T> {
   data: T[];
   cursor?: string;
   hasMore: boolean;
+  total?: number;
 }
 
 // ============================================================

@@ -11,26 +11,30 @@
     "seed:posts": "ts-node src/runner.ts --module=posts",
     "seed:interactions": "ts-node src/runner.ts --module=interactions",
     "seed:payments": "ts-node src/runner.ts --module=payments",
-    "seed:all": "ts-node src/runner.ts --all",
+    "seed:all": "ts-node src/runner.ts --module all",
     "seed:clear": "ts-node src/runner.ts --clear",
+    "seed:redis": "ts-node src/redis-seeder.ts",
+    "seed:redis:clear": "ts-node src/redis-seeder.ts --clear",
     "dev": "ts-node-dev --respawn src/runner.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
-    "typeorm": "^0.3.20",
-    "pg": "^8.11.3",
+    "@types/ioredis": "^4.28.10",
     "bcrypt": "^5.1.1",
-    "uuid": "^9.0.1",
-    "commander": "^11.1.0",
     "chalk": "^4.1.2",
-    "ora": "^5.4.1"
+    "commander": "^11.1.0",
+    "ioredis": "^5.9.3",
+    "ora": "^5.4.1",
+    "pg": "^8.11.3",
+    "typeorm": "^0.3.20",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/uuid": "^9.0.8",
     "@types/cli-progress": "^3.11.5",
-    "typescript": "^5.3.3",
+    "@types/uuid": "^9.0.8",
     "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0"
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
   }
 }

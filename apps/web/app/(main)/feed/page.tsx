@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../providers/auth-provider';
 import { useToast } from '../../../providers/toast-provider';
-import { contentApi, usersApi, ApiError } from '../../../lib/api';
+import { contentApi, usersApi } from '../../../lib/api';
+import { useLikedPosts } from '../../../hooks/use-liked-posts';
 import { timeAgo } from '../../../lib/utils';
 import {
   Avatar,
@@ -222,7 +223,7 @@ export default function FeedPage() {
     isLoadingMore: false,
     error: null,
   });
-  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const { likedPosts, toggleLike } = useLikedPosts();
   const [authorNames, setAuthorNames] = useState<Record<string, string>>({});
   const [storyViewerData, setStoryViewerData] = useState<{
     groups: StoryGroup[];
@@ -295,39 +296,12 @@ export default function FeedPage() {
   };
 
   const handleLikeToggle = async (postId: string) => {
-    const isCurrentlyLiked = likedPosts.has(postId);
-
-    // Optimistic update
-    setLikedPosts((prev) => {
-      const next = new Set(prev);
-      if (isCurrentlyLiked) {
-        next.delete(postId);
-      } else {
-        next.add(postId);
-      }
-      return next;
-    });
-
     try {
-      if (isCurrentlyLiked) {
-        await contentApi.unlikePost(postId);
-      } else {
-        await contentApi.likePost(postId);
+      const result = await toggleLike(postId);
+      if (result.isLiked) {
         toast.success('已喜歡此貼文');
       }
     } catch (err) {
-      // Revert on failure
-      setLikedPosts((prev) => {
-        const next = new Set(prev);
-        if (isCurrentlyLiked) {
-          next.add(postId);
-        } else {
-          next.delete(postId);
-        }
-        return next;
-      });
-
-      // 顯示錯誤提示
       const friendlyMessage = getFriendlyErrorMessage(err);
       toast.error(friendlyMessage);
     }

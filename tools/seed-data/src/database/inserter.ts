@@ -45,8 +45,8 @@ export class DatabaseInserter {
     
     const query = `
       INSERT INTO skills (
-        id, category, name, name_en, name_zh_tw, icon, is_active, sort_order, created_at, updated_at
-      ) VALUES 
+        id, category, name, "nameEn", "nameZhTw", icon, "isActive", "sortOrder", "createdAt", "updatedAt"
+      ) VALUES
       ${skills.map((_, i) => `($${i * 10 + 1}, $${i * 10 + 2}, $${i * 10 + 3}, $${i * 10 + 4}, $${i * 10 + 5}, $${i * 10 + 6}, $${i * 10 + 7}, $${i * 10 + 8}, $${i * 10 + 9}, $${i * 10 + 10})`).join(',')}
     `;
     
@@ -65,7 +65,7 @@ export class DatabaseInserter {
     for (let i = 0; i < userSkills.length; i += batchSize) {
       const batch = userSkills.slice(i, i + batchSize);
       const query = `
-        INSERT INTO user_skills (id, user_id, skill_id, proficiency_level, is_highlight, created_at)
+        INSERT INTO user_skills (id, "userId", "skillId", "proficiencyLevel", "isHighlight", "createdAt")
         VALUES ${batch.map((_, j) => `($${j * 6 + 1}, $${j * 6 + 2}, $${j * 6 + 3}, $${j * 6 + 4}, $${j * 6 + 5}, $${j * 6 + 6})`).join(',')}
       `;
       const params = batch.flatMap(us => [us.id, us.userId, us.skillId, us.proficiencyLevel, false, us.createdAt]);

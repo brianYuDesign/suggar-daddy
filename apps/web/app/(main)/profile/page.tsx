@@ -55,8 +55,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user?.id) return;
-    usersApi.getFollowers(user.id).then((res) => setFollowerCount(res.data.length + (res.hasMore ? 1 : 0))).catch(() => {});
-    usersApi.getFollowing(user.id).then((res) => setFollowingCount(res.data.length + (res.hasMore ? 1 : 0))).catch(() => {});
+    usersApi.getFollowers(user.id).then((res) => setFollowerCount(res.total ?? res.data.length)).catch(() => {});
+    usersApi.getFollowing(user.id).then((res) => setFollowingCount(res.total ?? res.data.length)).catch(() => {});
   }, [user?.id]);
 
   if (!user) return null;

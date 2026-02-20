@@ -62,9 +62,11 @@ function SearchSkeleton() {
 function UserResultCard({
   user,
   currentUserId,
+  isFollowing,
 }: {
   user: UserCard;
   currentUserId?: string;
+  isFollowing?: boolean;
 }) {
   const initials = (user.displayName || user.username || 'U').slice(0, 2).toUpperCase();
   const isOwnProfile = currentUserId === user.userId;
@@ -102,7 +104,11 @@ function UserResultCard({
             )}
           </div>
           {!isOwnProfile && user.userId && (
-            <FollowButton targetUserId={user.userId} size="sm" />
+            <FollowButton
+              targetUserId={user.userId}
+              initialIsFollowing={isFollowing}
+              size="sm"
+            />
           )}
         </div>
       </CardContent>
@@ -171,15 +177,39 @@ export default function SearchPage() {
   const [postResults, setPostResults] = useState<Post[]>([]);
   const [recommendedCreators, setRecommendedCreators] = useState<UserCard[]>([]);
   const [loadingRecommended, setLoadingRecommended] = useState(true);
+  const [followStatusMap, setFollowStatusMap] = useState<Record<string, boolean>>({});
 
   const [hasSearched, setHasSearched] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Batch fetch follow statuses, returns the map (doesn't depend on existing state)
+  const batchFetchFollowStatuses = useCallback(
+    async (userIds: string[]): Promise<Record<string, boolean>> => {
+      if (!user?.id) return {};
+      const idsToCheck = userIds.filter((id) => id !== user.id);
+      if (idsToCheck.length === 0) return {};
+      const results = await Promise.allSettled(
+        idsToCheck.map((id) => usersApi.getFollowStatus(id))
+      );
+      const map: Record<string, boolean> = {};
+      idsToCheck.forEach((id, i) => {
+        const r = results[i];
+        map[id] = r.status === 'fulfilled' ? r.value.isFollowing : false;
+      });
+      return map;
+    },
+    [user?.id]
+  );
 
   // Load recommended creators on mount
   useEffect(() => {
     (async () => {
       try {
         const creators = await usersApi.getRecommendedCreators(10);
+        // Fetch follow statuses BEFORE showing results (no flash)
+        const ids = creators.map((c: any) => c.userId).filter(Boolean);
+        const statuses = await batchFetchFollowStatuses(ids);
+        setFollowStatusMap((prev) => ({ ...prev, ...statuses }));
         setRecommendedCreators(creators as any);
       } catch {
         // Silently fail
@@ -187,7 +217,7 @@ export default function SearchPage() {
         setLoadingRecommended(false);
       }
     })();
-  }, []);
+  }, [user?.id, batchFetchFollowStatuses]);
 
   const performSearch = useCallback(
     async (searchQuery: string) => {
@@ -204,6 +234,9 @@ export default function SearchPage() {
       try {
         if (activeTab === 'users') {
           const users = await usersApi.searchUsers(searchQuery);
+          // Fetch follow statuses BEFORE showing results (no flash)
+          const statuses = await batchFetchFollowStatuses(users.map((u) => u.userId));
+          setFollowStatusMap((prev) => ({ ...prev, ...statuses }));
           setUserResults(users);
         } else {
           const result = await contentApi.searchPosts(searchQuery);
@@ -218,7 +251,7 @@ export default function SearchPage() {
         setIsSearching(false);
       }
     },
-    [activeTab]
+    [activeTab, batchFetchFollowStatuses]
   );
 
   // Debounced search
@@ -323,6 +356,7 @@ export default function SearchPage() {
                 key={u.userId}
                 user={u}
                 currentUserId={user?.id}
+                isFollowing={followStatusMap[u.userId]}
               />
             ))
           ) : (
@@ -369,6 +403,7 @@ export default function SearchPage() {
                   key={creator.userId}
                   user={creator}
                   currentUserId={user?.id}
+                  isFollowing={followStatusMap[creator.userId]}
                 />
               ))}
             </div>

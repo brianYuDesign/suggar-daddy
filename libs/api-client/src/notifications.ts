@@ -14,7 +14,7 @@ export class NotificationsApi {
    * @returns 通知列表
    */
   getAll() {
-    return this.client.get<NotificationItemDto[]>('/api/notifications');
+    return this.client.get<NotificationItemDto[]>('/api/notifications/list');
   }
 
   /**
@@ -22,14 +22,21 @@ export class NotificationsApi {
    * @param notificationId - 通知 ID
    */
   markAsRead(notificationId: string) {
-    return this.client.patch<void>(`/api/notifications/${notificationId}/read`);
+    return this.client.post<void>(`/api/notifications/read/${notificationId}`);
   }
 
   /**
    * 標記所有通知為已讀
+   * Note: backend has no bulk endpoint, so we fetch all and mark individually
    */
-  markAllAsRead() {
-    return this.client.patch<void>('/api/notifications/read-all');
+  async markAllAsRead(): Promise<void> {
+    try {
+      const notifications = await this.getAll();
+      const unread = (notifications || []).filter(n => !n.read);
+      await Promise.all(unread.map(n => this.markAsRead(n.id)));
+    } catch {
+      // Silently ignore — best-effort
+    }
   }
 
   /**

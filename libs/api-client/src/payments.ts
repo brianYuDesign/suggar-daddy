@@ -118,7 +118,11 @@ export class PaymentsApi {
    * @returns Tip transaction record
    */
   sendTip(toUserId: string, amount: number) {
-    return this.client.post<Tip>('/api/tips', { toUserId, amount });
+    return this.client.post<Tip>('/api/tips', {
+      fromUserId: 'placeholder', // overridden by backend from JWT
+      toUserId,
+      amount,
+    });
   }
 
   /**
@@ -131,16 +135,24 @@ export class PaymentsApi {
   }
 
   /**
-   * Get transaction history with cursor-based pagination
-   * @param cursor - Optional pagination cursor
+   * Get transaction history with pagination
+   * @param cursor - Optional page number (as string)
    * @returns List of transactions and next cursor
    */
-  getTransactions(cursor?: string) {
-    const params = cursor ? { cursor } : undefined;
-    return this.client.get<{ transactions: Transaction[]; nextCursor?: string }>(
-      '/api/transactions',
-      { params }
-    );
+  async getTransactions(cursor?: string) {
+    const page = cursor ? parseInt(cursor, 10) : 1;
+    const params: Record<string, string> = { page: String(page), limit: '20' };
+    const raw = await this.client.get<{
+      data: Transaction[];
+      total: number;
+      page: number;
+      limit: number;
+    }>('/api/transactions', { params });
+    const hasMore = raw.page * raw.limit < raw.total;
+    return {
+      transactions: raw.data || [],
+      nextCursor: hasMore ? String(raw.page + 1) : undefined,
+    };
   }
 
   /**
@@ -163,28 +175,60 @@ export class PaymentsApi {
 
   /**
    * Get current wallet balance and earnings
-   * @returns Wallet information
+   * @returns Wallet information (maps backend fields to Wallet interface)
    */
-  getWallet() {
-    return this.client.get<Wallet>('/api/wallet');
+  async getWallet(): Promise<Wallet> {
+    const raw = await this.client.get<Record<string, unknown>>('/api/wallet');
+    return {
+      userId: (raw.userId as string) || '',
+      balance: Number(raw.balance) || 0,
+      pendingBalance: Number(raw.pendingBalance) || 0,
+      totalEarnings: Number(raw.totalEarnings) || 0,
+      totalWithdrawn: Number(raw.totalWithdrawn) || 0,
+      updatedAt: (raw.updatedAt as string) || new Date().toISOString(),
+    };
   }
 
   /**
    * Get comprehensive earnings summary
-   * @returns Wallet info, recent transactions, and pending withdrawals
+   * @returns Earnings breakdown from backend
    */
-  getEarningsSummary() {
-    return this.client.get<{ wallet: Wallet; recentTransactions: unknown[]; pendingWithdrawals: Withdrawal[] }>(
-      '/api/wallet/earnings'
-    );
+  async getEarningsSummary() {
+    const raw = await this.client.get<Record<string, unknown>>('/api/wallet/earnings');
+    // Backend returns: { totalEarnings, tipsEarnings, subscriptionEarnings, ppvEarnings, currency, period }
+    // Map to the expected shape, falling back gracefully
+    const wallet: Wallet = {
+      userId: '',
+      balance: 0,
+      pendingBalance: 0,
+      totalEarnings: Number(raw.totalEarnings) || 0,
+      totalWithdrawn: 0,
+      updatedAt: new Date().toISOString(),
+    };
+    return {
+      wallet,
+      recentTransactions: [] as unknown[],
+      pendingWithdrawals: [] as Withdrawal[],
+      tipsEarnings: Number(raw.tipsEarnings) || 0,
+      subscriptionEarnings: Number(raw.subscriptionEarnings) || 0,
+      ppvEarnings: Number(raw.ppvEarnings) || 0,
+      currency: (raw.currency as string) || 'USD',
+      period: raw.period as string,
+    };
   }
 
   /**
    * Get complete wallet transaction history
    * @returns List of wallet transactions
    */
-  getWalletHistory() {
-    return this.client.get<unknown[]>('/api/wallet/history');
+  async getWalletHistory(): Promise<unknown[]> {
+    const raw = await this.client.get<{
+      data: unknown[];
+      total: number;
+      page: number;
+      limit: number;
+    }>('/api/wallet/history');
+    return raw.data || [];
   }
 
   /**

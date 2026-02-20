@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../../providers/auth-provider';
 import { contentApi, paymentsApi, usersApi, ApiError } from '../../../../lib/api';
+import { useLikedPosts } from '../../../../hooks/use-liked-posts';
 import { useToast } from '../../../../providers/toast-provider';
 import { TipModal } from '../../../components/TipModal';
 import { timeAgo } from '../../../../lib/utils';
@@ -94,7 +95,8 @@ export default function PostDetailPage() {
   const [authorAvatar, setAuthorAvatar] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLiked, setIsLiked] = useState(false);
+  const { isLiked: checkIsLiked, toggleLike } = useLikedPosts();
+  const isLiked = checkIsLiked(postId);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
@@ -186,16 +188,10 @@ export default function PostDetailPage() {
 
   const handleLikeToggle = async () => {
     if (!post) return;
-    const wasLiked = isLiked;
-    setIsLiked(!wasLiked);
     try {
-      if (wasLiked) {
-        await contentApi.unlikePost(post.id);
-      } else {
-        await contentApi.likePost(post.id);
-      }
+      await toggleLike(post.id);
     } catch {
-      setIsLiked(wasLiked);
+      // Error handled by hook (reverts optimistic update)
     }
   };
 

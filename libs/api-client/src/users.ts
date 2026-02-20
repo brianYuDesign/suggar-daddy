@@ -21,6 +21,47 @@ export interface UserCard {
   role: 'ADMIN' | 'CREATOR' | 'SUBSCRIBER';
 }
 
+/** Backend FollowerDto shape */
+interface BackendFollowerDto {
+  id: string;
+  displayName: string;
+  avatarUrl?: string;
+  userType: string;
+  permissionRole: string;
+}
+
+/** Backend RecommendedCreatorDto shape */
+interface BackendRecommendedCreatorDto {
+  id: string;
+  displayName: string;
+  avatarUrl?: string;
+  bio?: string;
+  followerCount: number;
+  userType: string;
+  permissionRole: string;
+}
+
+function mapFollowerToUserCard(f: BackendFollowerDto): UserCard {
+  return {
+    userId: f.id,
+    username: f.displayName,
+    displayName: f.displayName,
+    avatarUrl: f.avatarUrl,
+    role: (f.permissionRole?.toUpperCase() || 'SUBSCRIBER') as UserCard['role'],
+  };
+}
+
+function mapRecommendedToUserCard(r: BackendRecommendedCreatorDto): UserCard {
+  return {
+    userId: r.id,
+    username: r.displayName,
+    displayName: r.displayName,
+    avatarUrl: r.avatarUrl,
+    bio: r.bio,
+    role: (r.permissionRole?.toUpperCase() || 'CREATOR') as UserCard['role'],
+  };
+}
+
 /**
  * 創建用戶 DTO (Admin only)
  */
@@ -85,9 +126,10 @@ export class UsersApi {
    * const users = await usersApi.searchUsers('john', 10);
    * ```
    */
-  searchUsers(query: string, limit = 20): Promise<UserCard[]> {
+  async searchUsers(query: string, limit = 20): Promise<UserCard[]> {
     const params = new URLSearchParams({ q: query, limit: String(limit) });
-    return this.client.get<UserCard[]>(`/api/users/search?${params}`);
+    const raw = await this.client.get<BackendFollowerDto[]>(`/api/users/search?${params}`);
+    return (raw || []).map(mapFollowerToUserCard);
   }
 
   /**
@@ -99,9 +141,10 @@ export class UsersApi {
    * const creators = await usersApi.getRecommendedCreators(5);
    * ```
    */
-  getRecommendedCreators(limit = 10): Promise<UserCard[]> {
+  async getRecommendedCreators(limit = 10): Promise<UserCard[]> {
     const params = new URLSearchParams({ limit: String(limit) });
-    return this.client.get<UserCard[]>(`/api/users/recommended?${params}`);
+    const raw = await this.client.get<BackendRecommendedCreatorDto[]>(`/api/users/recommended?${params}`);
+    return (raw || []).map(mapRecommendedToUserCard);
   }
 
   /**
@@ -116,12 +159,16 @@ export class UsersApi {
    * const nextPage = await usersApi.getFollowers('user123', result.cursor);
    * ```
    */
-  getFollowers(userId: string, cursor?: string): Promise<CursorPaginatedResponse<UserCard>> {
-    const params = new URLSearchParams();
-    if (cursor) params.set('cursor', cursor);
-    return this.client.get<CursorPaginatedResponse<UserCard>>(
+  async getFollowers(userId: string, cursor?: string): Promise<CursorPaginatedResponse<UserCard>> {
+    const page = cursor ? parseInt(cursor, 10) : 1;
+    const limit = 20;
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    const raw = await this.client.get<{ data: BackendFollowerDto[]; total: number }>(
       `/api/users/${userId}/followers?${params}`
     );
+    const data = (raw.data || []).map(mapFollowerToUserCard);
+    const hasMore = page * limit < raw.total;
+    return { data, hasMore, cursor: hasMore ? String(page + 1) : undefined, total: raw.total };
   }
 
   /**
@@ -136,12 +183,16 @@ export class UsersApi {
    * const nextPage = await usersApi.getFollowing('user123', result.cursor);
    * ```
    */
-  getFollowing(userId: string, cursor?: string): Promise<CursorPaginatedResponse<UserCard>> {
-    const params = new URLSearchParams();
-    if (cursor) params.set('cursor', cursor);
-    return this.client.get<CursorPaginatedResponse<UserCard>>(
+  async getFollowing(userId: string, cursor?: string): Promise<CursorPaginatedResponse<UserCard>> {
+    const page = cursor ? parseInt(cursor, 10) : 1;
+    const limit = 20;
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    const raw = await this.client.get<{ data: BackendFollowerDto[]; total: number }>(
       `/api/users/${userId}/following?${params}`
     );
+    const data = (raw.data || []).map(mapFollowerToUserCard);
+    const hasMore = page * limit < raw.total;
+    return { data, hasMore, cursor: hasMore ? String(page + 1) : undefined, total: raw.total };
   }
 
   /**
