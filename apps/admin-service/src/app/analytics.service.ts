@@ -104,7 +104,7 @@ export class AnalyticsService {
       .addSelect('SUM(tip.amount)', 'totalRevenue')
       .addSelect('COUNT(*)', 'tipCount')
       .groupBy('tip.toUserId')
-      .orderBy('totalRevenue', 'DESC')
+      .orderBy('"totalRevenue"', 'DESC')
       .limit(limit)
       .getRawMany();
 
