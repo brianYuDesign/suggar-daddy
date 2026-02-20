@@ -70,6 +70,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.989.0",
     "@aws-sdk/cloudfront-signer": "^3.988.0",
+    "@aws-sdk/s3-request-presigner": "^3.989.0",
     "@hookform/resolvers": "^5.2.2",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs-redis/throttler-storage": "^1.0.0",
