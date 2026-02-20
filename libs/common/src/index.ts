@@ -27,14 +27,4 @@ export * from "./lib/tracing";
 // Metrics and monitoring
 export * from "./lib/metrics";
 
-// Error testing (development only) - REMOVED from main exports to avoid frontend build issues
-// export * from "./lib/error-testing.controller";
-
-// Data consistency exports - REMOVED from main exports to avoid frontend build issues
-// These should be imported directly in backend services that need them
-// export * from "./lib/data-consistency.service";
-// export * from "./lib/data-consistency-scheduler.service";
-// export * from "./lib/data-consistency.controller";
-// export * from "./lib/data-consistency.module";
-
 // OAuth: now available from @suggar-daddy/auth (OAuthModule, GoogleStrategy, AppleStrategy, OAuthService)
