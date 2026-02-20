@@ -1,0 +1,524 @@
+openapi: 3.0.0
+info:
+  title: Content-Streaming Service API
+  description: 視頻內容管理和流媒體服務
+  version: 1.0.0
+  contact:
+    name: Backend Team
+    email: backend@example.com
+
+servers:
+  - url: http://localhost:3001
+    description: 本地開發
+  - url: https://api.example.com
+    description: 生產環境
+
+tags:
+  - name: Videos
+    description: 視頻管理端點
+  - name: Uploads
+    description: 文件上傳端點
+  - name: Streaming
+    description: 流媒體播放端點
+  - name: Transcoding
+    description: 轉碼管理端點
+  - name: Quality
+    description: 質量配置端點
+
+paths:
+  /api/uploads/initiate:
+    post:
+      tags:
+        - Uploads
+      summary: 初始化上傳會話
+      description: 開始分片上傳，獲得 session_id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                  example: my-video.mp4
+                content_type:
+                  type: string
+                  example: video/mp4
+                file_size:
+                  type: integer
+                  example: 524288000
+                chunk_size:
+                  type: integer
+                  example: 5242880
+                  description: 可選，默認 5MB
+      responses:
+        200:
+          description: 成功初始化
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    format: uuid
+                  chunk_size:
+                    type: integer
+                  total_chunks:
+                    type: integer
+
+  /api/uploads/{sessionId}:
+    get:
+      tags:
+        - Uploads
+      summary: 取得上傳會話狀態
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: 會話信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadSession'
+
+  /api/uploads/{sessionId}/chunk:
+    post:
+      tags:
+        - Uploads
+      summary: 上傳單個分片
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: chunkIndex
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          description: 分片上傳成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploaded:
+                    type: boolean
+                  chunkIndex:
+                    type: integer
+
+  /api/uploads/{sessionId}/complete:
+    post:
+      tags:
+        - Uploads
+      summary: 完成上傳
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  format: uuid
+                title:
+                  type: string
+                description:
+                  type: string
+                subscription_level:
+                  type: integer
+                  minimum: 0
+                  maximum: 2
+      responses:
+        200:
+          description: 上傳完成
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  video_id:
+                    type: string
+                    format: uuid
+
+  /api/videos:
+    get:
+      tags:
+        - Videos
+      summary: 列出創作者的視頻
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        200:
+          description: 視頻列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Video'
+                  total:
+                    type: integer
+
+  /api/videos/{videoId}:
+    get:
+      tags:
+        - Videos
+      summary: 取得視頻詳情
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: 視頻詳情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+        404:
+          description: 視頻不存在
+
+    put:
+      tags:
+        - Videos
+      summary: 更新視頻信息
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                subscription_level:
+                  type: integer
+      responses:
+        200:
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+
+    delete:
+      tags:
+        - Videos
+      summary: 刪除視頻
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: 刪除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/videos/{videoId}/publish:
+    post:
+      tags:
+        - Videos
+      summary: 發佈視頻
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: 發佈成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+
+  /api/streaming/{videoId}/playlist:
+    get:
+      tags:
+        - Streaming
+      summary: 取得播放列表
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: 播放列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreamPlaylist'
+
+  /api/streaming/{videoId}/quality-switch:
+    post:
+      tags:
+        - Streaming
+      summary: 切換播放質量
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: quality
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ['720p', '480p', '360p', '240p']
+      responses:
+        200:
+          description: 質量已切換
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  quality:
+                    type: string
+
+  /api/transcoding/{jobId}/status:
+    get:
+      tags:
+        - Transcoding
+      summary: 檢查轉碼狀態
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 轉碼狀態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: ['pending', 'in_progress', 'completed', 'failed']
+                  progress:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+
+  /api/quality/profiles:
+    get:
+      tags:
+        - Quality
+      summary: 取得所有質量配置
+      responses:
+        200:
+          description: 質量配置列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profiles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QualityProfile'
+
+components:
+  schemas:
+    Video:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        creator_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: ['uploading', 'processing', 'ready', 'failed']
+        duration_seconds:
+          type: integer
+        file_size:
+          type: integer
+        thumbnail_url:
+          type: string
+          format: uri
+        is_published:
+          type: boolean
+        subscription_level:
+          type: integer
+        qualities:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoQuality'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VideoQuality:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        quality_name:
+          type: string
+          example: 720p
+        width:
+          type: integer
+        height:
+          type: integer
+        bitrate:
+          type: string
+        fps:
+          type: integer
+        cdn_url:
+          type: string
+          format: uri
+        is_ready:
+          type: boolean
+
+    UploadSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        file_size:
+          type: integer
+        chunk_size:
+          type: integer
+        total_chunks:
+          type: integer
+        uploaded_chunks:
+          type: array
+          items:
+            type: string
+        is_completed:
+          type: boolean
+
+    StreamPlaylist:
+      type: object
+      properties:
+        video_id:
+          type: string
+          format: uuid
+        qualities:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              resolution:
+                type: string
+              bitrate:
+                type: string
+              url:
+                type: string
+                format: uri
+        default_quality:
+          type: string
+        hls_url:
+          type: string
+          format: uri
+
+    QualityProfile:
+      type: object
+      properties:
+        name:
+          type: string
+        resolution:
+          type: string
+        bitrate:
+          type: string
+        fps:
+          type: integer
+        codec:
+          type: string
+        description:
+          type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

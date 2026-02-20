@@ -1,0 +1,113 @@
+{
+  "task": "為 Sugar-Daddy content-streaming-service 添加內容審核工作流 API",
+  "status": "completed",
+  "completed_at": "2026-02-20T15:30:00+08:00",
+  "files_created": [
+    {
+      "path": "content-streaming-service/src/entities/content.entity.ts",
+      "description": "內容實體，包含審核狀態欄位 (moderationStatus, moderationReason, moderatedBy, moderatedAt, reportCount)"
+    },
+    {
+      "path": "content-streaming-service/src/entities/moderation-log.entity.ts",
+      "description": "審核日誌實體，記錄所有審核操作 (approve, reject, flag, unflag)"
+    },
+    {
+      "path": "content-streaming-service/src/common/role-type.enum.ts",
+      "description": "角色類型枚舉 (USER, ADMIN, MODERATOR)"
+    },
+    {
+      "path": "content-streaming-service/src/common/roles.decorator.ts",
+      "description": "Roles 裝飾器，用於標記需要特定權限的端點"
+    },
+    {
+      "path": "content-streaming-service/src/common/roles.guard.ts",
+      "description": "RolesGuard，驗證用戶權限的守衛"
+    },
+    {
+      "path": "content-streaming-service/src/services/moderation.service.ts",
+      "description": "審核服務，包含: getPendingContent, approveContent, rejectContent, getReports, flagContent, unflagContent, getModerationHistory"
+    },
+    {
+      "path": "content-streaming-service/src/controllers/moderation.controller.ts",
+      "description": "審核控制器，API 端點: pending-review, approve, reject, reports, flag, unflag, moderation-history"
+    },
+    {
+      "path": "content-streaming-service/src/controllers/content.controller.ts",
+      "description": "內容控制器，支援 status 篩選，發布時設置 moderationStatus 為 pending"
+    },
+    {
+      "path": "content-streaming-service/src/content.module.ts",
+      "description": "內容模組，註冊 ModerationService 和 ModerationController"
+    }
+  ],
+  "files_modified": [
+    {
+      "path": "content-streaming-service/src/app.module.ts",
+      "description": "添加 ContentModule, Content, ModerationLog 到應用模組"
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/content/pending-review",
+      "description": "待審核內容列表",
+      "auth": "ADMIN/MODERATOR"
+    },
+    {
+      "method": "POST",
+      "path": "/api/content/:id/approve",
+      "description": "批准內容",
+      "auth": "ADMIN/MODERATOR"
+    },
+    {
+      "method": "POST",
+      "path": "/api/content/:id/reject",
+      "description": "拒絕內容",
+      "auth": "ADMIN/MODERATOR"
+    },
+    {
+      "method": "GET",
+      "path": "/api/content/reports",
+      "description": "舉報列表",
+      "auth": "ADMIN/MODERATOR"
+    },
+    {
+      "method": "POST",
+      "path": "/api/content/:id/flag",
+      "description": "標記內容",
+      "auth": "Public"
+    },
+    {
+      "method": "POST",
+      "path": "/api/content/:id/unflag",
+      "description": "取消標記",
+      "auth": "ADMIN/MODERATOR"
+    },
+    {
+      "method": "GET",
+      "path": "/api/content/:id/moderation-history",
+      "description": "審核歷史",
+      "auth": "ADMIN/MODERATOR"
+    },
+    {
+      "method": "GET",
+      "path": "/api/contents?status=pending",
+      "description": "內容列表 (支援 status 篩選)",
+      "auth": "Public"
+    },
+    {
+      "method": "POST",
+      "path": "/api/contents",
+      "description": "創建內容 (默認 moderationStatus=pending)",
+      "auth": "Authenticated"
+    }
+  ],
+  "features": [
+    "完整的內容審核狀態管理 (pending, approved, rejected, flagged)",
+    "審核日誌記錄所有操作",
+    "基於角色的權限控制 (@Roles decorator)",
+    "自動標記機制 (報告數達到閾值)",
+    "完整的錯誤處理和驗證",
+    "NestJS 標準模式"
+  ]
+}

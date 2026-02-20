@@ -1,0 +1,2437 @@
+[2026-02-11T08:19:40+08:00] === Hook fired ===
+[2026-02-11T08:19:40+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:19:41+08:00] Output from dir listing
+[2026-02-11T08:19:41+08:00] Wrote latest.json
+[2026-02-11T08:19:41+08:00] Wrote pending-wake.json
+[2026-02-11T08:19:41+08:00] === Hook completed ===
+[2026-02-11T08:19:48+08:00] === Hook fired ===
+[2026-02-11T08:19:48+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:19:48+08:00] Duplicate hook within 8s, skipping
+[2026-02-11T08:20:42+08:00] === Hook fired ===
+[2026-02-11T08:20:42+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:20:43+08:00] Output from dir listing
+[2026-02-11T08:20:43+08:00] Wrote latest.json
+[2026-02-11T08:20:43+08:00] Wrote pending-wake.json
+[2026-02-11T08:20:43+08:00] === Hook completed ===
+[2026-02-11T08:22:16+08:00] === Hook fired ===
+[2026-02-11T08:22:16+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:22:17+08:00] Output from dir listing
+[2026-02-11T08:22:17+08:00] Wrote latest.json
+[2026-02-11T08:22:17+08:00] Wrote pending-wake.json
+[2026-02-11T08:22:17+08:00] === Hook completed ===
+[2026-02-11T08:22:48+08:00] === Hook fired ===
+[2026-02-11T08:22:48+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:22:49+08:00] Output from dir listing
+[2026-02-11T08:22:49+08:00] Wrote latest.json
+[2026-02-11T08:22:49+08:00] Wrote pending-wake.json
+[2026-02-11T08:22:49+08:00] === Hook completed ===
+[2026-02-11T08:25:50+08:00] === Hook fired ===
+[2026-02-11T08:25:50+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:25:51+08:00] Output from dir listing
+[2026-02-11T08:25:51+08:00] Wrote latest.json
+[2026-02-11T08:25:51+08:00] Wrote pending-wake.json
+[2026-02-11T08:25:51+08:00] === Hook completed ===
+[2026-02-11T08:27:55+08:00] === Hook fired ===
+[2026-02-11T08:27:55+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:27:56+08:00] Output from dir listing
+[2026-02-11T08:27:56+08:00] Wrote latest.json
+[2026-02-11T08:27:56+08:00] Wrote pending-wake.json
+[2026-02-11T08:27:56+08:00] === Hook completed ===
+[2026-02-11T08:30:05+08:00] === Hook fired ===
+[2026-02-11T08:30:05+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:30:06+08:00] Output from dir listing
+[2026-02-11T08:30:06+08:00] Wrote latest.json
+[2026-02-11T08:30:06+08:00] Wrote pending-wake.json
+[2026-02-11T08:30:06+08:00] === Hook completed ===
+[2026-02-11T08:30:42+08:00] === Hook fired ===
+[2026-02-11T08:30:42+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:30:43+08:00] Output from dir listing
+[2026-02-11T08:30:43+08:00] Wrote latest.json
+[2026-02-11T08:30:43+08:00] Wrote pending-wake.json
+[2026-02-11T08:30:43+08:00] === Hook completed ===
+[2026-02-11T08:31:13+08:00] === Hook fired ===
+[2026-02-11T08:31:13+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:31:14+08:00] Output from dir listing
+[2026-02-11T08:31:14+08:00] Wrote latest.json
+[2026-02-11T08:31:14+08:00] Wrote pending-wake.json
+[2026-02-11T08:31:14+08:00] === Hook completed ===
+[2026-02-11T08:31:29+08:00] === Hook fired ===
+[2026-02-11T08:31:29+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:31:29+08:00] Duplicate hook within 16s, skipping
+[2026-02-11T08:32:50+08:00] === Hook fired ===
+[2026-02-11T08:32:50+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:32:51+08:00] Output from dir listing
+[2026-02-11T08:32:51+08:00] Wrote latest.json
+[2026-02-11T08:32:51+08:00] Wrote pending-wake.json
+[2026-02-11T08:32:51+08:00] === Hook completed ===
+[2026-02-11T08:46:01+08:00] === Hook fired ===
+[2026-02-11T08:46:01+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T08:46:02+08:00] Output from dir listing
+[2026-02-11T08:46:02+08:00] Wrote latest.json
+[2026-02-11T08:46:02+08:00] Wrote pending-wake.json
+[2026-02-11T08:46:02+08:00] === Hook completed ===
+[2026-02-11T09:00:26+08:00] === Hook fired ===
+[2026-02-11T09:00:26+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T09:00:27+08:00] Output from dir listing
+[2026-02-11T09:00:27+08:00] Wrote latest.json
+[2026-02-11T09:00:27+08:00] Wrote pending-wake.json
+[2026-02-11T09:00:27+08:00] === Hook completed ===
+[2026-02-11T09:04:43+08:00] === Hook fired ===
+[2026-02-11T09:04:43+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T09:04:44+08:00] Output from dir listing
+[2026-02-11T09:04:44+08:00] Wrote latest.json
+[2026-02-11T09:04:44+08:00] Wrote pending-wake.json
+[2026-02-11T09:04:44+08:00] === Hook completed ===
+[2026-02-11T10:19:21+08:00] === Hook fired ===
+[2026-02-11T10:19:21+08:00] session=37c3c1ec-0b41-4a99-bc05-0bbcd6801b07 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-11T10:19:22+08:00] Output from dir listing
+[2026-02-11T10:19:22+08:00] Meta: task=suggar-daddy-backend-development group=-5298003529
+[2026-02-11T10:19:22+08:00] Wrote latest.json
+[2026-02-11T10:19:29+08:00] Telegram send failed
+[2026-02-11T10:19:29+08:00] Wrote pending-wake.json
+[2026-02-11T10:19:29+08:00] === Hook completed ===
+[2026-02-11T11:22:48+08:00] === Hook fired ===
+[2026-02-11T11:22:49+08:00] session=14b433f8-ef5e-4106-8b82-123acfa2828e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T11:22:50+08:00] Output from task-output.txt (33 chars)
+[2026-02-11T11:22:50+08:00] Meta: task=backend-dev-phase123 group=-5298003529
+[2026-02-11T11:22:50+08:00] Wrote latest.json
+[2026-02-11T11:22:56+08:00] Sent Telegram message to -5298003529
+[2026-02-11T11:22:56+08:00] Wrote pending-wake.json
+[2026-02-11T11:22:56+08:00] === Hook completed ===
+[2026-02-11T11:22:56+08:00] === Hook fired ===
+[2026-02-11T11:22:56+08:00] session=14b433f8-ef5e-4106-8b82-123acfa2828e cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-11T11:22:56+08:00] Duplicate hook within 7s, skipping
+[2026-02-11T17:53:05+08:00] === Hook fired ===
+[2026-02-11T17:53:05+08:00] session=451e40e7-e7d8-4da8-bc2e-0c5e69464db4 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-11T17:53:06+08:00] Output from dir listing
+[2026-02-11T17:53:06+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T17:53:06+08:00] Wrote latest.json
+[2026-02-11T17:53:12+08:00] Telegram send failed
+[2026-02-11T17:53:12+08:00] Wrote pending-wake.json
+[2026-02-11T17:53:12+08:00] === Hook completed ===
+[2026-02-11T22:31:55+08:00] === Hook fired ===
+[2026-02-11T22:31:55+08:00] session=6611a7f4-7cdf-4b05-910f-f97bf8d75f14 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-11T22:31:56+08:00] Output from dir listing
+[2026-02-11T22:31:56+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T22:31:56+08:00] Wrote latest.json
+[2026-02-11T22:32:02+08:00] Sent Telegram message to -5298003529
+[2026-02-11T22:32:02+08:00] Wrote pending-wake.json
+[2026-02-11T22:32:02+08:00] === Hook completed ===
+[2026-02-11T22:45:56+08:00] === Hook fired ===
+[2026-02-11T22:45:56+08:00] session=48b24b24-f016-4b3a-a4be-1a2b3dc2c3f2 cwd=/Users/brianyu/SuperClaude_Framework event=SessionEnd
+[2026-02-11T22:45:57+08:00] Output from dir listing
+[2026-02-11T22:45:57+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T22:45:58+08:00] Wrote latest.json
+[2026-02-11T22:46:03+08:00] Sent Telegram message to -5298003529
+[2026-02-11T22:46:03+08:00] Wrote pending-wake.json
+[2026-02-11T22:46:03+08:00] === Hook completed ===
+[2026-02-11T23:03:59+08:00] === Hook fired ===
+[2026-02-11T23:03:59+08:00] session=f4d606a5-f543-4821-988e-92fae1e6e22c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T23:04:00+08:00] Output from dir listing
+[2026-02-11T23:04:00+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T23:04:00+08:00] Wrote latest.json
+[2026-02-11T23:04:06+08:00] Sent Telegram message to -5298003529
+[2026-02-11T23:04:06+08:00] Wrote pending-wake.json
+[2026-02-11T23:04:06+08:00] === Hook completed ===
+[2026-02-11T23:08:03+08:00] === Hook fired ===
+[2026-02-11T23:08:03+08:00] session=f4d606a5-f543-4821-988e-92fae1e6e22c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T23:08:04+08:00] Output from dir listing
+[2026-02-11T23:08:04+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T23:08:04+08:00] Wrote latest.json
+[2026-02-11T23:08:09+08:00] Sent Telegram message to -5298003529
+[2026-02-11T23:08:09+08:00] Wrote pending-wake.json
+[2026-02-11T23:08:09+08:00] === Hook completed ===
+[2026-02-11T23:29:52+08:00] === Hook fired ===
+[2026-02-11T23:29:52+08:00] session=f4d606a5-f543-4821-988e-92fae1e6e22c cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-11T23:29:53+08:00] Output from dir listing
+[2026-02-11T23:29:53+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T23:29:53+08:00] Wrote latest.json
+[2026-02-11T23:29:58+08:00] Sent Telegram message to -5298003529
+[2026-02-11T23:29:58+08:00] Wrote pending-wake.json
+[2026-02-11T23:29:58+08:00] === Hook completed ===
+[2026-02-11T23:31:13+08:00] === Hook fired ===
+[2026-02-11T23:31:14+08:00] session=b8e0e354-6683-4d92-b40f-9922ee695ed7 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-11T23:42:53+08:00] === Hook fired ===
+[2026-02-11T23:42:53+08:00] session=f3c06009-c209-4526-b559-d0a2c1f9a48e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T23:42:55+08:00] Output from dir listing
+[2026-02-11T23:42:55+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T23:42:55+08:00] Wrote latest.json
+[2026-02-11T23:42:59+08:00] Sent Telegram message to -5298003529
+[2026-02-11T23:42:59+08:00] Wrote pending-wake.json
+[2026-02-11T23:42:59+08:00] === Hook completed ===
+[2026-02-11T23:44:09+08:00] === Hook fired ===
+[2026-02-11T23:48:32+08:00] === Hook fired ===
+[2026-02-11T23:48:33+08:00] session=0c80f9d2-6ee7-44ec-9e78-13cc88010dfa cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T23:48:34+08:00] Output from dir listing
+[2026-02-11T23:48:34+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T23:48:34+08:00] Wrote latest.json
+[2026-02-11T23:48:40+08:00] Sent Telegram message to -5298003529
+[2026-02-11T23:48:40+08:00] Wrote pending-wake.json
+[2026-02-11T23:48:40+08:00] === Hook completed ===
+[2026-02-11T23:53:22+08:00] === Hook fired ===
+[2026-02-11T23:53:22+08:00] session=ea3117b4-f2ca-4345-9088-7a6430bef447 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-11T23:53:23+08:00] Output from dir listing
+[2026-02-11T23:53:23+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T23:53:24+08:00] Wrote latest.json
+[2026-02-11T23:53:29+08:00] Sent Telegram message to -5298003529
+[2026-02-11T23:53:29+08:00] Wrote pending-wake.json
+[2026-02-11T23:53:29+08:00] === Hook completed ===
+[2026-02-11T23:53:52+08:00] === Hook fired ===
+[2026-02-11T23:53:53+08:00] session=6e5cf32f-1c8f-46b6-8b91-1b7eb632055d cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T23:53:54+08:00] Output from dir listing
+[2026-02-11T23:53:54+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T23:53:54+08:00] Wrote latest.json
+[2026-02-11T23:53:58+08:00] Sent Telegram message to -5298003529
+[2026-02-11T23:53:58+08:00] Wrote pending-wake.json
+[2026-02-11T23:53:58+08:00] === Hook completed ===
+[2026-02-11T23:55:34+08:00] === Hook fired ===
+[2026-02-11T23:55:35+08:00] session=6e5cf32f-1c8f-46b6-8b91-1b7eb632055d cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T23:55:36+08:00] Output from dir listing
+[2026-02-11T23:55:36+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T23:55:36+08:00] Wrote latest.json
+[2026-02-11T23:55:40+08:00] Sent Telegram message to -5298003529
+[2026-02-11T23:55:40+08:00] Wrote pending-wake.json
+[2026-02-11T23:55:40+08:00] === Hook completed ===
+[2026-02-11T23:59:54+08:00] === Hook fired ===
+[2026-02-11T23:59:54+08:00] session=6e5cf32f-1c8f-46b6-8b91-1b7eb632055d cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-11T23:59:55+08:00] Output from dir listing
+[2026-02-11T23:59:55+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-11T23:59:55+08:00] Wrote latest.json
+[2026-02-12T00:00:00+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:00:00+08:00] Wrote pending-wake.json
+[2026-02-12T00:00:00+08:00] === Hook completed ===
+[2026-02-12T00:02:04+08:00] === Hook fired ===
+[2026-02-12T00:02:04+08:00] session=6e5cf32f-1c8f-46b6-8b91-1b7eb632055d cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:02:05+08:00] Output from dir listing
+[2026-02-12T00:02:05+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:02:05+08:00] Wrote latest.json
+[2026-02-12T00:02:10+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:02:10+08:00] Wrote pending-wake.json
+[2026-02-12T00:02:10+08:00] === Hook completed ===
+[2026-02-12T00:06:30+08:00] === Hook fired ===
+[2026-02-12T00:06:30+08:00] session=0c80f9d2-6ee7-44ec-9e78-13cc88010dfa cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T00:11:22+08:00] === Hook fired ===
+[2026-02-12T00:11:22+08:00] session=ed9b541c-19e1-4591-b8f6-f843526c5130 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T00:11:23+08:00] Output from dir listing
+[2026-02-12T00:11:23+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:11:23+08:00] Wrote latest.json
+[2026-02-12T00:11:29+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:11:29+08:00] Wrote pending-wake.json
+[2026-02-12T00:11:29+08:00] === Hook completed ===
+[2026-02-12T00:13:19+08:00] === Hook fired ===
+[2026-02-12T00:13:20+08:00] session=eb70b3d1-7d8a-4fc0-ad87-379a5c0a022e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:13:21+08:00] Output from dir listing
+[2026-02-12T00:13:21+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:13:21+08:00] Wrote latest.json
+[2026-02-12T00:13:26+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:13:26+08:00] Wrote pending-wake.json
+[2026-02-12T00:13:26+08:00] === Hook completed ===
+[2026-02-12T00:13:28+08:00] === Hook fired ===
+[2026-02-12T00:13:28+08:00] session=eb70b3d1-7d8a-4fc0-ad87-379a5c0a022e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:13:28+08:00] Duplicate hook within 8s, skipping
+[2026-02-12T00:13:42+08:00] === Hook fired ===
+[2026-02-12T00:13:42+08:00] session=eb70b3d1-7d8a-4fc0-ad87-379a5c0a022e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:13:42+08:00] Duplicate hook within 22s, skipping
+[2026-02-12T00:14:41+08:00] === Hook fired ===
+[2026-02-12T00:14:41+08:00] session=eb70b3d1-7d8a-4fc0-ad87-379a5c0a022e cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T00:14:42+08:00] Output from dir listing
+[2026-02-12T00:14:42+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:14:42+08:00] Wrote latest.json
+[2026-02-12T00:14:46+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:14:46+08:00] Wrote pending-wake.json
+[2026-02-12T00:14:46+08:00] === Hook completed ===
+[2026-02-12T00:19:24+08:00] === Hook fired ===
+[2026-02-12T00:19:24+08:00] session=d5b41fac-b7aa-4719-a446-f0d699345e16 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T00:20:20+08:00] === Hook fired ===
+[2026-02-12T00:20:20+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:20:21+08:00] Output from dir listing
+[2026-02-12T00:20:21+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:20:21+08:00] Wrote latest.json
+[2026-02-12T00:20:28+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:20:28+08:00] Wrote pending-wake.json
+[2026-02-12T00:20:28+08:00] === Hook completed ===
+[2026-02-12T00:20:56+08:00] === Hook fired ===
+[2026-02-12T00:20:56+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:20:57+08:00] Output from dir listing
+[2026-02-12T00:20:57+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:20:57+08:00] Wrote latest.json
+[2026-02-12T00:21:01+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:21:01+08:00] Wrote pending-wake.json
+[2026-02-12T00:21:01+08:00] === Hook completed ===
+[2026-02-12T00:21:55+08:00] === Hook fired ===
+[2026-02-12T00:21:55+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:21:56+08:00] Output from dir listing
+[2026-02-12T00:21:56+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:21:56+08:00] Wrote latest.json
+[2026-02-12T00:22:01+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:22:01+08:00] Wrote pending-wake.json
+[2026-02-12T00:22:01+08:00] === Hook completed ===
+[2026-02-12T00:22:12+08:00] === Hook fired ===
+[2026-02-12T00:22:12+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:22:12+08:00] Duplicate hook within 17s, skipping
+[2026-02-12T00:23:22+08:00] === Hook fired ===
+[2026-02-12T00:23:22+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:23:23+08:00] Output from dir listing
+[2026-02-12T00:23:23+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:23:23+08:00] Wrote latest.json
+[2026-02-12T00:30:48+08:00] === Hook fired ===
+[2026-02-12T00:30:48+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:30:49+08:00] Output from dir listing
+[2026-02-12T00:30:49+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:30:49+08:00] Wrote latest.json
+[2026-02-12T00:30:54+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:30:54+08:00] Wrote pending-wake.json
+[2026-02-12T00:30:54+08:00] === Hook completed ===
+[2026-02-12T00:30:58+08:00] === Hook fired ===
+[2026-02-12T00:30:59+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:30:59+08:00] Duplicate hook within 11s, skipping
+[2026-02-12T00:31:02+08:00] === Hook fired ===
+[2026-02-12T00:31:02+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:31:02+08:00] Duplicate hook within 14s, skipping
+[2026-02-12T00:31:06+08:00] === Hook fired ===
+[2026-02-12T00:31:06+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:31:06+08:00] Duplicate hook within 18s, skipping
+[2026-02-12T00:37:44+08:00] === Hook fired ===
+[2026-02-12T00:37:44+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:37:45+08:00] Output from dir listing
+[2026-02-12T00:37:45+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:37:45+08:00] Wrote latest.json
+[2026-02-12T00:37:52+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:37:52+08:00] Wrote pending-wake.json
+[2026-02-12T00:37:52+08:00] === Hook completed ===
+[2026-02-12T00:43:55+08:00] === Hook fired ===
+[2026-02-12T00:43:55+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:43:56+08:00] Output from dir listing
+[2026-02-12T00:43:56+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:43:56+08:00] Wrote latest.json
+[2026-02-12T00:44:01+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:44:01+08:00] Wrote pending-wake.json
+[2026-02-12T00:44:01+08:00] === Hook completed ===
+[2026-02-12T00:45:17+08:00] === Hook fired ===
+[2026-02-12T00:45:17+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:45:18+08:00] Output from dir listing
+[2026-02-12T00:45:18+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:45:19+08:00] Wrote latest.json
+[2026-02-12T00:51:51+08:00] === Hook fired ===
+[2026-02-12T00:51:51+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:51:52+08:00] Output from dir listing
+[2026-02-12T00:51:52+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:51:52+08:00] Wrote latest.json
+[2026-02-12T00:51:59+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:51:59+08:00] Wrote pending-wake.json
+[2026-02-12T00:51:59+08:00] === Hook completed ===
+[2026-02-12T00:52:12+08:00] === Hook fired ===
+[2026-02-12T00:52:12+08:00] === Hook fired ===
+[2026-02-12T00:52:12+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:52:12+08:00] Duplicate hook within 21s, skipping
+[2026-02-12T00:52:12+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:52:12+08:00] Duplicate hook within 21s, skipping
+[2026-02-12T00:52:18+08:00] === Hook fired ===
+[2026-02-12T00:52:18+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:52:18+08:00] Duplicate hook within 27s, skipping
+[2026-02-12T00:52:24+08:00] === Hook fired ===
+[2026-02-12T00:52:24+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:52:25+08:00] Output from dir listing
+[2026-02-12T00:52:25+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:52:26+08:00] Wrote latest.json
+[2026-02-12T00:52:31+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:52:31+08:00] Wrote pending-wake.json
+[2026-02-12T00:52:31+08:00] === Hook completed ===
+[2026-02-12T00:52:39+08:00] === Hook fired ===
+[2026-02-12T00:52:39+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:52:39+08:00] Duplicate hook within 15s, skipping
+[2026-02-12T00:54:30+08:00] === Hook fired ===
+[2026-02-12T00:54:30+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T00:54:31+08:00] Output from dir listing
+[2026-02-12T00:54:31+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:54:31+08:00] Wrote latest.json
+[2026-02-12T00:59:24+08:00] === Hook fired ===
+[2026-02-12T00:59:24+08:00] session=1f735bb3-d9aa-4ab7-82b0-0e6aa4631cfd cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T00:59:25+08:00] Output from dir listing
+[2026-02-12T00:59:25+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T00:59:25+08:00] Wrote latest.json
+[2026-02-12T00:59:30+08:00] Sent Telegram message to -5298003529
+[2026-02-12T00:59:30+08:00] Wrote pending-wake.json
+[2026-02-12T00:59:30+08:00] === Hook completed ===
+[2026-02-12T01:02:09+08:00] === Hook fired ===
+[2026-02-12T01:02:10+08:00] session=e52fc2d8-f465-4510-9720-f989124d56b6 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T01:02:11+08:00] Output from dir listing
+[2026-02-12T01:02:11+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T01:02:11+08:00] Wrote latest.json
+[2026-02-12T01:02:16+08:00] Sent Telegram message to -5298003529
+[2026-02-12T01:02:16+08:00] Wrote pending-wake.json
+[2026-02-12T01:02:16+08:00] === Hook completed ===
+[2026-02-12T01:02:24+08:00] === Hook fired ===
+[2026-02-12T01:02:24+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T01:02:24+08:00] Duplicate hook within 14s, skipping
+[2026-02-12T08:36:28+08:00] === Hook fired ===
+[2026-02-12T08:36:28+08:00] session=265280b5-54e1-4cf1-aa5c-a2041ec3797e cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T08:36:29+08:00] Output from dir listing
+[2026-02-12T08:36:29+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T08:36:29+08:00] Wrote latest.json
+[2026-02-12T08:36:34+08:00] Sent Telegram message to -5298003529
+[2026-02-12T08:36:34+08:00] Wrote pending-wake.json
+[2026-02-12T08:36:34+08:00] === Hook completed ===
+[2026-02-12T08:46:54+08:00] === Hook fired ===
+[2026-02-12T08:46:54+08:00] session=4ba43543-bac2-442a-8a87-052220fc96a0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T08:46:55+08:00] Output from dir listing
+[2026-02-12T08:46:55+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T08:46:55+08:00] Wrote latest.json
+[2026-02-12T08:47:00+08:00] Sent Telegram message to -5298003529
+[2026-02-12T08:47:00+08:00] Wrote pending-wake.json
+[2026-02-12T08:47:00+08:00] === Hook completed ===
+[2026-02-12T08:47:05+08:00] === Hook fired ===
+[2026-02-12T08:47:05+08:00] session=4ba43543-bac2-442a-8a87-052220fc96a0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T08:47:05+08:00] Duplicate hook within 11s, skipping
+[2026-02-12T08:47:46+08:00] === Hook fired ===
+[2026-02-12T08:47:46+08:00] session=e52fc2d8-f465-4510-9720-f989124d56b6 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T08:47:47+08:00] Output from dir listing
+[2026-02-12T08:47:47+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T08:47:47+08:00] Wrote latest.json
+[2026-02-12T08:47:51+08:00] Sent Telegram message to -5298003529
+[2026-02-12T08:47:52+08:00] Wrote pending-wake.json
+[2026-02-12T08:47:52+08:00] === Hook completed ===
+[2026-02-12T08:51:32+08:00] === Hook fired ===
+[2026-02-12T08:51:32+08:00] session=6e5cf32f-1c8f-46b6-8b91-1b7eb632055d cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T08:51:32+08:00] === Hook fired ===
+[2026-02-12T08:51:32+08:00] session=4ba43543-bac2-442a-8a87-052220fc96a0 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T08:51:32+08:00] Duplicate hook within 0s, skipping
+[2026-02-12T08:51:33+08:00] Output from dir listing
+[2026-02-12T08:51:33+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T08:51:33+08:00] Wrote latest.json
+[2026-02-12T08:51:36+08:00] Sent Telegram message to -5298003529
+[2026-02-12T08:51:36+08:00] Wrote pending-wake.json
+[2026-02-12T08:51:36+08:00] === Hook completed ===
+[2026-02-12T08:55:06+08:00] === Hook fired ===
+[2026-02-12T08:55:06+08:00] session=92715e6d-c12c-46d9-886a-15a46c73cd7a cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T08:55:07+08:00] Output from dir listing
+[2026-02-12T08:55:07+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T08:55:07+08:00] Wrote latest.json
+[2026-02-12T08:55:11+08:00] Sent Telegram message to -5298003529
+[2026-02-12T08:55:11+08:00] Wrote pending-wake.json
+[2026-02-12T08:55:11+08:00] === Hook completed ===
+[2026-02-12T09:02:51+08:00] === Hook fired ===
+[2026-02-12T09:02:51+08:00] session=92715e6d-c12c-46d9-886a-15a46c73cd7a cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:02:52+08:00] Output from dir listing
+[2026-02-12T09:02:52+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T09:02:52+08:00] Wrote latest.json
+[2026-02-12T09:02:57+08:00] Sent Telegram message to -5298003529
+[2026-02-12T09:02:57+08:00] Wrote pending-wake.json
+[2026-02-12T09:02:57+08:00] === Hook completed ===
+[2026-02-12T09:03:48+08:00] === Hook fired ===
+[2026-02-12T09:03:48+08:00] session=92715e6d-c12c-46d9-886a-15a46c73cd7a cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:03:50+08:00] Output from dir listing
+[2026-02-12T09:03:50+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T09:03:50+08:00] Wrote latest.json
+[2026-02-12T09:03:53+08:00] Sent Telegram message to -5298003529
+[2026-02-12T09:03:53+08:00] Wrote pending-wake.json
+[2026-02-12T09:03:53+08:00] === Hook completed ===
+[2026-02-12T09:07:57+08:00] === Hook fired ===
+[2026-02-12T09:07:57+08:00] session=92715e6d-c12c-46d9-886a-15a46c73cd7a cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:07:59+08:00] Output from dir listing
+[2026-02-12T09:07:59+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T09:07:59+08:00] Wrote latest.json
+[2026-02-12T09:08:03+08:00] Sent Telegram message to -5298003529
+[2026-02-12T09:08:03+08:00] Wrote pending-wake.json
+[2026-02-12T09:08:03+08:00] === Hook completed ===
+[2026-02-12T09:09:00+08:00] === Hook fired ===
+[2026-02-12T09:09:00+08:00] session=92715e6d-c12c-46d9-886a-15a46c73cd7a cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:09:01+08:00] Output from dir listing
+[2026-02-12T09:09:01+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T09:09:01+08:00] Wrote latest.json
+[2026-02-12T09:09:06+08:00] Sent Telegram message to -5298003529
+[2026-02-12T09:09:06+08:00] Wrote pending-wake.json
+[2026-02-12T09:09:06+08:00] === Hook completed ===
+[2026-02-12T09:09:18+08:00] === Hook fired ===
+[2026-02-12T09:09:18+08:00] session=92715e6d-c12c-46d9-886a-15a46c73cd7a cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:09:18+08:00] Duplicate hook within 18s, skipping
+[2026-02-12T09:09:28+08:00] === Hook fired ===
+[2026-02-12T09:09:28+08:00] session=92715e6d-c12c-46d9-886a-15a46c73cd7a cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:09:28+08:00] Duplicate hook within 28s, skipping
+[2026-02-12T09:10:37+08:00] === Hook fired ===
+[2026-02-12T09:10:37+08:00] session=92715e6d-c12c-46d9-886a-15a46c73cd7a cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:10:38+08:00] Output from dir listing
+[2026-02-12T09:10:38+08:00] Meta: task=backend-dev-retry-1770802027 group=-5298003529
+[2026-02-12T09:10:38+08:00] Wrote latest.json
+[2026-02-12T09:10:42+08:00] Sent Telegram message to -5298003529
+[2026-02-12T09:10:42+08:00] Wrote pending-wake.json
+[2026-02-12T09:10:42+08:00] === Hook completed ===
+[2026-02-12T09:18:56+08:00] === Hook fired ===
+[2026-02-12T09:18:56+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:18:57+08:00] Output from dir listing
+[2026-02-12T09:18:57+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:18:57+08:00] Wrote latest.json
+[2026-02-12T09:18:57+08:00] Wrote pending-wake.json
+[2026-02-12T09:18:57+08:00] === Hook completed ===
+[2026-02-12T09:19:31+08:00] === Hook fired ===
+[2026-02-12T09:19:31+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:19:32+08:00] Output from dir listing
+[2026-02-12T09:19:32+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:19:32+08:00] Wrote latest.json
+[2026-02-12T09:19:32+08:00] Wrote pending-wake.json
+[2026-02-12T09:19:32+08:00] === Hook completed ===
+[2026-02-12T09:27:22+08:00] === Hook fired ===
+[2026-02-12T09:27:22+08:00] session=92715e6d-c12c-46d9-886a-15a46c73cd7a cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T09:27:23+08:00] Output from dir listing
+[2026-02-12T09:27:23+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:27:23+08:00] Wrote latest.json
+[2026-02-12T09:27:23+08:00] Wrote pending-wake.json
+[2026-02-12T09:27:23+08:00] === Hook completed ===
+[2026-02-12T09:31:15+08:00] === Hook fired ===
+[2026-02-12T09:31:15+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:31:16+08:00] Output from dir listing
+[2026-02-12T09:31:16+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:31:16+08:00] Wrote latest.json
+[2026-02-12T09:31:16+08:00] Wrote pending-wake.json
+[2026-02-12T09:31:16+08:00] === Hook completed ===
+[2026-02-12T09:38:48+08:00] === Hook fired ===
+[2026-02-12T09:38:48+08:00] session=d9be5f3a-cdb9-40f7-9119-e831cbffc113 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:38:49+08:00] Output from dir listing
+[2026-02-12T09:38:49+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:38:49+08:00] Wrote latest.json
+[2026-02-12T09:38:49+08:00] Wrote pending-wake.json
+[2026-02-12T09:38:49+08:00] === Hook completed ===
+[2026-02-12T09:42:54+08:00] === Hook fired ===
+[2026-02-12T09:42:54+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:42:55+08:00] Output from dir listing
+[2026-02-12T09:42:55+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:42:55+08:00] Wrote latest.json
+[2026-02-12T09:42:55+08:00] Wrote pending-wake.json
+[2026-02-12T09:42:56+08:00] === Hook completed ===
+[2026-02-12T09:50:33+08:00] === Hook fired ===
+[2026-02-12T09:50:33+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:50:34+08:00] Output from dir listing
+[2026-02-12T09:50:34+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:50:34+08:00] Wrote latest.json
+[2026-02-12T09:50:34+08:00] Wrote pending-wake.json
+[2026-02-12T09:50:34+08:00] === Hook completed ===
+[2026-02-12T09:53:44+08:00] === Hook fired ===
+[2026-02-12T09:53:44+08:00] session=6e5cf32f-1c8f-46b6-8b91-1b7eb632055d cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:53:45+08:00] Output from dir listing
+[2026-02-12T09:53:45+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:53:45+08:00] Wrote latest.json
+[2026-02-12T09:53:45+08:00] Wrote pending-wake.json
+[2026-02-12T09:53:45+08:00] === Hook completed ===
+[2026-02-12T09:54:11+08:00] === Hook fired ===
+[2026-02-12T09:54:11+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:54:11+08:00] Duplicate hook within 27s, skipping
+[2026-02-12T09:55:55+08:00] === Hook fired ===
+[2026-02-12T09:55:55+08:00] session=d9be5f3a-cdb9-40f7-9119-e831cbffc113 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:55:57+08:00] Output from dir listing
+[2026-02-12T09:55:57+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:55:57+08:00] Wrote latest.json
+[2026-02-12T09:55:57+08:00] Wrote pending-wake.json
+[2026-02-12T09:55:57+08:00] === Hook completed ===
+[2026-02-12T09:59:24+08:00] === Hook fired ===
+[2026-02-12T09:59:24+08:00] session=7cfa69e5-897b-4bbf-a721-5a51f2c3e26b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T09:59:25+08:00] Output from dir listing
+[2026-02-12T09:59:25+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T09:59:25+08:00] Wrote latest.json
+[2026-02-12T09:59:25+08:00] Wrote pending-wake.json
+[2026-02-12T09:59:25+08:00] === Hook completed ===
+[2026-02-12T10:04:46+08:00] === Hook fired ===
+[2026-02-12T10:04:46+08:00] session=d9be5f3a-cdb9-40f7-9119-e831cbffc113 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T10:04:47+08:00] Output from dir listing
+[2026-02-12T10:04:47+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T10:04:47+08:00] Wrote latest.json
+[2026-02-12T10:04:47+08:00] Wrote pending-wake.json
+[2026-02-12T10:04:47+08:00] === Hook completed ===
+[2026-02-12T10:04:52+08:00] === Hook fired ===
+[2026-02-12T10:04:52+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T10:04:52+08:00] Duplicate hook within 6s, skipping
+[2026-02-12T10:12:50+08:00] === Hook fired ===
+[2026-02-12T10:12:50+08:00] session=e52fc2d8-f465-4510-9720-f989124d56b6 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T10:12:51+08:00] Output from dir listing
+[2026-02-12T10:12:51+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T10:12:51+08:00] Wrote latest.json
+[2026-02-12T10:12:51+08:00] Wrote pending-wake.json
+[2026-02-12T10:12:51+08:00] === Hook completed ===
+[2026-02-12T10:15:56+08:00] === Hook fired ===
+[2026-02-12T10:15:56+08:00] session=6e5cf32f-1c8f-46b6-8b91-1b7eb632055d cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T10:15:57+08:00] Output from dir listing
+[2026-02-12T10:15:57+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T10:15:57+08:00] Wrote latest.json
+[2026-02-12T10:15:57+08:00] Wrote pending-wake.json
+[2026-02-12T10:15:57+08:00] === Hook completed ===
+[2026-02-12T10:16:37+08:00] === Hook fired ===
+[2026-02-12T10:16:37+08:00] session=d9be5f3a-cdb9-40f7-9119-e831cbffc113 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T10:16:38+08:00] Output from dir listing
+[2026-02-12T10:16:38+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T10:16:38+08:00] Wrote latest.json
+[2026-02-12T10:16:38+08:00] Wrote pending-wake.json
+[2026-02-12T10:16:38+08:00] === Hook completed ===
+[2026-02-12T10:48:08+08:00] === Hook fired ===
+[2026-02-12T10:48:08+08:00] session=6a4736a2-f78e-420c-bc3c-9b57e80d9e25 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T10:48:09+08:00] Output from dir listing
+[2026-02-12T10:48:09+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T10:48:09+08:00] Wrote latest.json
+[2026-02-12T10:48:09+08:00] Wrote pending-wake.json
+[2026-02-12T10:48:09+08:00] === Hook completed ===
+[2026-02-12T15:42:58+08:00] === Hook fired ===
+[2026-02-12T15:42:58+08:00] session=7cfa69e5-897b-4bbf-a721-5a51f2c3e26b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T15:42:59+08:00] Output from dir listing
+[2026-02-12T15:42:59+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T15:42:59+08:00] Wrote latest.json
+[2026-02-12T15:42:59+08:00] Wrote pending-wake.json
+[2026-02-12T15:42:59+08:00] === Hook completed ===
+[2026-02-12T15:44:24+08:00] === Hook fired ===
+[2026-02-12T15:44:24+08:00] session=6a4736a2-f78e-420c-bc3c-9b57e80d9e25 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T15:44:25+08:00] Output from dir listing
+[2026-02-12T15:44:25+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T15:44:25+08:00] Wrote latest.json
+[2026-02-12T15:44:25+08:00] Wrote pending-wake.json
+[2026-02-12T15:44:25+08:00] === Hook completed ===
+[2026-02-12T15:48:04+08:00] === Hook fired ===
+[2026-02-12T15:48:04+08:00] session=6a4736a2-f78e-420c-bc3c-9b57e80d9e25 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T15:48:05+08:00] Output from dir listing
+[2026-02-12T15:48:05+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T15:48:05+08:00] Wrote latest.json
+[2026-02-12T15:48:05+08:00] Wrote pending-wake.json
+[2026-02-12T15:48:05+08:00] === Hook completed ===
+[2026-02-12T15:50:07+08:00] === Hook fired ===
+[2026-02-12T15:50:08+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T15:50:09+08:00] Output from dir listing
+[2026-02-12T15:50:09+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T15:50:09+08:00] Wrote latest.json
+[2026-02-12T15:50:09+08:00] Wrote pending-wake.json
+[2026-02-12T15:50:09+08:00] === Hook completed ===
+[2026-02-12T15:53:57+08:00] === Hook fired ===
+[2026-02-12T15:53:57+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T15:53:58+08:00] Output from dir listing
+[2026-02-12T15:53:58+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T15:53:58+08:00] Wrote latest.json
+[2026-02-12T15:53:58+08:00] Wrote pending-wake.json
+[2026-02-12T15:53:58+08:00] === Hook completed ===
+[2026-02-12T15:54:33+08:00] === Hook fired ===
+[2026-02-12T15:54:33+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T15:54:34+08:00] Output from dir listing
+[2026-02-12T15:54:34+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T15:54:34+08:00] Wrote latest.json
+[2026-02-12T15:54:34+08:00] Wrote pending-wake.json
+[2026-02-12T15:54:34+08:00] === Hook completed ===
+[2026-02-12T15:58:03+08:00] === Hook fired ===
+[2026-02-12T15:58:03+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T15:58:04+08:00] Output from dir listing
+[2026-02-12T15:58:04+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T15:58:04+08:00] Wrote latest.json
+[2026-02-12T15:58:04+08:00] Wrote pending-wake.json
+[2026-02-12T15:58:04+08:00] === Hook completed ===
+[2026-02-12T16:05:40+08:00] === Hook fired ===
+[2026-02-12T16:05:40+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:05:41+08:00] Output from dir listing
+[2026-02-12T16:05:41+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:05:41+08:00] Wrote latest.json
+[2026-02-12T16:05:41+08:00] Wrote pending-wake.json
+[2026-02-12T16:05:41+08:00] === Hook completed ===
+[2026-02-12T16:08:45+08:00] === Hook fired ===
+[2026-02-12T16:08:45+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:08:46+08:00] Output from dir listing
+[2026-02-12T16:08:46+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:08:46+08:00] Wrote latest.json
+[2026-02-12T16:08:46+08:00] Wrote pending-wake.json
+[2026-02-12T16:08:46+08:00] === Hook completed ===
+[2026-02-12T16:10:33+08:00] === Hook fired ===
+[2026-02-12T16:10:33+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:10:34+08:00] Output from dir listing
+[2026-02-12T16:10:34+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:10:34+08:00] Wrote latest.json
+[2026-02-12T16:10:34+08:00] Wrote pending-wake.json
+[2026-02-12T16:10:34+08:00] === Hook completed ===
+[2026-02-12T16:11:25+08:00] === Hook fired ===
+[2026-02-12T16:11:25+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:11:26+08:00] Output from dir listing
+[2026-02-12T16:11:26+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:11:26+08:00] Wrote latest.json
+[2026-02-12T16:11:26+08:00] Wrote pending-wake.json
+[2026-02-12T16:11:26+08:00] === Hook completed ===
+[2026-02-12T16:16:11+08:00] === Hook fired ===
+[2026-02-12T16:16:11+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:16:12+08:00] Output from dir listing
+[2026-02-12T16:16:12+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:16:12+08:00] Wrote latest.json
+[2026-02-12T16:16:12+08:00] Wrote pending-wake.json
+[2026-02-12T16:16:12+08:00] === Hook completed ===
+[2026-02-12T16:20:02+08:00] === Hook fired ===
+[2026-02-12T16:20:02+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:20:03+08:00] Output from dir listing
+[2026-02-12T16:20:03+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:20:03+08:00] Wrote latest.json
+[2026-02-12T16:20:04+08:00] Wrote pending-wake.json
+[2026-02-12T16:20:04+08:00] === Hook completed ===
+[2026-02-12T16:22:35+08:00] === Hook fired ===
+[2026-02-12T16:22:35+08:00] session=bcf585d8-0d6e-49e5-9d7b-e03744130a10 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T16:22:36+08:00] Output from dir listing
+[2026-02-12T16:22:36+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:22:36+08:00] Wrote latest.json
+[2026-02-12T16:22:36+08:00] Wrote pending-wake.json
+[2026-02-12T16:22:36+08:00] === Hook completed ===
+[2026-02-12T16:22:49+08:00] === Hook fired ===
+[2026-02-12T16:22:49+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:22:49+08:00] Duplicate hook within 14s, skipping
+[2026-02-12T16:32:13+08:00] === Hook fired ===
+[2026-02-12T16:32:13+08:00] session=7cfa69e5-897b-4bbf-a721-5a51f2c3e26b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:32:14+08:00] Output from dir listing
+[2026-02-12T16:32:14+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:32:14+08:00] Wrote latest.json
+[2026-02-12T16:32:14+08:00] Wrote pending-wake.json
+[2026-02-12T16:32:14+08:00] === Hook completed ===
+[2026-02-12T16:34:24+08:00] === Hook fired ===
+[2026-02-12T16:34:24+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:34:25+08:00] Output from dir listing
+[2026-02-12T16:34:25+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:34:25+08:00] Wrote latest.json
+[2026-02-12T16:34:25+08:00] Wrote pending-wake.json
+[2026-02-12T16:34:25+08:00] === Hook completed ===
+[2026-02-12T16:36:16+08:00] === Hook fired ===
+[2026-02-12T16:36:16+08:00] session=6e5cf32f-1c8f-46b6-8b91-1b7eb632055d cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:36:17+08:00] Output from dir listing
+[2026-02-12T16:36:17+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:36:17+08:00] Wrote latest.json
+[2026-02-12T16:36:17+08:00] Wrote pending-wake.json
+[2026-02-12T16:36:17+08:00] === Hook completed ===
+[2026-02-12T16:38:40+08:00] === Hook fired ===
+[2026-02-12T16:38:40+08:00] session=7cfa69e5-897b-4bbf-a721-5a51f2c3e26b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:38:41+08:00] Output from dir listing
+[2026-02-12T16:38:41+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:38:41+08:00] Wrote latest.json
+[2026-02-12T16:38:41+08:00] Wrote pending-wake.json
+[2026-02-12T16:38:41+08:00] === Hook completed ===
+[2026-02-12T16:40:59+08:00] === Hook fired ===
+[2026-02-12T16:40:59+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:41:00+08:00] Output from dir listing
+[2026-02-12T16:41:00+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:41:00+08:00] Wrote latest.json
+[2026-02-12T16:41:00+08:00] Wrote pending-wake.json
+[2026-02-12T16:41:00+08:00] === Hook completed ===
+[2026-02-12T16:47:03+08:00] === Hook fired ===
+[2026-02-12T16:47:03+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:47:04+08:00] Output from dir listing
+[2026-02-12T16:47:04+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:47:04+08:00] Wrote latest.json
+[2026-02-12T16:47:04+08:00] Wrote pending-wake.json
+[2026-02-12T16:47:04+08:00] === Hook completed ===
+[2026-02-12T16:50:10+08:00] === Hook fired ===
+[2026-02-12T16:50:10+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:50:11+08:00] Output from dir listing
+[2026-02-12T16:50:11+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:50:11+08:00] Wrote latest.json
+[2026-02-12T16:50:11+08:00] Wrote pending-wake.json
+[2026-02-12T16:50:11+08:00] === Hook completed ===
+[2026-02-12T16:52:14+08:00] === Hook fired ===
+[2026-02-12T16:52:14+08:00] session=7cfa69e5-897b-4bbf-a721-5a51f2c3e26b cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T16:52:15+08:00] Output from dir listing
+[2026-02-12T16:52:15+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:52:15+08:00] Wrote latest.json
+[2026-02-12T16:52:15+08:00] Wrote pending-wake.json
+[2026-02-12T16:52:15+08:00] === Hook completed ===
+[2026-02-12T16:53:11+08:00] === Hook fired ===
+[2026-02-12T16:53:11+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:53:12+08:00] Output from dir listing
+[2026-02-12T16:53:12+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:53:12+08:00] Wrote latest.json
+[2026-02-12T16:53:12+08:00] Wrote pending-wake.json
+[2026-02-12T16:53:12+08:00] === Hook completed ===
+[2026-02-12T16:56:24+08:00] === Hook fired ===
+[2026-02-12T16:56:24+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T16:56:25+08:00] Output from dir listing
+[2026-02-12T16:56:25+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T16:56:25+08:00] Wrote latest.json
+[2026-02-12T16:56:25+08:00] Wrote pending-wake.json
+[2026-02-12T16:56:25+08:00] === Hook completed ===
+[2026-02-12T17:03:17+08:00] === Hook fired ===
+[2026-02-12T17:03:17+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:03:18+08:00] Output from dir listing
+[2026-02-12T17:03:18+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T17:03:18+08:00] Wrote latest.json
+[2026-02-12T17:03:18+08:00] Wrote pending-wake.json
+[2026-02-12T17:03:18+08:00] === Hook completed ===
+[2026-02-12T17:05:28+08:00] === Hook fired ===
+[2026-02-12T17:05:28+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:05:29+08:00] Output from dir listing
+[2026-02-12T17:05:30+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T17:05:30+08:00] Wrote latest.json
+[2026-02-12T17:05:30+08:00] Wrote pending-wake.json
+[2026-02-12T17:05:30+08:00] === Hook completed ===
+[2026-02-12T17:06:27+08:00] === Hook fired ===
+[2026-02-12T17:06:27+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:06:28+08:00] Output from dir listing
+[2026-02-12T17:06:28+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T17:06:28+08:00] Wrote latest.json
+[2026-02-12T17:06:28+08:00] Wrote pending-wake.json
+[2026-02-12T17:06:28+08:00] === Hook completed ===
+[2026-02-12T17:10:34+08:00] === Hook fired ===
+[2026-02-12T17:10:34+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:10:35+08:00] Output from dir listing
+[2026-02-12T17:10:35+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T17:10:35+08:00] Wrote latest.json
+[2026-02-12T17:10:35+08:00] Wrote pending-wake.json
+[2026-02-12T17:10:35+08:00] === Hook completed ===
+[2026-02-12T17:15:10+08:00] === Hook fired ===
+[2026-02-12T17:15:10+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:15:11+08:00] Output from dir listing
+[2026-02-12T17:15:11+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T17:15:11+08:00] Wrote latest.json
+[2026-02-12T17:15:11+08:00] Wrote pending-wake.json
+[2026-02-12T17:15:11+08:00] === Hook completed ===
+[2026-02-12T17:22:09+08:00] === Hook fired ===
+[2026-02-12T17:22:10+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:22:11+08:00] Output from dir listing
+[2026-02-12T17:22:11+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T17:22:11+08:00] Wrote latest.json
+[2026-02-12T17:22:11+08:00] Wrote pending-wake.json
+[2026-02-12T17:22:11+08:00] === Hook completed ===
+[2026-02-12T17:22:11+08:00] === Hook fired ===
+[2026-02-12T17:22:11+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:22:11+08:00] Duplicate hook within 1s, skipping
+[2026-02-12T17:22:12+08:00] === Hook fired ===
+[2026-02-12T17:22:12+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:22:12+08:00] Duplicate hook within 2s, skipping
+[2026-02-12T17:22:14+08:00] === Hook fired ===
+[2026-02-12T17:22:14+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:22:14+08:00] Duplicate hook within 4s, skipping
+[2026-02-12T17:22:57+08:00] === Hook fired ===
+[2026-02-12T17:22:57+08:00] session=451471ea-ba8f-4cdc-b1f2-643a3d39ef19 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T17:22:58+08:00] Output from dir listing
+[2026-02-12T17:22:58+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T17:22:58+08:00] Wrote latest.json
+[2026-02-12T17:22:58+08:00] Wrote pending-wake.json
+[2026-02-12T17:22:58+08:00] === Hook completed ===
+[2026-02-12T18:06:29+08:00] === Hook fired ===
+[2026-02-12T18:06:29+08:00] session=f85e41de-e70b-427f-a832-7f8a339b6a3c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T18:06:30+08:00] Output from dir listing
+[2026-02-12T18:06:30+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T18:06:30+08:00] Wrote latest.json
+[2026-02-12T18:06:30+08:00] Wrote pending-wake.json
+[2026-02-12T18:06:30+08:00] === Hook completed ===
+[2026-02-12T18:17:49+08:00] === Hook fired ===
+[2026-02-12T18:17:49+08:00] session=6fd7c7d2-5d3c-4c5b-94de-92b4b42d61dc cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T18:17:50+08:00] Output from dir listing
+[2026-02-12T18:17:50+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T18:17:50+08:00] Wrote latest.json
+[2026-02-12T18:17:50+08:00] Wrote pending-wake.json
+[2026-02-12T18:17:50+08:00] === Hook completed ===
+[2026-02-12T18:33:13+08:00] === Hook fired ===
+[2026-02-12T18:33:13+08:00] session=a789e5da-e3a9-4cfc-add8-2887a8f07202 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T18:33:14+08:00] Output from dir listing
+[2026-02-12T18:33:14+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T18:33:14+08:00] Wrote latest.json
+[2026-02-12T18:33:14+08:00] Wrote pending-wake.json
+[2026-02-12T18:33:14+08:00] === Hook completed ===
+[2026-02-12T18:33:30+08:00] === Hook fired ===
+[2026-02-12T18:33:30+08:00] session=4d1317e7-64dc-4d2a-883d-cbf9f8e43eee cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T18:33:30+08:00] Duplicate hook within 17s, skipping
+[2026-02-12T18:35:16+08:00] === Hook fired ===
+[2026-02-12T18:35:16+08:00] session=2f8fe526-8e6c-4d59-9b26-187b0e13afdb cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T18:35:17+08:00] Output from dir listing
+[2026-02-12T18:35:17+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T18:35:18+08:00] Wrote latest.json
+[2026-02-12T18:35:18+08:00] Wrote pending-wake.json
+[2026-02-12T18:35:18+08:00] === Hook completed ===
+[2026-02-12T18:35:26+08:00] === Hook fired ===
+[2026-02-12T18:35:26+08:00] === Hook fired ===
+[2026-02-12T18:35:26+08:00] session=8cb7777e-7c88-4df0-8de9-e17dcba69f9e cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T18:35:26+08:00] Duplicate hook within 10s, skipping
+[2026-02-12T18:45:35+08:00] === Hook fired ===
+[2026-02-12T18:45:36+08:00] session=c7dadef3-0f28-4d35-9eb5-57d2f7741d05 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T18:45:37+08:00] Output from dir listing
+[2026-02-12T18:45:37+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T18:45:37+08:00] Wrote latest.json
+[2026-02-12T18:45:37+08:00] Wrote pending-wake.json
+[2026-02-12T18:45:37+08:00] === Hook completed ===
+[2026-02-12T18:45:50+08:00] === Hook fired ===
+[2026-02-12T18:45:50+08:00] session=65632b59-73c3-4acf-a17c-dfb4388bb7b7 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T18:45:50+08:00] Duplicate hook within 14s, skipping
+[2026-02-12T18:48:54+08:00] === Hook fired ===
+[2026-02-12T18:48:54+08:00] session=6e5cf32f-1c8f-46b6-8b91-1b7eb632055d cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T18:48:55+08:00] Output from dir listing
+[2026-02-12T18:48:55+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T18:48:55+08:00] Wrote latest.json
+[2026-02-12T18:48:55+08:00] Wrote pending-wake.json
+[2026-02-12T18:48:55+08:00] === Hook completed ===
+[2026-02-12T19:21:52+08:00] === Hook fired ===
+[2026-02-12T19:21:52+08:00] session=0ee65c4e-cdc6-41a9-9014-bba08e40fd42 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-12T19:21:53+08:00] Output from dir listing
+[2026-02-12T19:21:53+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-12T19:21:53+08:00] Wrote latest.json
+[2026-02-12T19:21:53+08:00] Wrote pending-wake.json
+[2026-02-12T19:21:53+08:00] === Hook completed ===
+[2026-02-12T19:22:06+08:00] === Hook fired ===
+[2026-02-12T19:22:06+08:00] session=61788569-78c8-43dc-9a0c-170e1414dfd4 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T19:22:06+08:00] Duplicate hook within 14s, skipping
+[2026-02-12T19:22:16+08:00] === Hook fired ===
+[2026-02-12T19:22:16+08:00] session=8191a9c8-c159-4abe-96c4-b857be7ceae6 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-12T19:22:16+08:00] Duplicate hook within 24s, skipping
+[2026-02-13T01:54:35+08:00] === Hook fired ===
+[2026-02-13T01:54:35+08:00] session=61788569-78c8-43dc-9a0c-170e1414dfd4 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T01:54:36+08:00] Output from dir listing
+[2026-02-13T01:54:36+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T01:54:36+08:00] Wrote latest.json
+[2026-02-13T01:54:36+08:00] Wrote pending-wake.json
+[2026-02-13T01:54:36+08:00] === Hook completed ===
+[2026-02-13T02:11:11+08:00] === Hook fired ===
+[2026-02-13T02:11:11+08:00] session=8191a9c8-c159-4abe-96c4-b857be7ceae6 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T02:11:12+08:00] Output from dir listing
+[2026-02-13T02:11:12+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T02:11:12+08:00] === Hook fired ===
+[2026-02-13T02:11:12+08:00] Wrote latest.json
+[2026-02-13T02:11:12+08:00] Wrote pending-wake.json
+[2026-02-13T02:11:12+08:00] === Hook completed ===
+[2026-02-13T02:11:12+08:00] session=61788569-78c8-43dc-9a0c-170e1414dfd4 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T02:11:12+08:00] Duplicate hook within 1s, skipping
+[2026-02-13T02:11:17+08:00] === Hook fired ===
+[2026-02-13T02:11:17+08:00] session=61788569-78c8-43dc-9a0c-170e1414dfd4 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T02:11:17+08:00] Duplicate hook within 6s, skipping
+[2026-02-13T02:12:28+08:00] === Hook fired ===
+[2026-02-13T02:12:28+08:00] session=61788569-78c8-43dc-9a0c-170e1414dfd4 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T02:12:29+08:00] Output from dir listing
+[2026-02-13T02:12:29+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T02:12:29+08:00] Wrote latest.json
+[2026-02-13T02:12:29+08:00] Wrote pending-wake.json
+[2026-02-13T02:12:29+08:00] === Hook completed ===
+[2026-02-13T02:13:53+08:00] === Hook fired ===
+[2026-02-13T02:13:53+08:00] session=61788569-78c8-43dc-9a0c-170e1414dfd4 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T02:13:54+08:00] Output from dir listing
+[2026-02-13T02:13:54+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T02:13:54+08:00] Wrote latest.json
+[2026-02-13T02:13:54+08:00] Wrote pending-wake.json
+[2026-02-13T02:13:54+08:00] === Hook completed ===
+[2026-02-13T02:22:31+08:00] === Hook fired ===
+[2026-02-13T02:22:31+08:00] session=61788569-78c8-43dc-9a0c-170e1414dfd4 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T02:22:32+08:00] Output from dir listing
+[2026-02-13T02:22:32+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T02:22:32+08:00] Wrote latest.json
+[2026-02-13T02:22:32+08:00] Wrote pending-wake.json
+[2026-02-13T02:22:32+08:00] === Hook completed ===
+[2026-02-13T02:23:26+08:00] === Hook fired ===
+[2026-02-13T02:23:26+08:00] session=61788569-78c8-43dc-9a0c-170e1414dfd4 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T02:23:27+08:00] Output from dir listing
+[2026-02-13T02:23:27+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T02:23:27+08:00] Wrote latest.json
+[2026-02-13T02:23:27+08:00] Wrote pending-wake.json
+[2026-02-13T02:23:27+08:00] === Hook completed ===
+[2026-02-13T06:23:41+08:00] === Hook fired ===
+[2026-02-13T06:23:41+08:00] session=650147ab-35f8-4a65-a8ab-552b95f97670 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T06:23:42+08:00] Output from dir listing
+[2026-02-13T06:23:42+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T06:23:42+08:00] Wrote latest.json
+[2026-02-13T06:23:42+08:00] Wrote pending-wake.json
+[2026-02-13T06:23:42+08:00] === Hook completed ===
+[2026-02-13T06:31:06+08:00] === Hook fired ===
+[2026-02-13T06:31:06+08:00] session=61788569-78c8-43dc-9a0c-170e1414dfd4 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T06:31:07+08:00] Output from dir listing
+[2026-02-13T06:31:07+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T06:31:07+08:00] Wrote latest.json
+[2026-02-13T06:31:07+08:00] Wrote pending-wake.json
+[2026-02-13T06:31:07+08:00] === Hook completed ===
+[2026-02-13T06:34:07+08:00] === Hook fired ===
+[2026-02-13T06:34:07+08:00] session=650147ab-35f8-4a65-a8ab-552b95f97670 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T06:34:08+08:00] Output from dir listing
+[2026-02-13T06:34:09+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T06:34:09+08:00] Wrote latest.json
+[2026-02-13T06:34:09+08:00] Wrote pending-wake.json
+[2026-02-13T06:34:09+08:00] === Hook completed ===
+[2026-02-13T06:57:48+08:00] === Hook fired ===
+[2026-02-13T06:57:48+08:00] session=650147ab-35f8-4a65-a8ab-552b95f97670 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T06:57:49+08:00] Output from dir listing
+[2026-02-13T06:57:49+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T06:57:49+08:00] Wrote latest.json
+[2026-02-13T06:57:49+08:00] Wrote pending-wake.json
+[2026-02-13T06:57:49+08:00] === Hook completed ===
+[2026-02-13T07:06:13+08:00] === Hook fired ===
+[2026-02-13T07:06:13+08:00] session=6e101620-d66e-43af-9a30-333026010b49 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T07:06:14+08:00] Output from dir listing
+[2026-02-13T07:06:14+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T07:06:14+08:00] Wrote latest.json
+[2026-02-13T07:06:14+08:00] Wrote pending-wake.json
+[2026-02-13T07:06:14+08:00] === Hook completed ===
+[2026-02-13T07:16:47+08:00] === Hook fired ===
+[2026-02-13T07:16:48+08:00] session=6e101620-d66e-43af-9a30-333026010b49 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T07:16:49+08:00] Output from dir listing
+[2026-02-13T07:16:49+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T07:16:49+08:00] Wrote latest.json
+[2026-02-13T07:16:49+08:00] Wrote pending-wake.json
+[2026-02-13T07:16:49+08:00] === Hook completed ===
+[2026-02-13T07:20:07+08:00] === Hook fired ===
+[2026-02-13T07:20:07+08:00] session=6e101620-d66e-43af-9a30-333026010b49 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T07:20:08+08:00] Output from dir listing
+[2026-02-13T07:20:08+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T07:20:08+08:00] Wrote latest.json
+[2026-02-13T07:20:08+08:00] Wrote pending-wake.json
+[2026-02-13T07:20:08+08:00] === Hook completed ===
+[2026-02-13T07:20:10+08:00] === Hook fired ===
+[2026-02-13T07:20:10+08:00] session=6e101620-d66e-43af-9a30-333026010b49 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T07:20:10+08:00] Duplicate hook within 3s, skipping
+[2026-02-13T07:24:26+08:00] === Hook fired ===
+[2026-02-13T07:24:26+08:00] session=99e29e19-4bb6-4b64-81d7-356f586acd91 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T07:24:27+08:00] Output from dir listing
+[2026-02-13T07:24:27+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T07:24:27+08:00] Wrote latest.json
+[2026-02-13T07:24:27+08:00] Wrote pending-wake.json
+[2026-02-13T07:24:27+08:00] === Hook completed ===
+[2026-02-13T07:56:44+08:00] === Hook fired ===
+[2026-02-13T07:56:44+08:00] session=99e29e19-4bb6-4b64-81d7-356f586acd91 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T07:56:45+08:00] Output from dir listing
+[2026-02-13T07:56:45+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T07:56:45+08:00] Wrote latest.json
+[2026-02-13T07:56:45+08:00] Wrote pending-wake.json
+[2026-02-13T07:56:45+08:00] === Hook completed ===
+[2026-02-13T08:07:03+08:00] === Hook fired ===
+[2026-02-13T08:07:03+08:00] session=7414e270-bb80-48e3-9891-5bbf68c54928 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T08:07:04+08:00] Output from dir listing
+[2026-02-13T08:07:04+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T08:07:04+08:00] Wrote latest.json
+[2026-02-13T08:07:04+08:00] Wrote pending-wake.json
+[2026-02-13T08:07:04+08:00] === Hook completed ===
+[2026-02-13T08:11:47+08:00] === Hook fired ===
+[2026-02-13T08:11:48+08:00] session=7414e270-bb80-48e3-9891-5bbf68c54928 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T08:11:49+08:00] Output from dir listing
+[2026-02-13T08:11:49+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T08:11:49+08:00] Wrote latest.json
+[2026-02-13T08:11:49+08:00] Wrote pending-wake.json
+[2026-02-13T08:11:49+08:00] === Hook completed ===
+[2026-02-13T08:13:53+08:00] === Hook fired ===
+[2026-02-13T08:13:53+08:00] session=7414e270-bb80-48e3-9891-5bbf68c54928 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T08:13:54+08:00] Output from dir listing
+[2026-02-13T08:13:54+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T08:13:54+08:00] Wrote latest.json
+[2026-02-13T08:13:54+08:00] Wrote pending-wake.json
+[2026-02-13T08:13:54+08:00] === Hook completed ===
+[2026-02-13T08:15:29+08:00] === Hook fired ===
+[2026-02-13T08:15:29+08:00] session=92f6c77c-b729-470c-af35-3e2b41ce1731 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T08:15:30+08:00] Output from dir listing
+[2026-02-13T08:15:30+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T08:15:30+08:00] Wrote latest.json
+[2026-02-13T08:15:30+08:00] Wrote pending-wake.json
+[2026-02-13T08:15:30+08:00] === Hook completed ===
+[2026-02-13T08:28:07+08:00] === Hook fired ===
+[2026-02-13T08:28:07+08:00] session=7414e270-bb80-48e3-9891-5bbf68c54928 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T08:28:08+08:00] Output from dir listing
+[2026-02-13T08:28:08+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T08:28:08+08:00] Wrote latest.json
+[2026-02-13T08:28:08+08:00] Wrote pending-wake.json
+[2026-02-13T08:28:08+08:00] === Hook completed ===
+[2026-02-13T08:33:52+08:00] === Hook fired ===
+[2026-02-13T08:33:52+08:00] session=13f4248c-e26c-4ecf-be12-bad94ed8ecb6 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T08:33:53+08:00] Output from dir listing
+[2026-02-13T08:33:53+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T08:33:53+08:00] Wrote latest.json
+[2026-02-13T08:33:53+08:00] Wrote pending-wake.json
+[2026-02-13T08:33:53+08:00] === Hook completed ===
+[2026-02-13T14:27:51+08:00] === Hook fired ===
+[2026-02-13T14:27:51+08:00] session=13f4248c-e26c-4ecf-be12-bad94ed8ecb6 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T14:39:52+08:00] === Hook fired ===
+[2026-02-13T14:39:52+08:00] session=7414e270-bb80-48e3-9891-5bbf68c54928 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T14:39:53+08:00] Output from dir listing
+[2026-02-13T14:39:53+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T14:39:53+08:00] Wrote latest.json
+[2026-02-13T14:39:53+08:00] Wrote pending-wake.json
+[2026-02-13T14:39:53+08:00] === Hook completed ===
+[2026-02-13T17:13:37+08:00] === Hook fired ===
+[2026-02-13T17:13:37+08:00] session=43a1dc51-246f-4b05-8848-7606ce241312 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:13:38+08:00] Output from dir listing
+[2026-02-13T17:13:38+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:13:38+08:00] Wrote latest.json
+[2026-02-13T17:13:38+08:00] Wrote pending-wake.json
+[2026-02-13T17:13:38+08:00] === Hook completed ===
+[2026-02-13T17:18:21+08:00] === Hook fired ===
+[2026-02-13T17:18:21+08:00] session=43a1dc51-246f-4b05-8848-7606ce241312 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:18:22+08:00] Output from dir listing
+[2026-02-13T17:18:22+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:18:22+08:00] Wrote latest.json
+[2026-02-13T17:18:22+08:00] Wrote pending-wake.json
+[2026-02-13T17:18:22+08:00] === Hook completed ===
+[2026-02-13T17:20:36+08:00] === Hook fired ===
+[2026-02-13T17:20:36+08:00] session=f7509c9a-0502-4f8e-8f5a-9a594451e4f3 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T17:20:37+08:00] Output from dir listing
+[2026-02-13T17:20:37+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:20:37+08:00] Wrote latest.json
+[2026-02-13T17:20:38+08:00] Wrote pending-wake.json
+[2026-02-13T17:20:38+08:00] === Hook completed ===
+[2026-02-13T17:29:16+08:00] === Hook fired ===
+[2026-02-13T17:29:16+08:00] session=3a87cee3-ea80-4146-8ed3-dfd3cc20d1d3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:29:17+08:00] Output from dir listing
+[2026-02-13T17:29:17+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:29:17+08:00] Wrote latest.json
+[2026-02-13T17:29:17+08:00] Wrote pending-wake.json
+[2026-02-13T17:29:17+08:00] === Hook completed ===
+[2026-02-13T17:33:09+08:00] === Hook fired ===
+[2026-02-13T17:33:09+08:00] session=3a87cee3-ea80-4146-8ed3-dfd3cc20d1d3 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T17:33:10+08:00] Output from dir listing
+[2026-02-13T17:33:10+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:33:10+08:00] Wrote latest.json
+[2026-02-13T17:33:10+08:00] Wrote pending-wake.json
+[2026-02-13T17:33:10+08:00] === Hook completed ===
+[2026-02-13T17:33:18+08:00] === Hook fired ===
+[2026-02-13T17:33:18+08:00] session=3a87cee3-ea80-4146-8ed3-dfd3cc20d1d3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:33:18+08:00] Duplicate hook within 9s, skipping
+[2026-02-13T17:33:19+08:00] === Hook fired ===
+[2026-02-13T17:33:19+08:00] session=3a87cee3-ea80-4146-8ed3-dfd3cc20d1d3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:33:19+08:00] Duplicate hook within 10s, skipping
+[2026-02-13T17:35:44+08:00] === Hook fired ===
+[2026-02-13T17:35:44+08:00] session=43a1dc51-246f-4b05-8848-7606ce241312 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T17:35:45+08:00] Output from dir listing
+[2026-02-13T17:35:45+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:35:45+08:00] Wrote latest.json
+[2026-02-13T17:35:45+08:00] Wrote pending-wake.json
+[2026-02-13T17:35:45+08:00] === Hook completed ===
+[2026-02-13T17:39:37+08:00] === Hook fired ===
+[2026-02-13T17:39:37+08:00] session=17be6cdf-f7f7-4ed5-9976-45baebe2756c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:39:38+08:00] Output from dir listing
+[2026-02-13T17:39:38+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:39:38+08:00] Wrote latest.json
+[2026-02-13T17:39:38+08:00] Wrote pending-wake.json
+[2026-02-13T17:39:38+08:00] === Hook completed ===
+[2026-02-13T17:39:43+08:00] === Hook fired ===
+[2026-02-13T17:39:44+08:00] session=17be6cdf-f7f7-4ed5-9976-45baebe2756c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:39:44+08:00] Duplicate hook within 7s, skipping
+[2026-02-13T17:43:05+08:00] === Hook fired ===
+[2026-02-13T17:43:05+08:00] session=3a87cee3-ea80-4146-8ed3-dfd3cc20d1d3 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T17:43:06+08:00] Output from dir listing
+[2026-02-13T17:43:06+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:43:06+08:00] Wrote latest.json
+[2026-02-13T17:43:06+08:00] Wrote pending-wake.json
+[2026-02-13T17:43:06+08:00] === Hook completed ===
+[2026-02-13T17:43:15+08:00] === Hook fired ===
+[2026-02-13T17:43:15+08:00] session=3a87cee3-ea80-4146-8ed3-dfd3cc20d1d3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:43:15+08:00] Duplicate hook within 10s, skipping
+[2026-02-13T17:47:24+08:00] === Hook fired ===
+[2026-02-13T17:47:24+08:00] session=753eb32e-2baa-43ce-b8c7-b761165bf349 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:47:25+08:00] Output from dir listing
+[2026-02-13T17:47:25+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:47:25+08:00] Wrote latest.json
+[2026-02-13T17:47:25+08:00] Wrote pending-wake.json
+[2026-02-13T17:47:25+08:00] === Hook completed ===
+[2026-02-13T17:47:36+08:00] === Hook fired ===
+[2026-02-13T17:47:36+08:00] session=7414e270-bb80-48e3-9891-5bbf68c54928 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T17:47:36+08:00] Duplicate hook within 12s, skipping
+[2026-02-13T17:49:04+08:00] === Hook fired ===
+[2026-02-13T17:49:04+08:00] session=83a6d3b0-a057-497e-a7b5-ad6ab5045cea cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T17:49:05+08:00] Output from dir listing
+[2026-02-13T17:49:05+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:49:06+08:00] Wrote latest.json
+[2026-02-13T17:49:06+08:00] Wrote pending-wake.json
+[2026-02-13T17:49:06+08:00] === Hook completed ===
+[2026-02-13T17:53:05+08:00] === Hook fired ===
+[2026-02-13T17:53:05+08:00] session=3a87cee3-ea80-4146-8ed3-dfd3cc20d1d3 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T17:53:06+08:00] Output from dir listing
+[2026-02-13T17:53:06+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T17:53:06+08:00] Wrote latest.json
+[2026-02-13T17:53:06+08:00] Wrote pending-wake.json
+[2026-02-13T17:53:06+08:00] === Hook completed ===
+[2026-02-13T22:19:23+08:00] === Hook fired ===
+[2026-02-13T22:19:23+08:00] session=753eb32e-2baa-43ce-b8c7-b761165bf349 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T22:19:24+08:00] Output from dir listing
+[2026-02-13T22:19:24+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T22:19:24+08:00] Wrote latest.json
+[2026-02-13T22:19:24+08:00] Wrote pending-wake.json
+[2026-02-13T22:19:24+08:00] === Hook completed ===
+[2026-02-13T22:23:57+08:00] === Hook fired ===
+[2026-02-13T22:23:57+08:00] session=68c0b369-d9a8-40bd-b8d1-418f753d0a01 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T22:23:58+08:00] Output from dir listing
+[2026-02-13T22:23:58+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T22:23:58+08:00] Wrote latest.json
+[2026-02-13T22:23:58+08:00] Wrote pending-wake.json
+[2026-02-13T22:23:58+08:00] === Hook completed ===
+[2026-02-13T22:25:20+08:00] === Hook fired ===
+[2026-02-13T22:25:20+08:00] session=d1d54af1-704a-47eb-9e61-26af8d872973 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T22:25:21+08:00] Output from dir listing
+[2026-02-13T22:25:21+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T22:25:21+08:00] Wrote latest.json
+[2026-02-13T22:25:21+08:00] Wrote pending-wake.json
+[2026-02-13T22:25:21+08:00] === Hook completed ===
+[2026-02-13T23:04:00+08:00] === Hook fired ===
+[2026-02-13T23:04:00+08:00] session=f71925a4-f9e7-4dec-b258-f7407a3d2470 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T23:04:01+08:00] Output from dir listing
+[2026-02-13T23:04:01+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T23:04:01+08:00] Wrote latest.json
+[2026-02-13T23:04:01+08:00] Wrote pending-wake.json
+[2026-02-13T23:04:01+08:00] === Hook completed ===
+[2026-02-13T23:04:06+08:00] === Hook fired ===
+[2026-02-13T23:04:06+08:00] session=f71925a4-f9e7-4dec-b258-f7407a3d2470 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T23:04:06+08:00] Duplicate hook within 6s, skipping
+[2026-02-13T23:04:11+08:00] === Hook fired ===
+[2026-02-13T23:04:11+08:00] session=f71925a4-f9e7-4dec-b258-f7407a3d2470 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T23:04:11+08:00] Duplicate hook within 11s, skipping
+[2026-02-13T23:04:52+08:00] === Hook fired ===
+[2026-02-13T23:04:52+08:00] session=f71925a4-f9e7-4dec-b258-f7407a3d2470 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T23:04:53+08:00] Output from dir listing
+[2026-02-13T23:04:53+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T23:04:53+08:00] Wrote latest.json
+[2026-02-13T23:04:53+08:00] Wrote pending-wake.json
+[2026-02-13T23:04:53+08:00] === Hook completed ===
+[2026-02-13T23:05:54+08:00] === Hook fired ===
+[2026-02-13T23:05:54+08:00] session=f71925a4-f9e7-4dec-b258-f7407a3d2470 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T23:05:55+08:00] Output from dir listing
+[2026-02-13T23:05:56+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T23:05:56+08:00] Wrote latest.json
+[2026-02-13T23:05:56+08:00] Wrote pending-wake.json
+[2026-02-13T23:05:56+08:00] === Hook completed ===
+[2026-02-13T23:06:15+08:00] === Hook fired ===
+[2026-02-13T23:06:15+08:00] session=f71925a4-f9e7-4dec-b258-f7407a3d2470 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T23:06:15+08:00] Duplicate hook within 21s, skipping
+[2026-02-13T23:07:02+08:00] === Hook fired ===
+[2026-02-13T23:07:02+08:00] session=f71925a4-f9e7-4dec-b258-f7407a3d2470 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T23:07:03+08:00] Output from dir listing
+[2026-02-13T23:07:03+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T23:07:03+08:00] Wrote latest.json
+[2026-02-13T23:07:03+08:00] Wrote pending-wake.json
+[2026-02-13T23:07:03+08:00] === Hook completed ===
+[2026-02-13T23:07:23+08:00] === Hook fired ===
+[2026-02-13T23:07:23+08:00] session=f71925a4-f9e7-4dec-b258-f7407a3d2470 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T23:07:23+08:00] Duplicate hook within 21s, skipping
+[2026-02-13T23:08:01+08:00] === Hook fired ===
+[2026-02-13T23:08:01+08:00] session=f71925a4-f9e7-4dec-b258-f7407a3d2470 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-13T23:08:02+08:00] Output from dir listing
+[2026-02-13T23:08:02+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T23:08:02+08:00] Wrote latest.json
+[2026-02-13T23:08:02+08:00] Wrote pending-wake.json
+[2026-02-13T23:08:02+08:00] === Hook completed ===
+[2026-02-13T23:11:47+08:00] === Hook fired ===
+[2026-02-13T23:11:47+08:00] === Hook fired ===
+[2026-02-13T23:11:47+08:00] === Hook fired ===
+[2026-02-13T23:11:47+08:00] session=aced5d91-d972-47e3-b6bf-b793f4692198 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T23:11:47+08:00] session=d1d54af1-704a-47eb-9e61-26af8d872973 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T23:11:47+08:00] session=96dc7b82-a08f-451c-82d4-389a8fd402cb cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-13T23:11:48+08:00] Output from dir listing
+[2026-02-13T23:11:48+08:00] Output from dir listing
+[2026-02-13T23:11:48+08:00] Output from dir listing
+[2026-02-13T23:11:48+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T23:11:48+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T23:11:48+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-13T23:11:48+08:00] Wrote latest.json
+[2026-02-13T23:11:48+08:00] Wrote latest.json
+[2026-02-13T23:11:48+08:00] Wrote latest.json
+[2026-02-13T23:11:48+08:00] Wrote pending-wake.json
+[2026-02-13T23:11:48+08:00] Wrote pending-wake.json
+[2026-02-13T23:11:48+08:00] === Hook completed ===
+[2026-02-13T23:11:48+08:00] === Hook completed ===
+[2026-02-13T23:11:48+08:00] Wrote pending-wake.json
+[2026-02-13T23:11:48+08:00] === Hook completed ===
+[2026-02-14T10:18:27+08:00] === Hook fired ===
+[2026-02-14T10:18:27+08:00] session= cwd= event=
+[2026-02-14T10:18:27+08:00] === Hook fired ===
+[2026-02-14T10:18:27+08:00] session=unknown cwd= event=unknown
+[2026-02-14T10:18:27+08:00] Duplicate hook within 0s, skipping
+[2026-02-14T10:18:27+08:00] === Hook fired ===
+[2026-02-14T10:18:27+08:00] session= cwd= event=
+[2026-02-14T10:18:27+08:00] Duplicate hook within 0s, skipping
+[2026-02-14T10:18:28+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T10:18:28+08:00] Wrote latest.json
+[2026-02-14T10:18:28+08:00] Wrote pending-wake.json
+[2026-02-14T10:18:28+08:00] === Hook completed ===
+[2026-02-14T10:22:03+08:00] === Hook fired ===
+[2026-02-14T10:22:03+08:00] session=cdc20caa-2dd3-4e72-8c5a-d19924c37b00 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-14T10:22:04+08:00] Output from dir listing
+[2026-02-14T10:22:04+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T10:22:04+08:00] Wrote latest.json
+[2026-02-14T10:22:04+08:00] Wrote pending-wake.json
+[2026-02-14T10:22:04+08:00] === Hook completed ===
+[2026-02-14T10:31:30+08:00] === Hook fired ===
+[2026-02-14T10:31:30+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T10:31:31+08:00] Output from dir listing
+[2026-02-14T10:31:31+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T10:31:31+08:00] Wrote latest.json
+[2026-02-14T10:31:31+08:00] Wrote pending-wake.json
+[2026-02-14T10:31:31+08:00] === Hook completed ===
+[2026-02-14T10:32:39+08:00] === Hook fired ===
+[2026-02-14T10:32:39+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T10:32:40+08:00] Output from dir listing
+[2026-02-14T10:32:40+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T10:32:40+08:00] Wrote latest.json
+[2026-02-14T10:32:40+08:00] Wrote pending-wake.json
+[2026-02-14T10:32:40+08:00] === Hook completed ===
+[2026-02-14T10:33:24+08:00] === Hook fired ===
+[2026-02-14T10:33:24+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T10:33:25+08:00] Output from dir listing
+[2026-02-14T10:33:25+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T10:33:25+08:00] Wrote latest.json
+[2026-02-14T10:33:25+08:00] Wrote pending-wake.json
+[2026-02-14T10:33:25+08:00] === Hook completed ===
+[2026-02-14T10:33:31+08:00] === Hook fired ===
+[2026-02-14T10:33:31+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T10:33:31+08:00] Duplicate hook within 7s, skipping
+[2026-02-14T10:36:05+08:00] === Hook fired ===
+[2026-02-14T10:36:05+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T10:36:06+08:00] Output from dir listing
+[2026-02-14T10:36:06+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T10:36:06+08:00] Wrote latest.json
+[2026-02-14T10:36:06+08:00] Wrote pending-wake.json
+[2026-02-14T10:36:06+08:00] === Hook completed ===
+[2026-02-14T10:57:40+08:00] === Hook fired ===
+[2026-02-14T10:57:40+08:00] session=d1d54af1-704a-47eb-9e61-26af8d872973 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T10:57:41+08:00] Output from dir listing
+[2026-02-14T10:57:41+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T10:57:41+08:00] Wrote latest.json
+[2026-02-14T10:57:41+08:00] Wrote pending-wake.json
+[2026-02-14T10:57:41+08:00] === Hook completed ===
+[2026-02-14T11:01:57+08:00] === Hook fired ===
+[2026-02-14T11:01:57+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T11:01:58+08:00] Output from dir listing
+[2026-02-14T11:01:58+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T11:01:58+08:00] Wrote latest.json
+[2026-02-14T11:01:58+08:00] Wrote pending-wake.json
+[2026-02-14T11:01:58+08:00] === Hook completed ===
+[2026-02-14T11:05:40+08:00] === Hook fired ===
+[2026-02-14T11:05:40+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T11:05:41+08:00] Output from dir listing
+[2026-02-14T11:05:41+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T11:05:41+08:00] Wrote latest.json
+[2026-02-14T11:05:41+08:00] Wrote pending-wake.json
+[2026-02-14T11:05:41+08:00] === Hook completed ===
+[2026-02-14T11:23:03+08:00] === Hook fired ===
+[2026-02-14T11:23:03+08:00] session=d1d54af1-704a-47eb-9e61-26af8d872973 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T11:23:04+08:00] Output from dir listing
+[2026-02-14T11:23:04+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T11:23:04+08:00] Wrote latest.json
+[2026-02-14T11:23:04+08:00] Wrote pending-wake.json
+[2026-02-14T11:23:04+08:00] === Hook completed ===
+[2026-02-14T11:29:12+08:00] === Hook fired ===
+[2026-02-14T11:29:12+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T11:29:13+08:00] Output from dir listing
+[2026-02-14T11:29:13+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T11:29:13+08:00] Wrote latest.json
+[2026-02-14T11:29:13+08:00] Wrote pending-wake.json
+[2026-02-14T11:29:13+08:00] === Hook completed ===
+[2026-02-14T11:29:14+08:00] === Hook fired ===
+[2026-02-14T11:29:14+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T11:29:14+08:00] Duplicate hook within 2s, skipping
+[2026-02-14T11:29:26+08:00] === Hook fired ===
+[2026-02-14T11:29:26+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T11:29:26+08:00] Duplicate hook within 14s, skipping
+[2026-02-14T11:29:26+08:00] === Hook fired ===
+[2026-02-14T11:29:26+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T11:29:26+08:00] Duplicate hook within 14s, skipping
+[2026-02-14T11:33:25+08:00] === Hook fired ===
+[2026-02-14T11:33:25+08:00] session=828f35b1-ddfe-4ec3-8dad-b01320d46e73 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-14T11:33:26+08:00] Output from dir listing
+[2026-02-14T11:33:26+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T11:33:26+08:00] Wrote latest.json
+[2026-02-14T11:33:26+08:00] Wrote pending-wake.json
+[2026-02-14T11:33:26+08:00] === Hook completed ===
+[2026-02-14T12:35:29+08:00] === Hook fired ===
+[2026-02-14T12:35:29+08:00] session=d1d54af1-704a-47eb-9e61-26af8d872973 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-14T12:35:30+08:00] Output from dir listing
+[2026-02-14T12:35:30+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T12:35:30+08:00] Wrote latest.json
+[2026-02-14T12:35:30+08:00] Wrote pending-wake.json
+[2026-02-14T12:35:30+08:00] === Hook completed ===
+[2026-02-14T12:38:43+08:00] === Hook fired ===
+[2026-02-14T12:38:43+08:00] session=ec7f54dc-baa4-4ae6-8cba-ba43229d426b cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T12:38:44+08:00] Output from dir listing
+[2026-02-14T12:38:44+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T12:38:44+08:00] Wrote latest.json
+[2026-02-14T12:38:44+08:00] Wrote pending-wake.json
+[2026-02-14T12:38:44+08:00] === Hook completed ===
+[2026-02-14T14:27:36+08:00] === Hook fired ===
+[2026-02-14T14:32:05+08:00] session=00bbf905-6b52-41e6-a0c5-ba89a474a30b cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-14T14:32:06+08:00] Output from dir listing
+[2026-02-14T14:32:06+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T14:32:06+08:00] Wrote latest.json
+[2026-02-14T14:32:06+08:00] Wrote pending-wake.json
+[2026-02-14T14:32:06+08:00] === Hook completed ===
+[2026-02-14T14:35:38+08:00] === Hook fired ===
+[2026-02-14T14:35:38+08:00] session=2c57281f-bcc6-48ee-9207-76eea74fc11e cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-14T14:35:39+08:00] Output from dir listing
+[2026-02-14T14:35:39+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T14:35:39+08:00] Wrote latest.json
+[2026-02-14T14:35:39+08:00] Wrote pending-wake.json
+[2026-02-14T14:35:39+08:00] === Hook completed ===
+[2026-02-14T22:20:03+08:00] === Hook fired ===
+[2026-02-14T22:20:03+08:00] session=c71e9b4a-b6c6-4100-a045-2757264bf8cc cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:20:04+08:00] Output from dir listing
+[2026-02-14T22:20:04+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:20:04+08:00] Wrote latest.json
+[2026-02-14T22:20:04+08:00] Wrote pending-wake.json
+[2026-02-14T22:20:04+08:00] === Hook completed ===
+[2026-02-14T22:23:13+08:00] === Hook fired ===
+[2026-02-14T22:23:13+08:00] session=c71e9b4a-b6c6-4100-a045-2757264bf8cc cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-14T22:23:14+08:00] Output from dir listing
+[2026-02-14T22:23:14+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:23:14+08:00] Wrote latest.json
+[2026-02-14T22:23:14+08:00] Wrote pending-wake.json
+[2026-02-14T22:23:14+08:00] === Hook completed ===
+[2026-02-14T22:27:40+08:00] === Hook fired ===
+[2026-02-14T22:27:40+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:27:41+08:00] Output from dir listing
+[2026-02-14T22:27:41+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:27:41+08:00] Wrote latest.json
+[2026-02-14T22:27:42+08:00] Wrote pending-wake.json
+[2026-02-14T22:27:42+08:00] === Hook completed ===
+[2026-02-14T22:28:44+08:00] === Hook fired ===
+[2026-02-14T22:28:44+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:28:45+08:00] Output from dir listing
+[2026-02-14T22:28:45+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:28:45+08:00] Wrote latest.json
+[2026-02-14T22:28:45+08:00] Wrote pending-wake.json
+[2026-02-14T22:28:45+08:00] === Hook completed ===
+[2026-02-14T22:30:03+08:00] === Hook fired ===
+[2026-02-14T22:30:03+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:30:04+08:00] Output from dir listing
+[2026-02-14T22:30:04+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:30:04+08:00] Wrote latest.json
+[2026-02-14T22:30:04+08:00] Wrote pending-wake.json
+[2026-02-14T22:30:04+08:00] === Hook completed ===
+[2026-02-14T22:30:55+08:00] === Hook fired ===
+[2026-02-14T22:30:55+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:30:56+08:00] Output from dir listing
+[2026-02-14T22:30:56+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:30:56+08:00] Wrote latest.json
+[2026-02-14T22:30:56+08:00] Wrote pending-wake.json
+[2026-02-14T22:30:56+08:00] === Hook completed ===
+[2026-02-14T22:31:01+08:00] === Hook fired ===
+[2026-02-14T22:31:01+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:31:01+08:00] Duplicate hook within 6s, skipping
+[2026-02-14T22:31:03+08:00] === Hook fired ===
+[2026-02-14T22:31:03+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:31:03+08:00] Duplicate hook within 8s, skipping
+[2026-02-14T22:33:41+08:00] === Hook fired ===
+[2026-02-14T22:33:41+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:33:42+08:00] Output from dir listing
+[2026-02-14T22:33:42+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:33:42+08:00] Wrote latest.json
+[2026-02-14T22:33:42+08:00] Wrote pending-wake.json
+[2026-02-14T22:33:42+08:00] === Hook completed ===
+[2026-02-14T22:33:53+08:00] === Hook fired ===
+[2026-02-14T22:33:53+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:33:53+08:00] Duplicate hook within 12s, skipping
+[2026-02-14T22:33:56+08:00] === Hook fired ===
+[2026-02-14T22:33:56+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:33:56+08:00] Duplicate hook within 15s, skipping
+[2026-02-14T22:34:18+08:00] === Hook fired ===
+[2026-02-14T22:34:18+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:34:19+08:00] Output from dir listing
+[2026-02-14T22:34:19+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:34:19+08:00] Wrote latest.json
+[2026-02-14T22:34:19+08:00] Wrote pending-wake.json
+[2026-02-14T22:34:19+08:00] === Hook completed ===
+[2026-02-14T22:34:22+08:00] === Hook fired ===
+[2026-02-14T22:34:22+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:34:22+08:00] Duplicate hook within 4s, skipping
+[2026-02-14T22:35:28+08:00] === Hook fired ===
+[2026-02-14T22:35:28+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:35:29+08:00] Output from dir listing
+[2026-02-14T22:35:29+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:35:29+08:00] Wrote latest.json
+[2026-02-14T22:35:29+08:00] Wrote pending-wake.json
+[2026-02-14T22:35:29+08:00] === Hook completed ===
+[2026-02-14T22:35:37+08:00] === Hook fired ===
+[2026-02-14T22:35:37+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:35:37+08:00] Duplicate hook within 9s, skipping
+[2026-02-14T22:35:40+08:00] === Hook fired ===
+[2026-02-14T22:35:40+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:35:40+08:00] Duplicate hook within 12s, skipping
+[2026-02-14T22:35:42+08:00] === Hook fired ===
+[2026-02-14T22:35:42+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:35:42+08:00] Duplicate hook within 14s, skipping
+[2026-02-14T22:36:01+08:00] === Hook fired ===
+[2026-02-14T22:36:01+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:36:02+08:00] Output from dir listing
+[2026-02-14T22:36:02+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:36:02+08:00] Wrote latest.json
+[2026-02-14T22:36:02+08:00] Wrote pending-wake.json
+[2026-02-14T22:36:02+08:00] === Hook completed ===
+[2026-02-14T22:36:04+08:00] === Hook fired ===
+[2026-02-14T22:36:04+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:36:04+08:00] Duplicate hook within 3s, skipping
+[2026-02-14T22:36:13+08:00] === Hook fired ===
+[2026-02-14T22:36:13+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:36:13+08:00] Duplicate hook within 12s, skipping
+[2026-02-14T22:36:16+08:00] === Hook fired ===
+[2026-02-14T22:36:16+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:36:16+08:00] Duplicate hook within 15s, skipping
+[2026-02-14T22:36:19+08:00] === Hook fired ===
+[2026-02-14T22:36:19+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:36:19+08:00] Duplicate hook within 18s, skipping
+[2026-02-14T22:36:49+08:00] === Hook fired ===
+[2026-02-14T22:36:49+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:36:50+08:00] Output from dir listing
+[2026-02-14T22:36:50+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:36:50+08:00] Wrote latest.json
+[2026-02-14T22:36:50+08:00] Wrote pending-wake.json
+[2026-02-14T22:36:50+08:00] === Hook completed ===
+[2026-02-14T22:36:57+08:00] === Hook fired ===
+[2026-02-14T22:36:57+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:36:57+08:00] Duplicate hook within 8s, skipping
+[2026-02-14T22:46:11+08:00] === Hook fired ===
+[2026-02-14T22:46:11+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:46:12+08:00] Output from dir listing
+[2026-02-14T22:46:12+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:46:12+08:00] Wrote latest.json
+[2026-02-14T22:46:12+08:00] Wrote pending-wake.json
+[2026-02-14T22:46:12+08:00] === Hook completed ===
+[2026-02-14T22:50:13+08:00] === Hook fired ===
+[2026-02-14T22:50:14+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:50:15+08:00] Output from dir listing
+[2026-02-14T22:50:15+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:50:15+08:00] Wrote latest.json
+[2026-02-14T22:50:15+08:00] Wrote pending-wake.json
+[2026-02-14T22:50:15+08:00] === Hook completed ===
+[2026-02-14T22:50:33+08:00] === Hook fired ===
+[2026-02-14T22:50:33+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:50:33+08:00] Duplicate hook within 19s, skipping
+[2026-02-14T22:50:42+08:00] === Hook fired ===
+[2026-02-14T22:50:42+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:50:42+08:00] Duplicate hook within 28s, skipping
+[2026-02-14T22:52:09+08:00] === Hook fired ===
+[2026-02-14T22:52:09+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:52:10+08:00] Output from dir listing
+[2026-02-14T22:52:10+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:52:10+08:00] Wrote latest.json
+[2026-02-14T22:52:10+08:00] Wrote pending-wake.json
+[2026-02-14T22:52:10+08:00] === Hook completed ===
+[2026-02-14T22:52:48+08:00] === Hook fired ===
+[2026-02-14T22:52:48+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:52:49+08:00] Output from dir listing
+[2026-02-14T22:52:49+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:52:49+08:00] Wrote latest.json
+[2026-02-14T22:52:49+08:00] Wrote pending-wake.json
+[2026-02-14T22:52:49+08:00] === Hook completed ===
+[2026-02-14T22:52:57+08:00] === Hook fired ===
+[2026-02-14T22:52:57+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:52:57+08:00] Duplicate hook within 9s, skipping
+[2026-02-14T22:53:01+08:00] === Hook fired ===
+[2026-02-14T22:53:01+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:53:01+08:00] Duplicate hook within 13s, skipping
+[2026-02-14T22:53:27+08:00] === Hook fired ===
+[2026-02-14T22:53:27+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:53:28+08:00] Output from dir listing
+[2026-02-14T22:53:28+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:53:28+08:00] Wrote latest.json
+[2026-02-14T22:53:28+08:00] Wrote pending-wake.json
+[2026-02-14T22:53:28+08:00] === Hook completed ===
+[2026-02-14T22:53:31+08:00] === Hook fired ===
+[2026-02-14T22:53:31+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:53:31+08:00] Duplicate hook within 4s, skipping
+[2026-02-14T22:54:07+08:00] === Hook fired ===
+[2026-02-14T22:54:07+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:54:08+08:00] Output from dir listing
+[2026-02-14T22:54:08+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:54:08+08:00] Wrote latest.json
+[2026-02-14T22:54:08+08:00] Wrote pending-wake.json
+[2026-02-14T22:54:08+08:00] === Hook completed ===
+[2026-02-14T22:54:11+08:00] === Hook fired ===
+[2026-02-14T22:54:11+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:54:11+08:00] Duplicate hook within 4s, skipping
+[2026-02-14T22:54:19+08:00] === Hook fired ===
+[2026-02-14T22:54:19+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:54:19+08:00] Duplicate hook within 12s, skipping
+[2026-02-14T22:54:21+08:00] === Hook fired ===
+[2026-02-14T22:54:21+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:54:21+08:00] Duplicate hook within 14s, skipping
+[2026-02-14T22:55:25+08:00] === Hook fired ===
+[2026-02-14T22:55:25+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:55:26+08:00] Output from dir listing
+[2026-02-14T22:55:26+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T22:55:26+08:00] Wrote latest.json
+[2026-02-14T22:55:26+08:00] Wrote pending-wake.json
+[2026-02-14T22:55:26+08:00] === Hook completed ===
+[2026-02-14T22:55:29+08:00] === Hook fired ===
+[2026-02-14T22:55:29+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:55:29+08:00] Duplicate hook within 4s, skipping
+[2026-02-14T22:55:49+08:00] === Hook fired ===
+[2026-02-14T22:55:50+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T22:55:50+08:00] Duplicate hook within 25s, skipping
+[2026-02-14T23:02:14+08:00] === Hook fired ===
+[2026-02-14T23:02:14+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:02:15+08:00] Output from dir listing
+[2026-02-14T23:02:15+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:02:15+08:00] Wrote latest.json
+[2026-02-14T23:02:15+08:00] Wrote pending-wake.json
+[2026-02-14T23:02:15+08:00] === Hook completed ===
+[2026-02-14T23:02:18+08:00] === Hook fired ===
+[2026-02-14T23:02:18+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:02:18+08:00] Duplicate hook within 4s, skipping
+[2026-02-14T23:02:23+08:00] === Hook fired ===
+[2026-02-14T23:02:23+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:02:23+08:00] Duplicate hook within 9s, skipping
+[2026-02-14T23:03:53+08:00] === Hook fired ===
+[2026-02-14T23:03:54+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:03:55+08:00] Output from dir listing
+[2026-02-14T23:03:55+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:03:55+08:00] Wrote latest.json
+[2026-02-14T23:03:55+08:00] Wrote pending-wake.json
+[2026-02-14T23:03:55+08:00] === Hook completed ===
+[2026-02-14T23:06:42+08:00] === Hook fired ===
+[2026-02-14T23:06:42+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:06:43+08:00] Output from dir listing
+[2026-02-14T23:06:43+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:06:43+08:00] Wrote latest.json
+[2026-02-14T23:06:43+08:00] Wrote pending-wake.json
+[2026-02-14T23:06:43+08:00] === Hook completed ===
+[2026-02-14T23:07:12+08:00] === Hook fired ===
+[2026-02-14T23:07:12+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:07:13+08:00] Output from dir listing
+[2026-02-14T23:07:13+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:07:13+08:00] Wrote latest.json
+[2026-02-14T23:07:13+08:00] Wrote pending-wake.json
+[2026-02-14T23:07:13+08:00] === Hook completed ===
+[2026-02-14T23:08:18+08:00] === Hook fired ===
+[2026-02-14T23:08:18+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:08:19+08:00] Output from dir listing
+[2026-02-14T23:08:19+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:08:19+08:00] Wrote latest.json
+[2026-02-14T23:08:19+08:00] Wrote pending-wake.json
+[2026-02-14T23:08:19+08:00] === Hook completed ===
+[2026-02-14T23:10:02+08:00] === Hook fired ===
+[2026-02-14T23:10:02+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:10:03+08:00] Output from dir listing
+[2026-02-14T23:10:03+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:10:03+08:00] Wrote latest.json
+[2026-02-14T23:10:03+08:00] Wrote pending-wake.json
+[2026-02-14T23:10:03+08:00] === Hook completed ===
+[2026-02-14T23:12:48+08:00] === Hook fired ===
+[2026-02-14T23:12:48+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:12:49+08:00] Output from dir listing
+[2026-02-14T23:12:49+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:12:49+08:00] Wrote latest.json
+[2026-02-14T23:12:49+08:00] Wrote pending-wake.json
+[2026-02-14T23:12:49+08:00] === Hook completed ===
+[2026-02-14T23:13:58+08:00] === Hook fired ===
+[2026-02-14T23:13:58+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:13:59+08:00] Output from dir listing
+[2026-02-14T23:13:59+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:13:59+08:00] Wrote latest.json
+[2026-02-14T23:13:59+08:00] Wrote pending-wake.json
+[2026-02-14T23:13:59+08:00] === Hook completed ===
+[2026-02-14T23:26:41+08:00] === Hook fired ===
+[2026-02-14T23:26:41+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:26:42+08:00] Output from dir listing
+[2026-02-14T23:26:42+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:26:42+08:00] Wrote latest.json
+[2026-02-14T23:26:42+08:00] Wrote pending-wake.json
+[2026-02-14T23:26:42+08:00] === Hook completed ===
+[2026-02-14T23:27:40+08:00] === Hook fired ===
+[2026-02-14T23:27:40+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:27:41+08:00] Output from dir listing
+[2026-02-14T23:27:41+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:27:41+08:00] Wrote latest.json
+[2026-02-14T23:27:41+08:00] Wrote pending-wake.json
+[2026-02-14T23:27:41+08:00] === Hook completed ===
+[2026-02-14T23:30:21+08:00] === Hook fired ===
+[2026-02-14T23:30:21+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:30:22+08:00] Output from dir listing
+[2026-02-14T23:30:22+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:30:22+08:00] Wrote latest.json
+[2026-02-14T23:30:22+08:00] Wrote pending-wake.json
+[2026-02-14T23:30:22+08:00] === Hook completed ===
+[2026-02-14T23:30:48+08:00] === Hook fired ===
+[2026-02-14T23:30:48+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:30:48+08:00] Duplicate hook within 27s, skipping
+[2026-02-14T23:31:15+08:00] === Hook fired ===
+[2026-02-14T23:31:15+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:31:16+08:00] Output from dir listing
+[2026-02-14T23:31:16+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:31:16+08:00] Wrote latest.json
+[2026-02-14T23:31:16+08:00] Wrote pending-wake.json
+[2026-02-14T23:31:16+08:00] === Hook completed ===
+[2026-02-14T23:31:50+08:00] === Hook fired ===
+[2026-02-14T23:31:51+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:31:52+08:00] Output from dir listing
+[2026-02-14T23:31:52+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:31:52+08:00] Wrote latest.json
+[2026-02-14T23:31:52+08:00] Wrote pending-wake.json
+[2026-02-14T23:31:52+08:00] === Hook completed ===
+[2026-02-14T23:36:35+08:00] === Hook fired ===
+[2026-02-14T23:36:35+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:36:36+08:00] Output from dir listing
+[2026-02-14T23:36:37+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:36:37+08:00] Wrote latest.json
+[2026-02-14T23:36:37+08:00] Wrote pending-wake.json
+[2026-02-14T23:36:37+08:00] === Hook completed ===
+[2026-02-14T23:36:53+08:00] === Hook fired ===
+[2026-02-14T23:36:53+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:36:54+08:00] Duplicate hook within 18s, skipping
+[2026-02-14T23:40:37+08:00] === Hook fired ===
+[2026-02-14T23:40:37+08:00] session=ccad2a85-e837-4719-9532-e247486f5031 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:40:38+08:00] Output from dir listing
+[2026-02-14T23:40:38+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:40:38+08:00] Wrote latest.json
+[2026-02-14T23:40:38+08:00] Wrote pending-wake.json
+[2026-02-14T23:40:38+08:00] === Hook completed ===
+[2026-02-14T23:41:57+08:00] === Hook fired ===
+[2026-02-14T23:41:57+08:00] session=ccad2a85-e837-4719-9532-e247486f5031 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:41:58+08:00] Output from dir listing
+[2026-02-14T23:41:58+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:41:58+08:00] Wrote latest.json
+[2026-02-14T23:41:58+08:00] Wrote pending-wake.json
+[2026-02-14T23:41:58+08:00] === Hook completed ===
+[2026-02-14T23:42:42+08:00] === Hook fired ===
+[2026-02-14T23:42:42+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:42:43+08:00] Output from dir listing
+[2026-02-14T23:42:43+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:42:43+08:00] Wrote latest.json
+[2026-02-14T23:42:43+08:00] Wrote pending-wake.json
+[2026-02-14T23:42:43+08:00] === Hook completed ===
+[2026-02-14T23:47:50+08:00] === Hook fired ===
+[2026-02-14T23:47:50+08:00] session=ccad2a85-e837-4719-9532-e247486f5031 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-14T23:47:51+08:00] Output from dir listing
+[2026-02-14T23:47:51+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:47:51+08:00] Wrote latest.json
+[2026-02-14T23:47:51+08:00] Wrote pending-wake.json
+[2026-02-14T23:47:51+08:00] === Hook completed ===
+[2026-02-14T23:48:37+08:00] === Hook fired ===
+[2026-02-14T23:48:37+08:00] session=1e91fe79-b95d-4de4-bab3-22c0bee40d5d cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-14T23:48:38+08:00] Output from dir listing
+[2026-02-14T23:48:38+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:48:38+08:00] Wrote latest.json
+[2026-02-14T23:48:38+08:00] Wrote pending-wake.json
+[2026-02-14T23:48:38+08:00] === Hook completed ===
+[2026-02-14T23:49:03+08:00] === Hook fired ===
+[2026-02-14T23:49:03+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:49:03+08:00] Duplicate hook within 26s, skipping
+[2026-02-14T23:49:27+08:00] === Hook fired ===
+[2026-02-14T23:49:28+08:00] session=fd71845b-5f72-4856-80d0-ada63a6689d7 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:49:29+08:00] Output from dir listing
+[2026-02-14T23:49:29+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:49:29+08:00] Wrote latest.json
+[2026-02-14T23:49:29+08:00] Wrote pending-wake.json
+[2026-02-14T23:49:29+08:00] === Hook completed ===
+[2026-02-14T23:50:30+08:00] === Hook fired ===
+[2026-02-14T23:50:30+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:50:31+08:00] Output from dir listing
+[2026-02-14T23:50:31+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:50:31+08:00] Wrote latest.json
+[2026-02-14T23:50:31+08:00] Wrote pending-wake.json
+[2026-02-14T23:50:31+08:00] === Hook completed ===
+[2026-02-14T23:52:41+08:00] === Hook fired ===
+[2026-02-14T23:52:41+08:00] session=fd71845b-5f72-4856-80d0-ada63a6689d7 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-14T23:52:42+08:00] Output from dir listing
+[2026-02-14T23:52:42+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-14T23:52:42+08:00] Wrote latest.json
+[2026-02-14T23:52:42+08:00] Wrote pending-wake.json
+[2026-02-14T23:52:42+08:00] === Hook completed ===
+[2026-02-15T00:01:14+08:00] === Hook fired ===
+[2026-02-15T00:01:14+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T00:01:15+08:00] Output from dir listing
+[2026-02-15T00:01:15+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-15T00:01:15+08:00] Wrote latest.json
+[2026-02-15T00:01:16+08:00] Wrote pending-wake.json
+[2026-02-15T00:01:16+08:00] === Hook completed ===
+[2026-02-15T00:07:10+08:00] === Hook fired ===
+[2026-02-15T00:07:10+08:00] session=fd71845b-5f72-4856-80d0-ada63a6689d7 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-15T00:07:11+08:00] Output from dir listing
+[2026-02-15T00:07:11+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-15T00:07:11+08:00] Wrote latest.json
+[2026-02-15T00:07:11+08:00] Wrote pending-wake.json
+[2026-02-15T00:07:11+08:00] === Hook completed ===
+[2026-02-15T00:17:52+08:00] === Hook fired ===
+[2026-02-15T00:17:52+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T00:17:53+08:00] Output from dir listing
+[2026-02-15T00:17:53+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-15T00:17:53+08:00] Wrote latest.json
+[2026-02-15T00:17:53+08:00] Wrote pending-wake.json
+[2026-02-15T00:17:53+08:00] === Hook completed ===
+[2026-02-15T00:17:57+08:00] === Hook fired ===
+[2026-02-15T00:17:57+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T00:17:57+08:00] Duplicate hook within 5s, skipping
+[2026-02-15T00:30:01+08:00] === Hook fired ===
+[2026-02-15T00:30:01+08:00] session=825f1720-ca02-4758-9c3d-7eacc06aedf0 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-15T00:30:02+08:00] Output from dir listing
+[2026-02-15T00:30:02+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-15T00:30:02+08:00] Wrote latest.json
+[2026-02-15T00:30:02+08:00] Wrote pending-wake.json
+[2026-02-15T00:30:02+08:00] === Hook completed ===
+[2026-02-15T00:32:49+08:00] === Hook fired ===
+[2026-02-15T00:32:49+08:00] session=ca391b1e-bdf3-4eb6-bf16-e328d40feef1 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-15T00:32:50+08:00] Output from dir listing
+[2026-02-15T00:32:50+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-15T00:32:50+08:00] Wrote latest.json
+[2026-02-15T00:32:50+08:00] Wrote pending-wake.json
+[2026-02-15T00:32:50+08:00] === Hook completed ===
+[2026-02-15T00:41:33+08:00] === Hook fired ===
+[2026-02-15T00:41:33+08:00] session=06232dfb-85d6-42b6-9990-299a9b95b029 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-15T00:41:34+08:00] Output from dir listing
+[2026-02-15T00:41:34+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-15T00:41:34+08:00] Wrote latest.json
+[2026-02-15T00:41:34+08:00] Wrote pending-wake.json
+[2026-02-15T00:41:34+08:00] === Hook completed ===
+[2026-02-15T09:10:55+08:00] === Hook fired ===
+[2026-02-15T09:10:55+08:00] session=91f64009-9792-4a2f-abfe-4be65697646e cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-15T09:10:56+08:00] Output from dir listing
+[2026-02-15T09:10:56+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-15T09:10:56+08:00] Wrote latest.json
+[2026-02-15T09:10:56+08:00] Wrote pending-wake.json
+[2026-02-15T09:10:56+08:00] === Hook completed ===
+[2026-02-15T09:13:06+08:00] === Hook fired ===
+[2026-02-15T09:13:06+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy/docs event=Stop
+[2026-02-15T09:13:07+08:00] Output from dir listing
+[2026-02-15T09:13:07+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-15T09:13:07+08:00] Wrote latest.json
+[2026-02-15T09:13:07+08:00] Wrote pending-wake.json
+[2026-02-15T09:13:07+08:00] === Hook completed ===
+[2026-02-15T09:15:08+08:00] === Hook fired ===
+[2026-02-15T09:15:08+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T09:15:09+08:00] Output from dir listing
+[2026-02-15T09:15:09+08:00] Meta: task=test-hook-1770858762 group=
+[2026-02-15T09:15:09+08:00] Wrote latest.json
+[2026-02-15T09:15:09+08:00] Wrote pending-wake.json
+[2026-02-15T09:15:09+08:00] === Hook completed ===
+[2026-02-15T09:42:28+08:00] === Hook fired ===
+[2026-02-15T09:42:28+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T09:42:29+08:00] Output from dir listing
+[2026-02-15T09:42:30+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T09:42:30+08:00] Wrote latest.json
+[2026-02-15T09:42:34+08:00] Sent Telegram message to -5298003529
+[2026-02-15T09:42:34+08:00] Wrote pending-wake.json
+[2026-02-15T09:42:34+08:00] === Hook completed ===
+[2026-02-15T09:42:38+08:00] === Hook fired ===
+[2026-02-15T09:42:38+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T09:42:38+08:00] Duplicate hook within 10s, skipping
+[2026-02-15T09:42:42+08:00] === Hook fired ===
+[2026-02-15T09:42:42+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T09:42:42+08:00] Duplicate hook within 14s, skipping
+[2026-02-15T09:42:45+08:00] === Hook fired ===
+[2026-02-15T09:42:45+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T09:42:45+08:00] Duplicate hook within 17s, skipping
+[2026-02-15T09:42:50+08:00] === Hook fired ===
+[2026-02-15T09:42:50+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T09:42:50+08:00] Duplicate hook within 22s, skipping
+[2026-02-15T14:53:38+08:00] === Hook fired ===
+[2026-02-15T14:53:38+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T14:53:39+08:00] Output from dir listing
+[2026-02-15T14:53:39+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T14:53:39+08:00] Wrote latest.json
+[2026-02-15T14:53:42+08:00] Sent Telegram message to -5298003529
+[2026-02-15T14:53:42+08:00] Wrote pending-wake.json
+[2026-02-15T14:53:42+08:00] === Hook completed ===
+[2026-02-15T14:56:22+08:00] === Hook fired ===
+[2026-02-15T14:56:23+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T14:56:24+08:00] Output from dir listing
+[2026-02-15T14:56:24+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T14:56:24+08:00] Wrote latest.json
+[2026-02-15T14:56:26+08:00] Sent Telegram message to -5298003529
+[2026-02-15T14:56:27+08:00] Wrote pending-wake.json
+[2026-02-15T14:56:27+08:00] === Hook completed ===
+[2026-02-15T15:01:27+08:00] === Hook fired ===
+[2026-02-15T15:01:27+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:01:28+08:00] Output from dir listing
+[2026-02-15T15:01:28+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:01:28+08:00] Wrote latest.json
+[2026-02-15T15:01:31+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:01:31+08:00] Wrote pending-wake.json
+[2026-02-15T15:01:31+08:00] === Hook completed ===
+[2026-02-15T15:02:22+08:00] === Hook fired ===
+[2026-02-15T15:02:22+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:02:23+08:00] Output from dir listing
+[2026-02-15T15:02:23+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:02:23+08:00] Wrote latest.json
+[2026-02-15T15:02:26+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:02:26+08:00] Wrote pending-wake.json
+[2026-02-15T15:02:26+08:00] === Hook completed ===
+[2026-02-15T15:04:33+08:00] === Hook fired ===
+[2026-02-15T15:04:33+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:04:34+08:00] Output from dir listing
+[2026-02-15T15:04:34+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:04:34+08:00] Wrote latest.json
+[2026-02-15T15:04:37+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:04:37+08:00] Wrote pending-wake.json
+[2026-02-15T15:04:37+08:00] === Hook completed ===
+[2026-02-15T15:05:10+08:00] === Hook fired ===
+[2026-02-15T15:05:10+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:05:11+08:00] Output from dir listing
+[2026-02-15T15:05:11+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:05:11+08:00] Wrote latest.json
+[2026-02-15T15:05:14+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:05:14+08:00] Wrote pending-wake.json
+[2026-02-15T15:05:14+08:00] === Hook completed ===
+[2026-02-15T15:05:33+08:00] === Hook fired ===
+[2026-02-15T15:05:33+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:05:33+08:00] Duplicate hook within 23s, skipping
+[2026-02-15T15:05:37+08:00] === Hook fired ===
+[2026-02-15T15:05:37+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:05:37+08:00] Duplicate hook within 27s, skipping
+[2026-02-15T15:05:40+08:00] === Hook fired ===
+[2026-02-15T15:05:40+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:05:41+08:00] Output from dir listing
+[2026-02-15T15:05:41+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:05:41+08:00] Wrote latest.json
+[2026-02-15T15:05:44+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:05:44+08:00] Wrote pending-wake.json
+[2026-02-15T15:05:44+08:00] === Hook completed ===
+[2026-02-15T15:05:47+08:00] === Hook fired ===
+[2026-02-15T15:05:47+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:05:47+08:00] Duplicate hook within 7s, skipping
+[2026-02-15T15:06:56+08:00] === Hook fired ===
+[2026-02-15T15:06:56+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:06:57+08:00] Output from dir listing
+[2026-02-15T15:06:57+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:06:57+08:00] Wrote latest.json
+[2026-02-15T15:07:00+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:07:00+08:00] Wrote pending-wake.json
+[2026-02-15T15:07:00+08:00] === Hook completed ===
+[2026-02-15T15:07:02+08:00] === Hook fired ===
+[2026-02-15T15:07:02+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:07:02+08:00] Duplicate hook within 6s, skipping
+[2026-02-15T15:07:05+08:00] === Hook fired ===
+[2026-02-15T15:07:05+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:07:05+08:00] Duplicate hook within 9s, skipping
+[2026-02-15T15:07:48+08:00] === Hook fired ===
+[2026-02-15T15:07:48+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:07:49+08:00] Output from dir listing
+[2026-02-15T15:07:49+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:07:49+08:00] Wrote latest.json
+[2026-02-15T15:07:53+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:07:53+08:00] Wrote pending-wake.json
+[2026-02-15T15:07:53+08:00] === Hook completed ===
+[2026-02-15T15:08:02+08:00] === Hook fired ===
+[2026-02-15T15:08:02+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:08:02+08:00] Duplicate hook within 14s, skipping
+[2026-02-15T15:08:04+08:00] === Hook fired ===
+[2026-02-15T15:08:04+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:08:04+08:00] Duplicate hook within 16s, skipping
+[2026-02-15T15:14:14+08:00] === Hook fired ===
+[2026-02-15T15:14:14+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:14:15+08:00] Output from dir listing
+[2026-02-15T15:14:15+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:14:15+08:00] Wrote latest.json
+[2026-02-15T15:14:18+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:14:18+08:00] Wrote pending-wake.json
+[2026-02-15T15:14:18+08:00] === Hook completed ===
+[2026-02-15T15:14:25+08:00] === Hook fired ===
+[2026-02-15T15:14:25+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:14:25+08:00] Duplicate hook within 11s, skipping
+[2026-02-15T15:16:35+08:00] === Hook fired ===
+[2026-02-15T15:16:35+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:16:36+08:00] Output from dir listing
+[2026-02-15T15:16:36+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:16:36+08:00] Wrote latest.json
+[2026-02-15T15:16:40+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:16:40+08:00] Wrote pending-wake.json
+[2026-02-15T15:16:40+08:00] === Hook completed ===
+[2026-02-15T15:17:34+08:00] === Hook fired ===
+[2026-02-15T15:17:34+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:17:35+08:00] Output from dir listing
+[2026-02-15T15:17:35+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:17:35+08:00] Wrote latest.json
+[2026-02-15T15:17:37+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:17:38+08:00] Wrote pending-wake.json
+[2026-02-15T15:17:38+08:00] === Hook completed ===
+[2026-02-15T15:18:13+08:00] === Hook fired ===
+[2026-02-15T15:18:13+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:18:14+08:00] Output from dir listing
+[2026-02-15T15:18:14+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:18:14+08:00] Wrote latest.json
+[2026-02-15T15:18:17+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:18:17+08:00] Wrote pending-wake.json
+[2026-02-15T15:18:17+08:00] === Hook completed ===
+[2026-02-15T15:18:20+08:00] === Hook fired ===
+[2026-02-15T15:18:20+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:18:20+08:00] Duplicate hook within 7s, skipping
+[2026-02-15T15:18:46+08:00] === Hook fired ===
+[2026-02-15T15:18:46+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:18:47+08:00] Output from dir listing
+[2026-02-15T15:18:47+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:18:47+08:00] Wrote latest.json
+[2026-02-15T15:18:50+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:18:50+08:00] Wrote pending-wake.json
+[2026-02-15T15:18:50+08:00] === Hook completed ===
+[2026-02-15T15:18:55+08:00] === Hook fired ===
+[2026-02-15T15:18:55+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:18:55+08:00] Duplicate hook within 9s, skipping
+[2026-02-15T15:20:33+08:00] === Hook fired ===
+[2026-02-15T15:20:33+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:20:34+08:00] Output from dir listing
+[2026-02-15T15:20:34+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:20:34+08:00] Wrote latest.json
+[2026-02-15T15:20:38+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:20:38+08:00] Wrote pending-wake.json
+[2026-02-15T15:20:38+08:00] === Hook completed ===
+[2026-02-15T15:20:57+08:00] === Hook fired ===
+[2026-02-15T15:20:57+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:20:57+08:00] Duplicate hook within 24s, skipping
+[2026-02-15T15:20:58+08:00] === Hook fired ===
+[2026-02-15T15:20:58+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:20:58+08:00] Duplicate hook within 25s, skipping
+[2026-02-15T15:21:09+08:00] === Hook fired ===
+[2026-02-15T15:21:09+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:21:10+08:00] Output from dir listing
+[2026-02-15T15:21:10+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:21:10+08:00] Wrote latest.json
+[2026-02-15T15:21:13+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:21:13+08:00] Wrote pending-wake.json
+[2026-02-15T15:21:13+08:00] === Hook completed ===
+[2026-02-15T15:27:39+08:00] === Hook fired ===
+[2026-02-15T15:27:39+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-15T15:27:40+08:00] Output from dir listing
+[2026-02-15T15:27:40+08:00] Meta: task=e2e-complete-tests-1771119360 group=-5298003529
+[2026-02-15T15:27:40+08:00] Wrote latest.json
+[2026-02-15T15:27:43+08:00] Sent Telegram message to -5298003529
+[2026-02-15T15:27:43+08:00] Wrote pending-wake.json
+[2026-02-15T15:27:43+08:00] === Hook completed ===
+[2026-02-15T15:27:43+08:00] === Hook fired ===
+[2026-02-15T15:27:43+08:00] session=a480c8a7-faa7-4f8a-8eb7-75c35cc861ce cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-15T15:27:43+08:00] Duplicate hook within 4s, skipping
+[2026-02-15T23:38:17+08:00] === Hook fired ===
+[2026-02-15T23:38:17+08:00] session=7c7abe2a-92e1-46dd-ba76-8ec7b9d4e83c cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-15T23:38:18+08:00] Output from dir listing
+[2026-02-15T23:38:18+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-15T23:38:18+08:00] Wrote latest.json
+[2026-02-15T23:38:22+08:00] Telegram send failed
+[2026-02-15T23:38:22+08:00] Wrote pending-wake.json
+[2026-02-15T23:38:22+08:00] === Hook completed ===
+[2026-02-15T23:46:58+08:00] === Hook fired ===
+[2026-02-15T23:46:58+08:00] session=74fffb99-1830-42e8-9627-81a3d127c12f cwd=/Users/brianyu event=Stop
+[2026-02-15T23:46:59+08:00] Output from dir listing
+[2026-02-15T23:46:59+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-15T23:46:59+08:00] Wrote latest.json
+[2026-02-15T23:47:03+08:00] Sent Telegram message to -5298003529
+[2026-02-15T23:47:03+08:00] Wrote pending-wake.json
+[2026-02-15T23:47:03+08:00] === Hook completed ===
+[2026-02-15T23:50:00+08:00] === Hook fired ===
+[2026-02-15T23:50:00+08:00] session=74fffb99-1830-42e8-9627-81a3d127c12f cwd=/Users/brianyu event=SessionEnd
+[2026-02-15T23:50:01+08:00] Output from dir listing
+[2026-02-15T23:50:01+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-15T23:50:01+08:00] Wrote latest.json
+[2026-02-15T23:50:04+08:00] Sent Telegram message to -5298003529
+[2026-02-15T23:50:04+08:00] Wrote pending-wake.json
+[2026-02-15T23:50:04+08:00] === Hook completed ===
+[2026-02-15T23:53:51+08:00] === Hook fired ===
+[2026-02-15T23:53:51+08:00] session=ec092fd5-00a9-4828-ae62-cc41ab6d4038 cwd=/Users/brianyu/Project/suggar-daddy/apps/admin event=Stop
+[2026-02-15T23:53:52+08:00] Output from dir listing
+[2026-02-15T23:53:52+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-15T23:53:52+08:00] Wrote latest.json
+[2026-02-15T23:53:55+08:00] Sent Telegram message to -5298003529
+[2026-02-15T23:53:55+08:00] Wrote pending-wake.json
+[2026-02-15T23:53:55+08:00] === Hook completed ===
+[2026-02-15T23:59:10+08:00] === Hook fired ===
+[2026-02-15T23:59:10+08:00] session=ec092fd5-00a9-4828-ae62-cc41ab6d4038 cwd=/Users/brianyu/Project/suggar-daddy/apps/admin event=Stop
+[2026-02-15T23:59:11+08:00] Output from dir listing
+[2026-02-15T23:59:11+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-15T23:59:11+08:00] Wrote latest.json
+[2026-02-15T23:59:14+08:00] Sent Telegram message to -5298003529
+[2026-02-15T23:59:14+08:00] Wrote pending-wake.json
+[2026-02-15T23:59:14+08:00] === Hook completed ===
+[2026-02-16T00:07:39+08:00] === Hook fired ===
+[2026-02-16T00:07:39+08:00] session=ec092fd5-00a9-4828-ae62-cc41ab6d4038 cwd=/Users/brianyu/Project/suggar-daddy/apps/admin event=Stop
+[2026-02-16T00:07:40+08:00] Output from dir listing
+[2026-02-16T00:07:40+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:07:40+08:00] Wrote latest.json
+[2026-02-16T00:07:45+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:07:46+08:00] Wrote pending-wake.json
+[2026-02-16T00:07:46+08:00] === Hook completed ===
+[2026-02-16T00:11:56+08:00] === Hook fired ===
+[2026-02-16T00:11:56+08:00] session=ec092fd5-00a9-4828-ae62-cc41ab6d4038 cwd=/Users/brianyu/Project/suggar-daddy/apps/admin event=Stop
+[2026-02-16T00:11:57+08:00] Output from dir listing
+[2026-02-16T00:11:57+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:11:57+08:00] Wrote latest.json
+[2026-02-16T00:12:01+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:12:01+08:00] Wrote pending-wake.json
+[2026-02-16T00:12:01+08:00] === Hook completed ===
+[2026-02-16T00:29:49+08:00] === Hook fired ===
+[2026-02-16T00:29:49+08:00] session=ec092fd5-00a9-4828-ae62-cc41ab6d4038 cwd=/Users/brianyu/Project/suggar-daddy/apps/admin event=Stop
+[2026-02-16T00:29:50+08:00] Output from dir listing
+[2026-02-16T00:29:50+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:29:50+08:00] Wrote latest.json
+[2026-02-16T00:29:55+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:29:55+08:00] Wrote pending-wake.json
+[2026-02-16T00:29:55+08:00] === Hook completed ===
+[2026-02-16T00:32:57+08:00] === Hook fired ===
+[2026-02-16T00:32:58+08:00] session=ec092fd5-00a9-4828-ae62-cc41ab6d4038 cwd=/Users/brianyu/Project/suggar-daddy/apps/admin event=Stop
+[2026-02-16T00:32:59+08:00] Output from dir listing
+[2026-02-16T00:32:59+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:32:59+08:00] Wrote latest.json
+[2026-02-16T00:33:02+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:33:02+08:00] Wrote pending-wake.json
+[2026-02-16T00:33:02+08:00] === Hook completed ===
+[2026-02-16T00:33:30+08:00] === Hook fired ===
+[2026-02-16T00:33:30+08:00] session=ec092fd5-00a9-4828-ae62-cc41ab6d4038 cwd=/Users/brianyu/Project/suggar-daddy/apps/admin event=Stop
+[2026-02-16T00:33:31+08:00] Output from dir listing
+[2026-02-16T00:33:31+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:33:31+08:00] Wrote latest.json
+[2026-02-16T00:33:34+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:33:34+08:00] Wrote pending-wake.json
+[2026-02-16T00:33:34+08:00] === Hook completed ===
+[2026-02-16T00:34:19+08:00] === Hook fired ===
+[2026-02-16T00:34:19+08:00] session=ec092fd5-00a9-4828-ae62-cc41ab6d4038 cwd=/Users/brianyu/Project/suggar-daddy/apps/admin event=Stop
+[2026-02-16T00:34:20+08:00] Output from dir listing
+[2026-02-16T00:34:20+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:34:20+08:00] Wrote latest.json
+[2026-02-16T00:34:23+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:34:23+08:00] Wrote pending-wake.json
+[2026-02-16T00:34:23+08:00] === Hook completed ===
+[2026-02-16T00:36:35+08:00] === Hook fired ===
+[2026-02-16T00:36:35+08:00] session=ec092fd5-00a9-4828-ae62-cc41ab6d4038 cwd=/Users/brianyu/Project/suggar-daddy/apps/admin event=Stop
+[2026-02-16T00:36:36+08:00] Output from dir listing
+[2026-02-16T00:36:36+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:36:36+08:00] Wrote latest.json
+[2026-02-16T00:36:39+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:36:39+08:00] Wrote pending-wake.json
+[2026-02-16T00:36:39+08:00] === Hook completed ===
+[2026-02-16T00:53:44+08:00] === Hook fired ===
+[2026-02-16T00:53:44+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T00:53:46+08:00] Output from dir listing
+[2026-02-16T00:53:46+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:53:46+08:00] Wrote latest.json
+[2026-02-16T00:53:54+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:53:54+08:00] Wrote pending-wake.json
+[2026-02-16T00:53:54+08:00] === Hook completed ===
+[2026-02-16T00:57:03+08:00] === Hook fired ===
+[2026-02-16T00:57:03+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T00:57:04+08:00] Output from dir listing
+[2026-02-16T00:57:05+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:57:05+08:00] Wrote latest.json
+[2026-02-16T00:57:08+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:57:08+08:00] Wrote pending-wake.json
+[2026-02-16T00:57:08+08:00] === Hook completed ===
+[2026-02-16T00:57:17+08:00] === Hook fired ===
+[2026-02-16T00:57:17+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T00:57:17+08:00] Duplicate hook within 14s, skipping
+[2026-02-16T00:57:24+08:00] === Hook fired ===
+[2026-02-16T00:57:24+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T00:57:24+08:00] Duplicate hook within 21s, skipping
+[2026-02-16T00:57:49+08:00] === Hook fired ===
+[2026-02-16T00:57:49+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T00:57:50+08:00] Output from dir listing
+[2026-02-16T00:57:50+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T00:57:50+08:00] Wrote latest.json
+[2026-02-16T00:57:53+08:00] Sent Telegram message to -5298003529
+[2026-02-16T00:57:53+08:00] Wrote pending-wake.json
+[2026-02-16T00:57:53+08:00] === Hook completed ===
+[2026-02-16T00:57:57+08:00] === Hook fired ===
+[2026-02-16T00:57:57+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T00:57:57+08:00] Duplicate hook within 8s, skipping
+[2026-02-16T01:03:28+08:00] === Hook fired ===
+[2026-02-16T01:03:28+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T01:03:29+08:00] Output from dir listing
+[2026-02-16T01:03:29+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T01:03:29+08:00] Wrote latest.json
+[2026-02-16T01:03:32+08:00] Sent Telegram message to -5298003529
+[2026-02-16T01:03:32+08:00] Wrote pending-wake.json
+[2026-02-16T01:03:32+08:00] === Hook completed ===
+[2026-02-16T01:03:42+08:00] === Hook fired ===
+[2026-02-16T01:03:42+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T01:03:42+08:00] Duplicate hook within 14s, skipping
+[2026-02-16T02:12:49+08:00] === Hook fired ===
+[2026-02-16T02:12:49+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T02:12:50+08:00] Output from dir listing
+[2026-02-16T02:12:50+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T02:12:50+08:00] Wrote latest.json
+[2026-02-16T02:12:55+08:00] Sent Telegram message to -5298003529
+[2026-02-16T02:12:55+08:00] Wrote pending-wake.json
+[2026-02-16T02:12:55+08:00] === Hook completed ===
+[2026-02-16T02:13:21+08:00] === Hook fired ===
+[2026-02-16T02:13:21+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T02:13:22+08:00] Output from dir listing
+[2026-02-16T02:13:22+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T02:13:22+08:00] Wrote latest.json
+[2026-02-16T02:13:25+08:00] Sent Telegram message to -5298003529
+[2026-02-16T02:13:25+08:00] Wrote pending-wake.json
+[2026-02-16T02:13:25+08:00] === Hook completed ===
+[2026-02-16T02:13:29+08:00] === Hook fired ===
+[2026-02-16T02:13:29+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T02:13:29+08:00] Duplicate hook within 8s, skipping
+[2026-02-16T08:54:39+08:00] === Hook fired ===
+[2026-02-16T08:54:39+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T08:54:40+08:00] Output from dir listing
+[2026-02-16T08:54:40+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T08:54:40+08:00] Wrote latest.json
+[2026-02-16T08:54:45+08:00] Sent Telegram message to -5298003529
+[2026-02-16T08:54:45+08:00] Wrote pending-wake.json
+[2026-02-16T08:54:45+08:00] === Hook completed ===
+[2026-02-16T08:54:48+08:00] === Hook fired ===
+[2026-02-16T08:54:48+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T08:54:48+08:00] Duplicate hook within 9s, skipping
+[2026-02-16T09:31:36+08:00] === Hook fired ===
+[2026-02-16T09:31:37+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T09:31:38+08:00] Output from dir listing
+[2026-02-16T09:31:38+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T09:31:38+08:00] Wrote latest.json
+[2026-02-16T09:31:42+08:00] Sent Telegram message to -5298003529
+[2026-02-16T09:31:42+08:00] Wrote pending-wake.json
+[2026-02-16T09:31:42+08:00] === Hook completed ===
+[2026-02-16T09:31:48+08:00] === Hook fired ===
+[2026-02-16T09:31:48+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T09:31:48+08:00] Duplicate hook within 11s, skipping
+[2026-02-16T10:03:06+08:00] === Hook fired ===
+[2026-02-16T10:03:06+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T10:03:07+08:00] Output from dir listing
+[2026-02-16T10:03:07+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T10:03:07+08:00] Wrote latest.json
+[2026-02-16T10:03:11+08:00] Sent Telegram message to -5298003529
+[2026-02-16T10:03:11+08:00] Wrote pending-wake.json
+[2026-02-16T10:03:11+08:00] === Hook completed ===
+[2026-02-16T10:03:21+08:00] === Hook fired ===
+[2026-02-16T10:03:21+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T10:03:21+08:00] Duplicate hook within 15s, skipping
+[2026-02-16T22:14:29+08:00] === Hook fired ===
+[2026-02-16T22:14:29+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:14:30+08:00] Output from dir listing
+[2026-02-16T22:14:30+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:14:30+08:00] Wrote latest.json
+[2026-02-16T22:14:35+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:14:35+08:00] Wrote pending-wake.json
+[2026-02-16T22:14:35+08:00] === Hook completed ===
+[2026-02-16T22:14:43+08:00] === Hook fired ===
+[2026-02-16T22:14:43+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:14:43+08:00] Duplicate hook within 14s, skipping
+[2026-02-16T22:14:46+08:00] === Hook fired ===
+[2026-02-16T22:14:46+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:14:46+08:00] Duplicate hook within 17s, skipping
+[2026-02-16T22:14:54+08:00] === Hook fired ===
+[2026-02-16T22:14:54+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:14:54+08:00] Duplicate hook within 25s, skipping
+[2026-02-16T22:14:57+08:00] === Hook fired ===
+[2026-02-16T22:14:57+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:14:57+08:00] Duplicate hook within 28s, skipping
+[2026-02-16T22:17:07+08:00] === Hook fired ===
+[2026-02-16T22:17:07+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:17:08+08:00] Output from dir listing
+[2026-02-16T22:17:08+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:17:08+08:00] Wrote latest.json
+[2026-02-16T22:17:12+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:17:12+08:00] Wrote pending-wake.json
+[2026-02-16T22:17:12+08:00] === Hook completed ===
+[2026-02-16T22:17:33+08:00] === Hook fired ===
+[2026-02-16T22:17:33+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:17:33+08:00] Duplicate hook within 26s, skipping
+[2026-02-16T22:17:45+08:00] === Hook fired ===
+[2026-02-16T22:17:45+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:17:46+08:00] Output from dir listing
+[2026-02-16T22:17:46+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:17:46+08:00] Wrote latest.json
+[2026-02-16T22:17:49+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:17:49+08:00] Wrote pending-wake.json
+[2026-02-16T22:17:49+08:00] === Hook completed ===
+[2026-02-16T22:19:48+08:00] === Hook fired ===
+[2026-02-16T22:19:48+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:19:49+08:00] Output from dir listing
+[2026-02-16T22:19:49+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:19:49+08:00] Wrote latest.json
+[2026-02-16T22:19:53+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:19:53+08:00] Wrote pending-wake.json
+[2026-02-16T22:19:53+08:00] === Hook completed ===
+[2026-02-16T22:21:02+08:00] === Hook fired ===
+[2026-02-16T22:21:02+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:21:03+08:00] Output from dir listing
+[2026-02-16T22:21:03+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:21:03+08:00] Wrote latest.json
+[2026-02-16T22:21:09+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:21:09+08:00] Wrote pending-wake.json
+[2026-02-16T22:21:09+08:00] === Hook completed ===
+[2026-02-16T22:25:24+08:00] === Hook fired ===
+[2026-02-16T22:25:24+08:00] session=fa086a0e-1984-4a48-8920-fb99719d3de3 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:25:25+08:00] Output from dir listing
+[2026-02-16T22:25:25+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:25:25+08:00] Wrote latest.json
+[2026-02-16T22:25:30+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:25:30+08:00] Wrote pending-wake.json
+[2026-02-16T22:25:30+08:00] === Hook completed ===
+[2026-02-16T22:28:41+08:00] === Hook fired ===
+[2026-02-16T22:28:41+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:28:42+08:00] Output from dir listing
+[2026-02-16T22:28:43+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:28:43+08:00] Wrote latest.json
+[2026-02-16T22:28:48+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:28:48+08:00] Wrote pending-wake.json
+[2026-02-16T22:28:48+08:00] === Hook completed ===
+[2026-02-16T22:33:52+08:00] === Hook fired ===
+[2026-02-16T22:33:53+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:33:54+08:00] Output from dir listing
+[2026-02-16T22:33:54+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:33:54+08:00] Wrote latest.json
+[2026-02-16T22:33:58+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:33:58+08:00] Wrote pending-wake.json
+[2026-02-16T22:33:58+08:00] === Hook completed ===
+[2026-02-16T22:34:41+08:00] === Hook fired ===
+[2026-02-16T22:34:41+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:34:43+08:00] Output from dir listing
+[2026-02-16T22:34:43+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:34:43+08:00] Wrote latest.json
+[2026-02-16T22:34:46+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:34:46+08:00] Wrote pending-wake.json
+[2026-02-16T22:34:46+08:00] === Hook completed ===
+[2026-02-16T22:34:49+08:00] === Hook fired ===
+[2026-02-16T22:34:49+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:34:49+08:00] Duplicate hook within 8s, skipping
+[2026-02-16T22:42:26+08:00] === Hook fired ===
+[2026-02-16T22:42:26+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T22:42:27+08:00] Output from dir listing
+[2026-02-16T22:42:27+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T22:42:27+08:00] Wrote latest.json
+[2026-02-16T22:42:30+08:00] Sent Telegram message to -5298003529
+[2026-02-16T22:42:30+08:00] Wrote pending-wake.json
+[2026-02-16T22:42:30+08:00] === Hook completed ===
+[2026-02-16T23:13:56+08:00] === Hook fired ===
+[2026-02-16T23:13:56+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:13:57+08:00] Output from dir listing
+[2026-02-16T23:13:57+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T23:13:57+08:00] Wrote latest.json
+[2026-02-16T23:14:01+08:00] Sent Telegram message to -5298003529
+[2026-02-16T23:14:01+08:00] Wrote pending-wake.json
+[2026-02-16T23:14:01+08:00] === Hook completed ===
+[2026-02-16T23:17:37+08:00] === Hook fired ===
+[2026-02-16T23:17:37+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:17:38+08:00] Output from dir listing
+[2026-02-16T23:17:38+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T23:17:38+08:00] Wrote latest.json
+[2026-02-16T23:17:41+08:00] Sent Telegram message to -5298003529
+[2026-02-16T23:17:41+08:00] Wrote pending-wake.json
+[2026-02-16T23:17:41+08:00] === Hook completed ===
+[2026-02-16T23:17:48+08:00] === Hook fired ===
+[2026-02-16T23:17:48+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:17:48+08:00] Duplicate hook within 11s, skipping
+[2026-02-16T23:18:15+08:00] === Hook fired ===
+[2026-02-16T23:18:15+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:18:16+08:00] Output from dir listing
+[2026-02-16T23:18:16+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T23:18:16+08:00] Wrote latest.json
+[2026-02-16T23:18:19+08:00] Sent Telegram message to -5298003529
+[2026-02-16T23:18:19+08:00] Wrote pending-wake.json
+[2026-02-16T23:18:19+08:00] === Hook completed ===
+[2026-02-16T23:18:22+08:00] === Hook fired ===
+[2026-02-16T23:18:23+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:18:23+08:00] Duplicate hook within 8s, skipping
+[2026-02-16T23:18:30+08:00] === Hook fired ===
+[2026-02-16T23:18:30+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:18:30+08:00] Duplicate hook within 15s, skipping
+[2026-02-16T23:18:34+08:00] === Hook fired ===
+[2026-02-16T23:18:34+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:18:34+08:00] Duplicate hook within 19s, skipping
+[2026-02-16T23:19:04+08:00] === Hook fired ===
+[2026-02-16T23:19:04+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:19:05+08:00] Output from dir listing
+[2026-02-16T23:19:06+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T23:19:06+08:00] Wrote latest.json
+[2026-02-16T23:19:08+08:00] Sent Telegram message to -5298003529
+[2026-02-16T23:19:08+08:00] Wrote pending-wake.json
+[2026-02-16T23:19:08+08:00] === Hook completed ===
+[2026-02-16T23:19:09+08:00] === Hook fired ===
+[2026-02-16T23:19:09+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:19:09+08:00] Duplicate hook within 5s, skipping
+[2026-02-16T23:19:11+08:00] === Hook fired ===
+[2026-02-16T23:19:11+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:19:11+08:00] Duplicate hook within 7s, skipping
+[2026-02-16T23:19:12+08:00] === Hook fired ===
+[2026-02-16T23:19:12+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:19:12+08:00] Duplicate hook within 8s, skipping
+[2026-02-16T23:19:44+08:00] === Hook fired ===
+[2026-02-16T23:19:44+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-16T23:19:45+08:00] Output from dir listing
+[2026-02-16T23:19:45+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-16T23:19:45+08:00] Wrote latest.json
+[2026-02-16T23:19:48+08:00] Sent Telegram message to -5298003529
+[2026-02-16T23:19:48+08:00] Wrote pending-wake.json
+[2026-02-16T23:19:48+08:00] === Hook completed ===
+[2026-02-17T00:23:47+08:00] === Hook fired ===
+[2026-02-17T00:23:47+08:00] session=fc72e7d3-0d01-43f2-ae50-801c9333c738 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-17T00:23:48+08:00] Output from dir listing
+[2026-02-17T00:23:49+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-17T00:23:49+08:00] Wrote latest.json
+[2026-02-17T00:23:53+08:00] Sent Telegram message to -5298003529
+[2026-02-17T00:23:53+08:00] Wrote pending-wake.json
+[2026-02-17T00:23:53+08:00] === Hook completed ===
+[2026-02-17T10:37:26+08:00] === Hook fired ===
+[2026-02-17T10:37:26+08:00] session=3f4f35cb-0994-49fb-af05-4dad14d753b6 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-17T10:37:27+08:00] Output from dir listing
+[2026-02-17T10:37:27+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-17T10:37:27+08:00] Wrote latest.json
+[2026-02-17T10:37:31+08:00] Sent Telegram message to -5298003529
+[2026-02-17T10:37:31+08:00] Wrote pending-wake.json
+[2026-02-17T10:37:31+08:00] === Hook completed ===
+[2026-02-17T15:34:39+08:00] === Hook fired ===
+[2026-02-17T15:34:39+08:00] session=88cf66a9-9776-4c77-85c4-4a9841d0253d cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-17T15:34:40+08:00] Output from dir listing
+[2026-02-17T15:34:40+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-17T15:34:40+08:00] Wrote latest.json
+[2026-02-17T15:34:44+08:00] Sent Telegram message to -5298003529
+[2026-02-17T15:34:44+08:00] Wrote pending-wake.json
+[2026-02-17T15:34:44+08:00] === Hook completed ===
+[2026-02-18T11:13:03+08:00] === Hook fired ===
+[2026-02-18T11:13:03+08:00] session=4faea2b0-8f73-47c9-a9d6-020b1a70a9f2 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-18T11:13:04+08:00] Output from dir listing
+[2026-02-18T11:13:04+08:00] Meta: task=e2e-team-testing-1771166492 group=-5298003529
+[2026-02-18T11:13:04+08:00] Wrote latest.json
+[2026-02-18T11:13:10+08:00] Sent Telegram message to -5298003529
+[2026-02-18T11:13:10+08:00] Wrote pending-wake.json
+[2026-02-18T11:13:10+08:00] === Hook completed ===
+[2026-02-18T22:51:08+08:00] === Hook fired ===
+[2026-02-18T22:51:08+08:00] session=4faea2b0-8f73-47c9-a9d6-020b1a70a9f2 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-18T22:51:09+08:00] Output from dir listing
+[2026-02-18T22:51:09+08:00] Meta: task=suggar-daddy-docs group=-5298003529
+[2026-02-18T22:51:09+08:00] Wrote latest.json
+[2026-02-18T22:51:13+08:00] Sent Telegram message to -5298003529
+[2026-02-18T22:51:13+08:00] Wrote pending-wake.json
+[2026-02-18T22:51:13+08:00] === Hook completed ===
+[2026-02-18T23:00:05+08:00] === Hook fired ===
+[2026-02-18T23:00:05+08:00] session=4faea2b0-8f73-47c9-a9d6-020b1a70a9f2 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-18T23:00:06+08:00] Output from dir listing
+[2026-02-18T23:00:06+08:00] Meta: task=suggar-daddy-docs group=-5298003529
+[2026-02-18T23:00:06+08:00] Wrote latest.json
+[2026-02-18T23:00:10+08:00] Sent Telegram message to -5298003529
+[2026-02-18T23:00:10+08:00] Wrote pending-wake.json
+[2026-02-18T23:00:10+08:00] === Hook completed ===
+[2026-02-18T23:03:18+08:00] === Hook fired ===
+[2026-02-18T23:03:18+08:00] session=4faea2b0-8f73-47c9-a9d6-020b1a70a9f2 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-18T23:03:19+08:00] Output from dir listing
+[2026-02-18T23:03:19+08:00] Meta: task=suggar-daddy-docs group=-5298003529
+[2026-02-18T23:03:19+08:00] Wrote latest.json
+[2026-02-18T23:03:23+08:00] Sent Telegram message to -5298003529
+[2026-02-18T23:03:23+08:00] Wrote pending-wake.json
+[2026-02-18T23:03:23+08:00] === Hook completed ===
+[2026-02-18T23:08:54+08:00] === Hook fired ===
+[2026-02-18T23:08:54+08:00] session=4faea2b0-8f73-47c9-a9d6-020b1a70a9f2 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-18T23:08:55+08:00] Output from dir listing
+[2026-02-18T23:08:55+08:00] Meta: task=suggar-daddy-docs group=-5298003529
+[2026-02-18T23:08:55+08:00] Wrote latest.json
+[2026-02-18T23:08:58+08:00] Sent Telegram message to -5298003529
+[2026-02-18T23:08:58+08:00] Wrote pending-wake.json
+[2026-02-18T23:08:58+08:00] === Hook completed ===
+[2026-02-18T23:30:21+08:00] === Hook fired ===
+[2026-02-18T23:30:21+08:00] session=4faea2b0-8f73-47c9-a9d6-020b1a70a9f2 cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-18T23:30:22+08:00] Output from dir listing
+[2026-02-18T23:30:22+08:00] Meta: task=suggar-daddy-docs group=-5298003529
+[2026-02-18T23:30:22+08:00] Wrote latest.json
+[2026-02-18T23:30:27+08:00] Sent Telegram message to -5298003529
+[2026-02-18T23:30:27+08:00] Wrote pending-wake.json
+[2026-02-18T23:30:27+08:00] === Hook completed ===
+[2026-02-18T23:35:31+08:00] === Hook fired ===
+[2026-02-18T23:35:31+08:00] session=4faea2b0-8f73-47c9-a9d6-020b1a70a9f2 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-18T23:35:32+08:00] Output from dir listing
+[2026-02-18T23:35:32+08:00] Meta: task=suggar-daddy-docs group=-5298003529
+[2026-02-18T23:35:32+08:00] Wrote latest.json
+[2026-02-18T23:35:35+08:00] Sent Telegram message to -5298003529
+[2026-02-18T23:35:35+08:00] Wrote pending-wake.json
+[2026-02-18T23:35:35+08:00] === Hook completed ===
+[2026-02-18T23:38:34+08:00] === Hook fired ===
+[2026-02-18T23:38:34+08:00] session=ab4b42c7-b587-4167-9349-deaa131120ab cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-18T23:38:35+08:00] Output from dir listing
+[2026-02-18T23:38:35+08:00] Meta: task=suggar-daddy-docs group=-5298003529
+[2026-02-18T23:38:35+08:00] Wrote latest.json
+[2026-02-18T23:38:38+08:00] Sent Telegram message to -5298003529
+[2026-02-18T23:38:38+08:00] Wrote pending-wake.json
+[2026-02-18T23:38:38+08:00] === Hook completed ===
+[2026-02-19T23:33:04+08:00] === Hook fired ===
+[2026-02-19T23:33:04+08:00] session=ab4b42c7-b587-4167-9349-deaa131120ab cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-19T23:33:05+08:00] Output from dir listing
+[2026-02-19T23:33:05+08:00] Meta: task=sugar-daddy-final-launch-check group=-5298003529
+[2026-02-19T23:33:05+08:00] Wrote latest.json
+[2026-02-19T23:33:10+08:00] Sent Telegram message to -5298003529
+[2026-02-19T23:33:10+08:00] Wrote pending-wake.json
+[2026-02-19T23:33:10+08:00] === Hook completed ===
+[2026-02-19T23:33:28+08:00] === Hook fired ===
+[2026-02-19T23:33:28+08:00] session=26d4f1d9-bf2d-4f8a-bdb3-9a8723fe9350 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-19T23:33:28+08:00] Duplicate hook within 24s, skipping
+[2026-02-19T23:34:57+08:00] === Hook fired ===
+[2026-02-19T23:34:58+08:00] session=ab4b42c7-b587-4167-9349-deaa131120ab cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-19T23:34:59+08:00] Output from dir listing
+[2026-02-19T23:34:59+08:00] Meta: task=sugar-daddy-final-launch-check group=-5298003529
+[2026-02-19T23:34:59+08:00] Wrote latest.json
+[2026-02-19T23:35:03+08:00] Sent Telegram message to -5298003529
+[2026-02-19T23:35:03+08:00] Wrote pending-wake.json
+[2026-02-19T23:35:03+08:00] === Hook completed ===
+[2026-02-19T23:44:48+08:00] === Hook fired ===
+[2026-02-19T23:44:48+08:00] session=ab4b42c7-b587-4167-9349-deaa131120ab cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-19T23:44:49+08:00] Output from dir listing
+[2026-02-19T23:44:49+08:00] Meta: task=sugar-daddy-final-launch-check group=-5298003529
+[2026-02-19T23:44:49+08:00] Wrote latest.json
+[2026-02-19T23:44:53+08:00] Sent Telegram message to -5298003529
+[2026-02-19T23:44:53+08:00] Wrote pending-wake.json
+[2026-02-19T23:44:53+08:00] === Hook completed ===
+[2026-02-19T23:46:15+08:00] === Hook fired ===
+[2026-02-19T23:46:15+08:00] session=ab4b42c7-b587-4167-9349-deaa131120ab cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-19T23:46:16+08:00] Output from dir listing
+[2026-02-19T23:46:16+08:00] Meta: task=sugar-daddy-final-launch-check group=-5298003529
+[2026-02-19T23:46:16+08:00] Wrote latest.json
+[2026-02-19T23:46:19+08:00] Sent Telegram message to -5298003529
+[2026-02-19T23:46:19+08:00] Wrote pending-wake.json
+[2026-02-19T23:46:19+08:00] === Hook completed ===

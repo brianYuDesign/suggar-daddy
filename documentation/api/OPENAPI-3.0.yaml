@@ -1,0 +1,2877 @@
+openapi: 3.0.0
+info:
+  title: Sugar-Daddy Platform - Comprehensive API
+  description: |
+    完整的 Sugar-Daddy 平台 API 文檔
+    包含所有 81 個端點的詳細說明
+    
+    ### 系統組成
+    - 🔐 Auth Service (11 個端點)
+    - 🎬 Content-Streaming Service (11 個端點)  
+    - 💳 Payment Service (19 個端點)
+    - 🎁 Subscription Service (10 個端點)
+    - 🤖 Recommendation Service (13 個端點)
+    - 🌉 API Gateway (1 個端點)
+    
+    **總計: 81 個 API 端點**
+  version: 1.0.0
+  contact:
+    name: Sugar-Daddy Backend Team
+    email: backend@sugardaddy.com
+  license:
+    name: Proprietary
+    url: https://sugardaddy.com/license
+
+servers:
+  - url: http://localhost:3000
+    description: API Gateway (本地開發)
+    variables:
+      port:
+        default: '3000'
+  - url: https://api.sugardaddy.com/v1
+    description: 生產環境
+  - url: https://staging-api.sugardaddy.com/v1
+    description: 預發佈環境
+
+tags:
+  - name: Auth
+    description: 身份驗證與授權
+  - name: Content-Streaming
+    description: 視頻內容管理與流媒體
+  - name: Payment
+    description: 支付與交易
+  - name: Subscription
+    description: 訂閱管理
+  - name: Recommendation
+    description: 推薦引擎
+  - name: Gateway
+    description: 網關健康檢查
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT access token 認證
+        登錄後獲得 token，在 Authorization header 中使用
+        格式: Authorization: Bearer <token>
+
+  schemas:
+    # ==================== 通用響應結構 ====================
+    ApiResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Success
+        data:
+          type: object
+        errors:
+          type: array
+          items:
+            type: object
+      required:
+        - statusCode
+        - message
+
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Bad Request
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+      required:
+        - statusCode
+        - message
+
+    # ==================== Auth Service Schemas ====================
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        username:
+          type: string
+          example: john_doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        status:
+          type: string
+          enum: [active, inactive, suspended]
+          example: active
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: admin
+        description:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+
+    Permission:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resource:
+          type: string
+          example: users
+        action:
+          type: string
+          example: create
+        description:
+          type: string
+
+    AuthTokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn:
+          type: integer
+          example: 3600
+
+    # ==================== Content-Streaming Schemas ====================
+    Video:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: My Video
+        description:
+          type: string
+        duration:
+          type: integer
+          example: 3600
+        status:
+          type: string
+          enum: [draft, processing, ready, archived]
+        uploadedBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    UploadSession:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        contentType:
+          type: string
+        fileSize:
+          type: integer
+        uploadedBytes:
+          type: integer
+        expiresAt:
+          type: string
+          format: date-time
+
+    TranscodingJob:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        videoId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        createdAt:
+          type: string
+          format: date-time
+
+    # ==================== Payment Schemas ====================
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+          example: 99.99
+        currency:
+          type: string
+          example: USD
+        status:
+          type: string
+          enum: [pending, completed, failed, refunded]
+        paymentMethod:
+          type: string
+          enum: [credit_card, paypal, stripe, alipay, wechat]
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PaymentIntent:
+      type: object
+      properties:
+        clientSecret:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        metadata:
+          type: object
+
+    Refund:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        paymentId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        reason:
+          type: string
+
+    # ==================== Subscription Schemas ====================
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        planId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, paused, cancelled, expired]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        autoRenew:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    SubscriptionPlan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Premium Plan
+        description:
+          type: string
+        price:
+          type: number
+          example: 9.99
+        billingCycle:
+          type: string
+          enum: [monthly, quarterly, yearly]
+        features:
+          type: array
+          items:
+            type: string
+
+    BillingHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        subscriptionId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        billedAt:
+          type: string
+          format: date-time
+        nextBillingDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, successful, failed]
+
+    # ==================== Recommendation Schemas ====================
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        contentId:
+          type: string
+          format: uuid
+        score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        reason:
+          type: string
+          example: Based on your viewing history
+
+    UserInteraction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        contentId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [view, like, share, comment]
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    UnauthorizedError:
+      description: 未授權
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            statusCode: 401
+            message: Unauthorized
+            errors:
+              - field: token
+                message: Invalid or expired token
+
+    NotFoundError:
+      description: 資源不存在
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            statusCode: 404
+            message: Not Found
+            errors:
+              - message: Resource not found
+
+    BadRequestError:
+      description: 請求格式錯誤
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: 伺服器內部錯誤
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            statusCode: 500
+            message: Internal Server Error
+
+# ============================================================
+# PATH 定義
+# ============================================================
+
+paths:
+  # ==================== Health Check ====================
+  /health:
+    get:
+      tags:
+        - Gateway
+      summary: 健康檢查
+      description: 檢查 API 網關和所有後端服務的狀態
+      operationId: getHealth
+      responses:
+        '200':
+          description: 所有服務正常運行
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+                  services:
+                    type: object
+                    properties:
+                      auth:
+                        type: string
+                        example: up
+                      contentStreaming:
+                        type: string
+                        example: up
+                      payment:
+                        type: string
+                        example: up
+                      subscription:
+                        type: string
+                        example: up
+                      recommendation:
+                        type: string
+                        example: up
+
+  # ==================== Auth Service ====================
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: 用戶註冊
+      description: 註冊新用戶賬戶
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: john_doe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePassword123!
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+              required:
+                - username
+                - email
+                - password
+      responses:
+        '201':
+          description: 用戶註冊成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 201
+                  message:
+                    type: string
+                    example: User registered successfully
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tokens:
+                        $ref: '#/components/schemas/AuthTokens'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: 用戶登入
+      description: 使用認證信息登入系統
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePassword123!
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: 登入成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Login successful
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      tokens:
+                        $ref: '#/components/schemas/AuthTokens'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: 刷新 Token
+      description: 使用 refresh token 獲得新的 access token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+              required:
+                - refreshToken
+      responses:
+        '200':
+          description: Token 刷新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/AuthTokens'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: 登出
+      description: 登出用戶會話
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 登出成功
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/me:
+    get:
+      tags:
+        - Auth
+      summary: 獲取當前用戶信息
+      description: 取得已登入用戶的個人信息
+      operationId: getCurrentUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/validate:
+    post:
+      tags:
+        - Auth
+      summary: 驗證 Token
+      description: 驗證 access token 的有效性
+      operationId: validateToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required:
+                - token
+      responses:
+        '200':
+          description: Token 有效
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      valid:
+                        type: boolean
+                      userId:
+                        type: string
+                      expiresAt:
+                        type: string
+                        format: date-time
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/change-password:
+    post:
+      tags:
+        - Auth
+      summary: 更改密碼
+      description: 修改用戶密碼
+      operationId: changePassword
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                  format: password
+                newPassword:
+                  type: string
+                  format: password
+              required:
+                - oldPassword
+                - newPassword
+      responses:
+        '200':
+          description: 密碼更改成功
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ==================== User Management ====================
+  /api/auth/users:
+    get:
+      tags:
+        - Auth
+      summary: 獲取用戶列表
+      description: 獲取所有用戶列表（需要管理員權限）
+      operationId: listUsers
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, suspended]
+      responses:
+        '200':
+          description: 用戶列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          total:
+                            type: integer
+                          limit:
+                            type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Auth
+      summary: 創建用戶
+      description: 創建新用戶（需要管理員權限）
+      operationId: createUser
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                roles:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - username
+                - email
+      responses:
+        '201':
+          description: 用戶創建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/users/{userId}:
+    get:
+      tags:
+        - Auth
+      summary: 獲取用戶詳細信息
+      description: 獲取指定用戶的詳細信息
+      operationId: getUserById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 用戶詳細信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    delete:
+      tags:
+        - Auth
+      summary: 刪除用戶
+      description: 刪除指定用戶（需要管理員權限）
+      operationId: deleteUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 用戶刪除成功
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/users/{userId}/activate:
+    post:
+      tags:
+        - Auth
+      summary: 激活用戶
+      description: 激活已禁用的用戶賬戶
+      operationId: activateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 用戶激活成功
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/users/{userId}/deactivate:
+    post:
+      tags:
+        - Auth
+      summary: 禁用用戶
+      description: 禁用用戶賬戶
+      operationId: deactivateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 用戶禁用成功
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/profile:
+    get:
+      tags:
+        - Auth
+      summary: 獲取用戶資料
+      description: 獲取當前登入用戶的詳細資料
+      operationId: getUserProfile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 用戶資料
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    patch:
+      tags:
+        - Auth
+      summary: 更新用戶資料
+      description: 更新當前登入用戶的資料
+      operationId: updateUserProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: 資料更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ==================== Role Management ====================
+  /api/auth/roles:
+    get:
+      tags:
+        - Auth
+      summary: 獲取角色列表
+      description: 獲取系統中所有角色
+      operationId: listRoles
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 角色列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Role'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Auth
+      summary: 創建角色
+      description: 創建新角色（需要管理員權限）
+      operationId: createRole
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: moderator
+                description:
+                  type: string
+                permissions:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - name
+      responses:
+        '201':
+          description: 角色創建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Role'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/roles/{roleId}:
+    get:
+      tags:
+        - Auth
+      summary: 獲取角色詳細信息
+      description: 獲取指定角色的詳細信息
+      operationId: getRoleById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 角色詳細信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Role'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    patch:
+      tags:
+        - Auth
+      summary: 更新角色
+      description: 更新角色信息（需要管理員權限）
+      operationId: updateRole
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: 角色更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Role'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/roles/{roleId}/permissions:
+    get:
+      tags:
+        - Auth
+      summary: 獲取角色權限
+      description: 獲取指定角色的所有權限
+      operationId: getRolePermissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 角色權限列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Permission'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Auth
+      summary: 添加角色權限
+      description: 為角色添加權限（需要管理員權限）
+      operationId: addRolePermission
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                permissionId:
+                  type: string
+                  format: uuid
+              required:
+                - permissionId
+      responses:
+        '200':
+          description: 權限添加成功
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ==================== Permission Management ====================
+  /api/auth/permissions:
+    get:
+      tags:
+        - Auth
+      summary: 獲取權限列表
+      description: 獲取系統中所有可用的權限
+      operationId: listPermissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: resource
+          in: query
+          schema:
+            type: string
+          description: 按資源篩選
+      responses:
+        '200':
+          description: 權限列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Permission'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ==================== Content-Streaming Service ====================
+  /api/uploads/initiate:
+    post:
+      tags:
+        - Content-Streaming
+      summary: 初始化上傳會話
+      description: 開始分片上傳，獲得會話 ID
+      operationId: initiateUpload
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                  example: my-video.mp4
+                contentType:
+                  type: string
+                  example: video/mp4
+                fileSize:
+                  type: integer
+                  example: 524288000
+              required:
+                - filename
+                - contentType
+                - fileSize
+      responses:
+        '201':
+          description: 上傳會話已創建
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/UploadSession'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/uploads/{sessionId}:
+    get:
+      tags:
+        - Content-Streaming
+      summary: 獲取上傳狀態
+      description: 獲取指定上傳會話的當前狀態
+      operationId: getUploadStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 上傳狀態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/UploadSession'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/uploads/{sessionId}/chunk:
+    post:
+      tags:
+        - Content-Streaming
+      summary: 上傳分片
+      description: 上傳視頻文件的一部分
+      operationId: uploadChunk
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: chunkIndex
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: 分片上傳成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      chunkIndex:
+                        type: integer
+                      uploadedBytes:
+                        type: integer
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/uploads/{sessionId}/complete:
+    post:
+      tags:
+        - Content-Streaming
+      summary: 完成上傳
+      description: 完成上傳會話，開始轉碼
+      operationId: completeUpload
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - title
+      responses:
+        '200':
+          description: 上傳完成，轉碼已啟動
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      videoId:
+                        type: string
+                        format: uuid
+                      message:
+                        type: string
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/videos:
+    get:
+      tags:
+        - Content-Streaming
+      summary: 獲取視頻列表
+      description: 獲取所有已發佈的視頻
+      operationId: listVideos
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, oldest, trending]
+            default: newest
+      responses:
+        '200':
+          description: 視頻列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      videos:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Video'
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          total:
+                            type: integer
+                          limit:
+                            type: integer
+
+    post:
+      tags:
+        - Content-Streaming
+      summary: 創建視頻記錄
+      description: 創建新的視頻記錄（通常在上傳完成後）
+      operationId: createVideo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                uploadSessionId:
+                  type: string
+                  format: uuid
+              required:
+                - title
+                - uploadSessionId
+      responses:
+        '201':
+          description: 視頻記錄創建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Video'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/videos/{videoId}:
+    get:
+      tags:
+        - Content-Streaming
+      summary: 獲取視頻詳細信息
+      description: 獲取指定視頻的詳細信息
+      operationId: getVideoById
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 視頻詳細信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Video'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    patch:
+      tags:
+        - Content-Streaming
+      summary: 更新視頻信息
+      description: 更新視頻的元數據
+      operationId: updateVideo
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: 視頻信息更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Video'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    delete:
+      tags:
+        - Content-Streaming
+      summary: 刪除視頻
+      description: 刪除視頻記錄和相關文件
+      operationId: deleteVideo
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 視頻刪除成功
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/videos/{videoId}/stream:
+    get:
+      tags:
+        - Content-Streaming
+      summary: 流媒體播放
+      description: 流式傳輸視頻文件
+      operationId: streamVideo
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: quality
+          in: query
+          schema:
+            type: string
+            enum: [360p, 480p, 720p, 1080p]
+            default: 720p
+      responses:
+        '206':
+          description: 視頻流媒體內容（支持範圍請求）
+          content:
+            video/mp4:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/transcoding:
+    get:
+      tags:
+        - Content-Streaming
+      summary: 獲取轉碼任務列表
+      description: 獲取所有轉碼任務的狀態
+      operationId: listTranscodingJobs
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, processing, completed, failed]
+      responses:
+        '200':
+          description: 轉碼任務列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TranscodingJob'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/transcoding/{jobId}:
+    get:
+      tags:
+        - Content-Streaming
+      summary: 獲取轉碼任務狀態
+      description: 獲取指定轉碼任務的詳細狀態
+      operationId: getTranscodingJobStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 轉碼任務狀態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/TranscodingJob'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/quality-configs:
+    get:
+      tags:
+        - Content-Streaming
+      summary: 獲取質量配置
+      description: 獲取視頻質量配置列表
+      operationId: listQualityConfigs
+      responses:
+        '200':
+          description: 質量配置列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        quality:
+                          type: string
+                        resolution:
+                          type: string
+                        bitrate:
+                          type: string
+                        codec:
+                          type: string
+
+  # ==================== Payment Service ====================
+  /api/payments/intent:
+    post:
+      tags:
+        - Payment
+      summary: 創建支付意圖
+      description: 初始化支付流程，獲得客戶端密鑰
+      operationId: createPaymentIntent
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  example: 99.99
+                currency:
+                  type: string
+                  example: USD
+                paymentMethod:
+                  type: string
+                  enum: [credit_card, paypal, stripe, alipay, wechat]
+                description:
+                  type: string
+                metadata:
+                  type: object
+              required:
+                - amount
+                - currency
+                - paymentMethod
+      responses:
+        '201':
+          description: 支付意圖已創建
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/PaymentIntent'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/payments/confirm:
+    post:
+      tags:
+        - Payment
+      summary: 確認支付
+      description: 確認並完成支付交易
+      operationId: confirmPayment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paymentIntentId:
+                  type: string
+                paymentMethodId:
+                  type: string
+                  description: 支付方式的 token 或 ID
+              required:
+                - paymentIntentId
+      responses:
+        '200':
+          description: 支付已確認
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Payment'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/payments:
+    get:
+      tags:
+        - Payment
+      summary: 獲取支付列表
+      description: 獲取當前用戶的所有支付記錄
+      operationId: listPayments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, completed, failed, refunded]
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 支付記錄列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      payments:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Payment'
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          total:
+                            type: integer
+                          limit:
+                            type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/payments/{paymentId}:
+    get:
+      tags:
+        - Payment
+      summary: 獲取支付詳細信息
+      description: 獲取指定支付的詳細信息
+      operationId: getPaymentById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 支付詳細信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Payment'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/payments/user/{userId}:
+    get:
+      tags:
+        - Payment
+      summary: 獲取特定用戶的支付記錄
+      description: 獲取指定用戶的所有支付記錄（需要管理員權限）
+      operationId: getUserPayments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 用戶支付記錄
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/payments/refund:
+    post:
+      tags:
+        - Payment
+      summary: 申請退款
+      description: 為已完成的支付申請退款
+      operationId: requestRefund
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paymentId:
+                  type: string
+                  format: uuid
+                amount:
+                  type: number
+                  description: 退款金額（如不提供則全額退款）
+                reason:
+                  type: string
+                  enum: [user_requested, defective, changed_mind, duplicate, other]
+              required:
+                - paymentId
+                - reason
+      responses:
+        '200':
+          description: 退款申請已提交
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Refund'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/payments/refunds:
+    get:
+      tags:
+        - Payment
+      summary: 獲取退款列表
+      description: 獲取當前用戶的所有退款記錄
+      operationId: listRefunds
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, completed, failed]
+      responses:
+        '200':
+          description: 退款記錄列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      refunds:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Refund'
+                      pagination:
+                        type: object
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/payments/refunds/{refundId}:
+    get:
+      tags:
+        - Payment
+      summary: 獲取退款詳細信息
+      description: 獲取指定退款的詳細信息
+      operationId: getRefundById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: refundId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 退款詳細信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Refund'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/payments/webhooks/stripe:
+    post:
+      tags:
+        - Payment
+      summary: Stripe Webhook
+      description: 接收 Stripe 的異步事件通知
+      operationId: handleStripeWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook 已處理
+        '400':
+          description: 無效的 webhook
+
+  /api/payments/analytics:
+    get:
+      tags:
+        - Payment
+      summary: 獲取支付分析數據
+      description: 獲取支付相關的統計和分析數據
+      operationId: getPaymentAnalytics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: dateFrom
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 支付分析數據
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      totalRevenue:
+                        type: number
+                      totalTransactions:
+                        type: integer
+                      averageTransactionValue:
+                        type: number
+                      refundRate:
+                        type: number
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ==================== Subscription Service ====================
+  /api/subscriptions/plans:
+    get:
+      tags:
+        - Subscription
+      summary: 獲取訂閱計劃列表
+      description: 獲取所有可用的訂閱計劃
+      operationId: listSubscriptionPlans
+      responses:
+        '200':
+          description: 訂閱計劃列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubscriptionPlan'
+
+  /api/subscriptions/plans/{planId}:
+    get:
+      tags:
+        - Subscription
+      summary: 獲取訂閱計劃詳細信息
+      description: 獲取指定訂閱計劃的詳細信息
+      operationId: getSubscriptionPlanById
+      parameters:
+        - name: planId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 訂閱計劃詳細信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/SubscriptionPlan'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/subscriptions:
+    get:
+      tags:
+        - Subscription
+      summary: 獲取當前用戶的訂閱
+      description: 獲取當前登入用戶的所有訂閱
+      operationId: getCurrentUserSubscriptions
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 用戶訂閱列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscription'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Subscription
+      summary: 創建訂閱
+      description: 為當前用戶創建新的訂閱
+      operationId: createSubscription
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                planId:
+                  type: string
+                  format: uuid
+                autoRenew:
+                  type: boolean
+                  default: true
+                paymentMethodId:
+                  type: string
+                  description: 支付方式 ID
+              required:
+                - planId
+      responses:
+        '201':
+          description: 訂閱創建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/subscriptions/{subscriptionId}:
+    get:
+      tags:
+        - Subscription
+      summary: 獲取訂閱詳細信息
+      description: 獲取指定訂閱的詳細信息
+      operationId: getSubscriptionById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 訂閱詳細信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Subscription'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    patch:
+      tags:
+        - Subscription
+      summary: 更新訂閱
+      description: 更新訂閱的配置（如自動續期）
+      operationId: updateSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                autoRenew:
+                  type: boolean
+      responses:
+        '200':
+          description: 訂閱更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Subscription'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/subscriptions/{subscriptionId}/cancel:
+    post:
+      tags:
+        - Subscription
+      summary: 取消訂閱
+      description: 立即取消訂閱
+      operationId: cancelSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: 取消原因（可選）
+      responses:
+        '200':
+          description: 訂閱已取消
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Subscription'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/subscriptions/{subscriptionId}/pause:
+    post:
+      tags:
+        - Subscription
+      summary: 暫停訂閱
+      description: 暫停訂閱，在指定期間不計費
+      operationId: pauseSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: 暫停原因（可選）
+      responses:
+        '200':
+          description: 訂閱已暫停
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Subscription'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/subscriptions/{subscriptionId}/resume:
+    post:
+      tags:
+        - Subscription
+      summary: 恢復訂閱
+      description: 恢復已暫停的訂閱
+      operationId: resumeSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 訂閱已恢復
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    $ref: '#/components/schemas/Subscription'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/subscriptions/{subscriptionId}/billing-history:
+    get:
+      tags:
+        - Subscription
+      summary: 獲取帳單歷史
+      description: 獲取訂閱的帳單歷史記錄
+      operationId: getSubscriptionBillingHistory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 帳單歷史
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      billingHistory:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BillingHistory'
+                      pagination:
+                        type: object
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/subscriptions/user/{userId}:
+    get:
+      tags:
+        - Subscription
+      summary: 獲取特定用戶的訂閱
+      description: 獲取指定用戶的所有訂閱（需要管理員權限）
+      operationId: getUserSubscriptions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 用戶訂閱列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscription'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ==================== Recommendation Service ====================
+  /api/recommendations:
+    get:
+      tags:
+        - Recommendation
+      summary: 獲取推薦列表
+      description: 獲取當前用戶的個性化推薦內容
+      operationId: getRecommendations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 推薦內容列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recommendation'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Recommendation
+      summary: 創建推薦配置
+      description: 為用戶創建自定義推薦配置
+      operationId: createRecommendationConfig
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preferences:
+                  type: array
+                  items:
+                    type: string
+                excludeWatched:
+                  type: boolean
+                  default: true
+      responses:
+        '201':
+          description: 推薦配置已創建
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/recommendations/{contentId}:
+    get:
+      tags:
+        - Recommendation
+      summary: 獲取相似內容推薦
+      description: 獲取與指定內容相似的推薦
+      operationId: getSimilarContent
+      parameters:
+        - name: contentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 相似內容推薦
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Recommendation'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/recommendations/{contentId}/like:
+    post:
+      tags:
+        - Recommendation
+      summary: 標記內容為喜歡
+      description: 記錄用戶對內容的喜歡
+      operationId: likeContent
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: contentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 已記錄喜歡
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/recommendations/{contentId}/view:
+    post:
+      tags:
+        - Recommendation
+      summary: 記錄觀看
+      description: 記錄用戶對內容的觀看
+      operationId: recordView
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: contentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                watchDuration:
+                  type: integer
+                  description: 觀看時長（秒）
+              required:
+                - watchDuration
+      responses:
+        '200':
+          description: 觀看已記錄
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/recommendations/interactions:
+    post:
+      tags:
+        - Recommendation
+      summary: 記錄用戶交互
+      description: 記錄用戶與內容的交互（評論、分享等）
+      operationId: recordInteraction
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contentId:
+                  type: string
+                  format: uuid
+                type:
+                  type: string
+                  enum: [view, like, share, comment]
+                metadata:
+                  type: object
+              required:
+                - contentId
+                - type
+      responses:
+        '201':
+          description: 交互已記錄
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/recommendations/refresh/{userId}:
+    post:
+      tags:
+        - Recommendation
+      summary: 刷新用戶推薦
+      description: 強制刷新用戶的推薦算法
+      operationId: refreshUserRecommendations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 推薦已刷新
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/recommendations/update-scores:
+    post:
+      tags:
+        - Recommendation
+      summary: 更新推薦評分
+      description: 後臺任務：更新所有用戶的推薦評分
+      operationId: updateRecommendationScores
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 評分更新已啟動
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/recommendations/clear-cache:
+    post:
+      tags:
+        - Recommendation
+      summary: 清除推薦快取
+      description: 清除推薦引擎的快取
+      operationId: clearRecommendationCache
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 快取已清除
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+security:
+  - BearerAuth: []
