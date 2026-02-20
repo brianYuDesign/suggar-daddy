@@ -17,14 +17,14 @@ export interface IUser {
 }
 
 export class UserEntity implements IUser {
-  id: string;
-  email: string;
-  username: string;
+  id!: string;
+  email!: string;
+  username!: string;
   displayName?: string;
   avatarUrl?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  isActive!: boolean;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   constructor(partial: Partial<UserEntity>) {
     Object.assign(this, partial);

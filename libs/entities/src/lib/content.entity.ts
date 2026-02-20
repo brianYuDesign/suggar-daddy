@@ -32,16 +32,16 @@ export interface IContent {
 }
 
 export class ContentEntity implements IContent {
-  id: string;
-  title: string;
+  id!: string;
+  title!: string;
   description?: string;
-  type: ContentType;
-  status: ContentStatus;
-  creatorId: string;
-  mediaUrls: string[];
+  type!: ContentType;
+  status!: ContentStatus;
+  creatorId!: string;
+  mediaUrls!: string[];
   tags?: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   constructor(partial: Partial<ContentEntity>) {
     Object.assign(this, partial);
