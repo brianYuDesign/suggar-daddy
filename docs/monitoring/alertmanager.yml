@@ -1,0 +1,119 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# 設置告警模板
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# 路由配置
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'cluster', 'service', 'instance']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 24h
+
+  # 子路由
+  routes:
+    # Critical alerts
+    - match:
+        severity: critical
+      receiver: 'critical'
+      group_wait: 1s
+      repeat_interval: 1h
+
+    # Warning alerts
+    - match:
+        severity: warning
+      receiver: 'default'
+      group_wait: 10s
+      repeat_interval: 4h
+
+    # API alerts
+    - match:
+        service: api
+      receiver: 'api-team'
+      group_wait: 5s
+
+    # Database alerts
+    - match:
+        service: postgres
+      receiver: 'db-team'
+      group_wait: 5s
+
+    # Redis alerts
+    - match:
+        service: redis
+      receiver: 'cache-team'
+      group_wait: 5s
+
+    # Infrastructure alerts
+    - match:
+        service: infrastructure
+      receiver: 'infra-team'
+      group_wait: 1s
+
+# 告警接收者
+receivers:
+  # 默認接收者
+  - name: 'default'
+    slack_configs:
+      - channel: '#alerts'
+        title: 'Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  # Critical 告警 (緊急)
+  - name: 'critical'
+    slack_configs:
+      - channel: '#critical-alerts'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        description: '{{ .GroupLabels.alertname }}'
+
+  # API Team
+  - name: 'api-team'
+    slack_configs:
+      - channel: '#api-alerts'
+        title: 'API Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  # Database Team
+  - name: 'db-team'
+    slack_configs:
+      - channel: '#db-alerts'
+        title: 'Database Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  # Cache Team
+  - name: 'cache-team'
+    slack_configs:
+      - channel: '#cache-alerts'
+        title: 'Redis Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  # Infrastructure Team
+  - name: 'infra-team'
+    slack_configs:
+      - channel: '#infra-alerts'
+        title: 'Infrastructure Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+# 抑制規則
+inhibit_rules:
+  # 如果 critical 告警已觸發，則抑制相關的 warning 告警
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']
+
+  # 如果服務已宕機，則抑制該服務的性能告警
+  - source_match:
+      alertname: 'ApplicationDown'
+    target_match_re:
+      alertname: 'High.*|Low.*'
+    equal: ['instance', 'job']
