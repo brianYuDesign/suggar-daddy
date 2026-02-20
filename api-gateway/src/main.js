@@ -28,7 +28,7 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-app.use('/api/v1', proxyRoutes);
+app.use('/api', proxyRoutes);
 
 // 404 Handler
 app.use((req, res) => {

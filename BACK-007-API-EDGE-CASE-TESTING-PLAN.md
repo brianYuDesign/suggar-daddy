@@ -53,7 +53,7 @@ This document outlines the comprehensive API testing strategy for BACK-007, focu
 ```bash
 # Test 1: Single 1GB file
 dd if=/dev/zero of=test-1gb.bin bs=1M count=1024
-curl -F "file=@test-1gb.bin" http://localhost:4000/api/v1/upload
+curl -F "file=@test-1gb.bin" http://localhost:4000/api/upload
 
 # Test 2: Chunked upload with 100MB chunks
 node test-chunked-upload.js --file=large-video.mp4 --chunk-size=104857600
@@ -90,7 +90,7 @@ export let options = {
 
 export default function() {
   group('Concurrent GET requests', function() {
-    let response = http.get('http://localhost:3000/api/v1/recommendations/user-123');
+    let response = http.get('http://localhost:3000/api/recommendations/user-123');
     check(response, {
       'status is 200': (r) => r.status === 200,
       'response time < 100ms': (r) => r.timings.duration < 100,
@@ -123,7 +123,7 @@ import { check } from 'k6';
 export default function() {
   // Test: Exceed per-second limit (1000 req/s)
   for (let i = 0; i < 1000; i++) {
-    let response = http.get('http://localhost:3000/api/v1/recommendations/user-123');
+    let response = http.get('http://localhost:3000/api/recommendations/user-123');
     
     if (i < 100) {
       check(response, {
@@ -256,7 +256,7 @@ for (let i = 0; i < 25; i++) {
 ```typescript
 it('should return 400 for invalid input', async () => {
   const response = await request(app.getHttpServer())
-    .post('/api/v1/recommendations/interactions')
+    .post('/api/recommendations/interactions')
     .send({ user_id: 'user-123' }); // Missing content_id
   
   expect(response.status).toBe(400);
@@ -276,7 +276,7 @@ it('should return 400 for invalid input', async () => {
     "message": "Invalid request parameters",
     "status": 400,
     "timestamp": "2026-02-19T13:24:00Z",
-    "path": "/api/v1/recommendations/interactions",
+    "path": "/api/recommendations/interactions",
     "details": {
       "field": "content_id",
       "reason": "required"
@@ -311,14 +311,14 @@ it('should return 400 for invalid input', async () => {
 ```typescript
 it('should include unique error ID in 500 response', async () => {
   const response = await request(app.getHttpServer())
-    .get('/api/v1/recommendations/invalid-user'); // Force error
+    .get('/api/recommendations/invalid-user'); // Force error
   
   expect(response.status).toBe(500);
   expect(response.body.error.id).toMatch(/^err_\d+_[a-f0-9]+$/);
   
   // Make second request
   const response2 = await request(app.getHttpServer())
-    .get('/api/v1/recommendations/invalid-user');
+    .get('/api/recommendations/invalid-user');
   
   // Should have different tracking ID
   expect(response2.body.error.id).not.toBe(response.body.error.id);
@@ -348,7 +348,7 @@ it('should include unique error ID in 500 response', async () => {
 ```typescript
 it('should prevent XSS in user input', async () => {
   const response = await request(app.getHttpServer())
-    .post('/api/v1/recommendations/interactions/comment')
+    .post('/api/recommendations/interactions/comment')
     .send({
       content_id: 'content-1',
       user_id: 'user-1',
@@ -359,7 +359,7 @@ it('should prevent XSS in user input', async () => {
   
   // Retrieve comment and verify escaping
   const getResponse = await request(app.getHttpServer())
-    .get('/api/v1/content/content-1/comments');
+    .get('/api/content/content-1/comments');
   
   expect(getResponse.body.comments[0].comment).not.toContain('<script>');
   expect(getResponse.body.comments[0].comment).toContain('&lt;script&gt;');
@@ -386,12 +386,12 @@ it('should prevent XSS in user input', async () => {
 it('should enforce CSRF protection on state-changing requests', async () => {
   // GET CSRF token first
   const tokenResponse = await request(app.getHttpServer())
-    .get('/api/v1/csrf-token');
+    .get('/api/csrf-token');
   const csrfToken = tokenResponse.body.token;
   
   // POST without token should fail
   const noTokenResponse = await request(app.getHttpServer())
-    .post('/api/v1/recommendations/interactions')
+    .post('/api/recommendations/interactions')
     .send({
       user_id: 'user-1',
       content_id: 'content-1',
@@ -401,7 +401,7 @@ it('should enforce CSRF protection on state-changing requests', async () => {
   
   // POST with token should succeed
   const withTokenResponse = await request(app.getHttpServer())
-    .post('/api/v1/recommendations/interactions')
+    .post('/api/recommendations/interactions')
     .set('X-CSRF-Token', csrfToken)
     .send({
       user_id: 'user-1',
@@ -434,26 +434,26 @@ it('should enforce CSRF protection on state-changing requests', async () => {
 it('should require valid authentication', async () => {
   // No token
   const noTokenResponse = await request(app.getHttpServer())
-    .get('/api/v1/user/user-123/profile');
+    .get('/api/user/user-123/profile');
   expect(noTokenResponse.status).toBe(401);
   
   // Invalid token
   const invalidTokenResponse = await request(app.getHttpServer())
-    .get('/api/v1/user/user-123/profile')
+    .get('/api/user/user-123/profile')
     .set('Authorization', 'Bearer invalid.token.here');
   expect(invalidTokenResponse.status).toBe(401);
   
   // Expired token
   const expiredToken = generateExpiredJWT();
   const expiredResponse = await request(app.getHttpServer())
-    .get('/api/v1/user/user-123/profile')
+    .get('/api/user/user-123/profile')
     .set('Authorization', `Bearer ${expiredToken}`);
   expect(expiredResponse.status).toBe(401);
   
   // Valid token
   const validToken = generateValidJWT();
   const validResponse = await request(app.getHttpServer())
-    .get('/api/v1/user/user-123/profile')
+    .get('/api/user/user-123/profile')
     .set('Authorization', `Bearer ${validToken}`);
   expect(validResponse.status).toBe(200);
 });

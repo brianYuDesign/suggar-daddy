@@ -8,9 +8,11 @@ import { PaymentService } from './services/payment.service';
 import { SubscriptionService } from './services/subscription.service';
 import { InvoiceService } from './services/invoice.service';
 import { WebhookService } from './services/webhook.service';
+import { ReportService } from './services/report.service';
 
 // 控制器
 import { PaymentController, SubscriptionController, InvoiceController, WebhookController } from './controllers/payment.controller';
+import { ReportController } from './controllers/report.controller';
 
 // Entity
 import { Payment } from './entities/payment.entity';
@@ -39,18 +41,19 @@ import { WebhookMiddleware } from './middleware/webhook.middleware';
     }),
     TypeOrmModule.forFeature([Payment, Subscription, Invoice, WebhookEvent]),
   ],
-  controllers: [PaymentController, SubscriptionController, InvoiceController, WebhookController],
+  controllers: [PaymentController, SubscriptionController, InvoiceController, WebhookController, ReportController],
   providers: [
     ConfigService,
     PaymentService,
     SubscriptionService,
     InvoiceService,
     WebhookService,
+    ReportService,
   ],
-  exports: [ConfigService, PaymentService, SubscriptionService, InvoiceService, WebhookService],
+  exports: [ConfigService, PaymentService, SubscriptionService, InvoiceService, WebhookService, ReportService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(WebhookMiddleware).forRoutes('api/v1/webhooks/stripe');
+    consumer.apply(WebhookMiddleware).forRoutes('api/webhooks/stripe');
   }
 }

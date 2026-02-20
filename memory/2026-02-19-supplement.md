@@ -254,10 +254,10 @@ cd /Users/brianyu/.openclaw/workspace
 Grafana 主儀表板 (8 個 Panel)
 
 # Prometheus 查詢
-curl "http://localhost:9090/api/v1/query?query=up{namespace='production'}"
+curl "http://localhost:9090/api/query?query=up{namespace='production'}"
 
 # 告警狀態
-curl http://localhost:9093/api/v1/alerts
+curl http://localhost:9093/api/alerts
 
 # 日誌搜索
 Kibana Dashboard (時間序列分析)

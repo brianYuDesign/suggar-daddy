@@ -134,7 +134,7 @@ INFO clients
 
 ```bash
 # API 方式（推薦）
-curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
+curl -X POST http://localhost:3000/api/recommendations/clear-cache
 
 # CLI 方式
 docker-compose exec redis redis-cli FLUSHALL
@@ -255,7 +255,7 @@ netstat -tuln | grep 3000
 docker-compose restart recommendation-service
 
 # Step 6: 重新測試
-curl http://localhost:3000/api/v1/recommendations/user-123?limit=5
+curl http://localhost:3000/api/recommendations/user-123?limit=5
 ```
 
 **常見原因和解決**:
@@ -374,7 +374,7 @@ docker-compose exec redis redis-cli INFO stats | grep -E "keyspace_hits|keyspace
 
 ```bash
 # Step 1: 檢查推薦結果
-curl http://localhost:3000/api/v1/recommendations/user-123?limit=5
+curl http://localhost:3000/api/recommendations/user-123?limit=5
 
 # 檢查:
 # - 是否有推薦結果？
@@ -407,7 +407,7 @@ docker-compose exec postgres psql -U postgres -d recommendation_db -c "
 
 | 現象 | 原因 | 解決方法 |
 |------|------|--------|
-| 推薦結果重複 | 快取未更新 | `curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache` |
+| 推薦結果重複 | 快取未更新 | `curl -X POST http://localhost:3000/api/recommendations/clear-cache` |
 | 新內容沒推薦 | 算法偏向舊內容 | 提高新鮮度權重（0.25 → 0.35） |
 | 沒有推薦結果 | 用戶無興趣數據 | 記錄互動：`POST /recommendations/interactions` |
 | 分數計算錯誤 | 權重配置錯誤 | 檢查 recommendation.service.ts 中的權重設置 |
@@ -485,7 +485,7 @@ docker-compose up -d
 3m     2. 檢查緩存狀態                 docker-compose exec redis redis-cli DBSIZE
                                      如果 < 100，說明缺少快取
 
-5m     3. 清空並重建緩存               curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
+5m     3. 清空並重建緩存               curl -X POST http://localhost:3000/api/recommendations/clear-cache
                                      重新調用推薦 API
 
 8m     4. 檢查數據庫性能               - 慢查詢日誌
@@ -506,13 +506,13 @@ docker-compose up -d
 docker-compose exec redis redis-cli DBSIZE
 
 # 2. 清空緩存
-curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
+curl -X POST http://localhost:3000/api/recommendations/clear-cache
 
 # 3. 更新分數（重新計算）
-curl -X POST http://localhost:3000/api/v1/recommendations/update-scores
+curl -X POST http://localhost:3000/api/recommendations/update-scores
 
 # 4. 監控恢復
-watch 'curl -s http://localhost:3000/api/v1/recommendations/user-123?limit=5 | jq ".generated_at"'
+watch 'curl -s http://localhost:3000/api/recommendations/user-123?limit=5 | jq ".generated_at"'
 
 # 5. 檢查數據庫連接
 docker-compose exec postgres psql -U postgres -d recommendation_db -c "
@@ -696,7 +696,7 @@ const HALF_LIFE_HOURS = 72;
 
 ```bash
 # 測試推薦 API 性能（100 個並發請求）
-ab -n 100 -c 10 http://localhost:3000/api/v1/recommendations/user-123?limit=20
+ab -n 100 -c 10 http://localhost:3000/api/recommendations/user-123?limit=20
 
 # 預期結果：
 # Requests per second: 200+ RPS
@@ -782,7 +782,7 @@ docker-compose exec postgres vacuumdb -U postgres recommendation_db
 docker stats
 
 # 應用性能監控
-curl http://localhost:3000/api/v1/recommendations/metrics
+curl http://localhost:3000/api/recommendations/metrics
 
 # 數據庫性能
 docker-compose exec postgres psql -U postgres -d recommendation_db -c "
@@ -815,15 +815,15 @@ docker-compose exec redis redis-cli INFO all
 curl http://localhost:3000/health
 
 # 獲取推薦
-curl http://localhost:3000/api/v1/recommendations/user-123
+curl http://localhost:3000/api/recommendations/user-123
 
 # 記錄互動
-curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
+curl -X POST http://localhost:3000/api/recommendations/interactions \
   -H "Content-Type: application/json" \
   -d '{"user_id":"user-123","content_id":"content-1","interaction_type":"like"}'
 
 # 清空緩存
-curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
+curl -X POST http://localhost:3000/api/recommendations/clear-cache
 
 # 查看日誌
 docker-compose logs -f recommendation-service

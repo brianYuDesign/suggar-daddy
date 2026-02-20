@@ -42,7 +42,7 @@ npm run start:dev
 ### 1. Register User
 
 ```bash
-curl -X POST http://localhost:3002/api/v1/auth/register \
+curl -X POST http://localhost:3002/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "username": "john_doe",
@@ -78,7 +78,7 @@ curl -X POST http://localhost:3002/api/v1/auth/register \
 ### 2. Login
 
 ```bash
-curl -X POST http://localhost:3002/api/v1/auth/login \
+curl -X POST http://localhost:3002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "john@example.com",
@@ -93,7 +93,7 @@ Save the `accessToken` from response.
 ```bash
 TOKEN="your-access-token-here"
 
-curl http://localhost:3002/api/v1/auth/me \
+curl http://localhost:3002/api/auth/me \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -102,7 +102,7 @@ curl http://localhost:3002/api/v1/auth/me \
 ```bash
 TOKEN="your-access-token-here"
 
-curl -X POST http://localhost:3002/api/v1/auth/validate \
+curl -X POST http://localhost:3002/api/auth/validate \
   -H "Content-Type: application/json" \
   -d "{\"token\": \"$TOKEN\"}"
 ```
@@ -112,7 +112,7 @@ curl -X POST http://localhost:3002/api/v1/auth/validate \
 ```bash
 REFRESH_TOKEN="your-refresh-token-here"
 
-curl -X POST http://localhost:3002/api/v1/auth/refresh \
+curl -X POST http://localhost:3002/api/auth/refresh \
   -H "Content-Type: application/json" \
   -d "{\"refreshToken\": \"$REFRESH_TOKEN\"}"
 ```
@@ -122,7 +122,7 @@ curl -X POST http://localhost:3002/api/v1/auth/refresh \
 ```bash
 TOKEN="your-access-token-here"
 
-curl -X POST http://localhost:3002/api/v1/auth/logout \
+curl -X POST http://localhost:3002/api/auth/logout \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"token\": \"$TOKEN\"}"
@@ -133,7 +133,7 @@ curl -X POST http://localhost:3002/api/v1/auth/logout \
 ```bash
 TOKEN="your-access-token-here"
 
-curl http://localhost:3002/api/v1/users/profile \
+curl http://localhost:3002/api/users/profile \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -142,7 +142,7 @@ curl http://localhost:3002/api/v1/users/profile \
 ```bash
 TOKEN="your-access-token-here"
 
-curl -X PATCH http://localhost:3002/api/v1/users/profile \
+curl -X PATCH http://localhost:3002/api/users/profile \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -156,7 +156,7 @@ curl -X PATCH http://localhost:3002/api/v1/users/profile \
 ```bash
 TOKEN="your-access-token-here"
 
-curl -X POST http://localhost:3002/api/v1/auth/change-password \
+curl -X POST http://localhost:3002/api/auth/change-password \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -325,7 +325,7 @@ cat .env | grep DB_
 ### Token Invalid/Expired
 ```bash
 # Get new token via refresh
-curl -X POST http://localhost:3002/api/v1/auth/refresh \
+curl -X POST http://localhost:3002/api/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refreshToken": "your-refresh-token"}'
 

@@ -63,38 +63,38 @@ Successfully designed and implemented a complete, production-ready authenticatio
 ### 4. ✅ API Endpoints (Complete CRUD)
 
 #### Authentication (6 endpoints)
-- ✅ POST `/api/v1/auth/register` - Register new user
-- ✅ POST `/api/v1/auth/login` - Login user
-- ✅ POST `/api/v1/auth/refresh` - Refresh access token
-- ✅ POST `/api/v1/auth/logout` - Logout (token blacklist)
-- ✅ POST `/api/v1/auth/validate` - Validate token
-- ✅ POST `/api/v1/auth/change-password` - Change password
-- ✅ GET `/api/v1/auth/me` - Get current user
+- ✅ POST `/api/auth/register` - Register new user
+- ✅ POST `/api/auth/login` - Login user
+- ✅ POST `/api/auth/refresh` - Refresh access token
+- ✅ POST `/api/auth/logout` - Logout (token blacklist)
+- ✅ POST `/api/auth/validate` - Validate token
+- ✅ POST `/api/auth/change-password` - Change password
+- ✅ GET `/api/auth/me` - Get current user
 
 #### User Management (7 endpoints)
-- ✅ GET `/api/v1/users/profile` - Get own profile
-- ✅ PATCH `/api/v1/users/profile` - Update own profile
-- ✅ GET `/api/v1/users` - List all users (Admin)
-- ✅ GET `/api/v1/users/{id}` - Get user by ID (Admin)
-- ✅ POST `/api/v1/users/{id}/deactivate` - Deactivate (Admin)
-- ✅ POST `/api/v1/users/{id}/activate` - Activate (Admin)
-- ✅ DELETE `/api/v1/users/{id}` - Delete user (Admin)
+- ✅ GET `/api/users/profile` - Get own profile
+- ✅ PATCH `/api/users/profile` - Update own profile
+- ✅ GET `/api/users` - List all users (Admin)
+- ✅ GET `/api/users/{id}` - Get user by ID (Admin)
+- ✅ POST `/api/users/{id}/deactivate` - Deactivate (Admin)
+- ✅ POST `/api/users/{id}/activate` - Activate (Admin)
+- ✅ DELETE `/api/users/{id}` - Delete user (Admin)
 
 #### Role Management (5 endpoints)
-- ✅ POST `/api/v1/roles` - Create role (Admin)
-- ✅ GET `/api/v1/roles` - List roles (Admin)
-- ✅ GET `/api/v1/roles/{id}` - Get role (Admin)
-- ✅ PATCH `/api/v1/roles/{id}` - Update role (Admin)
-- ✅ POST `/api/v1/roles/{id}/permissions` - Assign permissions (Admin)
+- ✅ POST `/api/roles` - Create role (Admin)
+- ✅ GET `/api/roles` - List roles (Admin)
+- ✅ GET `/api/roles/{id}` - Get role (Admin)
+- ✅ PATCH `/api/roles/{id}` - Update role (Admin)
+- ✅ POST `/api/roles/{id}/permissions` - Assign permissions (Admin)
 
 #### Permission Management (7 endpoints)
-- ✅ POST `/api/v1/permissions` - Create permission (Admin)
-- ✅ GET `/api/v1/permissions` - List permissions
-- ✅ GET `/api/v1/permissions/{id}` - Get permission
-- ✅ GET `/api/v1/permissions/resource/{resource}` - By resource
-- ✅ GET `/api/v1/permissions/me` - My permissions
-- ✅ GET `/api/v1/permissions/check` - Check permission
-- ✅ POST `/api/v1/permissions/{id}/deactivate` - Deactivate (Admin)
+- ✅ POST `/api/permissions` - Create permission (Admin)
+- ✅ GET `/api/permissions` - List permissions
+- ✅ GET `/api/permissions/{id}` - Get permission
+- ✅ GET `/api/permissions/resource/{resource}` - By resource
+- ✅ GET `/api/permissions/me` - My permissions
+- ✅ GET `/api/permissions/check` - Check permission
+- ✅ POST `/api/permissions/{id}/deactivate` - Deactivate (Admin)
 
 **Total**: 25+ API endpoints
 
@@ -371,7 +371,7 @@ npm test
 npm test:cov
 
 # Verify
-curl http://localhost:3002/api/v1/auth/me
+curl http://localhost:3002/api/auth/me
 ```
 
 ---

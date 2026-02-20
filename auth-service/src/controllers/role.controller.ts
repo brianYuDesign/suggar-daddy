@@ -15,7 +15,7 @@ import { JwtAuthGuard, RolesGuard } from '@/guards';
 import { Roles } from '@/decorators';
 import { RoleType } from '@/entities';
 
-@Controller('api/v1/roles')
+@Controller('api/roles')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(RoleType.ADMIN)
 export class RoleController {
@@ -23,7 +23,7 @@ export class RoleController {
 
   /**
    * Create new role
-   * POST /api/v1/roles
+   * POST /api/roles
    */
   @Post()
   async createRole(@Body() createRoleDto: CreateRoleDto) {
@@ -37,7 +37,7 @@ export class RoleController {
 
   /**
    * List all roles
-   * GET /api/v1/roles
+   * GET /api/roles
    */
   @Get()
   async listRoles() {
@@ -50,7 +50,7 @@ export class RoleController {
 
   /**
    * Get role by ID
-   * GET /api/v1/roles/:id
+   * GET /api/roles/:id
    */
   @Get(':id')
   async getRoleById(@Param('id') roleId: string) {
@@ -63,7 +63,7 @@ export class RoleController {
 
   /**
    * Update role
-   * PATCH /api/v1/roles/:id
+   * PATCH /api/roles/:id
    */
   @Patch(':id')
   async updateRole(
@@ -80,7 +80,7 @@ export class RoleController {
 
   /**
    * Assign permission to role
-   * POST /api/v1/roles/:id/permissions
+   * POST /api/roles/:id/permissions
    */
   @Post(':id/permissions')
   @HttpCode(HttpStatus.OK)
@@ -100,7 +100,7 @@ export class RoleController {
 
   /**
    * Remove permission from role
-   * DELETE /api/v1/roles/:id/permissions/:permissionId
+   * DELETE /api/roles/:id/permissions/:permissionId
    */
   @HttpCode(HttpStatus.OK)
   async removePermission(
@@ -116,7 +116,7 @@ export class RoleController {
 
   /**
    * Get role permissions
-   * GET /api/v1/roles/:id/permissions
+   * GET /api/roles/:id/permissions
    */
   @Get(':id/permissions')
   async getRolePermissions(@Param('id') roleId: string) {

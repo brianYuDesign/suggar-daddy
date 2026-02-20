@@ -156,38 +156,38 @@ auth-service/
 ## 🔌 API Endpoints
 
 ### Authentication (7)
-- `POST /api/v1/auth/register` - Register
-- `POST /api/v1/auth/login` - Login
-- `POST /api/v1/auth/refresh` - Refresh token
-- `POST /api/v1/auth/logout` - Logout
-- `POST /api/v1/auth/validate` - Validate
-- `POST /api/v1/auth/change-password` - Change password
-- `GET /api/v1/auth/me` - Get current user
+- `POST /api/auth/register` - Register
+- `POST /api/auth/login` - Login
+- `POST /api/auth/refresh` - Refresh token
+- `POST /api/auth/logout` - Logout
+- `POST /api/auth/validate` - Validate
+- `POST /api/auth/change-password` - Change password
+- `GET /api/auth/me` - Get current user
 
 ### Users (7)
-- `GET /api/v1/users/profile` - Get profile
-- `PATCH /api/v1/users/profile` - Update profile
-- `GET /api/v1/users` - List (admin)
-- `GET /api/v1/users/{id}` - Get (admin)
-- `POST /api/v1/users/{id}/deactivate` - Deactivate (admin)
-- `POST /api/v1/users/{id}/activate` - Activate (admin)
-- `DELETE /api/v1/users/{id}` - Delete (admin)
+- `GET /api/users/profile` - Get profile
+- `PATCH /api/users/profile` - Update profile
+- `GET /api/users` - List (admin)
+- `GET /api/users/{id}` - Get (admin)
+- `POST /api/users/{id}/deactivate` - Deactivate (admin)
+- `POST /api/users/{id}/activate` - Activate (admin)
+- `DELETE /api/users/{id}` - Delete (admin)
 
 ### Roles (5)
-- `POST /api/v1/roles` - Create (admin)
-- `GET /api/v1/roles` - List (admin)
-- `GET /api/v1/roles/{id}` - Get (admin)
-- `PATCH /api/v1/roles/{id}` - Update (admin)
-- `POST /api/v1/roles/{id}/permissions` - Assign perms (admin)
+- `POST /api/roles` - Create (admin)
+- `GET /api/roles` - List (admin)
+- `GET /api/roles/{id}` - Get (admin)
+- `PATCH /api/roles/{id}` - Update (admin)
+- `POST /api/roles/{id}/permissions` - Assign perms (admin)
 
 ### Permissions (7)
-- `POST /api/v1/permissions` - Create (admin)
-- `GET /api/v1/permissions` - List
-- `GET /api/v1/permissions/{id}` - Get
-- `GET /api/v1/permissions/me` - My permissions
-- `GET /api/v1/permissions/check` - Check permission
-- `POST /api/v1/permissions/{id}/deactivate` - Deactivate (admin)
-- `POST /api/v1/permissions/{id}/activate` - Activate (admin)
+- `POST /api/permissions` - Create (admin)
+- `GET /api/permissions` - List
+- `GET /api/permissions/{id}` - Get
+- `GET /api/permissions/me` - My permissions
+- `GET /api/permissions/check` - Check permission
+- `POST /api/permissions/{id}/deactivate` - Deactivate (admin)
+- `POST /api/permissions/{id}/activate` - Activate (admin)
 
 ---
 

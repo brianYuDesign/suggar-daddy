@@ -26,7 +26,7 @@ tags:
     description: 質量配置端點
 
 paths:
-  /api/v1/uploads/initiate:
+  /api/uploads/initiate:
     post:
       tags:
         - Uploads
@@ -68,7 +68,7 @@ paths:
                   total_chunks:
                     type: integer
 
-  /api/v1/uploads/{sessionId}:
+  /api/uploads/{sessionId}:
     get:
       tags:
         - Uploads
@@ -88,7 +88,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/UploadSession'
 
-  /api/v1/uploads/{sessionId}/chunk:
+  /api/uploads/{sessionId}/chunk:
     post:
       tags:
         - Uploads
@@ -125,7 +125,7 @@ paths:
                   chunkIndex:
                     type: integer
 
-  /api/v1/uploads/{sessionId}/complete:
+  /api/uploads/{sessionId}/complete:
     post:
       tags:
         - Uploads
@@ -169,7 +169,7 @@ paths:
                     type: string
                     format: uuid
 
-  /api/v1/videos:
+  /api/videos:
     get:
       tags:
         - Videos
@@ -200,7 +200,7 @@ paths:
                   total:
                     type: integer
 
-  /api/v1/videos/{videoId}:
+  /api/videos/{videoId}:
     get:
       tags:
         - Videos
@@ -275,7 +275,7 @@ paths:
                   message:
                     type: string
 
-  /api/v1/videos/{videoId}/publish:
+  /api/videos/{videoId}/publish:
     post:
       tags:
         - Videos
@@ -295,7 +295,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Video'
 
-  /api/v1/streaming/{videoId}/playlist:
+  /api/streaming/{videoId}/playlist:
     get:
       tags:
         - Streaming
@@ -315,7 +315,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StreamPlaylist'
 
-  /api/v1/streaming/{videoId}/quality-switch:
+  /api/streaming/{videoId}/quality-switch:
     post:
       tags:
         - Streaming
@@ -346,7 +346,7 @@ paths:
                   quality:
                     type: string
 
-  /api/v1/transcoding/{jobId}/status:
+  /api/transcoding/{jobId}/status:
     get:
       tags:
         - Transcoding
@@ -373,7 +373,7 @@ paths:
                     minimum: 0
                     maximum: 100
 
-  /api/v1/quality/profiles:
+  /api/quality/profiles:
     get:
       tags:
         - Quality

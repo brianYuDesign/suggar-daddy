@@ -5,6 +5,8 @@ import { Video } from '@/entities/video.entity';
 import { VideoQuality } from '@/entities/video-quality.entity';
 import { TranscodingJob } from '@/entities/transcoding-job.entity';
 import { UploadSession } from '@/entities/upload-session.entity';
+import { Content } from '@/entities/content.entity';
+import { ModerationLog } from '@/entities/moderation-log.entity';
 import { VideoController } from '@/modules/streams/video.controller';
 import { StreamingController } from '@/modules/streams/streaming.controller';
 import { UploadController } from '@/modules/uploads/upload.controller';
@@ -15,6 +17,7 @@ import { S3Service } from '@/services/s3.service';
 import { TranscodingService } from '@/services/transcoding.service';
 import { CloudflareService } from '@/services/cloudflare.service';
 import { UploadService } from '@/services/upload.service';
+import { ContentModule } from '@/content.module';
 
 @Module({
   imports: [
@@ -28,7 +31,7 @@ import { UploadService } from '@/services/upload.service';
           username: dbConfig.username,
           password: dbConfig.password,
           database: dbConfig.database,
-          entities: [Video, VideoQuality, TranscodingJob, UploadSession],
+          entities: [Video, VideoQuality, TranscodingJob, UploadSession, Content, ModerationLog],
           synchronize: dbConfig.synchronize,
           logging: dbConfig.logging,
         };
@@ -36,6 +39,7 @@ import { UploadService } from '@/services/upload.service';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([Video, VideoQuality, TranscodingJob, UploadSession]),
+    ContentModule,
   ],
   controllers: [
     VideoController,

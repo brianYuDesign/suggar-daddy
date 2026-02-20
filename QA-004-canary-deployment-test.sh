@@ -498,7 +498,7 @@ verify_canary_health() {
 
 query_prometheus() {
     local query=$1
-    curl -s "${PROMETHEUS_URL}/api/v1/query" \
+    curl -s "${PROMETHEUS_URL}/api/query" \
         --data-urlencode "query=$query" | \
         jq -r '.data.result[0].value[1]' 2>/dev/null || echo "0"
 }

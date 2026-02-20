@@ -46,16 +46,16 @@ subscription-service/
 
 **API 端點**:
 ```
-GET    /api/v1/subscriptions/plans
-GET    /api/v1/subscriptions/plans/{id}
-POST   /api/v1/subscriptions
-GET    /api/v1/subscriptions/{id}
-GET    /api/v1/subscriptions/user/{userId}
-PATCH  /api/v1/subscriptions/{id}
-POST   /api/v1/subscriptions/{id}/cancel
-POST   /api/v1/subscriptions/{id}/pause
-POST   /api/v1/subscriptions/{id}/resume
-GET    /api/v1/subscriptions/{id}/billing-history
+GET    /api/subscriptions/plans
+GET    /api/subscriptions/plans/{id}
+POST   /api/subscriptions
+GET    /api/subscriptions/{id}
+GET    /api/subscriptions/user/{userId}
+PATCH  /api/subscriptions/{id}
+POST   /api/subscriptions/{id}/cancel
+POST   /api/subscriptions/{id}/pause
+POST   /api/subscriptions/{id}/resume
+GET    /api/subscriptions/{id}/billing-history
 ```
 
 #### ✅ API Gateway (完整)
@@ -89,11 +89,11 @@ api-gateway/
 
 **路由配置**:
 ```
-/api/v1/auth/*              → Auth Service (3001)
-/api/v1/videos/*            → Content-Streaming (3001)
-/api/v1/recommendations/*   → Recommendation (3000)
-/api/v1/payments/*          → Payment Service (3002)
-/api/v1/subscriptions/*     → Subscription Service (3003)
+/api/auth/*              → Auth Service (3001)
+/api/videos/*            → Content-Streaming (3001)
+/api/recommendations/*   → Recommendation (3000)
+/api/payments/*          → Payment Service (3002)
+/api/subscriptions/*     → Subscription Service (3003)
 ```
 
 ### 2. 完整集成測試套件 (60+ 個測試) ✅
@@ -367,19 +367,19 @@ docker-compose up -d
 curl http://localhost:3000/health
 
 # Auth Service
-curl http://localhost:3001/api/v1/health
+curl http://localhost:3001/api/health
 
 # Content-Streaming Service
-curl http://localhost:3001/api/v1/health
+curl http://localhost:3001/api/health
 
 # Recommendation Service
-curl http://localhost:3000/api/v1/health
+curl http://localhost:3000/api/health
 
 # Payment Service
-curl http://localhost:3002/api/v1/health
+curl http://localhost:3002/api/health
 
 # Subscription Service
-curl http://localhost:3003/api/v1/health
+curl http://localhost:3003/api/health
 ```
 
 ### 運行測試

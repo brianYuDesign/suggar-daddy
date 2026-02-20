@@ -74,10 +74,10 @@ describe('RecommendationController (Integration)', () => {
     }
   });
 
-  describe('GET /api/v1/recommendations/:userId (Happy Path)', () => {
+  describe('GET /api/recommendations/:userId (Happy Path)', () => {
     it('應該返回用戶的推薦列表', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-123')
+        .get('/api/recommendations/user-123')
         .expect(200);
 
       expect(response.body).toHaveProperty('user_id');
@@ -88,7 +88,7 @@ describe('RecommendationController (Integration)', () => {
 
     it('應該支持自訂 limit 參數', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-456')
+        .get('/api/recommendations/user-456')
         .query({ limit: 5 })
         .expect(200);
 
@@ -97,7 +97,7 @@ describe('RecommendationController (Integration)', () => {
 
     it('應該返回有效的推薦結果格式', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-789')
+        .get('/api/recommendations/user-789')
         .expect(200);
 
       response.body.recommendations.forEach((item: any) => {
@@ -111,24 +111,24 @@ describe('RecommendationController (Integration)', () => {
     });
   });
 
-  describe('GET /api/v1/recommendations/:userId (Error Cases)', () => {
+  describe('GET /api/recommendations/:userId (Error Cases)', () => {
     it('應該拒絕 limit < 1', async () => {
       await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-123')
+        .get('/api/recommendations/user-123')
         .query({ limit: 0 })
         .expect(400); // 預期錯誤
     });
 
     it('應該拒絕 limit > 100', async () => {
       await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-123')
+        .get('/api/recommendations/user-123')
         .query({ limit: 101 })
         .expect(400);
     });
 
     it('應該處理無效的 limit 格式', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-123')
+        .get('/api/recommendations/user-123')
         .query({ limit: 'invalid' });
 
       // 應該使用預設值或返回 400
@@ -136,10 +136,10 @@ describe('RecommendationController (Integration)', () => {
     });
   });
 
-  describe('POST /api/v1/recommendations/interactions', () => {
+  describe('POST /api/recommendations/interactions', () => {
     it('應該記錄用戶互動', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({
           user_id: 'user-123',
           content_id: 'content-1',
@@ -154,7 +154,7 @@ describe('RecommendationController (Integration)', () => {
       const startTime = Date.now();
 
       await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-123')
+        .get('/api/recommendations/user-123')
         .expect(200);
 
       const duration = Date.now() - startTime;

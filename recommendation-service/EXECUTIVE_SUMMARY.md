@@ -250,7 +250,7 @@
 ```bash
 ✅ docker-compose up -d           # 啟動完整環境
 ✅ curl /health                   # 服務運行
-✅ curl /api/v1/recommendations  # API 可用
+✅ curl /api/recommendations  # API 可用
 ✅ npm test                       # 測試通過
 ✅ pg_dump / psql                 # 備份恢復
 ✅ redis-cli                      # 快取操作

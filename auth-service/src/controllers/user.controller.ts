@@ -17,14 +17,14 @@ import { JwtAuthGuard, RolesGuard } from '@/guards';
 import { Roles, CurrentUser } from '@/decorators';
 import { RoleType } from '@/entities';
 
-@Controller('api/v1/users')
+@Controller('api/users')
 @UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private userService: UserService) {}
 
   /**
    * Get current user profile
-   * GET /api/v1/users/profile
+   * GET /api/users/profile
    */
   @Get('profile')
   async getProfile(@CurrentUser('userId') userId: string) {
@@ -37,7 +37,7 @@ export class UserController {
 
   /**
    * Update current user profile
-   * PATCH /api/v1/users/profile
+   * PATCH /api/users/profile
    */
   @Patch('profile')
   async updateProfile(
@@ -55,7 +55,7 @@ export class UserController {
 
   /**
    * List all users (admin only)
-   * GET /api/v1/users
+   * GET /api/users
    */
   @Get()
   @UseGuards(RolesGuard)
@@ -73,7 +73,7 @@ export class UserController {
 
   /**
    * Get user by ID (admin only)
-   * GET /api/v1/users/:id
+   * GET /api/users/:id
    */
   @Get(':id')
   @UseGuards(RolesGuard)
@@ -88,7 +88,7 @@ export class UserController {
 
   /**
    * Deactivate user (admin only)
-   * POST /api/v1/users/:id/deactivate
+   * POST /api/users/:id/deactivate
    */
   @Post(':id/deactivate')
   @UseGuards(RolesGuard)
@@ -104,7 +104,7 @@ export class UserController {
 
   /**
    * Activate user (admin only)
-   * POST /api/v1/users/:id/activate
+   * POST /api/users/:id/activate
    */
   @Post(':id/activate')
   @UseGuards(RolesGuard)
@@ -120,7 +120,7 @@ export class UserController {
 
   /**
    * Delete user (admin only)
-   * DELETE /api/v1/users/:id
+   * DELETE /api/users/:id
    */
   @Delete(':id')
   @UseGuards(RolesGuard)

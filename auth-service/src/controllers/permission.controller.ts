@@ -15,14 +15,14 @@ import { JwtAuthGuard, RolesGuard } from '@/guards';
 import { Roles, CurrentUser } from '@/decorators';
 import { RoleType, PermissionResource } from '@/entities';
 
-@Controller('api/v1/permissions')
+@Controller('api/permissions')
 @UseGuards(JwtAuthGuard)
 export class PermissionController {
   constructor(private permissionService: PermissionService) {}
 
   /**
    * Create new permission (admin only)
-   * POST /api/v1/permissions
+   * POST /api/permissions
    */
   @Post()
   @UseGuards(RolesGuard)
@@ -40,7 +40,7 @@ export class PermissionController {
 
   /**
    * List all permissions
-   * GET /api/v1/permissions
+   * GET /api/permissions
    */
   @Get()
   async listPermissions() {
@@ -53,7 +53,7 @@ export class PermissionController {
 
   /**
    * Get permission by ID
-   * GET /api/v1/permissions/:id
+   * GET /api/permissions/:id
    */
   @Get(':id')
   async getPermissionById(@Param('id') permissionId: string) {
@@ -68,7 +68,7 @@ export class PermissionController {
 
   /**
    * List permissions by resource
-   * GET /api/v1/permissions/resource/:resource
+   * GET /api/permissions/resource/:resource
    */
   @Get('resource/:resource')
   async listPermissionsByResource(@Param('resource') resource: PermissionResource) {
@@ -83,7 +83,7 @@ export class PermissionController {
 
   /**
    * Get current user's permissions
-   * GET /api/v1/permissions/me
+   * GET /api/permissions/me
    */
   @Get('me')
   async getUserPermissions(@CurrentUser('userId') userId: string) {
@@ -96,7 +96,7 @@ export class PermissionController {
 
   /**
    * Check if user has specific permission
-   * GET /api/v1/permissions/check?action=read&resource=user
+   * GET /api/permissions/check?action=read&resource=user
    */
   @Get('check')
   async checkPermission(
@@ -119,7 +119,7 @@ export class PermissionController {
 
   /**
    * Deactivate permission (admin only)
-   * POST /api/v1/permissions/:id/deactivate
+   * POST /api/permissions/:id/deactivate
    */
   @Post(':id/deactivate')
   @UseGuards(RolesGuard)
@@ -135,7 +135,7 @@ export class PermissionController {
 
   /**
    * Activate permission (admin only)
-   * POST /api/v1/permissions/:id/activate
+   * POST /api/permissions/:id/activate
    */
   @Post(':id/activate')
   @UseGuards(RolesGuard)

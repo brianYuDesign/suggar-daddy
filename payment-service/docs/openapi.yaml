@@ -24,7 +24,7 @@ tags:
     description: Stripe webhook endpoints
 
 paths:
-  /api/v1/payments/intent:
+  /api/payments/intent:
     post:
       tags:
         - Payments
@@ -46,7 +46,7 @@ paths:
         '400':
           description: Invalid request
 
-  /api/v1/payments/confirm:
+  /api/payments/confirm:
     post:
       tags:
         - Payments
@@ -72,7 +72,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaymentResponse'
 
-  /api/v1/payments/{paymentId}:
+  /api/payments/{paymentId}:
     get:
       tags:
         - Payments
@@ -94,7 +94,7 @@ paths:
         '404':
           description: Payment not found
 
-  /api/v1/payments/user/{userId}:
+  /api/payments/user/{userId}:
     get:
       tags:
         - Payments
@@ -124,7 +124,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaymentHistoryResponse'
 
-  /api/v1/payments/refund:
+  /api/payments/refund:
     post:
       tags:
         - Payments
@@ -152,7 +152,7 @@ paths:
                   amount:
                     type: number
 
-  /api/v1/payments/{paymentId}/retry:
+  /api/payments/{paymentId}/retry:
     post:
       tags:
         - Payments
@@ -171,7 +171,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaymentRetryResponse'
 
-  /api/v1/subscriptions:
+  /api/subscriptions:
     post:
       tags:
         - Subscriptions
@@ -212,7 +212,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SubscriptionListResponse'
 
-  /api/v1/subscriptions/{subscriptionId}:
+  /api/subscriptions/{subscriptionId}:
     get:
       tags:
         - Subscriptions
@@ -255,7 +255,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Subscription'
 
-  /api/v1/subscriptions/{subscriptionId}/cancel:
+  /api/subscriptions/{subscriptionId}/cancel:
     post:
       tags:
         - Subscriptions
@@ -283,7 +283,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SubscriptionCancelResponse'
 
-  /api/v1/subscriptions/{subscriptionId}/pause:
+  /api/subscriptions/{subscriptionId}/pause:
     post:
       tags:
         - Subscriptions
@@ -302,7 +302,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Subscription'
 
-  /api/v1/subscriptions/{subscriptionId}/resume:
+  /api/subscriptions/{subscriptionId}/resume:
     post:
       tags:
         - Subscriptions
@@ -321,7 +321,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Subscription'
 
-  /api/v1/subscriptions/user/{userId}:
+  /api/subscriptions/user/{userId}:
     get:
       tags:
         - Subscriptions
@@ -341,7 +341,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Subscription'
 
-  /api/v1/invoices:
+  /api/invoices:
     post:
       tags:
         - Invoices
@@ -360,7 +360,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/InvoiceResponse'
 
-  /api/v1/invoices/{invoiceId}:
+  /api/invoices/{invoiceId}:
     get:
       tags:
         - Invoices
@@ -380,7 +380,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Invoice'
 
-  /api/v1/invoices/{invoiceId}/send:
+  /api/invoices/{invoiceId}/send:
     post:
       tags:
         - Invoices
@@ -405,7 +405,7 @@ paths:
         '200':
           description: Invoice sent
 
-  /api/v1/invoices/{invoiceId}/mark-paid:
+  /api/invoices/{invoiceId}/mark-paid:
     patch:
       tags:
         - Invoices
@@ -420,7 +420,7 @@ paths:
         '200':
           description: Invoice marked as paid
 
-  /api/v1/invoices/{invoiceId}/cancel:
+  /api/invoices/{invoiceId}/cancel:
     patch:
       tags:
         - Invoices
@@ -435,7 +435,7 @@ paths:
         '200':
           description: Invoice cancelled
 
-  /api/v1/invoices/user/{userId}:
+  /api/invoices/user/{userId}:
     get:
       tags:
         - Invoices
@@ -465,7 +465,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/InvoiceListResponse'
 
-  /api/v1/webhooks/stripe:
+  /api/webhooks/stripe:
     post:
       tags:
         - Webhooks

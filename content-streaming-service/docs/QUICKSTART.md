@@ -40,7 +40,7 @@ docker-compose logs -f content-streaming-service
 ### 1. 初始化上傳
 
 ```bash
-curl -X POST http://localhost:3001/api/v1/uploads/initiate \
+curl -X POST http://localhost:3001/api/uploads/initiate \
   -H "Content-Type: application/json" \
   -d '{
     "filename": "my-video.mp4",
@@ -65,7 +65,7 @@ curl -X POST http://localhost:3001/api/v1/uploads/initiate \
 dd if=/dev/zero bs=1M count=5 of=/tmp/chunk.bin
 
 # 上傳第一個分片
-curl -X POST http://localhost:3001/api/v1/uploads/abc-123/chunk?chunkIndex=0 \
+curl -X POST http://localhost:3001/api/uploads/abc-123/chunk?chunkIndex=0 \
   -H "Content-Type: application/octet-stream" \
   --data-binary @/tmp/chunk.bin
 
@@ -79,7 +79,7 @@ curl -X POST http://localhost:3001/api/v1/uploads/abc-123/chunk?chunkIndex=0 \
 ### 3. 完成上傳
 
 ```bash
-curl -X POST http://localhost:3001/api/v1/uploads/abc-123/complete \
+curl -X POST http://localhost:3001/api/uploads/abc-123/complete \
   -H "Content-Type: application/json" \
   -d '{
     "session_id": "abc-123",
@@ -98,7 +98,7 @@ curl -X POST http://localhost:3001/api/v1/uploads/abc-123/complete \
 ### 4. 取得視頻詳情
 
 ```bash
-curl http://localhost:3001/api/v1/videos/video-uuid
+curl http://localhost:3001/api/videos/video-uuid
 
 # 應該返回:
 # {
@@ -114,14 +114,14 @@ curl http://localhost:3001/api/v1/videos/video-uuid
 ### 5. 發佈視頻
 
 ```bash
-curl -X POST http://localhost:3001/api/v1/videos/video-uuid/publish \
+curl -X POST http://localhost:3001/api/videos/video-uuid/publish \
   -H "Content-Type: application/json"
 ```
 
 ### 6. 取得播放列表
 
 ```bash
-curl http://localhost:3001/api/v1/streaming/video-uuid/playlist
+curl http://localhost:3001/api/streaming/video-uuid/playlist
 
 # 應該返回:
 # {

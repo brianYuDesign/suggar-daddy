@@ -153,7 +153,7 @@ cp .env.example .env
 docker-compose up -d
 
 # 驗證服務
-curl http://localhost:3001/api/v1/quality/profiles
+curl http://localhost:3001/api/quality/profiles
 
 # 運行測試
 npm install

@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 
-@Controller('api/v1/quality')
+@Controller('api/quality')
 export class QualityController {
   @Get('profiles')
   async getQualityProfiles(): Promise<any> {

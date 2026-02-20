@@ -137,7 +137,7 @@ upstream canary_backend {
     server canary-2:3000;
 }
 
-location /api/v1/ {
+location /api/ {
     # 根據條件選擇後端
     set $backend "stable_backend";
     
@@ -391,7 +391,7 @@ Password: (來自 Helm values)
 ```bash
 # 發送 100 個請求，檢查分配情況
 for i in {1..100}; do
-  curl -s http://gateway:80/api/v1/test -H "X-Deployment: check" | grep -o "deployment: [a-z]*"
+  curl -s http://gateway:80/api/test -H "X-Deployment: check" | grep -o "deployment: [a-z]*"
 done | sort | uniq -c
 
 # 預期: 95% stable, 5% canary
@@ -440,10 +440,10 @@ kubectl logs <canary-pod> -c app | grep -i rollback
 
 ```bash
 # 測試 X-Canary-User header
-curl -H "X-Canary-User: true" http://gateway:80/api/v1/test
+curl -H "X-Canary-User: true" http://gateway:80/api/test
 # 檢查響應頭 X-Deployment: canary
 
-curl -H "X-Canary-User: false" http://gateway:80/api/v1/test
+curl -H "X-Canary-User: false" http://gateway:80/api/test
 # 檢查響應頭 X-Deployment: stable
 ```
 

@@ -186,13 +186,13 @@ done
 USERS=("user-1" "user-2" "user-3" "user-4" "user-5")
 for user in "${USERS[@]}"; do
   echo "Testing $user..."
-  curl -s http://localhost:3000/api/v1/recommendations/$user?limit=10 | jq '.count, .recommendations | length'
+  curl -s http://localhost:3000/api/recommendations/$user?limit=10 | jq '.count, .recommendations | length'
 done
 
 # 性能監控
 for i in {1..15}; do
   echo "Minute $i:"
-  curl -w "%{time_total}s\n" -o /dev/null http://localhost:3000/api/v1/recommendations/user-123
+  curl -w "%{time_total}s\n" -o /dev/null http://localhost:3000/api/recommendations/user-123
   sleep 60
 done
 ```
@@ -588,7 +588,7 @@ chmod +x diagnose_p0.sh
 
 恢復後驗證（15 分鐘）:
 - [ ] curl http://localhost:3000/health → 200 OK
-- [ ] curl /api/v1/recommendations/test-user → 返回推薦
+- [ ] curl /api/recommendations/test-user → 返回推薦
 - [ ] 多個用戶都能獲取推薦
 - [ ] 響應時間 < 500ms
 - [ ] 無新的 ERROR 日誌
@@ -640,7 +640,7 @@ docker-compose logs -f recommendation-service | tail -100
 docker-compose restart recommendation-service
 
 # 清空快取
-curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
+curl -X POST http://localhost:3000/api/recommendations/clear-cache
 
 # 完整診斷
 ./diagnose_p0.sh

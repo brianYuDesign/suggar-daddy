@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Content, ContentTag } from '../../database/entities';
 import { CreateContentDto, UpdateContentDto, ContentResponseDto } from '../../dtos/content.dto';
 
-@Controller('api/v1/contents')
+@Controller('api/contents')
 export class ContentController {
   private readonly logger = new Logger(ContentController.name);
 
@@ -16,7 +16,7 @@ export class ContentController {
   ) {}
 
   /**
-   * GET /api/v1/contents - 獲取所有內容
+   * GET /api/contents - 獲取所有內容
    */
   @Get()
   async getAllContents(@Query('limit') limit: string = '50'): Promise<ContentResponseDto[]> {
@@ -30,7 +30,7 @@ export class ContentController {
   }
 
   /**
-   * GET /api/v1/contents/:id - 獲取單個內容
+   * GET /api/contents/:id - 獲取單個內容
    */
   @Get(':id')
   async getContent(@Param('id') id: string): Promise<ContentResponseDto> {
@@ -47,7 +47,7 @@ export class ContentController {
   }
 
   /**
-   * POST /api/v1/contents - 創建內容
+   * POST /api/contents - 創建內容
    */
   @Post()
   @HttpCode(201)
@@ -82,7 +82,7 @@ export class ContentController {
   }
 
   /**
-   * PUT /api/v1/contents/:id - 更新內容
+   * PUT /api/contents/:id - 更新內容
    */
   @Put(':id')
   async updateContent(
@@ -107,7 +107,7 @@ export class ContentController {
   }
 
   /**
-   * POST /api/v1/contents/:id/view - 記錄觀看
+   * POST /api/contents/:id/view - 記錄觀看
    */
   @Post(':id/view')
   @HttpCode(204)
@@ -120,7 +120,7 @@ export class ContentController {
   }
 
   /**
-   * POST /api/v1/contents/:id/like - 記錄點讚
+   * POST /api/contents/:id/like - 記錄點讚
    */
   @Post(':id/like')
   @HttpCode(204)
@@ -133,7 +133,7 @@ export class ContentController {
   }
 
   /**
-   * DELETE /api/v1/contents/:id - 刪除內容
+   * DELETE /api/contents/:id - 刪除內容
    */
   @Delete(':id')
   @HttpCode(204)

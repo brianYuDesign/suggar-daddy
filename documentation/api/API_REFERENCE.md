@@ -31,121 +31,121 @@ Sugar-Daddy 平台提供 **81 個 API 端點**，分佈在 5 個核心服務中�
 ### 2️⃣ Auth Service (20 個)
 
 #### 身份驗證 (6 個)
-- `POST /api/v1/auth/register` - 用戶註冊
-- `POST /api/v1/auth/login` - 用戶登入
-- `POST /api/v1/auth/refresh` - 刷新 Token
-- `POST /api/v1/auth/logout` - 登出
-- `POST /api/v1/auth/validate` - 驗證 Token
-- `POST /api/v1/auth/change-password` - 更改密碼
+- `POST /api/auth/register` - 用戶註冊
+- `POST /api/auth/login` - 用戶登入
+- `POST /api/auth/refresh` - 刷新 Token
+- `POST /api/auth/logout` - 登出
+- `POST /api/auth/validate` - 驗證 Token
+- `POST /api/auth/change-password` - 更改密碼
 
 #### 用戶管理 (8 個)
-- `GET /api/v1/auth/users` - 獲取用戶列表
-- `POST /api/v1/auth/users` - 創建用戶
-- `GET /api/v1/auth/users/{userId}` - 獲取用戶詳情
-- `DELETE /api/v1/auth/users/{userId}` - 刪除用戶
-- `POST /api/v1/auth/users/{userId}/activate` - 激活用戶
-- `POST /api/v1/auth/users/{userId}/deactivate` - 禁用用戶
-- `GET /api/v1/auth/profile` - 獲取用戶資料
-- `PATCH /api/v1/auth/profile` - 更新用戶資料
+- `GET /api/auth/users` - 獲取用戶列表
+- `POST /api/auth/users` - 創建用戶
+- `GET /api/auth/users/{userId}` - 獲取用戶詳情
+- `DELETE /api/auth/users/{userId}` - 刪除用戶
+- `POST /api/auth/users/{userId}/activate` - 激活用戶
+- `POST /api/auth/users/{userId}/deactivate` - 禁用用戶
+- `GET /api/auth/profile` - 獲取用戶資料
+- `PATCH /api/auth/profile` - 更新用戶資料
 
 #### 角色管理 (4 個)
-- `GET /api/v1/auth/roles` - 獲取角色列表
-- `POST /api/v1/auth/roles` - 創建角色
-- `GET /api/v1/auth/roles/{roleId}` - 獲取角色詳情
-- `PATCH /api/v1/auth/roles/{roleId}` - 更新角色
+- `GET /api/auth/roles` - 獲取角色列表
+- `POST /api/auth/roles` - 創建角色
+- `GET /api/auth/roles/{roleId}` - 獲取角色詳情
+- `PATCH /api/auth/roles/{roleId}` - 更新角色
 
 #### 角色權限 (2 個)
-- `GET /api/v1/auth/roles/{roleId}/permissions` - 獲取角色權限
-- `POST /api/v1/auth/roles/{roleId}/permissions` - 添加角色權限
+- `GET /api/auth/roles/{roleId}/permissions` - 獲取角色權限
+- `POST /api/auth/roles/{roleId}/permissions` - 添加角色權限
 
 #### 權限管理 (1 個)
-- `GET /api/v1/auth/permissions` - 獲取權限列表
+- `GET /api/auth/permissions` - 獲取權限列表
 
 ---
 
 ### 3️⃣ Content-Streaming Service (11 個)
 
 #### 視頻上傳 (4 個)
-- `POST /api/v1/uploads/initiate` - 初始化上傳會話
-- `GET /api/v1/uploads/{sessionId}` - 獲取上傳狀態
-- `POST /api/v1/uploads/{sessionId}/chunk` - 上傳分片
-- `POST /api/v1/uploads/{sessionId}/complete` - 完成上傳
+- `POST /api/uploads/initiate` - 初始化上傳會話
+- `GET /api/uploads/{sessionId}` - 獲取上傳狀態
+- `POST /api/uploads/{sessionId}/chunk` - 上傳分片
+- `POST /api/uploads/{sessionId}/complete` - 完成上傳
 
 #### 視頻管理 (4 個)
-- `GET /api/v1/videos` - 獲取視頻列表
-- `POST /api/v1/videos` - 創建視頻
-- `GET /api/v1/videos/{videoId}` - 獲取視頻詳情
-- `PATCH /api/v1/videos/{videoId}` - 更新視頻
-- `DELETE /api/v1/videos/{videoId}` - 刪除視頻
+- `GET /api/videos` - 獲取視頻列表
+- `POST /api/videos` - 創建視頻
+- `GET /api/videos/{videoId}` - 獲取視頻詳情
+- `PATCH /api/videos/{videoId}` - 更新視頻
+- `DELETE /api/videos/{videoId}` - 刪除視頻
 
 #### 流媒體播放 (1 個)
-- `GET /api/v1/videos/{videoId}/stream` - 流式播放視頻
+- `GET /api/videos/{videoId}/stream` - 流式播放視頻
 
 #### 轉碼管理 (2 個)
-- `GET /api/v1/transcoding` - 獲取轉碼任務列表
-- `GET /api/v1/transcoding/{jobId}` - 獲取轉碼狀態
+- `GET /api/transcoding` - 獲取轉碼任務列表
+- `GET /api/transcoding/{jobId}` - 獲取轉碼狀態
 
 #### 質量配置 (1 個)
-- `GET /api/v1/quality-configs` - 獲取質量配置
+- `GET /api/quality-configs` - 獲取質量配置
 
 ---
 
 ### 4️⃣ Payment Service (19 個)
 
 #### 支付管理 (5 個)
-- `POST /api/v1/payments/intent` - 創建支付意圖
-- `POST /api/v1/payments/confirm` - 確認支付
-- `GET /api/v1/payments` - 獲取支付列表
-- `GET /api/v1/payments/{paymentId}` - 獲取支付詳情
-- `GET /api/v1/payments/user/{userId}` - 獲取用戶支付記錄
+- `POST /api/payments/intent` - 創建支付意圖
+- `POST /api/payments/confirm` - 確認支付
+- `GET /api/payments` - 獲取支付列表
+- `GET /api/payments/{paymentId}` - 獲取支付詳情
+- `GET /api/payments/user/{userId}` - 獲取用戶支付記錄
 
 #### 退款管理 (4 個)
-- `POST /api/v1/payments/refund` - 申請退款
-- `GET /api/v1/payments/refunds` - 獲取退款列表
-- `GET /api/v1/payments/refunds/{refundId}` - 獲取退款詳情
+- `POST /api/payments/refund` - 申請退款
+- `GET /api/payments/refunds` - 獲取退款列表
+- `GET /api/payments/refunds/{refundId}` - 獲取退款詳情
 
 #### Webhook (2 個)
-- `POST /api/v1/payments/webhooks/stripe` - Stripe Webhook
+- `POST /api/payments/webhooks/stripe` - Stripe Webhook
 
 #### 分析統計 (1 個)
-- `GET /api/v1/payments/analytics` - 獲取支付分析
+- `GET /api/payments/analytics` - 獲取支付分析
 
 ---
 
 ### 5️⃣ Subscription Service (10 個)
 
 #### 計劃管理 (2 個)
-- `GET /api/v1/subscriptions/plans` - 獲取計劃列表
-- `GET /api/v1/subscriptions/plans/{planId}` - 獲取計劃詳情
+- `GET /api/subscriptions/plans` - 獲取計劃列表
+- `GET /api/subscriptions/plans/{planId}` - 獲取計劃詳情
 
 #### 訂閱管理 (7 個)
-- `GET /api/v1/subscriptions` - 獲取用戶訂閱
-- `POST /api/v1/subscriptions` - 創建訂閱
-- `GET /api/v1/subscriptions/{subscriptionId}` - 獲取訂閱詳情
-- `PATCH /api/v1/subscriptions/{subscriptionId}` - 更新訂閱
-- `POST /api/v1/subscriptions/{subscriptionId}/cancel` - 取消訂閱
-- `POST /api/v1/subscriptions/{subscriptionId}/pause` - 暫停訂閱
-- `POST /api/v1/subscriptions/{subscriptionId}/resume` - 恢復訂閱
+- `GET /api/subscriptions` - 獲取用戶訂閱
+- `POST /api/subscriptions` - 創建訂閱
+- `GET /api/subscriptions/{subscriptionId}` - 獲取訂閱詳情
+- `PATCH /api/subscriptions/{subscriptionId}` - 更新訂閱
+- `POST /api/subscriptions/{subscriptionId}/cancel` - 取消訂閱
+- `POST /api/subscriptions/{subscriptionId}/pause` - 暫停訂閱
+- `POST /api/subscriptions/{subscriptionId}/resume` - 恢復訂閱
 
 #### 帳單 (1 個)
-- `GET /api/v1/subscriptions/{subscriptionId}/billing-history` - 獲取帳單歷史
+- `GET /api/subscriptions/{subscriptionId}/billing-history` - 獲取帳單歷史
 
 ---
 
 ### 6️⃣ Recommendation Service (10 個)
 
 #### 推薦系統 (7 個)
-- `GET /api/v1/recommendations` - 獲取推薦列表
-- `POST /api/v1/recommendations` - 創建推薦配置
-- `GET /api/v1/recommendations/{contentId}` - 獲取相似內容
-- `POST /api/v1/recommendations/{contentId}/like` - 標記為喜歡
-- `POST /api/v1/recommendations/{contentId}/view` - 記錄觀看
-- `POST /api/v1/recommendations/interactions` - 記錄交互
-- `POST /api/v1/recommendations/refresh/{userId}` - 刷新推薦
+- `GET /api/recommendations` - 獲取推薦列表
+- `POST /api/recommendations` - 創建推薦配置
+- `GET /api/recommendations/{contentId}` - 獲取相似內容
+- `POST /api/recommendations/{contentId}/like` - 標記為喜歡
+- `POST /api/recommendations/{contentId}/view` - 記錄觀看
+- `POST /api/recommendations/interactions` - 記錄交互
+- `POST /api/recommendations/refresh/{userId}` - 刷新推薦
 
 #### 維護 (3 個)
-- `POST /api/v1/recommendations/update-scores` - 更新推薦評分
-- `POST /api/v1/recommendations/clear-cache` - 清除快取
+- `POST /api/recommendations/update-scores` - 更新推薦評分
+- `POST /api/recommendations/clear-cache` - 清除快取
 
 ---
 
@@ -157,14 +157,14 @@ Sugar-Daddy 平台提供 **81 個 API 端點**，分佈在 5 個核心服務中�
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-  https://api.sugardaddy.com/v1/api/v1/auth/me
+  https://api.sugardaddy.com/v1/api/auth/me
 ```
 
 ### 獲取 Token 流程
 
 1. **註冊或登入** 獲得 token
 ```bash
-curl -X POST https://api.sugardaddy.com/v1/api/v1/auth/login \
+curl -X POST https://api.sugardaddy.com/v1/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -193,7 +193,7 @@ curl -X POST https://api.sugardaddy.com/v1/api/v1/auth/login \
 Access Token 過期時，使用 Refresh Token 獲得新 Token：
 
 ```bash
-curl -X POST https://api.sugardaddy.com/v1/api/v1/auth/refresh \
+curl -X POST https://api.sugardaddy.com/v1/api/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{
     "refreshToken": "REFRESH_TOKEN_HERE"
@@ -261,7 +261,7 @@ curl -X POST https://api.sugardaddy.com/v1/api/v1/auth/refresh \
 
 ```bash
 # 1. 註冊新用戶
-curl -X POST https://api.sugardaddy.com/v1/api/v1/auth/register \
+curl -X POST https://api.sugardaddy.com/v1/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "username": "newuser",
@@ -272,7 +272,7 @@ curl -X POST https://api.sugardaddy.com/v1/api/v1/auth/register \
   }'
 
 # 2. 登入
-curl -X POST https://api.sugardaddy.com/v1/api/v1/auth/login \
+curl -X POST https://api.sugardaddy.com/v1/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -284,7 +284,7 @@ curl -X POST https://api.sugardaddy.com/v1/api/v1/auth/login \
 
 ```bash
 # 1. 初始化上傳
-curl -X POST https://api.sugardaddy.com/v1/api/v1/uploads/initiate \
+curl -X POST https://api.sugardaddy.com/v1/api/uploads/initiate \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -295,12 +295,12 @@ curl -X POST https://api.sugardaddy.com/v1/api/v1/uploads/initiate \
 # 返回 sessionId
 
 # 2. 上傳分片（重複執行）
-curl -X POST https://api.sugardaddy.com/v1/api/v1/uploads/{sessionId}/chunk \
+curl -X POST https://api.sugardaddy.com/v1/api/uploads/{sessionId}/chunk \
   -H "Authorization: Bearer TOKEN" \
   --data-binary @chunk_0.bin
 
 # 3. 完成上傳
-curl -X POST https://api.sugardaddy.com/v1/api/v1/uploads/{sessionId}/complete \
+curl -X POST https://api.sugardaddy.com/v1/api/uploads/{sessionId}/complete \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -314,10 +314,10 @@ curl -X POST https://api.sugardaddy.com/v1/api/v1/uploads/{sessionId}/complete \
 
 ```bash
 # 1. 獲取可用計劃
-curl https://api.sugardaddy.com/v1/api/v1/subscriptions/plans
+curl https://api.sugardaddy.com/v1/api/subscriptions/plans
 
 # 2. 創建訂閱
-curl -X POST https://api.sugardaddy.com/v1/api/v1/subscriptions \
+curl -X POST https://api.sugardaddy.com/v1/api/subscriptions \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -327,7 +327,7 @@ curl -X POST https://api.sugardaddy.com/v1/api/v1/subscriptions \
   }'
 
 # 3. 取消訂閱
-curl -X POST https://api.sugardaddy.com/v1/api/v1/subscriptions/{subscriptionId}/cancel \
+curl -X POST https://api.sugardaddy.com/v1/api/subscriptions/{subscriptionId}/cancel \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reason": "No longer needed"}'
@@ -337,7 +337,7 @@ curl -X POST https://api.sugardaddy.com/v1/api/v1/subscriptions/{subscriptionId}
 
 ```bash
 # 1. 創建支付意圖
-curl -X POST https://api.sugardaddy.com/v1/api/v1/payments/intent \
+curl -X POST https://api.sugardaddy.com/v1/api/payments/intent \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -348,7 +348,7 @@ curl -X POST https://api.sugardaddy.com/v1/api/v1/payments/intent \
   }'
 
 # 2. 確認支付
-curl -X POST https://api.sugardaddy.com/v1/api/v1/payments/confirm \
+curl -X POST https://api.sugardaddy.com/v1/api/payments/confirm \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

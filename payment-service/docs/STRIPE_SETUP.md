@@ -69,13 +69,13 @@ Webhook 允許 Stripe 將事件通知發送到你的服務。
 輸入你的 webhook URL：
 
 ```
-https://your-domain.com/api/v1/webhooks/stripe
+https://your-domain.com/api/webhooks/stripe
 ```
 
 或本地開發（使用 Stripe CLI）：
 
 ```
-http://localhost:3002/api/v1/webhooks/stripe
+http://localhost:3002/api/webhooks/stripe
 ```
 
 ### 步驟 3：選擇事件
@@ -130,7 +130,7 @@ stripe login
 #### 監聽本地 Webhook
 
 ```bash
-stripe listen --forward-to localhost:3002/api/v1/webhooks/stripe
+stripe listen --forward-to localhost:3002/api/webhooks/stripe
 ```
 
 輸出會包含 webhook signing secret：
@@ -182,7 +182,7 @@ CVC: 任何 3 位數
 #### 2. 創建測試支付
 
 ```bash
-curl -X POST http://localhost:3002/api/v1/payments/intent \
+curl -X POST http://localhost:3002/api/payments/intent \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "123e4567-e89b-12d3-a456-426614174000",
@@ -207,7 +207,7 @@ curl -X POST http://localhost:3002/api/v1/payments/intent \
 使用返回的 `paymentId` 和測試卡確認支付：
 
 ```bash
-curl -X POST http://localhost:3002/api/v1/payments/confirm \
+curl -X POST http://localhost:3002/api/payments/confirm \
   -H "Content-Type: application/json" \
   -d '{
     "paymentId": "550e8400-e29b-41d4-a716-446655440000",
@@ -230,7 +230,7 @@ stripe trigger charge.succeeded
 #### 1. 創建訂閱
 
 ```bash
-curl -X POST http://localhost:3002/api/v1/subscriptions \
+curl -X POST http://localhost:3002/api/subscriptions \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "123e4567-e89b-12d3-a456-426614174000",
@@ -369,7 +369,7 @@ const event = this.stripe.webhooks.constructEvent(
 **A**: 使用 Stripe CLI：
 
 ```bash
-stripe listen --forward-to localhost:3002/api/v1/webhooks/stripe
+stripe listen --forward-to localhost:3002/api/webhooks/stripe
 ```
 
 ## 📚 更多資源

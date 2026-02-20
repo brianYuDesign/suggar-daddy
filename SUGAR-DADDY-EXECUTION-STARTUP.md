@@ -43,7 +43,7 @@
 
 **任務**:
 - [ ] 決定推薦算法: 熱度排序 + 隨機 (Phase 1 MVP)
-- [ ] 設計推薦 API 端點 (/api/v1/recommendations/feed)
+- [ ] 設計推薦 API 端點 (/api/recommendations/feed)
 - [ ] 設計 Redis 鍵空間 (推薦計分、熱度緩存)
 - [ ] 設計離線計算任務 (每小時計算一次)
 - [ ] 生成 Swagger 文檔

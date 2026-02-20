@@ -15,7 +15,7 @@ export interface QualityInfo {
   url: string;
 }
 
-@Controller('api/v1/streaming')
+@Controller('api/streaming')
 export class StreamingController {
   constructor(private cloudflareService: CloudflareService) {}
 

@@ -6,12 +6,12 @@
 const axios = require('axios');
 const expect = require('chai').expect;
 
-const API_GATEWAY = 'http://localhost:3000/api/v1';
-const AUTH_SERVICE = 'http://localhost:3001/api/v1';
-const CONTENT_SERVICE = 'http://localhost:3001/api/v1';
-const RECOMMENDATION_SERVICE = 'http://localhost:3000/api/v1';
-const PAYMENT_SERVICE = 'http://localhost:3002/api/v1';
-const SUBSCRIPTION_SERVICE = 'http://localhost:3003/api/v1';
+const API_GATEWAY = 'http://localhost:3000/api';
+const AUTH_SERVICE = 'http://localhost:3001/api';
+const CONTENT_SERVICE = 'http://localhost:3001/api';
+const RECOMMENDATION_SERVICE = 'http://localhost:3000/api';
+const PAYMENT_SERVICE = 'http://localhost:3002/api';
+const SUBSCRIPTION_SERVICE = 'http://localhost:3003/api';
 
 // Test utilities
 class TestContext {

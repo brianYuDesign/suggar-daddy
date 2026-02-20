@@ -213,14 +213,14 @@ PORT=0 npm test  # 操作系統自動分配
 
 ### Q5: 推薦 API 返回空結果？
 
-**症狀**: `GET /api/v1/recommendations/user-123` 返回 `"recommendations": []`
+**症狀**: `GET /api/recommendations/user-123` 返回 `"recommendations": []`
 
 **可能原因**:
 
 1. **用戶尚無互動記錄**
    ```bash
    # 先記錄互動
-   curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
+   curl -X POST http://localhost:3000/api/recommendations/interactions \
      -H "Content-Type: application/json" \
      -d '{
        "user_id": "user-123",
@@ -230,16 +230,16 @@ PORT=0 npm test  # 操作系統自動分配
    
    # 等待 30 秒後重試
    sleep 30
-   curl http://localhost:3000/api/v1/recommendations/user-123
+   curl http://localhost:3000/api/recommendations/user-123
    ```
 
 2. **系統中沒有足夠的內容**
    ```bash
    # 檢查內容數量
-   curl http://localhost:3000/api/v1/contents
+   curl http://localhost:3000/api/contents
    
    # 如果為空，創建測試內容
-   curl -X POST http://localhost:3000/api/v1/contents \
+   curl -X POST http://localhost:3000/api/contents \
      -H "Content-Type: application/json" \
      -d '{
        "title": "Test Content",
@@ -261,13 +261,13 @@ PORT=0 npm test  # 操作系統自動分配
 4. **快取問題**
    ```bash
    # 清空快取並重新計算
-   curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
+   curl -X POST http://localhost:3000/api/recommendations/clear-cache
    
    # 更新分數
-   curl -X POST http://localhost:3000/api/v1/recommendations/update-scores
+   curl -X POST http://localhost:3000/api/recommendations/update-scores
    
    # 重新獲取
-   curl http://localhost:3000/api/v1/recommendations/user-123?limit=50
+   curl http://localhost:3000/api/recommendations/user-123?limit=50
    ```
 
 **驗證步驟**:
@@ -330,7 +330,7 @@ npm run build
 docker-compose restart recommendation-service
 
 # 5. 測試新配置
-curl http://localhost:3000/api/v1/recommendations/user-123
+curl http://localhost:3000/api/recommendations/user-123
 
 # 6. A/B 測試（可選）
 # 10% 用戶使用新配置，90% 使用舊配置
@@ -363,7 +363,7 @@ CTR = 點擊數 / 展示數
 
 ```bash
 # 1. 點讚（權重: 5）
-curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
+curl -X POST http://localhost:3000/api/recommendations/interactions \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "user-123",
@@ -372,7 +372,7 @@ curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
   }'
 
 # 2. 觀看（權重: 1）
-curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
+curl -X POST http://localhost:3000/api/recommendations/interactions \
   -d '{
     "user_id": "user-123",
     "content_id": "content-abc",
@@ -380,7 +380,7 @@ curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
   }'
 
 # 3. 分享（權重: 8）
-curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
+curl -X POST http://localhost:3000/api/recommendations/interactions \
   -d '{
     "user_id": "user-123",
     "content_id": "content-abc",
@@ -388,7 +388,7 @@ curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
   }'
 
 # 4. 評論（權重: 3）
-curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
+curl -X POST http://localhost:3000/api/recommendations/interactions \
   -d '{
     "user_id": "user-123",
     "content_id": "content-abc",
@@ -396,7 +396,7 @@ curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
   }'
 
 # 5. 跳過（權重: -1，負面信號）
-curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
+curl -X POST http://localhost:3000/api/recommendations/interactions \
   -d '{
     "user_id": "user-123",
     "content_id": "content-abc",
@@ -426,7 +426,7 @@ const INTERACTION_WEIGHTS = {
 setInterval(() => {
   if (interactions.length > 0) {
     interactions.forEach(interaction => {
-      fetch('/api/v1/recommendations/interactions', {
+      fetch('/api/recommendations/interactions', {
         method: 'POST',
         body: JSON.stringify(interaction)
       });
@@ -476,7 +476,7 @@ npm run build
 docker-compose restart recommendation-service
 
 # 5. 驗證新權重生效
-curl http://localhost:3000/api/v1/recommendations/user-123
+curl http://localhost:3000/api/recommendations/user-123
 
 # 6. 監控影響
 # 在後續 1-2 週監控:
@@ -531,13 +531,13 @@ console.log(`User ${userId} using ${useNewWeights ? 'new' : 'old'} weights`);
 
 ### Q9: 推薦 API 響應慢？
 
-**症狀**: `GET /api/v1/recommendations/user-123` 耗時 > 500ms
+**症狀**: `GET /api/recommendations/user-123` 耗時 > 500ms
 
 **診斷步驟**:
 
 ```bash
 # 1. 測量響應時間
-curl -w "\n%{time_total}s\n" -o /dev/null http://localhost:3000/api/v1/recommendations/user-123
+curl -w "\n%{time_total}s\n" -o /dev/null http://localhost:3000/api/recommendations/user-123
 
 # 2. 檢查快取命中率
 docker-compose exec redis redis-cli INFO stats | grep "keyspace_hits\|keyspace_misses"
@@ -595,7 +595,7 @@ const recentInteractions = interactions.slice(-100);
 
 ```bash
 # 使用 Apache Bench 測試
-ab -n 1000 -c 10 http://localhost:3000/api/v1/recommendations/user-123
+ab -n 1000 -c 10 http://localhost:3000/api/recommendations/user-123
 
 # 預期結果：
 # Requests per second: 200+ (RPS)
@@ -603,7 +603,7 @@ ab -n 1000 -c 10 http://localhost:3000/api/v1/recommendations/user-123
 # 95th percentile: < 1s
 
 # 使用 wrk 進行更詳細的測試
-wrk -t 4 -c 100 -d 30s http://localhost:3000/api/v1/recommendations/user-123
+wrk -t 4 -c 100 -d 30s http://localhost:3000/api/recommendations/user-123
 ```
 
 ---
@@ -791,7 +791,7 @@ ON content_tags(name);
 # 確保使用真實數據（至少 1000 個用戶、10000 個內容）
 
 # 2. 使用 Apache Bench
-ab -n 1000 -c 10 http://localhost:3000/api/v1/recommendations/user-123
+ab -n 1000 -c 10 http://localhost:3000/api/recommendations/user-123
 
 # 輸出:
 # Requests per second: 250 [#/sec] (mean)
@@ -799,10 +799,10 @@ ab -n 1000 -c 10 http://localhost:3000/api/v1/recommendations/user-123
 # 95% 線: 150 [ms]
 
 # 3. 使用 wrk（更高級）
-wrk -t 4 -c 100 -d 30s http://localhost:3000/api/v1/recommendations/user-123
+wrk -t 4 -c 100 -d 30s http://localhost:3000/api/recommendations/user-123
 
 # 輸出:
-# Running 30s test @ http://localhost:3000/api/v1/recommendations/user-123
+# Running 30s test @ http://localhost:3000/api/recommendations/user-123
 #   4 threads and 100 connections
 # Thread Stats   Avg      Stdev     Max   +/- Stdev
 #   Latency   150.23ms   45.67ms 500.12ms   87.34%
@@ -815,11 +815,11 @@ wrk -t 4 -c 100 -d 30s http://localhost:3000/api/v1/recommendations/user-123
 # RPS (吞吐量): 250 req/sec
 
 # 5. 漸進式增加並發
-wrk -t 4 -c 10   -d 10s http://localhost:3000/api/v1/recommendations/user-123
-wrk -t 4 -c 50   -d 10s http://localhost:3000/api/v1/recommendations/user-123
-wrk -t 4 -c 100  -d 10s http://localhost:3000/api/v1/recommendations/user-123
-wrk -t 4 -c 200  -d 10s http://localhost:3000/api/v1/recommendations/user-123
-wrk -t 4 -c 500  -d 10s http://localhost:3000/api/v1/recommendations/user-123
+wrk -t 4 -c 10   -d 10s http://localhost:3000/api/recommendations/user-123
+wrk -t 4 -c 50   -d 10s http://localhost:3000/api/recommendations/user-123
+wrk -t 4 -c 100  -d 10s http://localhost:3000/api/recommendations/user-123
+wrk -t 4 -c 200  -d 10s http://localhost:3000/api/recommendations/user-123
+wrk -t 4 -c 500  -d 10s http://localhost:3000/api/recommendations/user-123
 
 # 6. 記錄結果
 # 找出性能開始下降的並發數（通常是 CPU 達到 80%）
@@ -838,7 +838,7 @@ for concurrency in 10 50 100 200 500; do
   echo "Testing with concurrency: $concurrency"
   
   wrk -t 4 -c $concurrency -d 10s \
-    http://localhost:3000/api/v1/recommendations/user-123 \
+    http://localhost:3000/api/recommendations/user-123 \
     >> results/perf_$concurrency.txt
   
   echo "Results saved to results/perf_$concurrency.txt"

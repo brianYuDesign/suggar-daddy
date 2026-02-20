@@ -500,7 +500,7 @@ paths:
                         example: up
 
   # ==================== Auth Service ====================
-  /api/v1/auth/register:
+  /api/auth/register:
     post:
       tags:
         - Auth
@@ -559,7 +559,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/v1/auth/login:
+  /api/auth/login:
     post:
       tags:
         - Auth
@@ -610,7 +610,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequestError'
 
-  /api/v1/auth/refresh:
+  /api/auth/refresh:
     post:
       tags:
         - Auth
@@ -647,7 +647,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/logout:
+  /api/auth/logout:
     post:
       tags:
         - Auth
@@ -662,7 +662,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/me:
+  /api/auth/me:
     get:
       tags:
         - Auth
@@ -689,7 +689,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/validate:
+  /api/auth/validate:
     post:
       tags:
         - Auth
@@ -733,7 +733,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/change-password:
+  /api/auth/change-password:
     post:
       tags:
         - Auth
@@ -767,7 +767,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
 
   # ==================== User Management ====================
-  /api/v1/auth/users:
+  /api/auth/users:
     get:
       tags:
         - Auth
@@ -869,7 +869,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/users/{userId}:
+  /api/auth/users/{userId}:
     get:
       tags:
         - Auth
@@ -925,7 +925,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/users/{userId}/activate:
+  /api/auth/users/{userId}/activate:
     post:
       tags:
         - Auth
@@ -949,7 +949,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/users/{userId}/deactivate:
+  /api/auth/users/{userId}/deactivate:
     post:
       tags:
         - Auth
@@ -973,7 +973,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/profile:
+  /api/auth/profile:
     get:
       tags:
         - Auth
@@ -1037,7 +1037,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
 
   # ==================== Role Management ====================
-  /api/v1/auth/roles:
+  /api/auth/roles:
     get:
       tags:
         - Auth
@@ -1106,7 +1106,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/roles/{roleId}:
+  /api/auth/roles/{roleId}:
     get:
       tags:
         - Auth
@@ -1184,7 +1184,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/auth/roles/{roleId}/permissions:
+  /api/auth/roles/{roleId}/permissions:
     get:
       tags:
         - Auth
@@ -1257,7 +1257,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
 
   # ==================== Permission Management ====================
-  /api/v1/auth/permissions:
+  /api/auth/permissions:
     get:
       tags:
         - Auth
@@ -1290,7 +1290,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
 
   # ==================== Content-Streaming Service ====================
-  /api/v1/uploads/initiate:
+  /api/uploads/initiate:
     post:
       tags:
         - Content-Streaming
@@ -1336,7 +1336,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/uploads/{sessionId}:
+  /api/uploads/{sessionId}:
     get:
       tags:
         - Content-Streaming
@@ -1369,7 +1369,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/uploads/{sessionId}/chunk:
+  /api/uploads/{sessionId}/chunk:
     post:
       tags:
         - Content-Streaming
@@ -1421,7 +1421,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/uploads/{sessionId}/complete:
+  /api/uploads/{sessionId}/complete:
     post:
       tags:
         - Content-Streaming
@@ -1479,7 +1479,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/videos:
+  /api/videos:
     get:
       tags:
         - Content-Streaming
@@ -1576,7 +1576,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/videos/{videoId}:
+  /api/videos/{videoId}:
     get:
       tags:
         - Content-Streaming
@@ -1677,7 +1677,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/videos/{videoId}/stream:
+  /api/videos/{videoId}/stream:
     get:
       tags:
         - Content-Streaming
@@ -1708,7 +1708,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundError'
 
-  /api/v1/transcoding:
+  /api/transcoding:
     get:
       tags:
         - Content-Streaming
@@ -1740,7 +1740,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/transcoding/{jobId}:
+  /api/transcoding/{jobId}:
     get:
       tags:
         - Content-Streaming
@@ -1773,7 +1773,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/quality-configs:
+  /api/quality-configs:
     get:
       tags:
         - Content-Streaming
@@ -1805,7 +1805,7 @@ paths:
                           type: string
 
   # ==================== Payment Service ====================
-  /api/v1/payments/intent:
+  /api/payments/intent:
     post:
       tags:
         - Payment
@@ -1855,7 +1855,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/payments/confirm:
+  /api/payments/confirm:
     post:
       tags:
         - Payment
@@ -1895,7 +1895,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/payments:
+  /api/payments:
     get:
       tags:
         - Payment
@@ -1959,7 +1959,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/payments/{paymentId}:
+  /api/payments/{paymentId}:
     get:
       tags:
         - Payment
@@ -1992,7 +1992,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/payments/user/{userId}:
+  /api/payments/user/{userId}:
     get:
       tags:
         - Payment
@@ -2027,7 +2027,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/payments/refund:
+  /api/payments/refund:
     post:
       tags:
         - Payment
@@ -2074,7 +2074,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/payments/refunds:
+  /api/payments/refunds:
     get:
       tags:
         - Payment
@@ -2121,7 +2121,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/payments/refunds/{refundId}:
+  /api/payments/refunds/{refundId}:
     get:
       tags:
         - Payment
@@ -2154,7 +2154,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/payments/webhooks/stripe:
+  /api/payments/webhooks/stripe:
     post:
       tags:
         - Payment
@@ -2173,7 +2173,7 @@ paths:
         '400':
           description: 無效的 webhook
 
-  /api/v1/payments/analytics:
+  /api/payments/analytics:
     get:
       tags:
         - Payment
@@ -2220,7 +2220,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
 
   # ==================== Subscription Service ====================
-  /api/v1/subscriptions/plans:
+  /api/subscriptions/plans:
     get:
       tags:
         - Subscription
@@ -2242,7 +2242,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/SubscriptionPlan'
 
-  /api/v1/subscriptions/plans/{planId}:
+  /api/subscriptions/plans/{planId}:
     get:
       tags:
         - Subscription
@@ -2271,7 +2271,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundError'
 
-  /api/v1/subscriptions:
+  /api/subscriptions:
     get:
       tags:
         - Subscription
@@ -2340,7 +2340,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/subscriptions/{subscriptionId}:
+  /api/subscriptions/{subscriptionId}:
     get:
       tags:
         - Subscription
@@ -2416,7 +2416,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/subscriptions/{subscriptionId}/cancel:
+  /api/subscriptions/{subscriptionId}/cancel:
     post:
       tags:
         - Subscription
@@ -2459,7 +2459,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/subscriptions/{subscriptionId}/pause:
+  /api/subscriptions/{subscriptionId}/pause:
     post:
       tags:
         - Subscription
@@ -2502,7 +2502,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/subscriptions/{subscriptionId}/resume:
+  /api/subscriptions/{subscriptionId}/resume:
     post:
       tags:
         - Subscription
@@ -2535,7 +2535,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/subscriptions/{subscriptionId}/billing-history:
+  /api/subscriptions/{subscriptionId}/billing-history:
     get:
       tags:
         - Subscription
@@ -2585,7 +2585,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/subscriptions/user/{userId}:
+  /api/subscriptions/user/{userId}:
     get:
       tags:
         - Subscription
@@ -2621,7 +2621,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
 
   # ==================== Recommendation Service ====================
-  /api/v1/recommendations:
+  /api/recommendations:
     get:
       tags:
         - Recommendation
@@ -2688,7 +2688,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/recommendations/{contentId}:
+  /api/recommendations/{contentId}:
     get:
       tags:
         - Recommendation
@@ -2724,7 +2724,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundError'
 
-  /api/v1/recommendations/{contentId}/like:
+  /api/recommendations/{contentId}/like:
     post:
       tags:
         - Recommendation
@@ -2748,7 +2748,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/recommendations/{contentId}/view:
+  /api/recommendations/{contentId}/view:
     post:
       tags:
         - Recommendation
@@ -2784,7 +2784,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/recommendations/interactions:
+  /api/recommendations/interactions:
     post:
       tags:
         - Recommendation
@@ -2819,7 +2819,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/recommendations/refresh/{userId}:
+  /api/recommendations/refresh/{userId}:
     post:
       tags:
         - Recommendation
@@ -2843,7 +2843,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/recommendations/update-scores:
+  /api/recommendations/update-scores:
     post:
       tags:
         - Recommendation
@@ -2858,7 +2858,7 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  /api/v1/recommendations/clear-cache:
+  /api/recommendations/clear-cache:
     post:
       tags:
         - Recommendation

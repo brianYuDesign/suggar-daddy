@@ -95,11 +95,11 @@ Create Subscription → Process Payment → View Profile
 **核心端點**:
 ```
 GET    /health
-POST   /api/v1/auth/*
-GET    /api/v1/videos/*
-POST   /api/v1/subscriptions/*
-POST   /api/v1/payments/*
-GET    /api/v1/recommendations/*
+POST   /api/auth/*
+GET    /api/videos/*
+POST   /api/subscriptions/*
+POST   /api/payments/*
+GET    /api/recommendations/*
 ```
 
 **啟動**:
@@ -119,14 +119,14 @@ npm run start:dev
 
 **核心端點**:
 ```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
-POST   /api/v1/auth/logout
-GET    /api/v1/auth/me
-POST   /api/v1/auth/refresh
-POST   /api/v1/auth/change-password
-GET    /api/v1/roles
-GET    /api/v1/permissions
+POST   /api/auth/register
+POST   /api/auth/login
+POST   /api/auth/logout
+GET    /api/auth/me
+POST   /api/auth/refresh
+POST   /api/auth/change-password
+GET    /api/roles
+GET    /api/permissions
 ```
 
 ### 3. Content-Streaming Service (Port 3001)
@@ -139,13 +139,13 @@ GET    /api/v1/permissions
 
 **核心端點**:
 ```
-POST   /api/v1/videos/upload/init
-POST   /api/v1/videos/upload/chunk
-POST   /api/v1/videos/upload/complete
-GET    /api/v1/videos/{id}
-GET    /api/v1/videos/{id}/stream
-GET    /api/v1/videos/{id}/quality/profiles
-GET    /api/v1/transcoding/{id}/progress
+POST   /api/videos/upload/init
+POST   /api/videos/upload/chunk
+POST   /api/videos/upload/complete
+GET    /api/videos/{id}
+GET    /api/videos/{id}/stream
+GET    /api/videos/{id}/quality/profiles
+GET    /api/transcoding/{id}/progress
 ```
 
 ### 4. Recommendation Service (Port 3000)
@@ -158,13 +158,13 @@ GET    /api/v1/transcoding/{id}/progress
 
 **核心端點**:
 ```
-GET    /api/v1/recommendations/{userId}
-POST   /api/v1/recommendations/interactions
-POST   /api/v1/recommendations/refresh/{userId}
-POST   /api/v1/recommendations/update-scores
-GET    /api/v1/contents
-POST   /api/v1/contents/{id}/view
-POST   /api/v1/contents/{id}/like
+GET    /api/recommendations/{userId}
+POST   /api/recommendations/interactions
+POST   /api/recommendations/refresh/{userId}
+POST   /api/recommendations/update-scores
+GET    /api/contents
+POST   /api/contents/{id}/view
+POST   /api/contents/{id}/like
 ```
 
 ### 5. Payment Service (Port 3002)
@@ -178,12 +178,12 @@ POST   /api/v1/contents/{id}/like
 
 **核心端點**:
 ```
-POST   /api/v1/payments/create
-GET    /api/v1/payments/{id}
-POST   /api/v1/payments/{id}/confirm
-POST   /api/v1/payments/{id}/refund
-GET    /api/v1/payments/user/{userId}
-GET    /api/v1/invoices/{id}
+POST   /api/payments/create
+GET    /api/payments/{id}
+POST   /api/payments/{id}/confirm
+POST   /api/payments/{id}/refund
+GET    /api/payments/user/{userId}
+GET    /api/invoices/{id}
 ```
 
 ### 6. Subscription Service (Port 3003) ⭐ NEW
@@ -196,16 +196,16 @@ GET    /api/v1/invoices/{id}
 
 **核心端點**:
 ```
-GET    /api/v1/subscriptions/plans
-GET    /api/v1/subscriptions/plans/{id}
-POST   /api/v1/subscriptions
-GET    /api/v1/subscriptions/{id}
-GET    /api/v1/subscriptions/user/{userId}
-PATCH  /api/v1/subscriptions/{id}
-POST   /api/v1/subscriptions/{id}/cancel
-POST   /api/v1/subscriptions/{id}/pause
-POST   /api/v1/subscriptions/{id}/resume
-GET    /api/v1/subscriptions/{id}/billing-history
+GET    /api/subscriptions/plans
+GET    /api/subscriptions/plans/{id}
+POST   /api/subscriptions
+GET    /api/subscriptions/{id}
+GET    /api/subscriptions/user/{userId}
+PATCH  /api/subscriptions/{id}
+POST   /api/subscriptions/{id}/cancel
+POST   /api/subscriptions/{id}/pause
+POST   /api/subscriptions/{id}/resume
+GET    /api/subscriptions/{id}/billing-history
 ```
 
 ---
@@ -387,20 +387,20 @@ npm run start:dev
 curl http://localhost:3000/health
 
 # Auth Service health
-curl http://localhost:3001/api/v1/health
+curl http://localhost:3001/api/health
 
 # Payment Service health  
-curl http://localhost:3002/api/v1/health
+curl http://localhost:3002/api/health
 
 # Subscription Service health
-curl http://localhost:3003/api/v1/health
+curl http://localhost:3003/api/health
 ```
 
 ### 測試完整流程
 
 ```bash
 # 1. 用戶註冊
-curl -X POST http://localhost:3000/api/v1/auth/register \
+curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -410,7 +410,7 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
   }'
 
 # 2. 用戶登錄 (獲取 token)
-curl -X POST http://localhost:3000/api/v1/auth/login \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -418,15 +418,15 @@ curl -X POST http://localhost:3000/api/v1/auth/login \
   }'
 
 # 3. 列出訂閱計劃
-curl http://localhost:3000/api/v1/subscriptions/plans \
+curl http://localhost:3000/api/subscriptions/plans \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # 4. 獲取個性化推薦
-curl http://localhost:3000/api/v1/recommendations/USER_ID \
+curl http://localhost:3000/api/recommendations/USER_ID \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # 5. 創建訂閱
-curl -X POST http://localhost:3000/api/v1/subscriptions \
+curl -X POST http://localhost:3000/api/subscriptions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
@@ -550,9 +550,9 @@ npm run start:dev (不使用 &)
 cat .env
 
 # 測試連接
-curl http://localhost:3001/api/v1/health
-curl http://localhost:3002/api/v1/health
-curl http://localhost:3003/api/v1/health
+curl http://localhost:3001/api/health
+curl http://localhost:3002/api/health
+curl http://localhost:3003/api/health
 
 # 查看 Gateway 日誌
 docker-compose logs api-gateway

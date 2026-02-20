@@ -50,7 +50,7 @@ describe('VideoController (e2e)', () => {
     await app.close();
   });
 
-  describe('GET /api/v1/videos', () => {
+  describe('GET /api/videos', () => {
     it('should list videos for creator', async () => {
       const mockVideos = {
         data: [
@@ -72,7 +72,7 @@ describe('VideoController (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/videos/:id', () => {
+  describe('GET /api/videos/:id', () => {
     it('should get video details', async () => {
       const mockVideo = {
         id: 'video-1',

@@ -113,9 +113,9 @@ curl http://localhost:3000/health
 ### 4️⃣ 驗證功能
 ```bash
 # 檢查主要端點
-curl http://localhost:3000/api/v1/auth/health
-curl http://localhost:3000/api/v1/users/health
-curl http://localhost:3000/api/v1/content/health
+curl http://localhost:3000/api/auth/health
+curl http://localhost:3000/api/users/health
+curl http://localhost:3000/api/content/health
 ```
 
 ---

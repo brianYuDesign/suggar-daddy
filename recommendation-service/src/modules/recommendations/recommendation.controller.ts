@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserInteraction } from '../../database/entities';
 
-@Controller('api/v1/recommendations')
+@Controller('api/recommendations')
 export class RecommendationController {
   private readonly logger = new Logger(RecommendationController.name);
 
@@ -17,7 +17,7 @@ export class RecommendationController {
   ) {}
 
   /**
-   * GET /api/v1/recommendations/:userId - 獲取用戶推薦
+   * GET /api/recommendations/:userId - 獲取用戶推薦
    * 快速響應 (<500ms)，基於 Redis 緩存
    */
   @Get(':userId')
@@ -53,7 +53,7 @@ export class RecommendationController {
   }
 
   /**
-   * POST /api/v1/recommendations/interactions - 記錄用戶互動
+   * POST /api/recommendations/interactions - 記錄用戶互動
    * 用於更新推薦模型
    */
   @Post('interactions')
@@ -85,7 +85,7 @@ export class RecommendationController {
   }
 
   /**
-   * POST /api/v1/recommendations/refresh - 手動刷新推薦
+   * POST /api/recommendations/refresh - 手動刷新推薦
    */
   @Post('refresh/:userId')
   @HttpCode(200)
@@ -109,7 +109,7 @@ export class RecommendationController {
   }
 
   /**
-   * POST /api/v1/recommendations/update-scores - 更新內容分數 (定期任務)
+   * POST /api/recommendations/update-scores - 更新內容分數 (定期任務)
    */
   @Post('update-scores')
   @HttpCode(200)
@@ -127,7 +127,7 @@ export class RecommendationController {
   }
 
   /**
-   * POST /api/v1/recommendations/clear-cache - 清空所有推薦快取
+   * POST /api/recommendations/clear-cache - 清空所有推薦快取
    */
   @Post('clear-cache')
   @HttpCode(200)

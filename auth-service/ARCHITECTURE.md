@@ -419,7 +419,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
 ### Health Checks
 ```bash
-GET /api/v1/auth/me  # Requires auth
+GET /api/auth/me  # Requires auth
 ```
 
 ### Environment Variables

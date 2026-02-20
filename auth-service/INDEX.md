@@ -174,44 +174,44 @@ npm run start:dev
 
 ### Authentication (7 endpoints)
 ```
-POST   /api/v1/auth/register         - Register user
-POST   /api/v1/auth/login            - Login user
-POST   /api/v1/auth/refresh          - Refresh token
-POST   /api/v1/auth/logout           - Logout (blacklist)
-POST   /api/v1/auth/validate         - Validate token
-POST   /api/v1/auth/change-password  - Change password
-GET    /api/v1/auth/me               - Get current user
+POST   /api/auth/register         - Register user
+POST   /api/auth/login            - Login user
+POST   /api/auth/refresh          - Refresh token
+POST   /api/auth/logout           - Logout (blacklist)
+POST   /api/auth/validate         - Validate token
+POST   /api/auth/change-password  - Change password
+GET    /api/auth/me               - Get current user
 ```
 
 ### Users (7 endpoints)
 ```
-GET    /api/v1/users/profile         - Get profile
-PATCH  /api/v1/users/profile         - Update profile
-GET    /api/v1/users                 - List users (admin)
-GET    /api/v1/users/{id}            - Get user (admin)
-POST   /api/v1/users/{id}/deactivate - Deactivate (admin)
-POST   /api/v1/users/{id}/activate   - Activate (admin)
-DELETE /api/v1/users/{id}            - Delete (admin)
+GET    /api/users/profile         - Get profile
+PATCH  /api/users/profile         - Update profile
+GET    /api/users                 - List users (admin)
+GET    /api/users/{id}            - Get user (admin)
+POST   /api/users/{id}/deactivate - Deactivate (admin)
+POST   /api/users/{id}/activate   - Activate (admin)
+DELETE /api/users/{id}            - Delete (admin)
 ```
 
 ### Roles (5 endpoints)
 ```
-POST   /api/v1/roles                 - Create role (admin)
-GET    /api/v1/roles                 - List roles (admin)
-GET    /api/v1/roles/{id}            - Get role (admin)
-PATCH  /api/v1/roles/{id}            - Update role (admin)
-POST   /api/v1/roles/{id}/permissions - Assign perms (admin)
+POST   /api/roles                 - Create role (admin)
+GET    /api/roles                 - List roles (admin)
+GET    /api/roles/{id}            - Get role (admin)
+PATCH  /api/roles/{id}            - Update role (admin)
+POST   /api/roles/{id}/permissions - Assign perms (admin)
 ```
 
 ### Permissions (7 endpoints)
 ```
-POST   /api/v1/permissions           - Create (admin)
-GET    /api/v1/permissions           - List
-GET    /api/v1/permissions/{id}      - Get
-GET    /api/v1/permissions/me        - My permissions
-GET    /api/v1/permissions/check     - Check permission
-POST   /api/v1/permissions/{id}/deactivate - Deactivate (admin)
-POST   /api/v1/permissions/{id}/activate   - Activate (admin)
+POST   /api/permissions           - Create (admin)
+GET    /api/permissions           - List
+GET    /api/permissions/{id}      - Get
+GET    /api/permissions/me        - My permissions
+GET    /api/permissions/check     - Check permission
+POST   /api/permissions/{id}/deactivate - Deactivate (admin)
+POST   /api/permissions/{id}/activate   - Activate (admin)
 ```
 
 ---
@@ -332,9 +332,9 @@ docker run -p 3002:3002 auth-service
 - **Payment** (BACK-004): User & role validation
 
 ### With Frontend
-- JWT endpoint: `/api/v1/auth/login`
+- JWT endpoint: `/api/auth/login`
 - Token header: `Authorization: Bearer {token}`
-- Refresh: `/api/v1/auth/refresh`
+- Refresh: `/api/auth/refresh`
 
 ---
 

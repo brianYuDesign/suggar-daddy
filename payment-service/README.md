@@ -55,7 +55,7 @@ npm run start:dev
 
 ```bash
 # 檢查服務健康狀態
-curl http://localhost:3002/api/v1/payments
+curl http://localhost:3002/api/payments
 
 # 查看 API 文檔
 open http://localhost:3002/docs
@@ -147,7 +147,7 @@ open http://localhost:3002/docs
 
 ```
 1. 客戶端請求支付
-   POST /api/v1/payments/intent
+   POST /api/payments/intent
    
 2. 服務創建 Payment 記錄 + Stripe PaymentIntent
    
@@ -156,7 +156,7 @@ open http://localhost:3002/docs
 4. 客戶端收集支付信息
    
 5. 客戶端確認支付
-   POST /api/v1/payments/confirm
+   POST /api/payments/confirm
    
 6. 服務確認 PaymentIntent
    
@@ -169,7 +169,7 @@ open http://localhost:3002/docs
 
 ```
 1. 客戶端請求創建訂閱
-   POST /api/v1/subscriptions
+   POST /api/subscriptions
    
 2. 服務創建 Stripe Customer
    
@@ -198,40 +198,40 @@ open http://localhost:3002/docs
 
 | 方法 | 端點 | 描述 |
 |------|------|------|
-| POST | `/api/v1/payments/intent` | 創建支付意圖 |
-| POST | `/api/v1/payments/confirm` | 確認支付 |
-| POST | `/api/v1/payments/refund` | 退款 |
-| GET | `/api/v1/payments/:paymentId` | 獲取支付詳情 |
-| GET | `/api/v1/payments/user/:userId` | 獲取用戶支付歷史 |
-| POST | `/api/v1/payments/:paymentId/retry` | 重試支付 |
+| POST | `/api/payments/intent` | 創建支付意圖 |
+| POST | `/api/payments/confirm` | 確認支付 |
+| POST | `/api/payments/refund` | 退款 |
+| GET | `/api/payments/:paymentId` | 獲取支付詳情 |
+| GET | `/api/payments/user/:userId` | 獲取用戶支付歷史 |
+| POST | `/api/payments/:paymentId/retry` | 重試支付 |
 
 #### 訂閱
 
 | 方法 | 端點 | 描述 |
 |------|------|------|
-| POST | `/api/v1/subscriptions` | 創建訂閱 |
-| PATCH | `/api/v1/subscriptions/:id` | 更新訂閱 |
-| POST | `/api/v1/subscriptions/:id/cancel` | 取消訂閱 |
-| POST | `/api/v1/subscriptions/:id/pause` | 暫停訂閱 |
-| POST | `/api/v1/subscriptions/:id/resume` | 恢復訂閱 |
-| GET | `/api/v1/subscriptions/:id` | 獲取訂閱詳情 |
+| POST | `/api/subscriptions` | 創建訂閱 |
+| PATCH | `/api/subscriptions/:id` | 更新訂閱 |
+| POST | `/api/subscriptions/:id/cancel` | 取消訂閱 |
+| POST | `/api/subscriptions/:id/pause` | 暫停訂閱 |
+| POST | `/api/subscriptions/:id/resume` | 恢復訂閱 |
+| GET | `/api/subscriptions/:id` | 獲取訂閱詳情 |
 
 #### 發票
 
 | 方法 | 端點 | 描述 |
 |------|------|------|
-| POST | `/api/v1/invoices` | 創建發票 |
-| GET | `/api/v1/invoices/:id` | 獲取發票詳情 |
-| POST | `/api/v1/invoices/:id/send` | 發送發票 |
-| PATCH | `/api/v1/invoices/:id/mark-paid` | 標記為已支付 |
-| PATCH | `/api/v1/invoices/:id/cancel` | 取消發票 |
+| POST | `/api/invoices` | 創建發票 |
+| GET | `/api/invoices/:id` | 獲取發票詳情 |
+| POST | `/api/invoices/:id/send` | 發送發票 |
+| PATCH | `/api/invoices/:id/mark-paid` | 標記為已支付 |
+| PATCH | `/api/invoices/:id/cancel` | 取消發票 |
 
 ### 使用示例
 
 #### 創建支付
 
 ```bash
-curl -X POST http://localhost:3002/api/v1/payments/intent \
+curl -X POST http://localhost:3002/api/payments/intent \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "123e4567-e89b-12d3-a456-426614174000",
@@ -256,7 +256,7 @@ curl -X POST http://localhost:3002/api/v1/payments/intent \
 #### 創建訂閱
 
 ```bash
-curl -X POST http://localhost:3002/api/v1/subscriptions \
+curl -X POST http://localhost:3002/api/subscriptions \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "123e4567-e89b-12d3-a456-426614174000",
@@ -419,7 +419,7 @@ AWS_S3_BUCKET=payment-invoices
 # 進入 Developers > Webhooks > Add endpoint
 
 # 端點 URL
-https://your-domain.com/api/v1/webhooks/stripe
+https://your-domain.com/api/webhooks/stripe
 
 # 選擇事件
 - charge.succeeded

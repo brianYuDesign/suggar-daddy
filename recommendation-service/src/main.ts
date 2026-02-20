@@ -27,7 +27,7 @@ async function bootstrap() {
     await app.listen(port);
 
     logger.log(`🚀 Recommendation Service running on http://localhost:${port}`);
-    logger.log(`📚 API docs: http://localhost:${port}/api/v1`);
+    logger.log(`📚 API docs: http://localhost:${port}/api`);
   } catch (err: any) {
     logger.error(`Failed to start application: ${err.message}`);
     process.exit(1);

@@ -105,7 +105,7 @@
 ```bash
 □ docker-compose up -d  # 能啟動完整環境
 □ curl /health          # 服務正常運行
-□ curl /api/v1/recommendations/user-test  # 能獲取推薦
+□ curl /api/recommendations/user-test  # 能獲取推薦
 □ npm test              # 測試通過 (70%+ 覆蓋)
 □ npm run build         # 能編譯項目
 □ docker-compose logs   # 能查看日誌
@@ -259,7 +259,7 @@
 | 想了解 | 查看文檔 | 位置 |
 |-------|---------|------|
 | 快速開始 | README.md | `src/` |
-| API 使用 | API.md | `/api/v1/` 端點 |
+| API 使用 | API.md | `/api/` 端點 |
 | 推薦算法 | ALGORITHM.md | 分數公式和權重 |
 | 項目結構 | PROJECT_OVERVIEW.md | 組件和目錄 |
 | 日常操作 | OPERATIONS_GUIDE.md | 啟動、備份、監控 |

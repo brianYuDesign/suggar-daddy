@@ -304,10 +304,10 @@ docker-compose exec postgres pg_dump -U postgres recommendation_db > backup.sql
 docker-compose exec -T postgres psql -U postgres recommendation_db < backup.sql
 
 # 清空緩存
-curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
+curl -X POST http://localhost:3000/api/recommendations/clear-cache
 
 # 獲取推薦
-curl http://localhost:3000/api/v1/recommendations/user-123
+curl http://localhost:3000/api/recommendations/user-123
 
 # 運行測試
 npm test
@@ -337,7 +337,7 @@ sleep 10
 curl http://localhost:3000/health
 
 # 3. 測試推薦 API (5 分鐘)
-curl http://localhost:3000/api/v1/recommendations/user-test
+curl http://localhost:3000/api/recommendations/user-test
 
 # 4. 查看日誌 (5 分鐘)
 docker-compose logs recommendation-service

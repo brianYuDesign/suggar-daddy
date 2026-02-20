@@ -4,7 +4,7 @@ import { RecommendationService } from '../services/recommendation.service';
 /**
  * 推薦 API 控制器
  */
-@Controller('recommendations')
+@Controller('api/recommendations')
 export class RecommendationController {
   constructor(private readonly recommendationService: RecommendationService) {}
 

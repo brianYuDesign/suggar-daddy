@@ -1,7 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { TranscodingService } from '@/services/transcoding.service';
 
-@Controller('api/v1/transcoding')
+@Controller('api/transcoding')
 export class TranscodingController {
   constructor(private transcodingService: TranscodingService) {}
 

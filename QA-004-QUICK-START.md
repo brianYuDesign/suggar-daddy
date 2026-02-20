@@ -317,7 +317,7 @@ curl http://alertmanager:9093/-/ready
 kubectl get prometheusrule -n monitoring
 
 # 查看已觸發的告警
-curl http://alertmanager:9093/api/v1/alerts | jq .
+curl http://alertmanager:9093/api/alerts | jq .
 ```
 
 ### 問題: 自動回滾沒有觸發

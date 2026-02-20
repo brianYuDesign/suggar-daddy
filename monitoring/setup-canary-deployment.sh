@@ -437,7 +437,7 @@ ${CYAN}下一步:${NC}
      kubectl apply -f canary-rollback-job.yml -n $MONITORING_NS
 
   3. 測試流量分配
-     curl -H "X-Canary-User: true" http://gateway/api/v1/test
+     curl -H "X-Canary-User: true" http://gateway/api/test
 
   4. 查看告警
      curl http://prometheus:9090/api/v1/alerts

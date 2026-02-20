@@ -111,10 +111,10 @@ npm run dev
 
 ```bash
 # 獲取推薦 (需要先創建內容)
-curl http://localhost:3000/api/v1/recommendations/user-123?limit=10
+curl http://localhost:3000/api/recommendations/user-123?limit=10
 
 # 查看所有內容
-curl http://localhost:3000/api/v1/contents
+curl http://localhost:3000/api/contents
 ```
 
 ---
@@ -324,7 +324,7 @@ npm run test:cov
 ```javascript
 // JavaScript/TypeScript
 const response = await fetch(
-  'http://localhost:3000/api/v1/recommendations/user-123?limit=20'
+  'http://localhost:3000/api/recommendations/user-123?limit=20'
 );
 const data = await response.json();
 
@@ -340,7 +340,7 @@ console.log(data);
 ### 記錄用戶互動
 
 ```javascript
-await fetch('http://localhost:3000/api/v1/recommendations/interactions', {
+await fetch('http://localhost:3000/api/recommendations/interactions', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -384,7 +384,7 @@ await fetch('http://localhost:3000/api/v1/recommendations/interactions', {
 ## 🐛 常見問題
 
 ### Q: 推薦返回為空？
-**A:** 檢查 PostgreSQL 是否有內容數據。使用 `POST /api/v1/contents` 創建內容。
+**A:** 檢查 PostgreSQL 是否有內容數據。使用 `POST /api/contents` 創建內容。
 
 ### Q: 快取命中率低？
 **A:** 檢查 Redis 連接。調整 `RECOMMENDATION_CACHE_TTL` 提高快取時間。

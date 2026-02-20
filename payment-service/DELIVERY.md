@@ -147,39 +147,39 @@ ORM: TypeORM 0.3.x
 
 ### 支付 API (6 個)
 ```
-POST   /api/v1/payments/intent          創建支付意圖
-POST   /api/v1/payments/confirm         確認支付
-POST   /api/v1/payments/refund          退款
-GET    /api/v1/payments/:paymentId      獲取支付
-GET    /api/v1/payments/user/:userId    支付歷史
-POST   /api/v1/payments/:paymentId/retry 重試
+POST   /api/payments/intent          創建支付意圖
+POST   /api/payments/confirm         確認支付
+POST   /api/payments/refund          退款
+GET    /api/payments/:paymentId      獲取支付
+GET    /api/payments/user/:userId    支付歷史
+POST   /api/payments/:paymentId/retry 重試
 ```
 
 ### 訂閱 API (8 個)
 ```
-POST   /api/v1/subscriptions            創建訂閱
-PATCH  /api/v1/subscriptions/:id        更新訂閱
-POST   /api/v1/subscriptions/:id/cancel 取消訂閱
-POST   /api/v1/subscriptions/:id/pause  暫停訂閱
-POST   /api/v1/subscriptions/:id/resume 恢復訂閱
-GET    /api/v1/subscriptions/:id        獲取訂閱
-GET    /api/v1/subscriptions/user/:id   用戶訂閱
-GET    /api/v1/subscriptions            訂閱列表
+POST   /api/subscriptions            創建訂閱
+PATCH  /api/subscriptions/:id        更新訂閱
+POST   /api/subscriptions/:id/cancel 取消訂閱
+POST   /api/subscriptions/:id/pause  暫停訂閱
+POST   /api/subscriptions/:id/resume 恢復訂閱
+GET    /api/subscriptions/:id        獲取訂閱
+GET    /api/subscriptions/user/:id   用戶訂閱
+GET    /api/subscriptions            訂閱列表
 ```
 
 ### 發票 API (7 個)
 ```
-POST   /api/v1/invoices                 創建發票
-GET    /api/v1/invoices/:id             獲取發票
-POST   /api/v1/invoices/:id/send        發送發票
-PATCH  /api/v1/invoices/:id/mark-paid   標記已支付
-PATCH  /api/v1/invoices/:id/cancel      取消發票
-GET    /api/v1/invoices/user/:id        用戶發票列表
+POST   /api/invoices                 創建發票
+GET    /api/invoices/:id             獲取發票
+POST   /api/invoices/:id/send        發送發票
+PATCH  /api/invoices/:id/mark-paid   標記已支付
+PATCH  /api/invoices/:id/cancel      取消發票
+GET    /api/invoices/user/:id        用戶發票列表
 ```
 
 ### Webhook API (1 個)
 ```
-POST   /api/v1/webhooks/stripe          Stripe Webhook
+POST   /api/webhooks/stripe          Stripe Webhook
 ```
 
 **總計: 25+ 個 API 端點**
@@ -241,7 +241,7 @@ npm run start:dev
 ### 3. 測試
 ```bash
 npm test
-curl http://localhost:3002/api/v1/payments
+curl http://localhost:3002/api/payments
 ```
 
 ### 4. 查看文檔
@@ -335,7 +335,7 @@ npm run lint              # 代碼檢查
 
 ### Stripe CLI
 ```bash
-stripe listen --forward-to localhost:3002/api/v1/webhooks/stripe
+stripe listen --forward-to localhost:3002/api/webhooks/stripe
 stripe trigger charge.succeeded
 ```
 

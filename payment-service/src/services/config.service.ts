@@ -41,7 +41,7 @@ export class ConfigService {
   }
 
   getWebhookUrl(): string {
-    return process.env.WEBHOOK_URL || 'http://localhost:3002/api/v1/webhooks/stripe';
+    return process.env.WEBHOOK_URL || 'http://localhost:3002/api/webhooks/stripe';
   }
 
   getWebhookTimeout(): number {

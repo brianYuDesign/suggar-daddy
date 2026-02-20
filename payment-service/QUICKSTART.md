@@ -60,7 +60,7 @@ npm install
 npm test
 
 # 或者手動測試 API
-curl http://localhost:3002/api/v1/payments
+curl http://localhost:3002/api/payments
 ```
 
 ### 步驟 6: 本地開發
@@ -130,7 +130,7 @@ docker-compose logs -f postgres
 ### 創建支付
 
 ```bash
-curl -X POST http://localhost:3002/api/v1/payments/intent \
+curl -X POST http://localhost:3002/api/payments/intent \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "123e4567-e89b-12d3-a456-426614174000",
@@ -143,7 +143,7 @@ curl -X POST http://localhost:3002/api/v1/payments/intent \
 ### 創建訂閱
 
 ```bash
-curl -X POST http://localhost:3002/api/v1/subscriptions \
+curl -X POST http://localhost:3002/api/subscriptions \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "123e4567-e89b-12d3-a456-426614174000",
@@ -156,7 +156,7 @@ curl -X POST http://localhost:3002/api/v1/subscriptions \
 ### 獲取訂閱
 
 ```bash
-curl http://localhost:3002/api/v1/subscriptions/user/123e4567-e89b-12d3-a456-426614174000
+curl http://localhost:3002/api/subscriptions/user/123e4567-e89b-12d3-a456-426614174000
 ```
 
 ---
@@ -179,7 +179,7 @@ sudo bash install.sh
 ```bash
 stripe login  # 登錄 Stripe 帳號
 
-stripe listen --forward-to localhost:3002/api/v1/webhooks/stripe
+stripe listen --forward-to localhost:3002/api/webhooks/stripe
 # 記下 webhook signing secret: whsec_xxxxx
 # 更新到 .env 中的 STRIPE_WEBHOOK_SECRET
 ```
@@ -320,7 +320,7 @@ npm install
 - [ ] npm 依賴已安裝
 - [ ] 測試通過 (`npm test`)
 - [ ] 開發服務器運行中 (`npm run start:dev`)
-- [ ] 可以調用 API (`curl http://localhost:3002/api/v1/payments`)
+- [ ] 可以調用 API (`curl http://localhost:3002/api/payments`)
 
 ---
 

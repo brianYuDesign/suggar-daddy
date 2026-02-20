@@ -411,7 +411,7 @@ tail -f /var/log/canary-rollback.log
 kubectl get all -n production
 
 # 查看告警
-curl http://prometheus:9090/api/v1/alerts
+curl http://prometheus:9090/api/alerts
 
 # 進入 Pod 調試
 kubectl exec -it <pod> -n production -- /bin/sh

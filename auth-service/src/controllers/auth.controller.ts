@@ -14,13 +14,13 @@ import { RegisterDto, LoginDto, RefreshTokenDto, ChangePasswordDto, ValidateToke
 import { JwtAuthGuard } from '@/guards';
 import { CurrentUser } from '@/decorators';
 
-@Controller('api/v1/auth')
+@Controller('api/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   /**
    * Register new user
-   * POST /api/v1/auth/register
+   * POST /api/auth/register
    */
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
@@ -43,7 +43,7 @@ export class AuthController {
 
   /**
    * Login user
-   * POST /api/v1/auth/login
+   * POST /api/auth/login
    */
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
@@ -67,7 +67,7 @@ export class AuthController {
 
   /**
    * Refresh access token
-   * POST /api/v1/auth/refresh
+   * POST /api/auth/refresh
    */
   @Post('refresh')
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
@@ -81,7 +81,7 @@ export class AuthController {
 
   /**
    * Logout user
-   * POST /api/v1/auth/logout
+   * POST /api/auth/logout
    */
   @Post('logout')
   @UseGuards(JwtAuthGuard)
@@ -103,7 +103,7 @@ export class AuthController {
 
   /**
    * Validate token
-   * POST /api/v1/auth/validate
+   * POST /api/auth/validate
    */
   @Post('validate')
   async validateToken(@Body() validateTokenDto: ValidateTokenDto) {
@@ -116,7 +116,7 @@ export class AuthController {
 
   /**
    * Change password
-   * POST /api/v1/auth/change-password
+   * POST /api/auth/change-password
    */
   @Post('change-password')
   @UseGuards(JwtAuthGuard)
@@ -133,7 +133,7 @@ export class AuthController {
 
   /**
    * Get current user profile
-   * GET /api/v1/auth/me
+   * GET /api/auth/me
    */
   @Get('me')
   @UseGuards(JwtAuthGuard)

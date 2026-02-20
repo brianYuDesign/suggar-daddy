@@ -185,19 +185,19 @@ HTTP Response
 
 ```
 1. 初始化上傳
-   Client → POST /api/v1/uploads/initiate
+   Client → POST /api/uploads/initiate
    → UploadService.initiateUpload()
    → 創建 UploadSession 記錄
    ← 返回 session_id, chunk_size, total_chunks
 
 2. 分片上傳
-   Client → POST /api/v1/uploads/{sessionId}/chunk?chunkIndex=0
+   Client → POST /api/uploads/{sessionId}/chunk?chunkIndex=0
    → UploadController.uploadChunk()
    → UploadService.markChunkUploaded()
    ← 返回 { uploaded: true, chunkIndex: 0 }
 
 3. 完成上傳
-   Client → POST /api/v1/uploads/{sessionId}/complete
+   Client → POST /api/uploads/{sessionId}/complete
    → UploadService.completeUpload()
    → S3Service.uploadFile() // 將分片組合上傳
    → Video(status=PROCESSING) 建立
@@ -213,13 +213,13 @@ HTTP Response
    → Video(status=READY)
 
 5. 發佈視頻
-   Creator → POST /api/v1/videos/{videoId}/publish
+   Creator → POST /api/videos/{videoId}/publish
    → VideoService.publishVideo()
    → Video(is_published=true)
    ← 返回完整視頻信息
 
 6. 取得播放列表
-   Client → GET /api/v1/streaming/{videoId}/playlist
+   Client → GET /api/streaming/{videoId}/playlist
    → StreamingController.getStreamingPlaylist()
    → 組織 VideoQuality 信息
    → 生成 M3U8 播放列表
@@ -261,7 +261,7 @@ VideoService.setVideoStatus(READY)
 
 ```
 Client 取得播放列表:
-GET /api/v1/streaming/{videoId}/playlist
+GET /api/streaming/{videoId}/playlist
 
 返回所有可用質量:
 {
@@ -373,7 +373,7 @@ TranscodingService.startTranscoding(videoId)
 → 後台隊列異步處理
 
 // 客戶端輪詢進度
-GET /api/v1/transcoding/{jobId}/status
+GET /api/transcoding/{jobId}/status
 ```
 
 ### 存儲分片設計

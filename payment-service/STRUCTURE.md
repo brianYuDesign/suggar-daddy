@@ -236,7 +236,7 @@ WebhookEvent (webhook_events 表)
 ### 支付流程
 
 ```
-1. 客戶端 POST /api/v1/payments/intent
+1. 客戶端 POST /api/payments/intent
    ↓
 2. PaymentController.createPaymentIntent()
    ↓
@@ -247,7 +247,7 @@ WebhookEvent (webhook_events 表)
    ↓
 4. 客戶端收集支付信息
    ↓
-5. 客戶端 POST /api/v1/payments/confirm
+5. 客戶端 POST /api/payments/confirm
    ↓
 6. PaymentController.confirmPayment()
    ↓
@@ -271,7 +271,7 @@ WebhookEvent (webhook_events 表)
 ### 訂閱流程
 
 ```
-1. 客戶端 POST /api/v1/subscriptions
+1. 客戶端 POST /api/subscriptions
    ↓
 2. SubscriptionController.createSubscription()
    ↓

@@ -36,7 +36,7 @@ export const options = {
 };
 
 export default function() {
-  const baseUrl = 'http://localhost:3000/api/v1';
+  const baseUrl = 'http://localhost:3000/api';
   const userId = `test-user-${Math.floor(Math.random() * 10000)}`;
   
   group('GET Recommendations', function() {

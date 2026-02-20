@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken');
 const authMiddleware = (req, res, next) => {
   // Skip auth for public endpoints
   const publicEndpoints = [
-    '/api/v1/auth/register',
-    '/api/v1/auth/login',
+    '/api/auth/register',
+    '/api/auth/login',
     '/health',
   ];
 

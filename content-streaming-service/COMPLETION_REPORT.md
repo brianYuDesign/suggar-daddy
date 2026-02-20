@@ -51,26 +51,26 @@
 **API 端點**:
 
 #### 視頻管理
-- ✅ `POST /api/v1/videos/upload` - 上傳視頻
-- ✅ `GET /api/v1/videos` - 列出視頻
-- ✅ `GET /api/v1/videos/{id}` - 取得視頻詳情
-- ✅ `PUT /api/v1/videos/{id}` - 更新視頻
-- ✅ `DELETE /api/v1/videos/{id}` - 刪除視頻
-- ✅ `POST /api/v1/videos/{id}/publish` - 發佈視頻
+- ✅ `POST /api/videos/upload` - 上傳視頻
+- ✅ `GET /api/videos` - 列出視頻
+- ✅ `GET /api/videos/{id}` - 取得視頻詳情
+- ✅ `PUT /api/videos/{id}` - 更新視頻
+- ✅ `DELETE /api/videos/{id}` - 刪除視頻
+- ✅ `POST /api/videos/{id}/publish` - 發佈視頻
 
 #### 分片上傳
-- ✅ `POST /api/v1/uploads/initiate` - 初始化上傳
-- ✅ `GET /api/v1/uploads/{sessionId}` - 取得會話狀態
-- ✅ `POST /api/v1/uploads/{sessionId}/chunk` - 上傳分片
-- ✅ `POST /api/v1/uploads/{sessionId}/complete` - 完成上傳
+- ✅ `POST /api/uploads/initiate` - 初始化上傳
+- ✅ `GET /api/uploads/{sessionId}` - 取得會話狀態
+- ✅ `POST /api/uploads/{sessionId}/chunk` - 上傳分片
+- ✅ `POST /api/uploads/{sessionId}/complete` - 完成上傳
 
 #### 流媒體
-- ✅ `GET /api/v1/streaming/{videoId}/playlist` - 取得播放列表
-- ✅ `POST /api/v1/streaming/{videoId}/quality-switch` - 切換質量
+- ✅ `GET /api/streaming/{videoId}/playlist` - 取得播放列表
+- ✅ `POST /api/streaming/{videoId}/quality-switch` - 切換質量
 
 #### 轉碼和質量
-- ✅ `GET /api/v1/transcoding/{jobId}/status` - 轉碼狀態
-- ✅ `GET /api/v1/quality/profiles` - 質量配置
+- ✅ `GET /api/transcoding/{jobId}/status` - 轉碼狀態
+- ✅ `GET /api/quality/profiles` - 質量配置
 
 **OpenAPI 規格**: 完整的 3.0 規格，支援 Swagger UI
 
@@ -381,7 +381,7 @@ docker-compose up -d
 ### 驗證服務
 
 ```bash
-curl http://localhost:3001/api/v1/quality/profiles
+curl http://localhost:3001/api/quality/profiles
 ```
 
 ### 運行測試

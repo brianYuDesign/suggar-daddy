@@ -38,7 +38,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
     it('should timeout on slow database query (>5s)', async () => {
       // Request a query that simulates slow execution
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}/complex?simulate_delay=5000`)
+        .get(`/api/recommendations/${testUserId}/complex?simulate_delay=5000`)
         .timeout(6000); // Allow 6 seconds for the request
       
       // Should either return error or timeout
@@ -51,7 +51,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
 
     it('should include timeout duration in error response', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}/complex?simulate_delay=5000`)
+        .get(`/api/recommendations/${testUserId}/complex?simulate_delay=5000`)
         .timeout(6000);
       
       if (response.status === HttpStatus.GATEWAY_TIMEOUT) {
@@ -62,7 +62,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
 
     it('should handle full table scan timeout', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/search/users?q=*`)
+        .get(`/api/search/users?q=*`)
         .timeout(6000);
       
       // Should handle gracefully
@@ -71,7 +71,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
 
     it('should respect custom timeout parameter', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?timeout=10000`)
+        .get(`/api/recommendations/${testUserId}?timeout=10000`)
         .timeout(11000);
       
       // With higher timeout, should complete successfully
@@ -80,7 +80,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
 
     it('should reject query timeout override if not allowed', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?timeout=60000`)
+        .get(`/api/recommendations/${testUserId}?timeout=60000`)
         .timeout(65000);
       
       // System should enforce max timeout limit
@@ -100,7 +100,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       // and verifying retry logic executes
       
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`)
+        .get(`/api/recommendations/${testUserId}`)
         .timeout(5000);
       
       // Should eventually succeed or fail gracefully after retries
@@ -112,7 +112,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       const startTime = Date.now();
       
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?retry_test=true`)
+        .get(`/api/recommendations/${testUserId}?retry_test=true`)
         .timeout(5000);
       
       const duration = Date.now() - startTime;
@@ -127,7 +127,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
     it('should retry exactly 3 times by default', async () => {
       // This would require instrumentation or logging to verify
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?retry_count=true`)
+        .get(`/api/recommendations/${testUserId}?retry_count=true`)
         .timeout(5000);
       
       if (response.body && response.body.debug_info) {
@@ -139,7 +139,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       const startTime = Date.now();
       
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?max_retry=true`)
+        .get(`/api/recommendations/${testUserId}?max_retry=true`)
         .timeout(35000);
       
       const duration = Date.now() - startTime;
@@ -152,7 +152,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
 
     it('should not retry on client error (4xx)', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({ invalid: 'data' }); // Missing required fields
       
       // Should fail immediately without retry
@@ -170,7 +170,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       
       for (const error of nonRetryableErrors) {
         const response = await request(app.getHttpServer())
-          .get(`/api/v1/test/error?code=${error.code}`)
+          .get(`/api/test/error?code=${error.code}`)
           .timeout(2000);
         
         // Should fail quickly without retry
@@ -180,7 +180,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
 
     it('should include Retry-After header on retryable errors', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?simulate_503=true`)
+        .get(`/api/recommendations/${testUserId}?simulate_503=true`)
         .timeout(3000);
       
       if (response.status === HttpStatus.SERVICE_UNAVAILABLE) {
@@ -193,7 +193,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
     it('should handle partial response and retry', async () => {
       // Simulate connection drop mid-response
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?simulate_partial=true`)
+        .get(`/api/recommendations/${testUserId}?simulate_partial=true`)
         .timeout(5000);
       
       // Should either succeed on retry or return proper error
@@ -214,7 +214,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       
       for (let i = 0; i < 10; i++) {
         const response = await request(app.getHttpServer())
-          .get(`/api/v1/recommendations/${testUserId}?simulate_failure=true`)
+          .get(`/api/recommendations/${testUserId}?simulate_failure=true`)
           .timeout(2000);
         
         // Once circuit opens, should get fast 503 instead of timeout
@@ -232,7 +232,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       // Trigger circuit open
       for (let i = 0; i < 5; i++) {
         await request(app.getHttpServer())
-          .get(`/api/v1/recommendations/${testUserId}?simulate_failure=true`)
+          .get(`/api/recommendations/${testUserId}?simulate_failure=true`)
           .timeout(2000);
       }
       
@@ -241,7 +241,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       
       // Next request should be attempt to close circuit
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?monitor_circuit=true`)
+        .get(`/api/recommendations/${testUserId}?monitor_circuit=true`)
         .timeout(2000);
       
       if (response.body && response.body.debug_info) {
@@ -252,7 +252,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
     it('should close circuit after successful requests in HALF_OPEN state', async () => {
       // This test assumes manual control or monitoring of circuit state
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/health/circuit-breaker`)
+        .get(`/api/health/circuit-breaker`)
         .timeout(2000);
       
       if (response.status === HttpStatus.OK) {
@@ -265,13 +265,13 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       // Make multiple requests while circuit is open
       const responses = await Promise.all([
         request(app.getHttpServer())
-          .get(`/api/v1/recommendations/${testUserId}`)
+          .get(`/api/recommendations/${testUserId}`)
           .timeout(2000),
         request(app.getHttpServer())
-          .get(`/api/v1/recommendations/${testUserId}`)
+          .get(`/api/recommendations/${testUserId}`)
           .timeout(2000),
         request(app.getHttpServer())
-          .get(`/api/v1/recommendations/${testUserId}`)
+          .get(`/api/recommendations/${testUserId}`)
           .timeout(2000),
       ]);
       
@@ -285,7 +285,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
 
     it('should track circuit breaker metrics', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/metrics/circuit-breaker`)
+        .get(`/api/metrics/circuit-breaker`)
         .timeout(2000);
       
       if (response.status === HttpStatus.OK) {
@@ -309,7 +309,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       for (let i = 0; i < 10; i++) {
         promises.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}`)
+            .get(`/api/recommendations/${testUserId}`)
         );
       }
       
@@ -323,7 +323,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       // This requires careful coordination to maintain 19/20 connections
       // Generally, the system should queue and not reject
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`)
+        .get(`/api/recommendations/${testUserId}`)
         .timeout(5000);
       
       expect([HttpStatus.OK, HttpStatus.SERVICE_UNAVAILABLE])
@@ -338,7 +338,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       for (let i = 0; i < 25; i++) {
         holdPromises.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}?hold_ms=${holdTimeMs}`)
+            .get(`/api/recommendations/${testUserId}?hold_ms=${holdTimeMs}`)
             .timeout(holdTimeMs + 1000)
             .catch(() => null) // Ignore timeout
         );
@@ -346,7 +346,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       
       // Immediately try another request while pool is held
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`)
+        .get(`/api/recommendations/${testUserId}`)
         .timeout(2000);
       
       // Should be rejected
@@ -360,7 +360,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
     it('should include connection info in error response', async () => {
       // Trigger pool exhaustion and check error details
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?pool_info=true`)
+        .get(`/api/recommendations/${testUserId}?pool_info=true`)
         .timeout(2000);
       
       if (response.status === HttpStatus.SERVICE_UNAVAILABLE) {
@@ -378,7 +378,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       for (let i = 0; i < 15; i++) {
         holdPromises.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}?hold_ms=2000`)
+            .get(`/api/recommendations/${testUserId}?hold_ms=2000`)
             .timeout(3000)
             .catch(() => null)
         );
@@ -388,7 +388,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const response1 = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`)
+        .get(`/api/recommendations/${testUserId}`)
         .timeout(2000);
       
       // Wait for connections to be released
@@ -396,14 +396,14 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       
       // Now should work fine
       const response2 = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`);
+        .get(`/api/recommendations/${testUserId}`);
       
       expect(response2.status).toBe(HttpStatus.OK);
     });
 
     it('should detect connection leaks', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/health/connection-pool`)
+        .get(`/api/health/connection-pool`)
         .timeout(2000);
       
       if (response.status === HttpStatus.OK) {
@@ -419,7 +419,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
     it('should apply idle timeout to released connections', async () => {
       // Make a request to open a connection
       const response1 = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`);
+        .get(`/api/recommendations/${testUserId}`);
       
       expect(response1.status).toBe(HttpStatus.OK);
       
@@ -428,7 +428,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
       
       // Next request should still work (connection would be cleaned up)
       const response2 = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`);
+        .get(`/api/recommendations/${testUserId}`);
       
       expect(response2.status).toBe(HttpStatus.OK);
     });
@@ -442,7 +442,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
     
     it('should have sensible timeout defaults', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/config/timeouts`);
+        .get(`/api/config/timeouts`);
       
       if (response.status === HttpStatus.OK) {
         expect(response.body).toHaveProperty('query_timeout_ms');
@@ -456,7 +456,7 @@ describe('Timeout & Retry Logic (BACK-007)', () => {
 
     it('should enforce maximum timeout limit', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?timeout=999999999`);
+        .get(`/api/recommendations/${testUserId}?timeout=999999999`);
       
       expect(response.status).toBe(HttpStatus.BAD_REQUEST);
       expect(response.body.error).toHaveProperty('message');

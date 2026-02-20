@@ -96,7 +96,7 @@ scrape_configs:
 
 # 遠程存儲配置 (可選)
 # remote_write:
-#   - url: "http://remote-storage:9009/api/v1/push"
+#   - url: "http://remote-storage:9009/api/push"
 #     queue_config:
 #       capacity: 10000
 #       max_shards: 200

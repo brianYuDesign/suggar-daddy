@@ -494,15 +494,15 @@ sleep 10
 curl http://localhost:3000/health  # 應返回 200
 
 # ✓ 能獲取推薦
-curl http://localhost:3000/api/v1/recommendations/user-test?limit=10
+curl http://localhost:3000/api/recommendations/user-test?limit=10
 
 # ✓ 能記錄互動
-curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
+curl -X POST http://localhost:3000/api/recommendations/interactions \
   -H "Content-Type: application/json" \
   -d '{"user_id":"user-test","content_id":"content-1","interaction_type":"like"}'
 
 # ✓ 能清空快取
-curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
+curl -X POST http://localhost:3000/api/recommendations/clear-cache
 
 # ✓ 能查看日誌
 docker-compose logs recommendation-service | tail -20

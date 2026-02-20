@@ -21,16 +21,16 @@
 ### ✅ 2. API 端點設計
 
 **10 個完整 REST API 端點**:
-- `GET /api/v1/recommendations/:userId` - 獲取推薦
-- `POST /api/v1/recommendations/interactions` - 記錄互動
-- `POST /api/v1/recommendations/refresh/:userId`
-- `POST /api/v1/recommendations/update-scores`
-- `POST /api/v1/recommendations/clear-cache`
-- `GET /api/v1/contents` - 獲取內容列表
-- `POST /api/v1/contents` - 創建內容
-- `PUT /api/v1/contents/:id` - 更新內容
-- `POST /api/v1/contents/:id/view` - 記錄觀看
-- `DELETE /api/v1/contents/:id` - 刪除內容
+- `GET /api/recommendations/:userId` - 獲取推薦
+- `POST /api/recommendations/interactions` - 記錄互動
+- `POST /api/recommendations/refresh/:userId`
+- `POST /api/recommendations/update-scores`
+- `POST /api/recommendations/clear-cache`
+- `GET /api/contents` - 獲取內容列表
+- `POST /api/contents` - 創建內容
+- `PUT /api/contents/:id` - 更新內容
+- `POST /api/contents/:id/view` - 記錄觀看
+- `DELETE /api/contents/:id` - 刪除內容
 
 ### ✅ 3. 數據庫 Schema
 

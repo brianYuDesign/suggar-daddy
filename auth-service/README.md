@@ -103,7 +103,7 @@ BCRYPT_ROUNDS=10
 
 #### Register User
 ```bash
-POST /api/v1/auth/register
+POST /api/auth/register
 Content-Type: application/json
 
 {
@@ -136,7 +136,7 @@ Response 201:
 
 #### Login
 ```bash
-POST /api/v1/auth/login
+POST /api/auth/login
 Content-Type: application/json
 
 {
@@ -149,7 +149,7 @@ Response 200: Returns user data and tokens (same structure as register)
 
 #### Get Current User
 ```bash
-GET /api/v1/auth/me
+GET /api/auth/me
 Authorization: Bearer {accessToken}
 
 Response 200:
@@ -166,7 +166,7 @@ Response 200:
 
 #### Refresh Token
 ```bash
-POST /api/v1/auth/refresh
+POST /api/auth/refresh
 Content-Type: application/json
 
 {
@@ -187,7 +187,7 @@ Response 200:
 
 #### Validate Token
 ```bash
-POST /api/v1/auth/validate
+POST /api/auth/validate
 Content-Type: application/json
 
 {
@@ -209,7 +209,7 @@ Response 200:
 
 #### Logout
 ```bash
-POST /api/v1/auth/logout
+POST /api/auth/logout
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -226,7 +226,7 @@ Response 200:
 
 #### Change Password
 ```bash
-POST /api/v1/auth/change-password
+POST /api/auth/change-password
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -247,13 +247,13 @@ Response 200:
 
 #### Get User Profile
 ```bash
-GET /api/v1/users/profile
+GET /api/users/profile
 Authorization: Bearer {accessToken}
 ```
 
 #### Update User Profile
 ```bash
-PATCH /api/v1/users/profile
+PATCH /api/users/profile
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -265,31 +265,31 @@ Content-Type: application/json
 
 #### List Users (Admin Only)
 ```bash
-GET /api/v1/users?page=1&limit=10
+GET /api/users?page=1&limit=10
 Authorization: Bearer {adminToken}
 ```
 
 #### Get User by ID (Admin Only)
 ```bash
-GET /api/v1/users/{userId}
+GET /api/users/{userId}
 Authorization: Bearer {adminToken}
 ```
 
 #### Deactivate User (Admin Only)
 ```bash
-POST /api/v1/users/{userId}/deactivate
+POST /api/users/{userId}/deactivate
 Authorization: Bearer {adminToken}
 ```
 
 #### Activate User (Admin Only)
 ```bash
-POST /api/v1/users/{userId}/activate
+POST /api/users/{userId}/activate
 Authorization: Bearer {adminToken}
 ```
 
 #### Delete User (Admin Only)
 ```bash
-DELETE /api/v1/users/{userId}
+DELETE /api/users/{userId}
 Authorization: Bearer {adminToken}
 ```
 
@@ -297,19 +297,19 @@ Authorization: Bearer {adminToken}
 
 #### List Roles
 ```bash
-GET /api/v1/roles
+GET /api/roles
 Authorization: Bearer {adminToken}
 ```
 
 #### Get Role Details
 ```bash
-GET /api/v1/roles/{roleId}
+GET /api/roles/{roleId}
 Authorization: Bearer {adminToken}
 ```
 
 #### Create Role
 ```bash
-POST /api/v1/roles
+POST /api/roles
 Authorization: Bearer {adminToken}
 Content-Type: application/json
 
@@ -321,7 +321,7 @@ Content-Type: application/json
 
 #### Assign Permission to Role
 ```bash
-POST /api/v1/roles/{roleId}/permissions
+POST /api/roles/{roleId}/permissions
 Authorization: Bearer {adminToken}
 Content-Type: application/json
 
@@ -334,25 +334,25 @@ Content-Type: application/json
 
 #### List All Permissions
 ```bash
-GET /api/v1/permissions
+GET /api/permissions
 Authorization: Bearer {token}
 ```
 
 #### Get User's Permissions
 ```bash
-GET /api/v1/permissions/me
+GET /api/permissions/me
 Authorization: Bearer {token}
 ```
 
 #### Check Permission
 ```bash
-GET /api/v1/permissions/check?action=read&resource=user
+GET /api/permissions/check?action=read&resource=user
 Authorization: Bearer {token}
 ```
 
 #### Create Permission (Admin Only)
 ```bash
-POST /api/v1/permissions
+POST /api/permissions
 Authorization: Bearer {adminToken}
 Content-Type: application/json
 
@@ -567,7 +567,7 @@ docker run -p 3002:3002 \
 
 ### Health Check
 ```bash
-curl http://localhost:3002/api/v1/auth/me
+curl http://localhost:3002/api/auth/me
 ```
 
 ## 📋 Roles & Permissions Matrix

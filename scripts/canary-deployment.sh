@@ -235,7 +235,7 @@ query_prometheus() {
     local query=$1
     
     # 調用 Prometheus API
-    curl -s "http://prometheus.monitoring:9090/api/v1/query" \
+    curl -s "http://prometheus.monitoring:9090/api/query" \
         --data-urlencode "query=$query" | \
         jq -r '.data.result[0].value[1]' 2>/dev/null || echo "0"
 }

@@ -63,31 +63,31 @@ echo -e "${BLUE}═════════════════════�
 
 # 2.1 獲取服務可用性
 get_availability() {
-  curl -s "http://localhost:9090/api/v1/query?query=up{job=\"kubernetes-pods\"}" \
+  curl -s "http://localhost:9090/api/query?query=up{job=\"kubernetes-pods\"}" \
     | jq -r '.data.result[] | select(.labels.namespace=="production") | "\(.labels.pod): \(.value[1])"' \
     | head -10
 }
 
 # 2.2 獲取錯誤率
 get_error_rate() {
-  curl -s "http://localhost:9090/api/v1/query?query=rate(http_requests_total{status=~\"5..\"}[5m])*100" \
+  curl -s "http://localhost:9090/api/query?query=rate(http_requests_total{status=~\"5..\"}[5m])*100" \
     | jq -r '.data.result[] | "\(.labels.service): \(.value[1])%"'
 }
 
 # 2.3 獲取延遲
 get_latency() {
-  curl -s "http://localhost:9090/api/v1/query?query=histogram_quantile(0.95,rate(http_request_duration_seconds_bucket[5m]))*1000" \
+  curl -s "http://localhost:9090/api/query?query=histogram_quantile(0.95,rate(http_request_duration_seconds_bucket[5m]))*1000" \
     | jq -r '.data.result[] | "\(.labels.service): \(.value[1])ms"'
 }
 
 # 2.4 獲取資源使用
 get_resource_usage() {
   echo -e "\n${GREEN}CPU 使用率:${NC}"
-  curl -s "http://localhost:9090/api/v1/query?query=rate(container_cpu_usage_seconds_total{pod=~\"recommendation.*\"}[1m])*100" \
+  curl -s "http://localhost:9090/api/query?query=rate(container_cpu_usage_seconds_total{pod=~\"recommendation.*\"}[1m])*100" \
     | jq -r '.data.result[] | "\(.labels.pod): \(.value[1])%"'
   
   echo -e "\n${GREEN}內存使用率:${NC}"
-  curl -s "http://localhost:9090/api/v1/query?query=container_memory_usage_bytes{pod=~\"recommendation.*\"}/134217728*100" \
+  curl -s "http://localhost:9090/api/query?query=container_memory_usage_bytes{pod=~\"recommendation.*\"}/134217728*100" \
     | jq -r '.data.result[] | "\(.labels.pod): \(.value[1])%"'
 }
 
@@ -114,11 +114,11 @@ echo -e "${BLUE}═════════════════════�
 
 # 3.1 獲取活躍告警
 check_active_alerts() {
-  local alerts=$(curl -s "http://localhost:9093/api/v1/alerts" | jq '.data | length')
+  local alerts=$(curl -s "http://localhost:9093/api/alerts" | jq '.data | length')
   
   if [ "$alerts" -gt 0 ]; then
     echo -e "${RED}⚠️  有 $alerts 個活躍告警:${NC}"
-    curl -s "http://localhost:9093/api/v1/alerts" \
+    curl -s "http://localhost:9093/api/alerts" \
       | jq -r '.data[] | "\(.labels.alertname) [\(.labels.severity)]: \(.status)"'
   else
     echo -e "${GREEN}✓ 沒有活躍告警${NC}"
@@ -295,16 +295,16 @@ continuous_monitoring() {
     echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
     
     # 獲取關鍵指標
-    local availability=$(curl -s "http://localhost:9090/api/v1/query?query=(up{job=\"kubernetes-pods\",namespace=\"production\"}/1)*100" \
+    local availability=$(curl -s "http://localhost:9090/api/query?query=(up{job=\"kubernetes-pods\",namespace=\"production\"}/1)*100" \
       | jq -r '.data.result[0].value[1] | tonumber | floor')
     
-    local error_rate=$(curl -s "http://localhost:9090/api/v1/query?query=rate(http_requests_total{status=~\"5..\"}[5m])*100" \
+    local error_rate=$(curl -s "http://localhost:9090/api/query?query=rate(http_requests_total{status=~\"5..\"}[5m])*100" \
       | jq -r '.data.result[0].value[1] // "0"')
     
-    local p95_latency=$(curl -s "http://localhost:9090/api/v1/query?query=histogram_quantile(0.95,rate(http_request_duration_seconds_bucket[5m]))*1000" \
+    local p95_latency=$(curl -s "http://localhost:9090/api/query?query=histogram_quantile(0.95,rate(http_request_duration_seconds_bucket[5m]))*1000" \
       | jq -r '.data.result[0].value[1] | tonumber | floor')
     
-    local active_alerts=$(curl -s "http://localhost:9093/api/v1/alerts" | jq '.data | length')
+    local active_alerts=$(curl -s "http://localhost:9093/api/alerts" | jq '.data | length')
     
     # 顯示指標
     echo -e "\n${GREEN}關鍵 SLA 指標:${NC}"

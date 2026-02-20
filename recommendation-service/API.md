@@ -15,7 +15,7 @@
 
 ## 基礎資訊
 
-**Base URL**: `http://localhost:3000/api/v1`
+**Base URL**: `http://localhost:3000/api`
 
 **Response Format**: JSON
 
@@ -28,7 +28,7 @@
 ### 1. 獲取用戶推薦
 
 ```
-GET /api/v1/recommendations/:userId
+GET /api/recommendations/:userId
 ```
 
 **參數**:
@@ -63,7 +63,7 @@ GET /api/v1/recommendations/:userId
 
 **Example**:
 ```bash
-curl http://localhost:3000/api/v1/recommendations/user-123?limit=20
+curl http://localhost:3000/api/recommendations/user-123?limit=20
 ```
 
 ---
@@ -71,7 +71,7 @@ curl http://localhost:3000/api/v1/recommendations/user-123?limit=20
 ### 2. 記錄用戶互動
 
 ```
-POST /api/v1/recommendations/interactions
+POST /api/recommendations/interactions
 ```
 
 **Request Body**:
@@ -94,7 +94,7 @@ POST /api/v1/recommendations/interactions
 
 **Example**:
 ```bash
-curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
+curl -X POST http://localhost:3000/api/recommendations/interactions \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "user-123",
@@ -108,7 +108,7 @@ curl -X POST http://localhost:3000/api/v1/recommendations/interactions \
 ### 3. 刷新推薦（清空快取）
 
 ```
-POST /api/v1/recommendations/refresh/:userId
+POST /api/recommendations/refresh/:userId
 ```
 
 **Parameters**:
@@ -127,7 +127,7 @@ POST /api/v1/recommendations/refresh/:userId
 
 **Example**:
 ```bash
-curl -X POST http://localhost:3000/api/v1/recommendations/refresh/user-123
+curl -X POST http://localhost:3000/api/recommendations/refresh/user-123
 ```
 
 ---
@@ -135,7 +135,7 @@ curl -X POST http://localhost:3000/api/v1/recommendations/refresh/user-123
 ### 4. 更新內容分數（定期任務）
 
 ```
-POST /api/v1/recommendations/update-scores
+POST /api/recommendations/update-scores
 ```
 
 **用途**: 重新計算所有內容的熱度分數、新鮮度分數等
@@ -150,7 +150,7 @@ POST /api/v1/recommendations/update-scores
 
 **Example**:
 ```bash
-curl -X POST http://localhost:3000/api/v1/recommendations/update-scores
+curl -X POST http://localhost:3000/api/recommendations/update-scores
 ```
 
 ---
@@ -158,7 +158,7 @@ curl -X POST http://localhost:3000/api/v1/recommendations/update-scores
 ### 5. 清空推薦快取
 
 ```
-POST /api/v1/recommendations/clear-cache
+POST /api/recommendations/clear-cache
 ```
 
 **用途**: 清空所有 Redis 推薦快取（用於緊急情況或維護）
@@ -173,7 +173,7 @@ POST /api/v1/recommendations/clear-cache
 
 **Example**:
 ```bash
-curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
+curl -X POST http://localhost:3000/api/recommendations/clear-cache
 ```
 
 ---
@@ -183,7 +183,7 @@ curl -X POST http://localhost:3000/api/v1/recommendations/clear-cache
 ### 1. 獲取所有內容
 
 ```
-GET /api/v1/contents
+GET /api/contents
 ```
 
 **Parameters**:
@@ -213,7 +213,7 @@ GET /api/v1/contents
 ### 2. 獲取單個內容
 
 ```
-GET /api/v1/contents/:id
+GET /api/contents/:id
 ```
 
 **Response (200 OK)**: 同上 (單個對象)
@@ -223,7 +223,7 @@ GET /api/v1/contents/:id
 ### 3. 創建內容
 
 ```
-POST /api/v1/contents
+POST /api/contents
 ```
 
 **Request Body**:
@@ -250,7 +250,7 @@ POST /api/v1/contents
 ### 4. 更新內容
 
 ```
-PUT /api/v1/contents/:id
+PUT /api/contents/:id
 ```
 
 **Request Body**:
@@ -267,7 +267,7 @@ PUT /api/v1/contents/:id
 ### 5. 記錄觀看
 
 ```
-POST /api/v1/contents/:id/view
+POST /api/contents/:id/view
 ```
 
 **Response (204 No Content)**
@@ -277,7 +277,7 @@ POST /api/v1/contents/:id/view
 ### 6. 記錄點讚
 
 ```
-POST /api/v1/contents/:id/like
+POST /api/contents/:id/like
 ```
 
 **Response (204 No Content)**
@@ -287,7 +287,7 @@ POST /api/v1/contents/:id/like
 ### 7. 刪除內容
 
 ```
-DELETE /api/v1/contents/:id
+DELETE /api/contents/:id
 ```
 
 **Response (204 No Content)**

@@ -42,16 +42,16 @@
 
 **API 端點** (10 個):
 ```
-GET    /api/v1/subscriptions/plans
-GET    /api/v1/subscriptions/plans/{id}
-POST   /api/v1/subscriptions
-GET    /api/v1/subscriptions/{id}
-GET    /api/v1/subscriptions/user/{userId}
-PATCH  /api/v1/subscriptions/{id}
-POST   /api/v1/subscriptions/{id}/cancel
-POST   /api/v1/subscriptions/{id}/pause
-POST   /api/v1/subscriptions/{id}/resume
-GET    /api/v1/subscriptions/{id}/billing-history
+GET    /api/subscriptions/plans
+GET    /api/subscriptions/plans/{id}
+POST   /api/subscriptions
+GET    /api/subscriptions/{id}
+GET    /api/subscriptions/user/{userId}
+PATCH  /api/subscriptions/{id}
+POST   /api/subscriptions/{id}/cancel
+POST   /api/subscriptions/{id}/pause
+POST   /api/subscriptions/{id}/resume
+GET    /api/subscriptions/{id}/billing-history
 ```
 
 ### ✅ 2. API Gateway (新建) ⭐
@@ -81,11 +81,11 @@ GET    /api/v1/subscriptions/{id}/billing-history
 
 **路由配置**:
 ```
-/api/v1/auth/*              → Auth Service (3001)
-/api/v1/videos/*            → Content-Streaming (3001)
-/api/v1/recommendations/*   → Recommendation (3000)
-/api/v1/payments/*          → Payment Service (3002)
-/api/v1/subscriptions/*     → Subscription Service (3003)
+/api/auth/*              → Auth Service (3001)
+/api/videos/*            → Content-Streaming (3001)
+/api/recommendations/*   → Recommendation (3000)
+/api/payments/*          → Payment Service (3002)
+/api/subscriptions/*     → Subscription Service (3003)
 ```
 
 ### ✅ 3. 集成測試套件 (60+ 個測試)
@@ -254,7 +254,7 @@ docker-compose up -d
 curl http://localhost:3000/health
 
 # 測試用戶登錄
-curl -X POST http://localhost:3000/api/v1/auth/login \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"TestPass123!"}'
 ```

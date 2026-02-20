@@ -42,7 +42,7 @@ describe('Error Handling & Security (BACK-007)', () => {
     
     it('should return 400 for invalid request body', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .set('Content-Type', 'application/json')
         .send('invalid json {]');
       
@@ -52,7 +52,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should return 400 for missing required fields', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({
           user_id: 'user-123'
           // Missing content_id and interaction_type
@@ -65,7 +65,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should return 401 for missing authentication', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/protected-endpoint');
+        .get('/api/user/user-123/protected-endpoint');
       
       expect(response.status).toBe(HttpStatus.UNAUTHORIZED); // 401
       expect(response.body).toHaveProperty('error.type', 'MISSING_AUTH');
@@ -73,7 +73,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should return 401 for invalid token', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/protected-endpoint')
+        .get('/api/user/user-123/protected-endpoint')
         .set('Authorization', 'Bearer invalid.token.here');
       
       expect(response.status).toBe(HttpStatus.UNAUTHORIZED); // 401
@@ -84,7 +84,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       const expiredToken = generateExpiredJWT();
       
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/protected-endpoint')
+        .get('/api/user/user-123/protected-endpoint')
         .set('Authorization', `Bearer ${expiredToken}`);
       
       expect(response.status).toBe(HttpStatus.UNAUTHORIZED); // 401
@@ -95,7 +95,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       const userToken = generateJWTForUser('user-456');
       
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/profile')
+        .get('/api/user/user-123/profile')
         .set('Authorization', `Bearer ${userToken}`);
       
       expect(response.status).toBe(HttpStatus.FORBIDDEN); // 403
@@ -104,7 +104,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should return 404 for non-existent resource', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/non-existent-user');
+        .get('/api/recommendations/non-existent-user');
       
       expect(response.status).toBe(HttpStatus.NOT_FOUND); // 404
       expect(response.body).toHaveProperty('error.type', 'NOT_FOUND');
@@ -114,7 +114,7 @@ describe('Error Handling & Security (BACK-007)', () => {
     it('should return 409 for constraint violation (duplicate)', async () => {
       // First create a user
       await request(app.getHttpServer())
-        .post('/api/v1/user')
+        .post('/api/user')
         .send({
           email: 'test@example.com',
           username: 'testuser'
@@ -122,7 +122,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       
       // Try to create duplicate
       const response = await request(app.getHttpServer())
-        .post('/api/v1/user')
+        .post('/api/user')
         .send({
           email: 'test@example.com',
           username: 'testuser'
@@ -137,7 +137,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       const largePayload = Buffer.alloc(1024 * 1024 * 1024 + 1); // >1GB
       
       const response = await request(app.getHttpServer())
-        .post('/api/v1/upload')
+        .post('/api/upload')
         .send(largePayload)
         .timeout(2000)
         .catch(() => ({ status: HttpStatus.PAYLOAD_TOO_LARGE }));
@@ -147,7 +147,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should return 415 for unsupported media type', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/upload')
+        .post('/api/upload')
         .set('Content-Type', 'application/x-msdownload')
         .send(Buffer.from('MZ...'));
       
@@ -161,7 +161,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       for (let i = 0; i < 200; i++) {
         promises.push(
           request(app.getHttpServer())
-            .get('/api/v1/recommendations/user-123')
+            .get('/api/recommendations/user-123')
         );
       }
       
@@ -175,7 +175,7 @@ describe('Error Handling & Security (BACK-007)', () => {
     it('should return 500 for internal server error', async () => {
       // Trigger internal error
       const response = await request(app.getHttpServer())
-        .get('/api/v1/test/trigger-error');
+        .get('/api/test/trigger-error');
       
       expect(response.status).toBe(HttpStatus.INTERNAL_SERVER_ERROR); // 500
       expect(response.body).toHaveProperty('error.id'); // Should have tracking ID
@@ -183,7 +183,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should return 501 for not implemented features', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/beta-feature/not-ready');
+        .get('/api/beta-feature/not-ready');
       
       expect(response.status).toBe(HttpStatus.NOT_IMPLEMENTED); // 501
       expect(response.body).toHaveProperty('error.type', 'NOT_IMPLEMENTED');
@@ -191,7 +191,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should return 503 for service unavailable', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-123?simulate_503=true')
+        .get('/api/recommendations/user-123?simulate_503=true')
         .timeout(3000)
         .catch(() => ({ status: HttpStatus.SERVICE_UNAVAILABLE }));
       
@@ -200,7 +200,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should return 504 for gateway timeout', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-123?simulate_delay=10000')
+        .get('/api/recommendations/user-123?simulate_delay=10000')
         .timeout(2000)
         .catch(() => ({ status: HttpStatus.GATEWAY_TIMEOUT }));
       
@@ -216,7 +216,7 @@ describe('Error Handling & Security (BACK-007)', () => {
     
     it('should include all required error fields', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({}); // Will trigger validation error
       
       expect(response.status).toBe(HttpStatus.BAD_REQUEST);
@@ -232,7 +232,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should have well-formatted error ID', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/invalid-id');
+        .get('/api/recommendations/invalid-id');
       
       const errorId = response.body.error.id;
       
@@ -242,7 +242,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should have ISO 8601 formatted timestamp', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({});
       
       const timestamp = response.body.error.timestamp;
@@ -258,17 +258,17 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should include request path in error', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-123');
+        .get('/api/recommendations/user-123');
       
       if (response.status !== 200) {
-        expect(response.body.error.path).toContain('/api/v1/recommendations/user-123');
+        expect(response.body.error.path).toContain('/api/recommendations/user-123');
       }
     });
 
     it('should not expose sensitive data in error message', async () => {
       // Try SQL injection
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/user-123'; DROP TABLE users; --`);
+        .get(`/api/recommendations/user-123'; DROP TABLE users; --`);
       
       const errorMessage = response.body.error.message;
       
@@ -280,7 +280,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should include actionable details when available', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({
           user_id: 'user-123',
           // Missing content_id
@@ -338,7 +338,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       
       for (let i = 0; i < 10; i++) {
         const response = await request(app.getHttpServer())
-          .post('/api/v1/recommendations/interactions')
+          .post('/api/recommendations/interactions')
           .send({}); // Trigger error
         
         const id = response.body.error.id;
@@ -353,7 +353,7 @@ describe('Error Handling & Security (BACK-007)', () => {
     it('should include error ID in logs for debugging', async () => {
       // This would require access to application logs
       const response = await request(app.getHttpServer())
-        .get('/api/v1/test/trigger-error');
+        .get('/api/test/trigger-error');
       
       const errorId = response.body.error.id;
       
@@ -365,7 +365,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should allow client to reference error by ID', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({});
       
       const errorId = response.body.error.id;
@@ -390,12 +390,12 @@ describe('Error Handling & Security (BACK-007)', () => {
       };
       
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/comments')
+        .post('/api/recommendations/comments')
         .send(maliciousPayload);
       
       // Verify the comment was stored safely
       const getResponse = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/content-1/comments');
+        .get('/api/recommendations/content-1/comments');
       
       if (getResponse.status === 200) {
         const comment = getResponse.body.comments.find(c => c.text.includes('Your comment'));
@@ -414,7 +414,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       
       for (const payload of xssPayloads) {
         const response = await request(app.getHttpServer())
-          .post('/api/v1/recommendations/comments')
+          .post('/api/recommendations/comments')
           .send({
             user_id: 'user-123',
             content_id: 'content-1',
@@ -422,7 +422,7 @@ describe('Error Handling & Security (BACK-007)', () => {
           });
         
         const getResponse = await request(app.getHttpServer())
-          .get('/api/v1/recommendations/content-1/comments');
+          .get('/api/recommendations/content-1/comments');
         
         if (getResponse.status === 200) {
           const stored = getResponse.body.comments.map(c => c.text).join('');
@@ -435,7 +435,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should block javascript: URLs', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/user/profile')
+        .post('/api/user/profile')
         .set('Authorization', `Bearer ${validToken}`)
         .send({
           profile_url: 'javascript:alert("xss")'
@@ -455,7 +455,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       
       for (const payload of encodedPayloads) {
         const response = await request(app.getHttpServer())
-          .post('/api/v1/recommendations/comments')
+          .post('/api/recommendations/comments')
           .send({
             user_id: 'user-123',
             content_id: 'content-1',
@@ -471,7 +471,7 @@ describe('Error Handling & Security (BACK-007)', () => {
     it('should prevent stored XSS by escaping on retrieval', async () => {
       // Even if somehow malicious content was stored, it should be escaped on retrieval
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/content-1/comments');
+        .get('/api/recommendations/content-1/comments');
       
       if (response.status === 200) {
         const html = JSON.stringify(response.body);
@@ -490,7 +490,7 @@ describe('Error Handling & Security (BACK-007)', () => {
     
     it('should require CSRF token for state-changing operations', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({
           user_id: 'user-123',
           content_id: 'content-1',
@@ -504,7 +504,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should provide CSRF token on GET request', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/csrf-token');
+        .get('/api/csrf-token');
       
       if (response.status === HttpStatus.OK) {
         expect(response.body).toHaveProperty('token');
@@ -515,13 +515,13 @@ describe('Error Handling & Security (BACK-007)', () => {
     it('should accept valid CSRF token', async () => {
       // Get CSRF token
       const tokenResponse = await request(app.getHttpServer())
-        .get('/api/v1/csrf-token');
+        .get('/api/csrf-token');
       
       const csrfToken = tokenResponse.body.token;
       
       // Use token in POST
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .set('X-CSRF-Token', csrfToken)
         .send({
           user_id: 'user-123',
@@ -535,7 +535,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should reject invalid CSRF token', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .set('X-CSRF-Token', 'invalid-token-123')
         .send({
           user_id: 'user-123',
@@ -552,7 +552,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       const expiredToken = generateExpiredCSRFToken();
       
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .set('X-CSRF-Token', expiredToken)
         .send({
           user_id: 'user-123',
@@ -568,7 +568,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       
       for (let i = 0; i < 5; i++) {
         const response = await request(app.getHttpServer())
-          .get('/api/v1/csrf-token');
+          .get('/api/csrf-token');
         
         if (response.status === HttpStatus.OK) {
           tokens.add(response.body.token);
@@ -581,7 +581,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should exempt GET requests from CSRF requirement', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/recommendations/user-123');
+        .get('/api/recommendations/user-123');
       
       // GET should work without CSRF token
       expect([HttpStatus.OK, HttpStatus.NOT_FOUND]).toContain(response.status);
@@ -596,14 +596,14 @@ describe('Error Handling & Security (BACK-007)', () => {
     
     it('should require authentication for protected endpoints', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/private-data');
+        .get('/api/user/user-123/private-data');
       
       expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
     });
 
     it('should accept valid Bearer token', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/profile')
+        .get('/api/user/user-123/profile')
         .set('Authorization', `Bearer ${validToken}`);
       
       // Should succeed or be forbidden (not unauthorized)
@@ -612,7 +612,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should reject malformed Authorization header', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/profile')
+        .get('/api/user/user-123/profile')
         .set('Authorization', 'NotBearer token123');
       
       expect(response.status).toBe(HttpStatus.BAD_REQUEST);
@@ -622,7 +622,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       const token = generateJWTForUser('user-123');
       
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-456/profile')
+        .get('/api/user/user-456/profile')
         .set('Authorization', `Bearer ${token}`);
       
       expect(response.status).toBe(HttpStatus.FORBIDDEN);
@@ -631,7 +631,7 @@ describe('Error Handling & Security (BACK-007)', () => {
     it('should support multiple auth schemes', async () => {
       // Bearer token
       const bearerResponse = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/profile')
+        .get('/api/user/user-123/profile')
         .set('Authorization', `Bearer ${validToken}`);
       
       // Basic auth would be another option
@@ -647,7 +647,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       revokeToken(revokedToken);
       
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/profile')
+        .get('/api/user/user-123/profile')
         .set('Authorization', `Bearer ${revokedToken}`);
       
       expect(response.status).toBe(HttpStatus.UNAUTHORIZED);
@@ -655,7 +655,7 @@ describe('Error Handling & Security (BACK-007)', () => {
 
     it('should support API key authentication for services', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/v1/health')
+        .get('/api/health')
         .set('X-API-Key', 'valid-api-key-123');
       
       // Should work with API key
@@ -667,7 +667,7 @@ describe('Error Handling & Security (BACK-007)', () => {
       const tampered Token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlci0xMjMiLCJpc19hZG1pbiI6dHJ1ZX0.invalid_signature';
       
       const response = await request(app.getHttpServer())
-        .get('/api/v1/user/user-123/profile')
+        .get('/api/user/user-123/profile')
         .set('Authorization', `Bearer ${tamperedToken}`);
       
       expect(response.status).toBe(HttpStatus.UNAUTHORIZED);

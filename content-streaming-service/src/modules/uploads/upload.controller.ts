@@ -3,7 +3,7 @@ import { UploadService } from '@/services/upload.service';
 import { S3Service } from '@/services/s3.service';
 import { InitiateUploadDto, CompleteUploadDto, UploadSessionResponseDto } from '@/dtos/video.dto';
 
-@Controller('api/v1/uploads')
+@Controller('api/uploads')
 export class UploadController {
   constructor(
     private uploadService: UploadService,

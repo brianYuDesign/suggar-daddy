@@ -40,7 +40,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       const largePayload = Buffer.alloc(1024 * 1024 * 1024 + 1); // 1GB + 1 byte
       
       const response = await request(app.getHttpServer())
-        .post('/api/v1/upload')
+        .post('/api/upload')
         .set('Content-Type', 'application/octet-stream')
         .send(largePayload);
 
@@ -58,7 +58,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       // Upload chunk 1
       const chunk1 = Buffer.alloc(chunkSize);
       const response1 = await request(app.getHttpServer())
-        .post('/api/v1/upload/chunk')
+        .post('/api/upload/chunk')
         .set('X-Upload-ID', uploadId)
         .set('X-Chunk-Index', '0')
         .set('X-Total-Chunks', '5')
@@ -76,7 +76,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       // Upload chunk 0
       const chunk0 = Buffer.alloc(chunkSize);
       await request(app.getHttpServer())
-        .post('/api/v1/upload/chunk')
+        .post('/api/upload/chunk')
         .set('X-Upload-ID', uploadId)
         .set('X-Chunk-Index', '0')
         .set('X-Total-Chunks', '3')
@@ -85,7 +85,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       // Skip chunk 1 and upload chunk 2
       const chunk2 = Buffer.alloc(chunkSize);
       const response = await request(app.getHttpServer())
-        .post('/api/v1/upload/chunk')
+        .post('/api/upload/chunk')
         .set('X-Upload-ID', uploadId)
         .set('X-Chunk-Index', '2')
         .set('X-Total-Chunks', '3')
@@ -98,7 +98,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
 
     it('should reject upload with invalid content type', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/upload')
+        .post('/api/upload')
         .set('Content-Type', 'application/x-msdownload') // .exe
         .attach('file', Buffer.from('MZ...'), 'malware.exe');
       
@@ -110,7 +110,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       const emptyBuffer = Buffer.alloc(0);
       
       const response = await request(app.getHttpServer())
-        .post('/api/v1/upload')
+        .post('/api/upload')
         .set('Content-Type', 'video/mp4')
         .send(emptyBuffer);
       
@@ -132,7 +132,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       for (let i = 0; i < concurrencyLevel; i++) {
         promises.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}?limit=10`)
+            .get(`/api/recommendations/${testUserId}?limit=10`)
         );
       }
       
@@ -158,7 +158,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       for (let i = 0; i < concurrencyLevel; i++) {
         promises.push(
           request(app.getHttpServer())
-            .post('/api/v1/recommendations/interactions')
+            .post('/api/recommendations/interactions')
             .send({
               user_id: `${testUserId}-${i}`,
               content_id: `content-${Math.floor(Math.random() * 1000)}`,
@@ -183,7 +183,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       for (let i = 0; i < 25; i++) {
         promises.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}?delay=${holdTimeMs}`)
+            .get(`/api/recommendations/${testUserId}?delay=${holdTimeMs}`)
         );
       }
       
@@ -205,7 +205,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       for (let i = 0; i < 10; i++) {
         totalRequests++;
         const response = await request(app.getHttpServer())
-          .get(`/api/v1/recommendations/${testUserId}`);
+          .get(`/api/recommendations/${testUserId}`);
         if (response.status === HttpStatus.OK) successCount++;
         await new Promise(resolve => setTimeout(resolve, 500)); // 500ms between requests
       }
@@ -216,7 +216,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
         totalRequests++;
         promises.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}`)
+            .get(`/api/recommendations/${testUserId}`)
         );
       }
       const burstResults = await Promise.all(promises);
@@ -241,7 +241,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       for (let i = 0; i < 150; i++) {
         promises.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}`)
+            .get(`/api/recommendations/${testUserId}`)
         );
       }
       
@@ -262,7 +262,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       for (let i = 0; i < 200; i++) {
         promises.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}`)
+            .get(`/api/recommendations/${testUserId}`)
         );
       }
       
@@ -279,7 +279,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
 
     it('should include X-RateLimit-* headers in all responses', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`);
+        .get(`/api/recommendations/${testUserId}`);
       
       expect(response.headers).toHaveProperty('x-ratelimit-limit');
       expect(response.headers).toHaveProperty('x-ratelimit-remaining');
@@ -301,7 +301,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       for (let i = 0; i < 200; i++) {
         promises1.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}`)
+            .get(`/api/recommendations/${testUserId}`)
         );
       }
       
@@ -312,7 +312,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       
       // Should be able to make requests again
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`);
+        .get(`/api/recommendations/${testUserId}`);
       
       expect(response.status).not.toBe(HttpStatus.TOO_MANY_REQUESTS);
     });
@@ -320,9 +320,9 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
     it('should apply rate limits per endpoint', async () => {
       // Test different endpoints have different limits
       const endpoints = [
-        `/api/v1/recommendations/${testUserId}`,
-        `/api/v1/user/${testUserId}/profile`,
-        `/api/v1/content/search?q=test`
+        `/api/recommendations/${testUserId}`,
+        `/api/user/${testUserId}/profile`,
+        `/api/content/search?q=test`
       ];
       
       for (const endpoint of endpoints) {
@@ -339,12 +339,12 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       
       // Without auth - lower limit
       const anonResponse = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`);
+        .get(`/api/recommendations/${testUserId}`);
       const anonLimit = parseInt(anonResponse.headers['x-ratelimit-limit']);
       
       // With auth - higher limit
       const authResponse = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}`)
+        .get(`/api/recommendations/${testUserId}`)
         .set('Authorization', `Bearer ${authToken}`);
       const authLimit = parseInt(authResponse.headers['x-ratelimit-limit']);
       
@@ -358,7 +358,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       for (let i = 0; i < 150; i++) {
         promises.push(
           request(app.getHttpServer())
-            .get(`/api/v1/recommendations/${testUserId}`)
+            .get(`/api/recommendations/${testUserId}`)
             .set('X-Forwarded-For', `192.168.1.${i % 254}`) // Try different IPs
         );
       }
@@ -379,7 +379,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
     
     it('should handle minimum valid request (empty object)', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({});
       
       // Should fail validation with 400
@@ -389,7 +389,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
 
     it('should handle maximum valid request (all optional fields)', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({
           user_id: testUserId,
           content_id: 'content-123',
@@ -409,7 +409,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
 
     it('should handle edge case: negative values', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({
           user_id: testUserId,
           content_id: 'content-123',
@@ -423,7 +423,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
 
     it('should handle edge case: extremely large values', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/recommendations/interactions')
+        .post('/api/recommendations/interactions')
         .send({
           user_id: testUserId,
           content_id: 'content-123',
@@ -444,7 +444,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
       
       for (const specialId of specialIds) {
         const response = await request(app.getHttpServer())
-          .get(`/api/v1/recommendations/${encodeURIComponent(specialId)}`);
+          .get(`/api/recommendations/${encodeURIComponent(specialId)}`);
         
         // Should not crash, should handle gracefully
         expect([HttpStatus.NOT_FOUND, HttpStatus.BAD_REQUEST]).toContain(response.status);
@@ -453,14 +453,14 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
 
     it('should handle limit=0 (invalid boundary)', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?limit=0`);
+        .get(`/api/recommendations/${testUserId}?limit=0`);
       
       expect(response.status).toBe(HttpStatus.BAD_REQUEST);
     });
 
     it('should handle limit=1 (minimum valid)', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?limit=1`);
+        .get(`/api/recommendations/${testUserId}?limit=1`);
       
       expect(response.status).toBe(HttpStatus.OK);
       expect(response.body.recommendations.length).toBeLessThanOrEqual(1);
@@ -468,7 +468,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
 
     it('should handle limit=100 (maximum valid)', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?limit=100`);
+        .get(`/api/recommendations/${testUserId}?limit=100`);
       
       expect(response.status).toBe(HttpStatus.OK);
       expect(response.body.recommendations.length).toBeLessThanOrEqual(100);
@@ -476,7 +476,7 @@ describe('Edge Cases & Boundary Conditions (BACK-007)', () => {
 
     it('should handle limit=101 (exceeds maximum)', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v1/recommendations/${testUserId}?limit=101`);
+        .get(`/api/recommendations/${testUserId}?limit=101`);
       
       expect(response.status).toBe(HttpStatus.BAD_REQUEST);
       expect(response.body.error.details).toContain('limit');

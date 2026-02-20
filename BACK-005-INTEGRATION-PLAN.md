@@ -118,14 +118,14 @@
 
 **核心 API**:
 ```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
-POST   /api/v1/auth/logout
-POST   /api/v1/auth/refresh
-GET    /api/v1/auth/me
-PATCH  /api/v1/auth/change-password
-GET    /api/v1/roles
-GET    /api/v1/permissions
+POST   /api/auth/register
+POST   /api/auth/login
+POST   /api/auth/logout
+POST   /api/auth/refresh
+GET    /api/auth/me
+PATCH  /api/auth/change-password
+GET    /api/roles
+GET    /api/permissions
 ```
 
 ### 2️⃣ Content-Streaming Service (Week 1 ✅)
@@ -140,14 +140,14 @@ GET    /api/v1/permissions
 
 **核心 API**:
 ```
-POST   /api/v1/videos/upload/init
-POST   /api/v1/videos/upload/chunk
-POST   /api/v1/videos/upload/complete
-GET    /api/v1/videos/{id}
-GET    /api/v1/videos/{id}/stream
-GET    /api/v1/videos/{id}/quality/profiles
-POST   /api/v1/transcoding/{id}/start
-GET    /api/v1/transcoding/{id}/progress
+POST   /api/videos/upload/init
+POST   /api/videos/upload/chunk
+POST   /api/videos/upload/complete
+GET    /api/videos/{id}
+GET    /api/videos/{id}/stream
+GET    /api/videos/{id}/quality/profiles
+POST   /api/transcoding/{id}/start
+GET    /api/transcoding/{id}/progress
 ```
 
 ### 3️⃣ Recommendation Service (Week 2 進行中)
@@ -161,11 +161,11 @@ GET    /api/v1/transcoding/{id}/progress
 
 **預期 API**:
 ```
-GET    /api/v1/recommendations
-GET    /api/v1/recommendations/{userId}
-GET    /api/v1/recommendations/trending
-GET    /api/v1/recommendations/category/{category}
-POST   /api/v1/recommendations/user-interest
+GET    /api/recommendations
+GET    /api/recommendations/{userId}
+GET    /api/recommendations/trending
+GET    /api/recommendations/category/{category}
+POST   /api/recommendations/user-interest
 ```
 
 ### 4️⃣ Payment Service (Week 2 進行中)
@@ -179,10 +179,10 @@ POST   /api/v1/recommendations/user-interest
 
 **預期 API**:
 ```
-POST   /api/v1/payments/create
-GET    /api/v1/payments/{id}
-POST   /api/v1/payments/{id}/refund
-GET    /api/v1/payments/user/{userId}
+POST   /api/payments/create
+GET    /api/payments/{id}
+POST   /api/payments/{id}/refund
+GET    /api/payments/user/{userId}
 ```
 
 ### 5️⃣ Subscription Service (新建 ⭐)
@@ -197,12 +197,12 @@ GET    /api/v1/payments/user/{userId}
 
 **設計 API**:
 ```
-GET    /api/v1/subscription/plans
-POST   /api/v1/subscription/subscribe
-GET    /api/v1/subscription/{userId}
-PATCH  /api/v1/subscription/{id}/cancel
-POST   /api/v1/subscription/{id}/renew
-GET    /api/v1/subscription/{id}/billing-history
+GET    /api/subscription/plans
+POST   /api/subscription/subscribe
+GET    /api/subscription/{userId}
+PATCH  /api/subscription/{id}/cancel
+POST   /api/subscription/{id}/renew
+GET    /api/subscription/{id}/billing-history
 ```
 
 ### 6️⃣ API Gateway (新建 ⭐)

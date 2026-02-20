@@ -17,13 +17,13 @@ import { CreatePaymentDto, RefundPaymentDto } from '../dtos/payment.dto';
 import { CreateSubscriptionDto, UpdateSubscriptionDto, CancelSubscriptionDto } from '../dtos/subscription.dto';
 import { CreateInvoiceDto, SendInvoiceDto } from '../dtos/invoice.dto';
 
-@Controller('api/v1/payments')
+@Controller('api/payments')
 export class PaymentController {
   constructor(private paymentService: PaymentService) {}
 
   /**
    * 創建支付意圖
-   * POST /api/v1/payments/intent
+   * POST /api/payments/intent
    */
   @Post('intent')
   async createPaymentIntent(@Body() dto: CreatePaymentDto) {
@@ -32,7 +32,7 @@ export class PaymentController {
 
   /**
    * 確認支付
-   * POST /api/v1/payments/confirm
+   * POST /api/payments/confirm
    */
   @Post('confirm')
   async confirmPayment(@Body() body: { paymentId: string; stripeToken: string }) {
@@ -41,7 +41,7 @@ export class PaymentController {
 
   /**
    * 退款
-   * POST /api/v1/payments/refund
+   * POST /api/payments/refund
    */
   @Post('refund')
   async refundPayment(@Body() dto: RefundPaymentDto) {
@@ -50,7 +50,7 @@ export class PaymentController {
 
   /**
    * 獲取支付詳情
-   * GET /api/v1/payments/:paymentId
+   * GET /api/payments/:paymentId
    */
   @Get(':paymentId')
   async getPayment(@Param('paymentId') paymentId: string) {
@@ -59,7 +59,7 @@ export class PaymentController {
 
   /**
    * 獲取用戶的支付歷史
-   * GET /api/v1/payments/user/:userId
+   * GET /api/payments/user/:userId
    */
   @Get('user/:userId')
   async getUserPayments(
@@ -72,7 +72,7 @@ export class PaymentController {
 
   /**
    * 重試支付
-   * POST /api/v1/payments/:paymentId/retry
+   * POST /api/payments/:paymentId/retry
    */
   @Post(':paymentId/retry')
   async retryPayment(@Param('paymentId') paymentId: string) {
@@ -80,13 +80,13 @@ export class PaymentController {
   }
 }
 
-@Controller('api/v1/subscriptions')
+@Controller('api/subscriptions')
 export class SubscriptionController {
   constructor(private subscriptionService: SubscriptionService) {}
 
   /**
    * 創建訂閱
-   * POST /api/v1/subscriptions
+   * POST /api/subscriptions
    */
   @Post()
   async createSubscription(@Body() dto: CreateSubscriptionDto) {
@@ -95,7 +95,7 @@ export class SubscriptionController {
 
   /**
    * 更新訂閱（升級/降級）
-   * PATCH /api/v1/subscriptions/:subscriptionId
+   * PATCH /api/subscriptions/:subscriptionId
    */
   @Patch(':subscriptionId')
   async updateSubscription(
@@ -107,7 +107,7 @@ export class SubscriptionController {
 
   /**
    * 取消訂閱
-   * POST /api/v1/subscriptions/:subscriptionId/cancel
+   * POST /api/subscriptions/:subscriptionId/cancel
    */
   @Post(':subscriptionId/cancel')
   async cancelSubscription(
@@ -119,7 +119,7 @@ export class SubscriptionController {
 
   /**
    * 暫停訂閱
-   * POST /api/v1/subscriptions/:subscriptionId/pause
+   * POST /api/subscriptions/:subscriptionId/pause
    */
   @Post(':subscriptionId/pause')
   async pauseSubscription(@Param('subscriptionId') subscriptionId: string) {
@@ -128,7 +128,7 @@ export class SubscriptionController {
 
   /**
    * 恢復訂閱
-   * POST /api/v1/subscriptions/:subscriptionId/resume
+   * POST /api/subscriptions/:subscriptionId/resume
    */
   @Post(':subscriptionId/resume')
   async resumeSubscription(@Param('subscriptionId') subscriptionId: string) {
@@ -137,7 +137,7 @@ export class SubscriptionController {
 
   /**
    * 獲取訂閱詳情
-   * GET /api/v1/subscriptions/:subscriptionId
+   * GET /api/subscriptions/:subscriptionId
    */
   @Get(':subscriptionId')
   async getSubscription(@Param('subscriptionId') subscriptionId: string) {
@@ -146,7 +146,7 @@ export class SubscriptionController {
 
   /**
    * 獲取用戶的訂閱
-   * GET /api/v1/subscriptions/user/:userId
+   * GET /api/subscriptions/user/:userId
    */
   @Get('user/:userId')
   async getUserSubscription(@Param('userId') userId: string) {
@@ -155,7 +155,7 @@ export class SubscriptionController {
 
   /**
    * 列出所有訂閱（分頁）
-   * GET /api/v1/subscriptions?limit=20&offset=0
+   * GET /api/subscriptions?limit=20&offset=0
    */
   @Get()
   async getAllSubscriptions(
@@ -166,13 +166,13 @@ export class SubscriptionController {
   }
 }
 
-@Controller('api/v1/invoices')
+@Controller('api/invoices')
 export class InvoiceController {
   constructor(private invoiceService: InvoiceService) {}
 
   /**
    * 創建發票
-   * POST /api/v1/invoices
+   * POST /api/invoices
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -182,7 +182,7 @@ export class InvoiceController {
 
   /**
    * 發送發票
-   * POST /api/v1/invoices/:invoiceId/send
+   * POST /api/invoices/:invoiceId/send
    */
   @Post(':invoiceId/send')
   async sendInvoice(
@@ -197,7 +197,7 @@ export class InvoiceController {
 
   /**
    * 標記發票為已支付
-   * PATCH /api/v1/invoices/:invoiceId/mark-paid
+   * PATCH /api/invoices/:invoiceId/mark-paid
    */
   @Patch(':invoiceId/mark-paid')
   async markAsPaid(@Param('invoiceId') invoiceId: string) {
@@ -206,7 +206,7 @@ export class InvoiceController {
 
   /**
    * 取消發票
-   * PATCH /api/v1/invoices/:invoiceId/cancel
+   * PATCH /api/invoices/:invoiceId/cancel
    */
   @Patch(':invoiceId/cancel')
   async cancelInvoice(@Param('invoiceId') invoiceId: string) {
@@ -215,7 +215,7 @@ export class InvoiceController {
 
   /**
    * 獲取發票詳情
-   * GET /api/v1/invoices/:invoiceId
+   * GET /api/invoices/:invoiceId
    */
   @Get(':invoiceId')
   async getInvoice(@Param('invoiceId') invoiceId: string) {
@@ -224,7 +224,7 @@ export class InvoiceController {
 
   /**
    * 獲取用戶的發票列表
-   * GET /api/v1/invoices/user/:userId
+   * GET /api/invoices/user/:userId
    */
   @Get('user/:userId')
   async getUserInvoices(
@@ -236,13 +236,13 @@ export class InvoiceController {
   }
 }
 
-@Controller('api/v1/webhooks')
+@Controller('api/webhooks')
 export class WebhookController {
   constructor(private webhookService: any) {}
 
   /**
    * Stripe webhook 端點
-   * POST /api/v1/webhooks/stripe
+   * POST /api/webhooks/stripe
    */
   @Post('stripe')
   @HttpCode(HttpStatus.OK)

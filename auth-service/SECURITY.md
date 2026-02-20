@@ -382,7 +382,7 @@ Token Blacklist Cleanup: 24 hours
 
 ```typescript
 // Client sends refresh token
-POST /api/v1/auth/refresh
+POST /api/auth/refresh
 { "refreshToken": "token" }
 
 // Server validates and issues new access token

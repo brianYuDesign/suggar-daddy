@@ -123,22 +123,22 @@ recommendation-service/
 
 **推薦引擎 API**:
 ```
-GET  /api/v1/recommendations/:userId      # 獲取推薦
-POST /api/v1/recommendations/interactions # 記錄互動
-POST /api/v1/recommendations/refresh/:userId
-POST /api/v1/recommendations/update-scores
-POST /api/v1/recommendations/clear-cache
+GET  /api/recommendations/:userId      # 獲取推薦
+POST /api/recommendations/interactions # 記錄互動
+POST /api/recommendations/refresh/:userId
+POST /api/recommendations/update-scores
+POST /api/recommendations/clear-cache
 ```
 
 **內容管理 API**:
 ```
-GET    /api/v1/contents                   # 獲取所有內容
-GET    /api/v1/contents/:id               # 獲取單個內容
-POST   /api/v1/contents                   # 創建內容
-PUT    /api/v1/contents/:id               # 更新內容
-POST   /api/v1/contents/:id/view          # 記錄觀看
-POST   /api/v1/contents/:id/like          # 記錄點讚
-DELETE /api/v1/contents/:id               # 刪除內容
+GET    /api/contents                   # 獲取所有內容
+GET    /api/contents/:id               # 獲取單個內容
+POST   /api/contents                   # 創建內容
+PUT    /api/contents/:id               # 更新內容
+POST   /api/contents/:id/view          # 記錄觀看
+POST   /api/contents/:id/like          # 記錄點讚
+DELETE /api/contents/:id               # 刪除內容
 ```
 
 **文件位置**: 

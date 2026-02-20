@@ -260,17 +260,17 @@ metrics.setActiveConnections('api', 150);
 | 問題 | 命令 | 解決方案 |
 |------|------|---------|
 | 無法訪問 UI | `docker-compose ps` | 檢查容器是否運行 |
-| 無指標數據 | `curl localhost:9090/api/v1/targets` | 檢查目標健康狀態 |
+| 無指標數據 | `curl localhost:9090/api/targets` | 檢查目標健康狀態 |
 | 無日誌數據 | `curl localhost:9200/_cat/indices` | 檢查 Elasticsearch 索引 |
 | 磁盤滿 | `du -sh ./prometheus_data` | 清理舊數據或擴展 |
-| 告警未觸發 | `curl localhost:9090/api/v1/rules` | 檢查規則狀態 |
+| 告警未觸發 | `curl localhost:9090/api/rules` | 檢查規則狀態 |
 
 ### 一鍵診斷
 
 ```bash
 # 完整健康檢查
 docker-compose ps
-curl http://localhost:9090/api/v1/targets | jq .
+curl http://localhost:9090/api/targets | jq .
 curl http://localhost:9200/_cluster/health | jq .
 docker stats
 df -h

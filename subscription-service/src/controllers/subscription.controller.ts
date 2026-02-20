@@ -13,7 +13,7 @@ import {
 import { SubscriptionService } from '../services/subscription.service';
 import { CreateSubscriptionDto, UpdateSubscriptionDto } from '../dtos/subscription.dto';
 
-@Controller('api/v1/subscriptions')
+@Controller('api/subscriptions')
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 

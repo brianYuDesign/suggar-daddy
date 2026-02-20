@@ -218,13 +218,13 @@ kubectl get configmap -n monitoring prometheus-config -o yaml
 ### 問題 2: 告警未觸發
 ```bash
 # 檢查告警規則語法
-curl http://localhost:9090/api/v1/rules | jq '.data.groups[].rules[] | select(.name=="CanaryHighErrorRate")'
+curl http://localhost:9090/api/rules | jq '.data.groups[].rules[] | select(.name=="CanaryHighErrorRate")'
 
 # 驗證告警條件是否滿足
-curl "http://localhost:9090/api/v1/query?query=rate(http_requests_total{status=~\"5..\"}[2m])*100"
+curl "http://localhost:9090/api/query?query=rate(http_requests_total{status=~\"5..\"}[2m])*100"
 
 # 檢查 AlertManager 連接
-curl http://localhost:9093/api/v1/alerts
+curl http://localhost:9093/api/alerts
 ```
 
 ### 問題 3: 自動回滾不執行

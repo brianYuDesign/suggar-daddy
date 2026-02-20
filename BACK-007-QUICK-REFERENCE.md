@@ -23,11 +23,11 @@ cd /Users/brianyu/.openclaw/workspace
 docker-compose up -d
 
 # Verify services are running
-curl http://localhost:3000/api/v1/health
-curl http://localhost:3001/api/v1/health  # auth-service
-curl http://localhost:3002/api/v1/health  # payment-service
-curl http://localhost:3003/api/v1/health  # content-streaming-service
-curl http://localhost:3004/api/v1/health  # subscription-service
+curl http://localhost:3000/api/health
+curl http://localhost:3001/api/health  # auth-service
+curl http://localhost:3002/api/health  # payment-service
+curl http://localhost:3003/api/health  # content-streaming-service
+curl http://localhost:3004/api/health  # subscription-service
 ```
 
 ---
@@ -321,7 +321,7 @@ docker ps | grep redis
 docker exec redis redis-cli ping
 
 # Check rate limit config
-GET http://localhost:3000/api/v1/config/rate-limits
+GET http://localhost:3000/api/config/rate-limits
 ```
 
 ### Load Test Times Out

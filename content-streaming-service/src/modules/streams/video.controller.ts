@@ -5,7 +5,7 @@ import { S3Service } from '@/services/s3.service';
 import { TranscodingService } from '@/services/transcoding.service';
 import { CreateVideoDto, UpdateVideoDto, VideoResponseDto, InitiateUploadDto, CompleteUploadDto } from '@/dtos/video.dto';
 
-@Controller('api/v1/videos')
+@Controller('api/videos')
 export class VideoController {
   constructor(
     private videoService: VideoService,

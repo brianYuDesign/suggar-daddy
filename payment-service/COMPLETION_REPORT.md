@@ -124,34 +124,34 @@ Sugar-Daddy Phase 1 Week 2 - BACK-004: Payment & Subscription Integration
 ### 6. ✅ API 端點
 
 **支付 API** (6 個端點):
-- `POST /api/v1/payments/intent` - 創建支付意圖
-- `POST /api/v1/payments/confirm` - 確認支付
-- `POST /api/v1/payments/refund` - 退款
-- `GET /api/v1/payments/:paymentId` - 獲取詳情
-- `GET /api/v1/payments/user/:userId` - 用戶歷史
-- `POST /api/v1/payments/:paymentId/retry` - 重試
+- `POST /api/payments/intent` - 創建支付意圖
+- `POST /api/payments/confirm` - 確認支付
+- `POST /api/payments/refund` - 退款
+- `GET /api/payments/:paymentId` - 獲取詳情
+- `GET /api/payments/user/:userId` - 用戶歷史
+- `POST /api/payments/:paymentId/retry` - 重試
 
 **訂閱 API** (8 個端點):
-- `POST /api/v1/subscriptions` - 創建
-- `PATCH /api/v1/subscriptions/:id` - 更新
-- `POST /api/v1/subscriptions/:id/cancel` - 取消
-- `POST /api/v1/subscriptions/:id/pause` - 暫停
-- `POST /api/v1/subscriptions/:id/resume` - 恢復
-- `GET /api/v1/subscriptions/:id` - 詳情
-- `GET /api/v1/subscriptions/user/:userId` - 用戶訂閱
-- `GET /api/v1/subscriptions` - 列表
+- `POST /api/subscriptions` - 創建
+- `PATCH /api/subscriptions/:id` - 更新
+- `POST /api/subscriptions/:id/cancel` - 取消
+- `POST /api/subscriptions/:id/pause` - 暫停
+- `POST /api/subscriptions/:id/resume` - 恢復
+- `GET /api/subscriptions/:id` - 詳情
+- `GET /api/subscriptions/user/:userId` - 用戶訂閱
+- `GET /api/subscriptions` - 列表
 
 **發票 API** (7 個端點):
-- `POST /api/v1/invoices` - 創建
-- `GET /api/v1/invoices/:id` - 詳情
-- `POST /api/v1/invoices/:id/send` - 發送
-- `PATCH /api/v1/invoices/:id/mark-paid` - 標記已支付
-- `PATCH /api/v1/invoices/:id/cancel` - 取消
-- `GET /api/v1/invoices/user/:userId` - 用戶發票
+- `POST /api/invoices` - 創建
+- `GET /api/invoices/:id` - 詳情
+- `POST /api/invoices/:id/send` - 發送
+- `PATCH /api/invoices/:id/mark-paid` - 標記已支付
+- `PATCH /api/invoices/:id/cancel` - 取消
+- `GET /api/invoices/user/:userId` - 用戶發票
 - 額外管理端點
 
 **Webhook API** (1 個端點):
-- `POST /api/v1/webhooks/stripe` - Webhook 接收
+- `POST /api/webhooks/stripe` - Webhook 接收
 
 **總計**: 25+ 個 API 端點
 
@@ -383,7 +383,7 @@ npm test
 npm run start:dev
 
 # 8. 驗證
-curl http://localhost:3002/api/v1/payments
+curl http://localhost:3002/api/payments
 ```
 
 ---

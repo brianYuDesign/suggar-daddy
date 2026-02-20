@@ -32,22 +32,22 @@
 **文件位置**: `/frontend/app/page.tsx` (登入)
 
 **需要實現**:
-- [ ] 登入表單提交 → `POST /api/v1/auth/login`
+- [ ] 登入表單提交 → `POST /api/auth/login`
 - [ ] Token 存儲 (localStorage/sessionStorage)
-- [ ] 登出功能 → `POST /api/v1/auth/logout`
-- [ ] Token 刷新 → `POST /api/v1/auth/refresh`
+- [ ] 登出功能 → `POST /api/auth/logout`
+- [ ] Token 刷新 → `POST /api/auth/refresh`
 - [ ] 自動 Token 刷新攔截器
 - [ ] 認證狀態持久化
 - [ ] 錯誤處理和重試邏輯
 
 **後端 API 端點**:
 ```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
-POST   /api/v1/auth/logout
-POST   /api/v1/auth/refresh
-GET    /api/v1/auth/me
-PUT    /api/v1/auth/profile
+POST   /api/auth/register
+POST   /api/auth/login
+POST   /api/auth/logout
+POST   /api/auth/refresh
+GET    /api/auth/me
+PUT    /api/auth/profile
 ```
 
 **測試場景**:
@@ -65,21 +65,21 @@ PUT    /api/v1/auth/profile
 **文件位置**: `/frontend/app/explore/page.tsx`
 
 **需要實現**:
-- [ ] 獲取推薦列表 → `GET /api/v1/recommendations/:userId`
+- [ ] 獲取推薦列表 → `GET /api/recommendations/:userId`
 - [ ] 渲染推薦卡片
-- [ ] 評分功能 → `POST /api/v1/recommendations/rate`
-- [ ] 訂閱創作者 → `POST /api/v1/creators/:id/subscribe`
+- [ ] 評分功能 → `POST /api/recommendations/rate`
+- [ ] 訂閱創作者 → `POST /api/creators/:id/subscribe`
 - [ ] 分頁加載
 - [ ] 無限滾動支持
 - [ ] 緩存管理
 
 **後端 API 端點**:
 ```
-GET    /api/v1/recommendations/:userId
-POST   /api/v1/recommendations/interactions
-POST   /api/v1/creators/:id/subscribe
-DELETE /api/v1/creators/:id/subscribe
-GET    /api/v1/creators/:id
+GET    /api/recommendations/:userId
+POST   /api/recommendations/interactions
+POST   /api/creators/:id/subscribe
+DELETE /api/creators/:id/subscribe
+GET    /api/creators/:id
 ```
 
 **測試場景**:
@@ -99,36 +99,36 @@ GET    /api/v1/creators/:id
 **需要實現**:
 
 #### 上傳功能
-- [ ] 文件上傳 → `POST /api/v1/uploads`
+- [ ] 文件上傳 → `POST /api/uploads`
 - [ ] 進度追蹤
 - [ ] 中斷和重試邏輯
 - [ ] 上傳隊列管理
 - [ ] 文件驗證
 
 #### 內容管理
-- [ ] 獲取內容列表 → `GET /api/v1/contents`
-- [ ] 創建內容 → `POST /api/v1/contents`
-- [ ] 編輯內容 → `PUT /api/v1/contents/:id`
-- [ ] 刪除內容 → `DELETE /api/v1/contents/:id`
+- [ ] 獲取內容列表 → `GET /api/contents`
+- [ ] 創建內容 → `POST /api/contents`
+- [ ] 編輯內容 → `PUT /api/contents/:id`
+- [ ] 刪除內容 → `DELETE /api/contents/:id`
 - [ ] 內容狀態切換
 - [ ] 搜索和篩選
 
 #### 分析功能
-- [ ] 獲取分析數據 → `GET /api/v1/analytics/:creatorId`
+- [ ] 獲取分析數據 → `GET /api/analytics/:creatorId`
 - [ ] 數據可視化
 - [ ] 時間段選擇
 - [ ] 導出功能
 
 **後端 API 端點**:
 ```
-POST   /api/v1/uploads
-PUT    /api/v1/uploads/:fileId
-DELETE /api/v1/uploads/:fileId
-GET    /api/v1/contents
-POST   /api/v1/contents
-PUT    /api/v1/contents/:id
-DELETE /api/v1/contents/:id
-GET    /api/v1/analytics/:creatorId
+POST   /api/uploads
+PUT    /api/uploads/:fileId
+DELETE /api/uploads/:fileId
+GET    /api/contents
+POST   /api/contents
+PUT    /api/contents/:id
+DELETE /api/contents/:id
+GET    /api/analytics/:creatorId
 ```
 
 **測試場景**:
@@ -146,22 +146,22 @@ GET    /api/v1/analytics/:creatorId
 **文件位置**: `/frontend/app/settings/page.tsx` (SubscriptionPricingPanel)
 
 **需要實現**:
-- [ ] 獲取訂閱狀態 → `GET /api/v1/subscriptions`
-- [ ] 創建訂閱 → `POST /api/v1/subscriptions`
-- [ ] 取消訂閱 → `DELETE /api/v1/subscriptions/:id`
-- [ ] 更新訂閱價格 → `PUT /api/v1/subscriptions/:id/pricing`
-- [ ] 獲取發票列表 → `GET /api/v1/invoices`
-- [ ] 下載發票 → `GET /api/v1/invoices/:id/download`
+- [ ] 獲取訂閱狀態 → `GET /api/subscriptions`
+- [ ] 創建訂閱 → `POST /api/subscriptions`
+- [ ] 取消訂閱 → `DELETE /api/subscriptions/:id`
+- [ ] 更新訂閱價格 → `PUT /api/subscriptions/:id/pricing`
+- [ ] 獲取發票列表 → `GET /api/invoices`
+- [ ] 下載發票 → `GET /api/invoices/:id/download`
 
 **後端 API 端點**:
 ```
-GET    /api/v1/subscriptions
-POST   /api/v1/subscriptions
-PUT    /api/v1/subscriptions/:id
-DELETE /api/v1/subscriptions/:id
-GET    /api/v1/invoices
-GET    /api/v1/invoices/:id
-GET    /api/v1/invoices/:id/download
+GET    /api/subscriptions
+POST   /api/subscriptions
+PUT    /api/subscriptions/:id
+DELETE /api/subscriptions/:id
+GET    /api/invoices
+GET    /api/invoices/:id
+GET    /api/invoices/:id/download
 ```
 
 **測試場景**:

@@ -259,7 +259,7 @@ PASS: HTTP status codes
     "message": "Invalid request parameters",
     "status": 400,
     "timestamp": "2026-02-19T13:24:00Z",
-    "path": "/api/v1/recommendations/interactions",
+    "path": "/api/recommendations/interactions",
     "details": { "field": "content_id", "reason": "required" }
   }
 }
@@ -521,7 +521,7 @@ docker ps | grep recommendation-service
 docker-compose up -d
 
 # Verify service is listening
-curl http://localhost:3000/api/v1/health
+curl http://localhost:3000/api/health
 ```
 
 ### Test Timeout Issues
@@ -538,7 +538,7 @@ SELECT query_time FROM slow_log WHERE query_time > 1;
 
 ```bash
 # Check rate limit configuration
-GET /api/v1/config/rate-limits
+GET /api/config/rate-limits
 
 # Verify Redis is running
 docker exec redis redis-cli ping

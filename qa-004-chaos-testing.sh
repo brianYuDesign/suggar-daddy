@@ -298,12 +298,12 @@ check_metrics() {
     echo_info "檢查關鍵指標..."
     
     # 檢查錯誤率
-    local error_rate=$(curl -s "${PROMETHEUS_URL}/api/v1/query" \
+    local error_rate=$(curl -s "${PROMETHEUS_URL}/api/query" \
         --data-urlencode "query=rate(http_requests_total{status=~\"5..\",namespace=\"$NAMESPACE\"}[5m])" | \
         jq -r '.data.result[0].value[1]' 2>/dev/null || echo "0")
     
     # 檢查 P99 延遲
-    local latency=$(curl -s "${PROMETHEUS_URL}/api/v1/query" \
+    local latency=$(curl -s "${PROMETHEUS_URL}/api/query" \
         --data-urlencode "query=histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{namespace=\"$NAMESPACE\"}[5m]))" | \
         jq -r '.data.result[0].value[1]' 2>/dev/null || echo "0")
     

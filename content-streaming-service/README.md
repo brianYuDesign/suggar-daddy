@@ -192,7 +192,7 @@ open http://localhost:3001/api/docs
 #### 建立視頻 (分片上傳初始化)
 
 ```http
-POST /api/v1/uploads/initiate
+POST /api/uploads/initiate
 Content-Type: application/json
 
 {
@@ -214,7 +214,7 @@ Content-Type: application/json
 #### 上傳分片
 
 ```http
-POST /api/v1/uploads/{sessionId}/chunk?chunkIndex=0
+POST /api/uploads/{sessionId}/chunk?chunkIndex=0
 Content-Type: application/octet-stream
 
 [binary chunk data]
@@ -223,7 +223,7 @@ Content-Type: application/octet-stream
 #### 完成上傳
 
 ```http
-POST /api/v1/uploads/{sessionId}/complete
+POST /api/uploads/{sessionId}/complete
 Content-Type: application/json
 
 {
@@ -237,7 +237,7 @@ Content-Type: application/json
 #### 取得視頻詳情
 
 ```http
-GET /api/v1/videos/{videoId}
+GET /api/videos/{videoId}
 Authorization: Bearer {token}
 ```
 
@@ -268,14 +268,14 @@ Authorization: Bearer {token}
 #### 列出視頻
 
 ```http
-GET /api/v1/videos?limit=20&offset=0
+GET /api/videos?limit=20&offset=0
 Authorization: Bearer {token}
 ```
 
 #### 發佈視頻
 
 ```http
-POST /api/v1/videos/{videoId}/publish
+POST /api/videos/{videoId}/publish
 Authorization: Bearer {token}
 ```
 
@@ -284,7 +284,7 @@ Authorization: Bearer {token}
 #### 取得播放列表
 
 ```http
-GET /api/v1/streaming/{videoId}/playlist
+GET /api/streaming/{videoId}/playlist
 ```
 
 **響應**:
@@ -307,7 +307,7 @@ GET /api/v1/streaming/{videoId}/playlist
 #### 品質切換
 
 ```http
-POST /api/v1/streaming/{videoId}/quality-switch?quality=480p
+POST /api/streaming/{videoId}/quality-switch?quality=480p
 ```
 
 ### 轉碼
@@ -315,7 +315,7 @@ POST /api/v1/streaming/{videoId}/quality-switch?quality=480p
 #### 檢查轉碼狀態
 
 ```http
-GET /api/v1/transcoding/{jobId}/status
+GET /api/transcoding/{jobId}/status
 ```
 
 **響應**:

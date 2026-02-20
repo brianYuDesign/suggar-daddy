@@ -29,9 +29,9 @@ describe('Auth E2E Tests', () => {
     let accessToken: string;
     let refreshToken: string;
 
-    it('POST /api/v1/auth/register - should register new user', () => {
+    it('POST /api/auth/register - should register new user', () => {
       return request(app.getHttpServer())
-        .post('/api/v1/auth/register')
+        .post('/api/auth/register')
         .send({
           username: 'testuser',
           email: 'test@example.com',
@@ -42,9 +42,9 @@ describe('Auth E2E Tests', () => {
         .expect(201);
     });
 
-    it('POST /api/v1/auth/login - should login user', () => {
+    it('POST /api/auth/login - should login user', () => {
       return request(app.getHttpServer())
-        .post('/api/v1/auth/login')
+        .post('/api/auth/login')
         .send({
           email: 'test@example.com',
           password: 'SecurePassword123',
@@ -56,30 +56,30 @@ describe('Auth E2E Tests', () => {
         });
     });
 
-    it('GET /api/v1/auth/me - should get current user', () => {
+    it('GET /api/auth/me - should get current user', () => {
       return request(app.getHttpServer())
-        .get('/api/v1/auth/me')
+        .get('/api/auth/me')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
     });
 
-    it('POST /api/v1/auth/validate - should validate token', () => {
+    it('POST /api/auth/validate - should validate token', () => {
       return request(app.getHttpServer())
-        .post('/api/v1/auth/validate')
+        .post('/api/auth/validate')
         .send({ token: accessToken })
         .expect(200);
     });
 
-    it('POST /api/v1/auth/refresh - should refresh token', () => {
+    it('POST /api/auth/refresh - should refresh token', () => {
       return request(app.getHttpServer())
-        .post('/api/v1/auth/refresh')
+        .post('/api/auth/refresh')
         .send({ refreshToken })
         .expect(200);
     });
 
-    it('POST /api/v1/auth/logout - should logout user', () => {
+    it('POST /api/auth/logout - should logout user', () => {
       return request(app.getHttpServer())
-        .post('/api/v1/auth/logout')
+        .post('/api/auth/logout')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ token: accessToken })
         .expect(200);
@@ -87,17 +87,17 @@ describe('Auth E2E Tests', () => {
   });
 
   describe('User Endpoints', () => {
-    it('GET /api/v1/users/profile - should get user profile', () => {
+    it('GET /api/users/profile - should get user profile', () => {
       return request(app.getHttpServer())
-        .get('/api/v1/users/profile')
+        .get('/api/users/profile')
         .expect(401);
     });
   });
 
   describe('Permission Checks', () => {
-    it('GET /api/v1/users - should require ADMIN role', () => {
+    it('GET /api/users - should require ADMIN role', () => {
       return request(app.getHttpServer())
-        .get('/api/v1/users')
+        .get('/api/users')
         .expect(401);
     });
   });

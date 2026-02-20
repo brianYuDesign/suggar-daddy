@@ -202,7 +202,7 @@ docker exec redis redis-cli KEYS "user:*" | wc -l
 
 ```bash
 # 1. 檢查轉碼隊列
-curl http://localhost:3000/api/v1/transcoding?status=processing
+curl http://localhost:3000/api/transcoding?status=processing
 
 # 2. 查看 FFmpeg 進程
 docker ps | grep ffmpeg
@@ -215,7 +215,7 @@ df -h
 docker logs content-streaming | grep transcode
 
 # 5. 手動重試失敗的任務
-curl -X POST http://localhost:3000/api/v1/transcoding/{jobId}/retry \
+curl -X POST http://localhost:3000/api/transcoding/{jobId}/retry \
   -H "Authorization: Bearer TOKEN"
 ```
 
@@ -232,11 +232,11 @@ echo $STRIPE_SECRET_KEY
 docker logs payment-service | grep -i stripe
 
 # 4. 檢查失敗的支付
-curl http://localhost:3000/api/v1/payments?status=failed \
+curl http://localhost:3000/api/payments?status=failed \
   -H "Authorization: Bearer ADMIN_TOKEN"
 
 # 5. 手動確認支付
-curl -X POST http://localhost:3000/api/v1/payments/confirm \
+curl -X POST http://localhost:3000/api/payments/confirm \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"paymentIntentId": "..."}' 
@@ -573,7 +573,7 @@ docker exec redis redis-cli EXPIRE session:123 3600
 
 ```bash
 # 通過 API 触發
-curl -X POST http://localhost:3000/api/v1/transcoding/trigger \
+curl -X POST http://localhost:3000/api/transcoding/trigger \
   -H "Authorization: Bearer ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -601,11 +601,11 @@ kubectl get pod -o jsonpath='{.items[0].spec.containers[0].env}' -n sugardaddy
 
 ```bash
 # 通過 API
-curl -X POST http://localhost:3000/api/v1/auth/users/{userId}/deactivate \
+curl -X POST http://localhost:3000/api/auth/users/{userId}/deactivate \
   -H "Authorization: Bearer ADMIN_TOKEN"
 
 # 驗證
-curl http://localhost:3000/api/v1/auth/users/{userId} \
+curl http://localhost:3000/api/auth/users/{userId} \
   -H "Authorization: Bearer ADMIN_TOKEN" | jq '.data.status'
 ```
 

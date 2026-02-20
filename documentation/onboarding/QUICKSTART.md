@@ -259,7 +259,7 @@ async getUserPreferences(@Param('userId') userId: string) {
 }
 
 # 4. 測試端點
-curl http://localhost:3001/api/v1/auth/users/user-id/preferences \
+curl http://localhost:3001/api/auth/users/user-id/preferences \
   -H "Authorization: Bearer TOKEN"
 ```
 
@@ -480,7 +480,7 @@ docker-compose up -d
 GET http://localhost:3000/health
 
 ### 登入用戶
-POST http://localhost:3000/api/v1/auth/login
+POST http://localhost:3000/api/auth/login
 Content-Type: application/json
 
 {
@@ -489,7 +489,7 @@ Content-Type: application/json
 }
 
 ### 以上記錄中使用返回的 token
-GET http://localhost:3000/api/v1/auth/me
+GET http://localhost:3000/api/auth/me
 Authorization: Bearer your_token_here
 ```
 
