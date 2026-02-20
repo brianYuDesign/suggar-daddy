@@ -14,84 +14,75 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
-import {
-  UploadService,
-  S3Service,
-  MEDIA_EVENTS,
-} from '@suggar-daddy/common';
+import { MEDIA_EVENTS } from '@suggar-daddy/common';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { MediaService } from '../media.service';
 import { VideoProcessorService } from '../video/video-processor';
+import { LocalStorageService } from '../storage/local-storage.service';
 
 @Controller('upload')
 export class UploadController {
   private readonly logger = new Logger(UploadController.name);
 
   constructor(
-    private readonly uploadService: UploadService,
+    private readonly localStorageService: LocalStorageService,
     private readonly mediaService: MediaService,
-    private readonly s3Service: S3Service,
     private readonly videoProcessor: VideoProcessorService,
     private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
   @Post('single')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }),
+  )
   async uploadSingle(
     @CurrentUser() user: CurrentUserData,
     @UploadedFile() file: Express.Multer.File,
-    @Body('folder') folder?: string,
+    @Body('folder') _folder?: string,
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
     const userId = user.userId;
-    const result = await this.uploadService.uploadFile(file.buffer, {
-      folder: folder || `suggar-daddy/${userId}`,
-      resourceType: 'auto',
-    });
+    const relativePath = await this.localStorageService.saveFile(
+      file.buffer,
+      userId,
+      file.originalname,
+    );
+    const url = this.localStorageService.getPublicUrl(relativePath);
 
     const mediaFile = await this.mediaService.create({
       userId,
-      originalUrl: result.secure_url,
-      fileName: file.originalname || result.public_id,
+      originalUrl: url,
+      fileName: file.originalname,
       mimeType: file.mimetype,
       fileSize: file.size,
-      thumbnailUrl: result.resource_type === 'video'
-        ? this.uploadService.getVideoThumbnail?.(result.public_id)
-        : undefined,
-      width: result.width,
-      height: result.height,
-      duration: result['duration'],
       processingStatus: 'completed',
-      metadata: {
-        format: result.format,
-        resourceType: result.resource_type,
-        publicId: result.public_id,
-      },
+      metadata: { storagePath: relativePath },
     });
 
     return {
       id: mediaFile.id,
-      url: result.secure_url,
-      thumbnailUrl: mediaFile.thumbnailUrl,
-      publicId: result.public_id,
-      format: result.format,
-      resourceType: result.resource_type,
-      width: result.width,
-      height: result.height,
-      size: result.bytes,
+      url,
+      thumbnailUrl: null,
+      format: file.mimetype.split('/')[1],
+      resourceType: file.mimetype.split('/')[0],
+      width: null,
+      height: null,
+      size: file.size,
     };
   }
 
   @Post('multiple')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FilesInterceptor('files', 10))
+  @UseInterceptors(
+    FilesInterceptor('files', 10, { limits: { fileSize: 50 * 1024 * 1024 } }),
+  )
   async uploadMultiple(
     @CurrentUser() user: CurrentUserData,
     @UploadedFiles() files: Express.Multer.File[],
-    @Body('folder') folder?: string,
+    @Body('folder') _folder?: string,
   ) {
     if (!files?.length) {
       throw new BadRequestException('files are required');
@@ -99,19 +90,21 @@ export class UploadController {
     const userId = user.userId;
     const results = [];
     for (const file of files) {
-      const result = await this.uploadService.uploadFile(file.buffer, {
-        folder: folder || `suggar-daddy/${userId}`,
-        resourceType: 'auto',
-      });
+      const relativePath = await this.localStorageService.saveFile(
+        file.buffer,
+        userId,
+        file.originalname,
+      );
+      const url = this.localStorageService.getPublicUrl(relativePath);
       const mediaFile = await this.mediaService.create({
         userId,
-        originalUrl: result.secure_url,
-        fileName: file.originalname || result.public_id,
+        originalUrl: url,
+        fileName: file.originalname,
         mimeType: file.mimetype,
         fileSize: file.size,
-        metadata: { publicId: result.public_id, format: result.format },
+        metadata: { storagePath: relativePath },
       });
-      results.push({ id: mediaFile.id, url: result.secure_url });
+      results.push({ id: mediaFile.id, url });
     }
     return results;
   }
@@ -123,17 +116,23 @@ export class UploadController {
     if (media.userId !== user.userId) {
       throw new ForbiddenException('You can only delete your own media');
     }
+    const metadata = media.metadata as Record<string, unknown>;
+    if (metadata?.storagePath) {
+      await this.localStorageService.deleteFile(metadata.storagePath as string);
+    }
     await this.mediaService.remove(id);
     return { deleted: id };
   }
 
   /**
-   * Upload a video file to S3 (private bucket).
-   * Triggers background processing: thumbnail + 15s preview → Cloudinary.
+   * Upload a video file to local storage.
+   * Triggers background processing: thumbnail + 15s preview.
    */
   @Post('video')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }),
+  )
   async uploadVideo(
     @CurrentUser() user: CurrentUserData,
     @UploadedFile() file: Express.Multer.File,
@@ -163,7 +162,7 @@ export class UploadController {
     const mediaRecord = await this.mediaService.create({
       userId,
       fileType: 'video',
-      originalUrl: '', // Will be S3, not a public URL
+      originalUrl: '',
       fileName: file.originalname || 'video.mp4',
       mimeType: file.mimetype,
       fileSize: file.size,
@@ -175,15 +174,26 @@ export class UploadController {
     });
 
     const mediaId = mediaRecord.id;
-    const s3Key = `videos/${userId}/${mediaId}/original.mp4`;
+    const ext = '.' + (file.originalname?.split('.').pop() || 'mp4');
 
-    // 4. Upload original to S3
-    await this.s3Service.uploadVideo(s3Key, file.buffer, file.mimetype);
+    // 4. Save original to local storage
+    const originalPath = await this.localStorageService.saveVideoOriginal(
+      file.buffer,
+      userId,
+      mediaId,
+      ext,
+    );
+    const originalUrl = this.localStorageService.getPublicUrl(originalPath);
+
+    // Update with the original URL
+    await this.mediaService.updateFields(mediaId, {
+      metadata: { codec: metadata.codec, storagePath: originalPath },
+    });
 
     // 5. Immediately return
     const response = {
       id: mediaId,
-      s3Key,
+      url: originalUrl,
       processingStatus: 'processing',
       duration: metadata.duration,
       width: metadata.width,
@@ -191,7 +201,7 @@ export class UploadController {
     };
 
     // 6. Background processing (fire-and-forget)
-    this.processVideoInBackground(mediaId, userId, s3Key, tmpInputPath).catch(
+    this.processVideoInBackground(mediaId, userId, originalPath, tmpInputPath).catch(
       (err) => this.logger.error(`Background video processing failed mediaId=${mediaId}`, err),
     );
 
@@ -201,7 +211,7 @@ export class UploadController {
   private async processVideoInBackground(
     mediaId: string,
     userId: string,
-    s3Key: string,
+    originalPath: string,
     tmpInputPath: string,
   ): Promise<void> {
     let thumbnailUrl = '';
@@ -209,31 +219,24 @@ export class UploadController {
     let processingStatus: 'ready' | 'failed' = 'ready';
 
     try {
+      const fs = await import('fs');
+
       // Extract thumbnail (JPEG at 1s mark)
       const tmpThumbPath = tmpInputPath.replace('.mp4', '-thumb.jpg');
       await this.videoProcessor.extractThumbnail(tmpInputPath, tmpThumbPath);
 
-      // Upload thumbnail to Cloudinary (public)
-      const fs = await import('fs');
       const thumbBuffer = await fs.promises.readFile(tmpThumbPath);
-      const thumbResult = await this.uploadService.uploadFile(thumbBuffer, {
-        folder: `suggar-daddy/${userId}/thumbnails`,
-        resourceType: 'image',
-      });
-      thumbnailUrl = thumbResult.secure_url;
+      const thumbPath = await this.localStorageService.saveThumbnail(thumbBuffer, userId, mediaId);
+      thumbnailUrl = this.localStorageService.getPublicUrl(thumbPath);
       await this.videoProcessor.cleanupTemp(tmpThumbPath);
 
       // Extract 15s preview clip
       const tmpPreviewPath = tmpInputPath.replace('.mp4', '-preview.mp4');
       await this.videoProcessor.extractPreview(tmpInputPath, tmpPreviewPath, 15);
 
-      // Upload preview to Cloudinary (public, as video)
       const previewBuffer = await fs.promises.readFile(tmpPreviewPath);
-      const previewResult = await this.uploadService.uploadFile(previewBuffer, {
-        folder: `suggar-daddy/${userId}/previews`,
-        resourceType: 'video',
-      });
-      previewUrl = previewResult.secure_url;
+      const previewPath = await this.localStorageService.savePreview(previewBuffer, userId, mediaId);
+      previewUrl = this.localStorageService.getPublicUrl(previewPath);
       await this.videoProcessor.cleanupTemp(tmpPreviewPath);
 
       this.logger.log(`Video processing complete mediaId=${mediaId}`);
@@ -253,7 +256,7 @@ export class UploadController {
         processingStatus,
         metadata: {
           ...(existing.metadata as Record<string, unknown>),
-          s3Key,
+          storagePath: originalPath,
           thumbnailUrl,
           previewUrl,
         },
@@ -266,7 +269,6 @@ export class UploadController {
     await this.kafkaProducer.sendEvent(MEDIA_EVENTS.VIDEO_PROCESSED, {
       mediaId,
       userId,
-      s3Key,
       thumbnailUrl,
       previewUrl,
       duration: 0,

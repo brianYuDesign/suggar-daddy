@@ -65,6 +65,9 @@ secrets/
 !secrets/README.md
 !secrets/.example
 
+# Media uploads (local storage)
+uploads/
+
 # Next.js
 .next/
 out/

@@ -13,6 +13,20 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      // Media routes bypass API Gateway (multipart/form-data binary issue)
+      {
+        source: '/api/media/:path*',
+        destination: 'http://localhost:3008/api/media/:path*',
+      },
+      {
+        source: '/api/upload/:path*',
+        destination: 'http://localhost:3008/api/upload/:path*',
+      },
+      {
+        source: '/uploads/:path*',
+        destination: 'http://localhost:3008/uploads/:path*',
+      },
+      // All other API routes go through API Gateway
       {
         source: '/api/:path*',
         destination: 'http://localhost:3000/api/:path*',

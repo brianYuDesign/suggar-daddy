@@ -1,21 +1,22 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { ServeStaticModule } from "@nestjs/serve-static";
+import { resolve } from "path";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
-import {
-  UploadModule,
-  EnvConfigModule,
-  AppConfigService,
-  S3Module,
-} from "@suggar-daddy/common";
+import { EnvConfigModule, AppConfigService } from "@suggar-daddy/common";
 import { AuthModule } from "@suggar-daddy/auth";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { MediaController } from "./media.controller";
 import { MediaService } from "./media.service";
+import { MediaUploadController } from "./media-upload.controller";
 import { UploadController } from "./upload/upload.controller";
 import { VideoProcessorService } from "./video/video-processor";
+import { LocalStorageModule } from "./storage/local-storage.module";
+
+const uploadDir = process.env.UPLOAD_DIR || "./uploads";
 
 @Module({
   imports: [
@@ -23,8 +24,14 @@ import { VideoProcessorService } from "./video/video-processor";
       isGlobal: true,
       envFilePath: ".env",
     }),
+    ServeStaticModule.forRoot({
+      rootPath: resolve(uploadDir),
+      serveRoot: "/uploads",
+      serveStaticOptions: { index: false },
+    }),
     EnvConfigModule,
     AuthModule,
+    LocalStorageModule,
     RedisModule.forRoot(),
     KafkaModule.forRootAsync({
       useFactory: (config: AppConfigService) => ({
@@ -34,10 +41,13 @@ import { VideoProcessorService } from "./video/video-processor";
       }),
       inject: [AppConfigService],
     }),
-    UploadModule.forRoot(),
-    S3Module.forRoot(),
   ],
-  controllers: [AppController, MediaController, UploadController],
+  controllers: [
+    AppController,
+    MediaController,
+    MediaUploadController,
+    UploadController,
+  ],
   providers: [AppService, MediaService, VideoProcessorService],
 })
 export class AppModule {}

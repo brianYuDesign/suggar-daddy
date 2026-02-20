@@ -1,40 +1,30 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UploadController } from './upload.controller';
-import { UploadService, S3Service } from '@suggar-daddy/common';
 import { MediaService } from '../media.service';
 import { VideoProcessorService } from '../video/video-processor';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { LocalStorageService } from '../storage/local-storage.service';
 
 describe('UploadController', () => {
   let controller: UploadController;
 
-  const uploadService = {
-    uploadFile: jest.fn().mockResolvedValue({
-      secure_url: 'https://cdn.example.com/image.jpg',
-      public_id: 'test-public-id',
-      format: 'jpg',
-      resource_type: 'image',
-      width: 800,
-      height: 600,
-      bytes: 12345,
-      duration: undefined,
-    }),
-    getVideoThumbnail: jest
-      .fn()
-      .mockReturnValue('https://cdn.example.com/thumb.jpg'),
+  const localStorageService = {
+    saveFile: jest.fn().mockResolvedValue('user-1/1708000000-abc12345.jpg'),
+    saveVideoOriginal: jest.fn().mockResolvedValue('user-1/media-123/original.mp4'),
+    saveThumbnail: jest.fn().mockResolvedValue('user-1/media-123/thumb.jpg'),
+    savePreview: jest.fn().mockResolvedValue('user-1/media-123/preview.mp4'),
+    deleteFile: jest.fn().mockResolvedValue(undefined),
+    getPublicUrl: jest.fn().mockImplementation(
+      (path: string) => `http://localhost:3008/uploads/${path}`,
+    ),
   };
 
   const mediaService = {
     create: jest.fn(),
     findOne: jest.fn(),
     remove: jest.fn().mockResolvedValue(undefined),
-  };
-
-  const s3Service = {
-    uploadFile: jest.fn(),
-    getSignedUrl: jest.fn(),
-    deleteFile: jest.fn(),
+    updateFields: jest.fn().mockResolvedValue(undefined),
   };
 
   const videoProcessorService = {
@@ -43,6 +33,7 @@ describe('UploadController', () => {
 
   const kafkaProducerService = {
     emit: jest.fn(),
+    sendEvent: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockUser = { userId: 'user-1', email: 'test@example.com', role: 'CREATOR' };
@@ -53,21 +44,18 @@ describe('UploadController', () => {
     const moduleRef = Test.createTestingModule({
       controllers: [UploadController],
       providers: [
-        UploadService,
+        LocalStorageService,
         MediaService,
-        S3Service,
         VideoProcessorService,
         KafkaProducerService,
       ],
     });
 
     const module: TestingModule = await moduleRef
-      .overrideProvider(UploadService)
-      .useValue(uploadService)
+      .overrideProvider(LocalStorageService)
+      .useValue(localStorageService)
       .overrideProvider(MediaService)
       .useValue(mediaService)
-      .overrideProvider(S3Service)
-      .useValue(s3Service)
       .overrideProvider(VideoProcessorService)
       .useValue(videoProcessorService)
       .overrideProvider(KafkaProducerService)
@@ -96,38 +84,30 @@ describe('UploadController', () => {
         mockFile,
       );
 
-      expect(uploadService.uploadFile).toHaveBeenCalledWith(mockFile.buffer, {
-        folder: 'suggar-daddy/user-1',
-        resourceType: 'auto',
-      });
+      expect(localStorageService.saveFile).toHaveBeenCalledWith(
+        mockFile.buffer,
+        'user-1',
+        'photo.jpg',
+      );
 
       expect(mediaService.create).toHaveBeenCalledWith({
         userId: 'user-1',
-        originalUrl: 'https://cdn.example.com/image.jpg',
+        originalUrl: 'http://localhost:3008/uploads/user-1/1708000000-abc12345.jpg',
         fileName: 'photo.jpg',
         mimeType: 'image/jpeg',
         fileSize: 12345,
-        thumbnailUrl: undefined,
-        width: 800,
-        height: 600,
-        duration: undefined,
         processingStatus: 'completed',
-        metadata: {
-          format: 'jpg',
-          resourceType: 'image',
-          publicId: 'test-public-id',
-        },
+        metadata: { storagePath: 'user-1/1708000000-abc12345.jpg' },
       });
 
       expect(result).toEqual({
         id: 'media-123',
-        url: 'https://cdn.example.com/image.jpg',
+        url: 'http://localhost:3008/uploads/user-1/1708000000-abc12345.jpg',
         thumbnailUrl: null,
-        publicId: 'test-public-id',
-        format: 'jpg',
+        format: 'jpeg',
         resourceType: 'image',
-        width: 800,
-        height: 600,
+        width: null,
+        height: null,
         size: 12345,
       });
     });
@@ -140,50 +120,6 @@ describe('UploadController', () => {
       await expect(
         controller.uploadSingle(mockUser as any, undefined as any),
       ).rejects.toThrow('No file uploaded');
-    });
-
-    it('should generate video thumbnail for video uploads', async () => {
-      uploadService.uploadFile.mockResolvedValueOnce({
-        secure_url: 'https://cdn.example.com/video.mp4',
-        public_id: 'video-public-id',
-        format: 'mp4',
-        resource_type: 'video',
-        width: 1920,
-        height: 1080,
-        bytes: 5000000,
-        duration: 30,
-      });
-
-      mediaService.create.mockResolvedValueOnce({
-        id: 'media-video-1',
-        thumbnailUrl: 'https://cdn.example.com/thumb.jpg',
-      });
-
-      const videoFile = {
-        buffer: Buffer.from('fake-video-data'),
-        originalname: 'clip.mp4',
-        mimetype: 'video/mp4',
-        size: 5000000,
-      } as any;
-
-      const result = await controller.uploadSingle(
-        mockUser as any,
-        videoFile,
-      );
-
-      expect(uploadService.getVideoThumbnail).toHaveBeenCalledWith(
-        'video-public-id',
-      );
-
-      expect(mediaService.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          thumbnailUrl: 'https://cdn.example.com/thumb.jpg',
-          duration: 30,
-        }),
-      );
-
-      expect(result.thumbnailUrl).toBe('https://cdn.example.com/thumb.jpg');
-      expect(result.resourceType).toBe('video');
     });
   });
 
@@ -204,25 +140,13 @@ describe('UploadController', () => {
     ] as any[];
 
     it('should upload multiple files', async () => {
-      uploadService.uploadFile
-        .mockResolvedValueOnce({
-          secure_url: 'https://cdn.example.com/a.jpg',
-          public_id: 'pub-a',
-          format: 'jpg',
-          resource_type: 'image',
-          width: 100,
-          height: 100,
-          bytes: 1000,
-        })
-        .mockResolvedValueOnce({
-          secure_url: 'https://cdn.example.com/b.png',
-          public_id: 'pub-b',
-          format: 'png',
-          resource_type: 'image',
-          width: 200,
-          height: 200,
-          bytes: 2000,
-        });
+      localStorageService.saveFile
+        .mockResolvedValueOnce('user-1/a.jpg')
+        .mockResolvedValueOnce('user-1/b.png');
+
+      localStorageService.getPublicUrl
+        .mockReturnValueOnce('http://localhost:3008/uploads/user-1/a.jpg')
+        .mockReturnValueOnce('http://localhost:3008/uploads/user-1/b.png');
 
       mediaService.create
         .mockResolvedValueOnce({ id: 'media-1' })
@@ -233,11 +157,11 @@ describe('UploadController', () => {
         mockFiles,
       );
 
-      expect(uploadService.uploadFile).toHaveBeenCalledTimes(2);
+      expect(localStorageService.saveFile).toHaveBeenCalledTimes(2);
       expect(mediaService.create).toHaveBeenCalledTimes(2);
       expect(result).toEqual([
-        { id: 'media-1', url: 'https://cdn.example.com/a.jpg' },
-        { id: 'media-2', url: 'https://cdn.example.com/b.png' },
+        { id: 'media-1', url: 'http://localhost:3008/uploads/user-1/a.jpg' },
+        { id: 'media-2', url: 'http://localhost:3008/uploads/user-1/b.png' },
       ]);
     });
 
@@ -253,23 +177,25 @@ describe('UploadController', () => {
   });
 
   describe('delete', () => {
-    it('should delete own media', async () => {
+    it('should delete own media and local file', async () => {
       mediaService.findOne.mockResolvedValueOnce({
         id: 'media-del',
         userId: 'user-1',
+        metadata: { storagePath: 'user-1/file.jpg' },
       });
 
       const result = await controller.delete(mockUser as any, 'media-del');
 
       expect(mediaService.findOne).toHaveBeenCalledWith('media-del');
+      expect(localStorageService.deleteFile).toHaveBeenCalledWith('user-1/file.jpg');
       expect(mediaService.remove).toHaveBeenCalledWith('media-del');
       expect(result).toEqual({ deleted: 'media-del' });
     });
 
     it('should throw ForbiddenException when deleting other user media', async () => {
       mediaService.findOne
-        .mockResolvedValueOnce({ id: 'media-other', userId: 'user-999' })
-        .mockResolvedValueOnce({ id: 'media-other', userId: 'user-999' });
+        .mockResolvedValueOnce({ id: 'media-other', userId: 'user-999', metadata: {} })
+        .mockResolvedValueOnce({ id: 'media-other', userId: 'user-999', metadata: {} });
 
       await expect(
         controller.delete(mockUser as any, 'media-other'),
