@@ -41,6 +41,12 @@
 | 文檔 | 說明 |
 |------|------|
 | [部署指南](./technical/deployment.md) | Docker 與生產環境部署指南 |
+| [生產部署指南](./devops/PRODUCTION-DEPLOYMENT-GUIDE.md) | 生產環境部署完整流程 |
+| [生產部署檢查清單](./devops/PRODUCTION-DEPLOYMENT-CHECKLIST.md) | 部署前確認項目 |
+| [藍綠部署](./devops/BLUE-GREEN-DEPLOYMENT.md) | 藍綠部署策略 |
+| [自動回滾與擴展](./devops/AUTO-ROLLBACK-AND-SCALING.md) | 自動回滾與水平擴展 |
+| [效能優化](./devops/PERFORMANCE-OPTIMIZATION.md) | 生產環境效能優化 |
+| [故障排除](./devops/TROUBLESHOOTING-GUIDE.md) | 部署故障排除指南 |
 | [Secrets 管理](./devops/secrets-management.md) | 敏感資料安全管理方案 |
 | [Secrets 設置指南](./devops/secrets-setup-guide.md) | Docker Secrets 配置步驟 |
 | [監控告警](./devops/MONITORING_ALERTING_SETUP.md) | 系統監控與告警配置 |
@@ -113,66 +119,6 @@
 | 文檔 | 說明 |
 |------|------|
 | [共享文檔首頁](./shared/README.md) | 跨團隊共享資源 |
-| [進度追蹤](./shared/PROGRESS.md) | 整體專案進度 |
-
----
-
-## 📊 報告與總結
-
-### 階段報告
-
-| 報告 | 說明 |
-|------|------|
-| [執行總結](./reports/EXECUTIVE_SUMMARY.md) | 專案執行總結 |
-| [最終進度報告](./reports/FINAL_PROGRESS_REPORT.md) | 專案最終進度 |
-| [上線前審查總結](./reports/PRE_LAUNCH_REVIEW_SUMMARY.md) | 上線前整體審查 |
-| [上線前技術審查](./reports/PRE_LAUNCH_TECHNICAL_REVIEW.md) | 技術審查詳細報告 |
-| [P0/P1 完成報告](./reports/P0_P1_COMPLETION_REPORT.md) | 高優先級任務完成情況 |
-| [Phase B 完成報告](./reports/PHASE_B_COMPLETION_REPORT.md) | Phase B 階段總結 |
-| [最終上線檢查清單](./reports/LAUNCH_CHECKLIST_FINAL.md) | 最終上線確認清單 |
-
-### 團隊報告
-
-#### 後端報告
-- [P0 Bug 修復報告](./reports/backend/P0_BUG_FIX_REPORT.md)
-- [P0 Bug 驗證報告](./reports/backend/P0_BUG_VERIFICATION_REPORT.md)
-- [P0 最終報告](./reports/backend/P0_FINAL_REPORT.md)
-- [P1 任務報告](./reports/backend/BACKEND_P1_TASKS_REPORT.md)
-
-#### 前端報告
-- [P0 任務總結](./reports/frontend/P0_TASKS_SUMMARY.md)
-- [P0 完成報告](./reports/frontend/P0_COMPLETION_REPORT.md)
-- [P0 任務完成報告](./reports/frontend/P0_TASK_COMPLETION_REPORT.md)
-- [Phase A 完成報告](./reports/frontend/PHASE_A_COMPLETION_REPORT.md)
-- [UI/UX 修復完成報告](./reports/frontend/UI_UX_FIXES_COMPLETION_REPORT.md)
-
-#### DevOps 報告
-- [監控告警報告](./reports/devops/MONITORING_ALERTING_REPORT.md)
-
-#### QA 報告
-- [Phase B 測試報告](./reports/qa/PHASE_B_TEST_REPORT.md)
-- [測試執行報告](./reports/qa/TEST_EXECUTION_REPORT.md)
-- [最終驗證報告](./reports/qa/FINAL_VERIFICATION_REPORT.md)
-- [任務 1.3 完成報告](./reports/qa/TASK_1.3_COMPLETION_REPORT.md)
-- [TST-001 修復報告](./reports/qa/TST-001_FIX_REPORT.md)
-
-### 階段總結
-
-| 總結 | 說明 |
-|------|------|
-| [總結文檔首頁](./summaries/README.md) | 所有階段總結導航 |
-| [整體總結](./summaries/SUMMARY.md) | 專案整體總結 |
-| [架構總結](./summaries/ARCHITECTURE_SUMMARY.md) | 架構設計總結 |
-| [Phase A Rate Limiting](./summaries/PHASE_A_RATE_LIMITING_SUMMARY.md) | Phase A 速率限制總結 |
-| [Phase A Secrets](./summaries/PHASE_A_SECRETS_SUMMARY.md) | Phase A Secrets 管理總結 |
-| [Phase B 優化總結](./summaries/PHASE_B_OPTIMIZATION_SUMMARY.md) | Phase B 優化工作總結 |
-| [後端 P1 總結](./summaries/BACKEND_P1_SUMMARY.md) | 後端 P1 任務總結 |
-| [前端總結](./summaries/FRONTEND_SUMMARY.md) | 前端開發總結 |
-| [P0 修復總結](./summaries/P0_FIXES_SUMMARY.md) | P0 問題修復總結 |
-| [性能修復總結](./summaries/PERFORMANCE_FIXES_SUMMARY.md) | 性能優化總結 |
-| [UI/UX 修復總結](./summaries/UI_UX_FIXES_SUMMARY.md) | UI/UX 改進總結 |
-| [任務 1.3 總結](./summaries/TASK_1.3_SUMMARY.md) | 任務 1.3 總結 |
-| [Agents 完成總結](./summaries/AGENTS_COMPLETION_SUMMARY.md) | 各角色完成情況 |
 
 ---
 
@@ -200,8 +146,7 @@ docs/
 ├── qa/                       # QA 文檔
 ├── pm/                       # 專案管理文檔
 ├── shared/                   # 共享資源
-├── reports/                  # 各類報告
-└── summaries/                # 階段總結
+└── shared/                   # 共享資源
 ```
 
 ### 貢獻文檔
