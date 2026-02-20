@@ -1040,7 +1040,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - sugar-daddy-network
+      - suggar-daddy-network
     profiles:
       - monitoring
 
@@ -1056,7 +1056,7 @@ services:
     ports:
       - "9093:9093"
     networks:
-      - sugar-daddy-network
+      - suggar-daddy-network
     profiles:
       - monitoring
 
@@ -1074,7 +1074,7 @@ services:
     ports:
       - "3001:3000"
     networks:
-      - sugar-daddy-network
+      - suggar-daddy-network
     profiles:
       - monitoring
 
@@ -1093,7 +1093,7 @@ services:
     ports:
       - "9100:9100"
     networks:
-      - sugar-daddy-network
+      - suggar-daddy-network
     profiles:
       - monitoring
 
@@ -1111,7 +1111,7 @@ services:
     ports:
       - "9200:9200"
     networks:
-      - sugar-daddy-network
+      - suggar-daddy-network
     profiles:
       - elk
 
@@ -1126,7 +1126,7 @@ services:
       - "5044:5044"
       - "9600:9600"
     networks:
-      - sugar-daddy-network
+      - suggar-daddy-network
     depends_on:
       - elasticsearch
     profiles:
@@ -1141,99 +1141,12 @@ services:
     ports:
       - "5601:5601"
     networks:
-      - sugar-daddy-network
+      - suggar-daddy-network
     depends_on:
       - elasticsearch
     profiles:
       - elk
 
-networks:
-  suggar-daddy-network:
-    driver: bridge
-
-volumes:
-  # PostgreSQL High Availability Volumes
-  postgres_master_data:
-    driver: local
-  postgres_replica_data:
-    driver: local
-  postgres_wal_archive:
-    driver: local
-
-  # Redis High Availability Volumes
-  redis_master_data:
-    driver: local
-  redis_replica_1_data:
-    driver: local
-  redis_replica_2_data:
-    driver: local
-
-  # Kafka & Zookeeper Volumes
-  kafka_data:
-    driver: local
-  zookeeper_data:
-    driver: local
-  zookeeper_logs:
-    driver: local
-
-# ============================================================
-# Docker Secrets Configuration
-# ============================================================
-# Secrets 提供安全的方式來管理敏感資料
-# 使用方式：
-#   1. 執行 ./scripts/setup-secrets.sh 生成 secrets
-#   2. Secrets 會掛載到容器的 /run/secrets/ 目錄
-#   3. 應用程式可以從檔案讀取 secrets
-# ============================================================
-
-secrets:
-  # 資料庫 Secrets
-  db_password:
-    file: ./secrets/db_password.txt
-  replication_password:
-    file: ./secrets/replication_password.txt
-  
-  # Redis Secrets (可選)
-  redis_password:
-    file: ./secrets/redis_password.txt
-  
-  # JWT Secrets
-  jwt_secret:
-    file: ./secrets/jwt_secret.txt
-  
-  # Stripe Secrets
-  stripe_secret_key:
-    file: ./secrets/stripe_secret_key.txt
-  stripe_webhook_secret:
-    file: ./secrets/stripe_webhook_secret.txt
-  stripe_publishable_key:
-    file: ./secrets/stripe_publishable_key.txt
-  
-  # Cloudinary Secrets
-  cloudinary_cloud_name:
-    file: ./secrets/cloudinary_cloud_name.txt
-  cloudinary_api_key:
-    file: ./secrets/cloudinary_api_key.txt
-  cloudinary_api_secret:
-    file: ./secrets/cloudinary_api_secret.txt
-  
-  # Firebase Secrets (可選)
-  firebase_private_key:
-    file: ./secrets/firebase_private_key.txt
-  
-  # SMTP Secrets (可選)
-  smtp_password:
-    file: ./secrets/smtp_password.txt
-
-  # Monitoring & ELK Volumes
-  prometheus_data:
-    driver: local
-  alertmanager_data:
-    driver: local
-  grafana_data:
-    driver: local
-  elasticsearch_data:
-    driver: local
 
   # Content Streaming Service - 视频流处理
   content-streaming-service:
@@ -1372,4 +1285,94 @@ secrets:
     networks:
       - suggar-daddy-network
     restart: unless-stopped
+
+networks:
+  suggar-daddy-network:
+    driver: bridge
+
+
+volumes:
+  # PostgreSQL High Availability Volumes
+  postgres_master_data:
+    driver: local
+  postgres_replica_data:
+    driver: local
+  postgres_wal_archive:
+    driver: local
+
+  # Redis High Availability Volumes
+  redis_master_data:
+    driver: local
+  redis_replica_1_data:
+    driver: local
+  redis_replica_2_data:
+    driver: local
+
+  # Kafka & Zookeeper Volumes
+  kafka_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  zookeeper_logs:
+    driver: local
+
+  # Monitoring & ELK Volumes
+  prometheus_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+# ============================================================
+# Docker Secrets Configuration
+# ============================================================
+# Secrets 提供安全的方式來管理敏感資料
+# 使用方式：
+#   1. 執行 ./scripts/setup-secrets.sh 生成 secrets
+#   2. Secrets 會掛載到容器的 /run/secrets/ 目錄
+#   3. 應用程式可以從檔案讀取 secrets
+# ============================================================
+
+secrets:
+  # 資料庫 Secrets
+  db_password:
+    file: ./secrets/db_password.txt
+  replication_password:
+    file: ./secrets/replication_password.txt
+  
+  # Redis Secrets (可選)
+  redis_password:
+    file: ./secrets/redis_password.txt
+  
+  # JWT Secrets
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  
+  # Stripe Secrets
+  stripe_secret_key:
+    file: ./secrets/stripe_secret_key.txt
+  stripe_webhook_secret:
+    file: ./secrets/stripe_webhook_secret.txt
+  stripe_publishable_key:
+    file: ./secrets/stripe_publishable_key.txt
+  
+  # Cloudinary Secrets
+  cloudinary_cloud_name:
+    file: ./secrets/cloudinary_cloud_name.txt
+  cloudinary_api_key:
+    file: ./secrets/cloudinary_api_key.txt
+  cloudinary_api_secret:
+    file: ./secrets/cloudinary_api_secret.txt
+  
+  # Firebase Secrets (可選)
+  firebase_private_key:
+    file: ./secrets/firebase_private_key.txt
+  
+  # SMTP Secrets (可選)
+  smtp_password:
+    file: ./secrets/smtp_password.txt
+
 
