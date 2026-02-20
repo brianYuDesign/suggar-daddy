@@ -360,7 +360,7 @@ services:
       CONTENT_SERVICE_URL: http://content-service:3006
       PAYMENT_SERVICE_URL: http://payment-service:3007
       SUBSCRIPTION_SERVICE_URL: http://subscription-service:3009
-      SKILL_SERVICE_URL: http://skill-service:3010
+      SKILL_SERVICE_URL: http://skill-service:3013
       MEDIA_SERVICE_URL: http://media-service:3008
       ADMIN_SERVICE_URL: http://admin-service:3011
       # Redis
@@ -1234,3 +1234,142 @@ secrets:
     driver: local
   elasticsearch_data:
     driver: local
+
+  # Content Streaming Service - 视频流处理
+  content-streaming-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: content-streaming-service
+    container_name: suggar-daddy-content-streaming-service
+    ports:
+      - "3014:3014"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3014
+      # Database
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      # AWS S3
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: npm run serve:content-streaming-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  # Recommendation Service - 推荐系统
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: recommendation-service
+    container_name: suggar-daddy-recommendation-service
+    ports:
+      - "3012:3012"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3012
+      # Database
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: npm run serve:recommendation-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+
+  # Skill Service - 技能服务
+  skill-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        APP_NAME: skill-service
+    container_name: suggar-daddy-skill-service
+    ports:
+      - "3013:3013"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3013
+      SKILL_SERVICE_PORT: 3013
+      # Database
+      DB_HOST: postgres-master
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
+      REDIS_HOST: redis-master
+      REDIS_PORT: 6379
+      KAFKA_BROKERS: kafka:9092
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      # OpenTelemetry / Jaeger
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: npm run serve:skill-service
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+

@@ -41,7 +41,7 @@ async function bootstrap(): Promise<void> {
   });
 
   app.enableShutdownHooks();
-  const port = process.env.SKILL_SERVICE_PORT || process.env.PORT || 3010;
+  const port = process.env.SKILL_SERVICE_PORT || process.env.PORT || 3013;
   await app.listen(port);
   Logger.log(
     `Skill Service running on: http://localhost:${port}/${globalPrefix}`,

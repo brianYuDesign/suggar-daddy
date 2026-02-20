@@ -150,7 +150,21 @@ export class ProxyService {
         prefix: '/api/skills',
         baseUrl: this.config.get<string>(
           'SKILL_SERVICE_URL',
-          'http://localhost:3010',
+          'http://localhost:3013',
+        ),
+      },
+      {
+        prefix: '/api/recommendations',
+        baseUrl: this.config.get<string>(
+          'RECOMMENDATION_SERVICE_URL',
+          'http://localhost:3012',
+        ),
+      },
+      {
+        prefix: '/api/streaming',
+        baseUrl: this.config.get<string>(
+          'CONTENT_STREAMING_SERVICE_URL',
+          'http://localhost:3014',
         ),
       },
       {
