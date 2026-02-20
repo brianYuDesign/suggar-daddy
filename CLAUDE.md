@@ -137,4 +137,5 @@ Services use `ConfigModule.forRoot()` with defaults in code. Key vars: `DB_HOST`
 - [監控告警](docs/devops/MONITORING_ALERTING_SETUP.md) — 系統監控設置
 
 **測試**
-- [QA 文檔](docs/qa/) — 測試策略與報告
+- [測試指南](docs/qa/TESTING-GUIDE.md) — 測試方法與流程
+- [測試標準](docs/qa/TESTING-STANDARDS.md) — 測試品質標準

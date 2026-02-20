@@ -1,22 +1,20 @@
 # DevOps 團隊文檔
 
-## 團隊職責
-- 基礎設施管理
-- CI/CD 流程建立
-- 容器化與編排
-- 監控與告警
-
 ## 技術棧
+
 - **容器化**: Docker + Docker Compose
 - **IaC**: Terraform
 - **監控**: Prometheus + Grafana
 - **追蹤**: Jaeger
 - **CI/CD**: GitHub Actions
+- **進程管理**: PM2
 
 ## 文檔索引
-- [建置流程](./build-process.md)
-- [部署指南](./deployment-guide.md)
-- [CI/CD 設置](./ci-cd-setup.md)
-- [監控告警](./monitoring-alerting.md)
 
-**負責人**: DevOps Engineer Agent
+| 文檔 | 說明 |
+|------|------|
+| [監控告警](./MONITORING_ALERTING_SETUP.md) | 系統監控與告警配置 |
+| [災難恢復](./DISASTER_RECOVERY.md) | 備份與災難恢復計劃 |
+| [PM2 使用](./PM2-USAGE.md) | PM2 進程管理 |
+| [Secrets 管理](./secrets-management.md) | 敏感資料安全管理 |
+| [Secrets 設置指南](./secrets-setup-guide.md) | Docker Secrets 配置步驟 |

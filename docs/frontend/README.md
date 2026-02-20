@@ -1,13 +1,5 @@
 # 前端團隊文檔
 
-## 團隊職責
-
-- 用戶介面開發與優化
-- 前端架構設計
-- 組件庫維護
-- 前端測試
-- 用戶體驗優化
-
 ## 技術棧
 
 - **框架**: Next.js 14 (App Router)
@@ -32,30 +24,15 @@ libs/
 ## 快速開始
 
 ```bash
-# 啟動 Web 應用
-npm run serve:web
-
-# 啟動 Admin 應用
-npm run serve:admin
-
-# 運行前端測試
-npm run test -- --project=web
-npm run test -- --project=admin
-
-# 構建
-npm run build:web
-npm run build:admin
+nx serve web          # 啟動 Web 應用
+nx serve admin        # 啟動 Admin 應用
+nx test web           # 運行 Web 測試
+nx test admin         # 運行 Admin 測試
+nx build web          # 構建 Web
+nx build admin        # 構建 Admin
 ```
 
 ## 文檔索引
 
-- [測試覆蓋率報告](./test-coverage-report.md)
+- [UI 組件指南](./UI_COMPONENTS_GUIDE.md)
 - [組件開發規範](./component-guidelines.md)
-- [UI/UX 問題清單](./ui-ux-issues.md)
-- [優化計劃](./optimization-plan.md)
-- [業務邏輯驗證](./business-logic-validation.md)
-
-## 聯繫方式
-
-**負責人**: Frontend Developer Agent  
-**代碼審查**: Tech Lead
