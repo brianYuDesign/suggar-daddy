@@ -8,7 +8,7 @@ import type { UserCardDto } from '@suggar-daddy/dto';
 
 describe('MatchingService', () => {
   let service: MatchingService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'sAdd' | 'sMembers' | 'sRem' | 'keys' | 'scan' | 'mget' | 'geoPos' | 'geoSearch' | 'geoAdd'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'sAdd' | 'sMembers' | 'sRem' | 'keys' | 'scan' | 'mget' | 'geoPos' | 'geoSearch' | 'geoAdd' | 'incr' | 'expire'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
   let userServiceClient: jest.Mocked<Pick<UserServiceClient, 'getCardsForRecommendation' | 'getCardsByIds'>>;
 
@@ -25,6 +25,8 @@ describe('MatchingService', () => {
       geoPos: jest.fn().mockResolvedValue(null),
       geoSearch: jest.fn().mockResolvedValue([]),
       geoAdd: jest.fn().mockResolvedValue(0),
+      incr: jest.fn().mockResolvedValue(1),
+      expire: jest.fn().mockResolvedValue(1),
     };
     kafka = { sendEvent: jest.fn() };
     userServiceClient = {
@@ -129,9 +131,12 @@ describe('MatchingService', () => {
 
   describe('swipe', () => {
     it('應記錄 swipe 且無配對時回傳 matched: false', async () => {
-      redis.get!.mockResolvedValue(null);
+      redis.get!.mockResolvedValueOnce(null); // 檢查每日 swipe 計數
+      redis.get!.mockResolvedValueOnce(null); // 檢查是否已經 swipe 過
       redis.set!.mockResolvedValue(undefined);
       redis.sAdd!.mockResolvedValue(0);
+      redis.incr!.mockResolvedValue(1);
+      redis.expire!.mockResolvedValue(true);
 
       const result = await service.swipe('user-1', 'user-2', 'like');
 
@@ -150,17 +155,20 @@ describe('MatchingService', () => {
         status: 'active',
       };
       redis.get!
-        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null) // 檢查每日 swipe 計數
+        .mockResolvedValueOnce(null) // 檢查是否已經 swipe 過
         .mockResolvedValueOnce(JSON.stringify({
           swiperId: 'user-2',
           swipedId: 'user-1',
           action: 'like',
           createdAt: new Date(),
-        }))
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+        })) // 檢查反向 swipe
+        .mockResolvedValueOnce(null) // 檢查 existingMatch1
+        .mockResolvedValueOnce(null); // 檢查 existingMatch2
       redis.set!.mockResolvedValue(undefined);
       redis.sAdd!.mockResolvedValue(0);
+      redis.incr!.mockResolvedValue(1);
+      redis.expire!.mockResolvedValue(true);
 
       const result = await service.swipe('user-1', 'user-2', 'like');
 

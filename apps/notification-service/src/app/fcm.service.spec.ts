@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { FcmService } from "./fcm.service";
 import { RedisService } from "@suggar-daddy/redis";
 import { KafkaConsumerService } from "@suggar-daddy/kafka";
+import { CircuitBreakerService } from "@suggar-daddy/common";
 
 // Mock firebase-admin（注意：firebase-admin 可能尚未安裝）
 jest.mock("firebase-admin", () => {
@@ -50,6 +51,13 @@ describe("FcmService", () => {
     get: jest.fn().mockReturnValue(undefined),
   };
 
+  /** 模擬 CircuitBreakerService */
+  const mockCircuitBreaker = {
+    execute: jest.fn().mockImplementation(async (fn: any) => await fn()),
+    getState: jest.fn().mockReturnValue('CLOSED'),
+    wrap: jest.fn().mockImplementation((name: string, fn: any) => fn),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -59,6 +67,7 @@ describe("FcmService", () => {
         { provide: RedisService, useValue: mockRedisService },
         { provide: KafkaConsumerService, useValue: mockKafkaConsumer },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: CircuitBreakerService, useValue: mockCircuitBreaker },
       ],
     }).compile();
 
