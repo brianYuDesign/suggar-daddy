@@ -2400,3 +2400,38 @@
 [2026-02-18T23:38:38+08:00] Sent Telegram message to -5298003529
 [2026-02-18T23:38:38+08:00] Wrote pending-wake.json
 [2026-02-18T23:38:38+08:00] === Hook completed ===
+[2026-02-19T23:33:04+08:00] === Hook fired ===
+[2026-02-19T23:33:04+08:00] session=ab4b42c7-b587-4167-9349-deaa131120ab cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-19T23:33:05+08:00] Output from dir listing
+[2026-02-19T23:33:05+08:00] Meta: task=sugar-daddy-final-launch-check group=-5298003529
+[2026-02-19T23:33:05+08:00] Wrote latest.json
+[2026-02-19T23:33:10+08:00] Sent Telegram message to -5298003529
+[2026-02-19T23:33:10+08:00] Wrote pending-wake.json
+[2026-02-19T23:33:10+08:00] === Hook completed ===
+[2026-02-19T23:33:28+08:00] === Hook fired ===
+[2026-02-19T23:33:28+08:00] session=26d4f1d9-bf2d-4f8a-bdb3-9a8723fe9350 cwd=/Users/brianyu/Project/suggar-daddy event=SessionEnd
+[2026-02-19T23:33:28+08:00] Duplicate hook within 24s, skipping
+[2026-02-19T23:34:57+08:00] === Hook fired ===
+[2026-02-19T23:34:58+08:00] session=ab4b42c7-b587-4167-9349-deaa131120ab cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-19T23:34:59+08:00] Output from dir listing
+[2026-02-19T23:34:59+08:00] Meta: task=sugar-daddy-final-launch-check group=-5298003529
+[2026-02-19T23:34:59+08:00] Wrote latest.json
+[2026-02-19T23:35:03+08:00] Sent Telegram message to -5298003529
+[2026-02-19T23:35:03+08:00] Wrote pending-wake.json
+[2026-02-19T23:35:03+08:00] === Hook completed ===
+[2026-02-19T23:44:48+08:00] === Hook fired ===
+[2026-02-19T23:44:48+08:00] session=ab4b42c7-b587-4167-9349-deaa131120ab cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-19T23:44:49+08:00] Output from dir listing
+[2026-02-19T23:44:49+08:00] Meta: task=sugar-daddy-final-launch-check group=-5298003529
+[2026-02-19T23:44:49+08:00] Wrote latest.json
+[2026-02-19T23:44:53+08:00] Sent Telegram message to -5298003529
+[2026-02-19T23:44:53+08:00] Wrote pending-wake.json
+[2026-02-19T23:44:53+08:00] === Hook completed ===
+[2026-02-19T23:46:15+08:00] === Hook fired ===
+[2026-02-19T23:46:15+08:00] session=ab4b42c7-b587-4167-9349-deaa131120ab cwd=/Users/brianyu/Project/suggar-daddy event=Stop
+[2026-02-19T23:46:16+08:00] Output from dir listing
+[2026-02-19T23:46:16+08:00] Meta: task=sugar-daddy-final-launch-check group=-5298003529
+[2026-02-19T23:46:16+08:00] Wrote latest.json
+[2026-02-19T23:46:19+08:00] Sent Telegram message to -5298003529
+[2026-02-19T23:46:19+08:00] Wrote pending-wake.json
+[2026-02-19T23:46:19+08:00] === Hook completed ===
