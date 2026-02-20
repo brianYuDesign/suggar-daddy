@@ -12,7 +12,7 @@ export interface Post {
 }
 
 export interface CreatePostDto {
-  content: string;
+  caption: string;
   mediaUrls?: string[];
   isPremium?: boolean;
 }
@@ -127,6 +127,51 @@ export class ContentApi {
    */
   deleteComment(postId: string, commentId: string) {
     return this.client.delete<{ success: boolean }>(`/api/posts/${postId}/comments/${commentId}`);
+  }
+
+  // ===== 貼文編輯 =====
+
+  /**
+   * 更新貼文
+   */
+  updatePost(postId: string, dto: Partial<CreatePostDto>) {
+    return this.client.put<Post>(`/api/posts/${postId}`, dto);
+  }
+
+  // ===== 書籤系統 =====
+
+  /**
+   * 收藏貼文
+   */
+  bookmarkPost(postId: string) {
+    return this.client.post<void>(`/api/posts/${postId}/bookmark`);
+  }
+
+  /**
+   * 取消收藏
+   */
+  unbookmarkPost(postId: string) {
+    return this.client.delete<void>(`/api/posts/${postId}/bookmark`);
+  }
+
+  /**
+   * 取得收藏列表
+   */
+  getBookmarks(cursor?: string) {
+    const params = cursor ? { cursor } : undefined;
+    return this.client.get<{ posts: Post[]; nextCursor?: string }>('/api/posts/bookmarks', { params });
+  }
+
+  // ===== 個人化 Feed =====
+
+  /**
+   * 取得個人化推薦 Feed
+   */
+  getFeed(page?: number, limit?: number) {
+    const params: Record<string, number> = {};
+    if (page) params['page'] = page;
+    if (limit) params['limit'] = limit;
+    return this.client.get<{ posts: Post[]; total: number }>('/api/posts/feed', { params });
   }
 
   // ===== P0: Discovery 發現 =====

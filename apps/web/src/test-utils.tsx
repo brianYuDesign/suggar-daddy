@@ -1,6 +1,7 @@
 import { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { AuthProvider } from '../providers/auth-provider';
+import { ToastProvider } from '../providers/toast-provider';
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -44,7 +45,11 @@ interface AllTheProvidersProps {
 }
 
 function AllTheProviders({ children }: AllTheProvidersProps) {
-  return <AuthProvider>{children}</AuthProvider>;
+  return (
+    <AuthProvider>
+      <ToastProvider>{children}</ToastProvider>
+    </AuthProvider>
+  );
 }
 
 /**

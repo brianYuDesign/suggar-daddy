@@ -105,6 +105,27 @@ export class NotificationService {
     }));
   }
 
+  async markAllRead(userId: string): Promise<{ success: boolean }> {
+    const ids = await this.redis.lRange(USER_NOTIFS(userId), 0, -1);
+    if (ids.length === 0) return { success: true };
+
+    const keys = ids.map(id => NOTIF_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const TTL_SECONDS = 7 * 24 * 60 * 60;
+
+    for (let i = 0; i < values.length; i++) {
+      const raw = values[i];
+      if (!raw) continue;
+      const item = JSON.parse(raw) as StoredNotification;
+      if (item.userId !== userId || item.read) continue;
+      item.read = true;
+      await this.redis.setex(NOTIF_KEY(ids[i]!), TTL_SECONDS, JSON.stringify(item));
+    }
+
+    this.logger.log(`markAllRead userId=${userId} count=${ids.length}`);
+    return { success: true };
+  }
+
   async markRead(userId: string, id: string): Promise<{ success: boolean }> {
     const raw = await this.redis.get(NOTIF_KEY(id));
     if (!raw) return { success: false };

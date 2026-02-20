@@ -22,7 +22,10 @@ const registerSchema = z.object({
   password: z
     .string()
     .min(8, '密碼至少 8 個字元')
-    .max(128, '密碼不可超過 128 個字元'),
+    .max(128, '密碼不可超過 128 個字元')
+    .regex(/[a-z]/, '密碼須包含至少一個小寫字母')
+    .regex(/[A-Z]/, '密碼須包含至少一個大寫字母')
+    .regex(/[0-9]/, '密碼須包含至少一個數字'),
   displayName: z
     .string()
     .min(1, '請輸入暱稱')
@@ -206,7 +209,7 @@ export default function RegisterPage() {
             <p id="password-error" className="text-xs text-red-500" role="alert">{errors.password.message}</p>
           )}
           <p id="password-hint" className="text-xs text-gray-500">
-            密碼須至少 8 個字元，最多 128 個字元
+            密碼須至少 8 個字元，包含大小寫字母及數字
           </p>
         </div>
 

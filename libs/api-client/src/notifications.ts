@@ -14,7 +14,7 @@ export class NotificationsApi {
    * @returns 通知列表
    */
   getAll() {
-    return this.client.get<NotificationItemDto[]>('/api/notifications');
+    return this.client.get<NotificationItemDto[]>('/api/notifications/list');
   }
 
   /**
@@ -22,14 +22,14 @@ export class NotificationsApi {
    * @param notificationId - 通知 ID
    */
   markAsRead(notificationId: string) {
-    return this.client.patch<void>(`/api/notifications/${notificationId}/read`);
+    return this.client.post<void>(`/api/notifications/read/${notificationId}`);
   }
 
   /**
    * 標記所有通知為已讀
    */
   markAllAsRead() {
-    return this.client.patch<void>('/api/notifications/read-all');
+    return this.client.post<void>('/api/notifications/read-all');
   }
 
   /**

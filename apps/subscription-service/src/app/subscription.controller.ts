@@ -1,6 +1,8 @@
 import {
   Controller,
+  Delete,
   Get,
+  NotFoundException,
   Post,
   Body,
   Query,
@@ -77,6 +79,19 @@ export class SubscriptionController {
       creatorId: user.userId,
       body,
     };
+  }
+
+  /** 取消當前用戶的訂閱 */
+  @Delete('my-subscription')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Cancel current user subscription' })
+  async cancelMySubscription(@CurrentUser() user: CurrentUserData) {
+    const subs = await this.subscriptionService.findBySubscriber(user.userId, 1, 100);
+    const activeSub = subs.data.find((s: { status: string }) => s.status === 'active');
+    if (!activeSub) {
+      throw new NotFoundException('No active subscription found');
+    }
+    return this.subscriptionService.cancel(activeSub.id);
   }
 
   // Admin-only endpoint

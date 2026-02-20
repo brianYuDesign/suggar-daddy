@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import {
   Home,
   Compass,
-  Search,
   Heart,
   MessageCircle,
   Bell,
@@ -16,7 +15,7 @@ import { useNotifications } from '../../providers/notification-provider';
 const navItems = [
   { href: '/feed', icon: Home, label: '首頁' },
   { href: '/discover', icon: Compass, label: '探索' },
-  { href: '/search', icon: Search, label: '搜尋' },
+  { href: '/notifications', icon: Bell, label: '通知' },
   { href: '/matches', icon: Heart, label: '配對' },
   { href: '/messages', icon: MessageCircle, label: '訊息' },
 ];

@@ -113,7 +113,7 @@ export class SubscriptionsApi {
    * @returns Current subscription information
    */
   getMySubscription() {
-    return this.client.get<Subscription>('/api/subscriptions/me');
+    return this.client.get<Subscription>('/api/subscriptions/my-subscription');
   }
 
   /**
@@ -129,7 +129,7 @@ export class SubscriptionsApi {
    * Cancel the current subscription
    */
   cancel() {
-    return this.client.delete<void>('/api/subscriptions/me');
+    return this.client.delete<void>('/api/subscriptions/my-subscription');
   }
 
   // ==================== Creator Tools (P1 APIs) ====================

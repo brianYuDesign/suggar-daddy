@@ -60,6 +60,15 @@ export class NotificationController {
     );
   }
 
+  /** 標記當前用戶的所有通知已讀（JWT） */
+  @Post('read-all')
+  @UseGuards(JwtAuthGuard)
+  async markAllRead(@CurrentUser() user: CurrentUserData) {
+    const uid = user.userId;
+    this.logger.log(`markAllRead userId=${uid}`);
+    return this.notificationService.markAllRead(uid);
+  }
+
   /** 標記當前用戶的某則通知已讀（JWT） */
   @Post('read/:id')
   @UseGuards(JwtAuthGuard)

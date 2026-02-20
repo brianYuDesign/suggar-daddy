@@ -22,4 +22,11 @@ export class MatchingApi {
     const params = cursor ? { cursor } : undefined;
     return this.client.get<MatchesResponseDto>('/api/matching/matches', { params });
   }
+
+  /**
+   * 取消配對
+   */
+  unmatch(matchId: string) {
+    return this.client.delete<void>(`/api/matching/matches/${matchId}`);
+  }
 }

@@ -99,7 +99,7 @@ export default function CreatePostPage() {
       }
 
       await contentApi.createPost({
-        content: data.content,
+        caption: data.content,
         isPremium: data.isPremium,
         mediaUrls,
       });

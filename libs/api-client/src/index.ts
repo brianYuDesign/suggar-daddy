@@ -14,6 +14,8 @@ export { SubscriptionsApi } from './subscriptions';
 export { PaymentsApi } from './payments';
 export { AdminApi } from './admin';
 export { StoriesApi } from './stories';
+export { SkillsApi } from './skills';
+export { MediaApi } from './media';
 
 // Re-export shared types
 export type {
@@ -63,6 +65,8 @@ export type { Story, StoryGroup, StoryViewer, CreateStoryDto } from './stories';
 export type { SubscriptionTier, Subscription, CreateTierDto, UpdateTierDto, SubscriptionTierDetail } from './subscriptions';
 export type { Tip, Transaction, TransactionDetail, TransactionStatus, TransactionType, PostPurchase, Wallet, Withdrawal, DmPurchase } from './payments';
 export type { ReportDto, UserCard, CreateUserDto, FollowStatus } from './users';
+export type { Skill, UserSkill, AddUserSkillDto, UpdateUserSkillDto } from './skills';
+export type { UploadResult, MediaItem } from './media';
 export type {
   PaginatedResponse as AdminPaginatedResponse,
   AdminUser,
