@@ -1,26 +1,66 @@
 {
-  "timestamp": "2026-02-20T15:30:00+08:00",
+  "timestamp": "2026-02-20T15:45:00+08:00",
   "check_type": "passive",
   "job_id": "46378939-d89f-43c6-8e98-0788a99ce731",
-  "queue_status": "empty",
-  "entries_processed": 0,
-  "workflows_executed": [],
+  "queue_status": "processed",
+  "entries_processed": 5,
+  "workflows_executed": [
+    {
+      "commit": "1ab0c15",
+      "message": "docs: sync Phase 1 Week 4-5 deliverables",
+      "workflow": "docs-sync",
+      "status": "completed",
+      "channel": "g-sa-specs"
+    },
+    {
+      "commit": "e26c2e9",
+      "message": "test: 重構整合測試配置",
+      "workflow": "test-config-update",
+      "status": "completed",
+      "channel": "g-backend-devops"
+    },
+    {
+      "commit": "324db45",
+      "message": "config: docker-compose 環境變數",
+      "workflow": "devops-config",
+      "status": "completed",
+      "channel": "g-backend-devops"
+    },
+    {
+      "commit": "469531b",
+      "message": "fix(web): userType 小寫格式",
+      "workflow": "frontend-build",
+      "status": "success",
+      "result": "✅ web + admin built",
+      "channel": "g-frontend"
+    },
+    {
+      "commit": "bd98304",
+      "message": "fix(api-gateway): 路由端口修正",
+      "workflow": "backend-test-build",
+      "status": "partial",
+      "result": "⚠️ tests 94.6%, build 10/13 services",
+      "channel": "g-backend-devops"
+    }
+  ],
   "decisions": [
     {
-      "id": "cc-passive-15-30",
-      "time": "2026-02-20T15:30:00+08:00",
+      "id": "cc-passive-15-45",
+      "time": "2026-02-20T15:45:00+08:00",
       "trigger": "cron_passive_check",
-      "action": "queue_check_complete",
-      "reason": "cc-push-queue.jsonl has 0 entries - no pending commits to process",
-      "status": "clear"
+      "action": "process_pending_commits",
+      "reason": "5 commits detected in last 24h - executed matching workflows",
+      "status": "completed"
     }
   ],
   "project_health": {
     "branch": "main",
-    "last_commit": "1ab0c15 (docs: sync Phase 1 Week 4-5 deliverables)",
-    "last_commit_time": "2026-02-20T13:50:00+08:00",
-    "uncommitted_changes": "none",
-    "critical_issues": "none"
+    "last_commit": "1ab0c15 (docs: sync Phase 1 Week 4-5)",
+    "last_commit_time": "2026-02-20T14:11:26+08:00",
+    "docker_status": "16/16 running (1 unhealthy: jaeger)",
+    "pm2_status": "11/11 online",
+    "test_status": "575/608 passed (94.6%)",
+    "build_status": "frontend ✅ | backend ⚠️ (10/13 services)"
   },
-  "next_check": "2026-02-20T15:45:00+08:00"
+  "next_check": "2026-02-20T16:00:00+08:00"
 }
