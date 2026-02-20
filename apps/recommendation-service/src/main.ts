@@ -2,18 +2,11 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { AppDataSource } from './database/data-source';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   try {
-    // 初始化 TypeORM 數據庫連接
-    if (!AppDataSource.isInitialized) {
-      await AppDataSource.initialize();
-      logger.log('✅ Database connected');
-    }
-
     // 創建 NestJS 應用
     const app = await NestFactory.create(AppModule);
 

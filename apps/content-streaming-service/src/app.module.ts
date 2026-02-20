@@ -37,6 +37,7 @@ import { ContentModule } from '@/content.module';
         };
       },
       inject: [ConfigService],
+      extraProviders: [ConfigService],
     }),
     TypeOrmModule.forFeature([Video, VideoQuality, TranscodingJob, UploadSession]),
     ContentModule,
