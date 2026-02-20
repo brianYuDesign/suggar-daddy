@@ -149,7 +149,7 @@ function PostCard({ post, currentUserId, onLikeToggle, likedPosts, authorName }:
           </p>
 
           {/* Media thumbnails */}
-          {post.mediaUrls && post.mediaUrls.length > 0 && (
+          {post.mediaUrls && post.mediaUrls?.length > 0 && (
             <div className="mt-3 grid grid-cols-2 gap-2">
               {post.mediaUrls.slice(0, 4).map((url, idx) => (
                 <div
@@ -162,9 +162,9 @@ function PostCard({ post, currentUserId, onLikeToggle, likedPosts, authorName }:
                     className="h-full w-full object-cover"
                     loading="lazy"
                   />
-                  {idx === 3 && post.mediaUrls && post.mediaUrls.length > 4 && (
+                  {idx === 3 && post.mediaUrls && post.mediaUrls?.length > 4 && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white font-bold text-lg">
-                      +{post.mediaUrls.length - 4}
+                      +{post.mediaUrls?.length - 4}
                     </div>
                   )}
                 </div>
@@ -254,7 +254,7 @@ export default function FeedPage() {
         isLoadingMore: false,
         error: friendlyMessage,
       }));
-      
+
       // 顯示 toast 通知
       toast.error(friendlyMessage);
     }
@@ -265,11 +265,10 @@ export default function FeedPage() {
   }, [fetchPosts]);
 
   useEffect(() => {
-    const unknownIds = state.posts
-      .map((p) => p.authorId)
+    const unknownIds = state.posts?.map((p) => p.authorId)
       .filter((id) => !authorNames[id]);
     const uniqueIds = [...new Set(unknownIds)];
-    if (uniqueIds.length === 0) return;
+    if (uniqueIds?.length === 0) return;
 
     Promise.all(
       uniqueIds.map(async (id) => {
@@ -327,7 +326,7 @@ export default function FeedPage() {
         }
         return next;
       });
-      
+
       // 顯示錯誤提示
       const friendlyMessage = getFriendlyErrorMessage(err);
       toast.error(friendlyMessage);
@@ -401,7 +400,7 @@ export default function FeedPage() {
       )}
 
       {/* Post list */}
-      {!state.isLoading && !state.error && state.posts.length > 0 && (
+      {!state.isLoading && !state.error && state.posts?.length > 0 && (
         <div className="space-y-4">
           {state.posts.map((post) => (
             <PostCard
@@ -438,7 +437,7 @@ export default function FeedPage() {
       )}
 
       {/* Empty state */}
-      {!state.isLoading && !state.error && state.posts.length === 0 && (
+      {!state.isLoading && !state.error && state.posts?.length === 0 && (
         <EmptyState
           icon={Sparkles}
           title="還沒有任何動態"

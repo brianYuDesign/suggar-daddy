@@ -1,0 +1,36 @@
+{
+  "name": "@suggar-daddy/seed-data",
+  "version": "1.0.0",
+  "description": "Rich seed data generator for Suggar-Daddy platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "seed": "ts-node src/runner.ts",
+    "seed:users": "ts-node src/runner.ts --module=users",
+    "seed:posts": "ts-node src/runner.ts --module=posts",
+    "seed:interactions": "ts-node src/runner.ts --module=interactions",
+    "seed:payments": "ts-node src/runner.ts --module=payments",
+    "seed:all": "ts-node src/runner.ts --all",
+    "seed:clear": "ts-node src/runner.ts --clear",
+    "dev": "ts-node-dev --respawn src/runner.ts"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "typeorm": "^0.3.20",
+    "pg": "^8.11.3",
+    "bcrypt": "^5.1.1",
+    "uuid": "^9.0.1",
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/uuid": "^9.0.8",
+    "@types/cli-progress": "^3.11.5",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0"
+  }
+}
