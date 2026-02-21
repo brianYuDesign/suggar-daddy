@@ -14,34 +14,53 @@ import {
   Crown,
   ArrowUpDown,
   ScrollText,
+  Gem,
+  MessageCircle,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth-provider';
+import { usePermissions, AdminPermission } from '@/lib/permissions';
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  permission?: AdminPermission;
+}
+
+const navItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/users', label: 'Users', icon: Users },
   { href: '/content', label: 'Content', icon: FileWarning },
   { href: '/subscriptions', label: 'Subscriptions', icon: Crown },
   { href: '/transactions', label: 'Transactions', icon: ArrowUpDown },
+  { href: '/diamonds', label: 'Diamonds', icon: Gem },
   { href: '/payments', label: 'Payments', icon: CreditCard },
   { href: '/withdrawals', label: 'Withdrawals', icon: Wallet },
+  { href: '/chat-rooms', label: 'Chat Rooms', icon: MessageCircle, permission: AdminPermission.VIEW_CHAT_ROOMS },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/audit-log', label: 'Audit Log', icon: ScrollText },
+  { href: '/super-admin', label: 'Super Admin', icon: Shield, permission: AdminPermission.MANAGE_ADMINS },
   { href: '/system', label: 'System', icon: Activity },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
+  const { hasPermission } = usePermissions();
+
+  const visibleItems = navItems.filter(
+    (item) => !item.permission || hasPermission(item.permission),
+  );
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-card">
       <div className="flex h-16 items-center border-b px-6">
         <h1 className="text-lg font-bold">SD Admin</h1>
       </div>
-      <nav className="flex-1 space-y-1 p-4">
-        {navItems.map((item) => {
+      <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+        {visibleItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== '/' && pathname.startsWith(item.href));

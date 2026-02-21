@@ -7,6 +7,7 @@ export { AuthApi } from './auth';
 export type { SuccessResponse, VerifyEmailResponse, OAuthResponse } from './auth';
 export { UsersApi } from './users';
 export { MatchingApi } from './matching';
+export { TagsApi } from './tags';
 export { MessagingApi } from './messaging';
 export { NotificationsApi } from './notifications';
 export { ContentApi } from './content';
@@ -41,7 +42,6 @@ export type {
   SwipeRequestDto,
   SwipeResponseDto,
   MatchDto,
-  CardsResponseDto,
   MatchesResponseDto,
   // Messaging
   MessageAttachmentDto,
@@ -61,7 +61,10 @@ export type {
 export type { Post, CreatePostDto, ContentReport, Comment } from './content';
 export type { Story, StoryGroup, StoryViewer, CreateStoryDto } from './stories';
 export type { SubscriptionTier, Subscription, CreateTierDto, UpdateTierDto, SubscriptionTierDetail } from './subscriptions';
-export type { Tip, Transaction, TransactionDetail, TransactionStatus, TransactionType, PostPurchase, Wallet, Withdrawal, DmPurchase } from './payments';
+export type { Tip, Transaction, TransactionDetail, TransactionStatus, TransactionType, PostPurchase, Wallet, Withdrawal, DmPurchase, DiamondBalance, DiamondTransaction, DiamondPackage, DiamondConfig } from './payments';
+export type { GetCardsQuery, EnhancedUserCardDto, CardDetailResponseDto, LikesMeResponseDto, LikesMeCardDto, RevealLikeResponseDto, UndoResponseDto, BehaviorEventDto, BehaviorBatchResponseDto, PostPreviewDto, ScoreBreakdownDto, InterestTagCategory, BehaviorEventType } from './matching';
+export type { CardsResponseDto } from './matching';
+export type { InterestTagDto, TagsListResponseDto } from './tags';
 export type { ReportDto, UserCard, CreateUserDto, FollowStatus } from './users';
 export type {
   PaginatedResponse as AdminPaginatedResponse,
@@ -100,5 +103,22 @@ export type {
   DlqStats,
   ConsistencyMetrics,
   AuditLogRecord,
+  DiamondStats as AdminDiamondStats,
+  DiamondBalanceRecord,
+  DiamondBalanceDetail,
+  DiamondTransactionRecord,
+  DiamondPurchaseRecord,
+  AdminDiamondPackage,
+  AdminDiamondConfig,
+  ChatParticipant,
+  ChatLastMessage,
+  ChatConversation,
+  ChatStats,
+  ChatMessage,
+  ConversationMessagesResponse,
+  UserConversationsResponse,
+  AdminRecord,
+  PermissionOverview,
+  UpdateUserDto,
 } from './admin';
 

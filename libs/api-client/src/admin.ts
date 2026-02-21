@@ -334,6 +334,78 @@ export interface DlqMessage {
   createdAt: string;
 }
 
+// ---- Diamond Management Types ----
+
+export interface DiamondStats {
+  totalInCirculation: number;
+  totalPurchased: number;
+  totalSpent: number;
+  totalReceived: number;
+  totalConverted: number;
+  userCount: number;
+  averageBalance: number;
+}
+
+export interface DiamondBalanceRecord {
+  userId: string;
+  balance: number;
+  totalPurchased: number;
+  totalSpent: number;
+  totalReceived: number;
+  totalConverted: number;
+  updatedAt: string;
+  user: { id: string; email: string; displayName?: string } | null;
+}
+
+export interface DiamondBalanceDetail extends DiamondBalanceRecord {
+  recentTransactions: DiamondTransactionRecord[];
+}
+
+export interface DiamondTransactionRecord {
+  id: string;
+  userId: string;
+  type: string;
+  amount: number;
+  referenceId: string | null;
+  referenceType: string | null;
+  description: string | null;
+  createdAt: string;
+  user: { id: string; email: string; displayName?: string } | null;
+}
+
+export interface DiamondPurchaseRecord {
+  id: string;
+  userId: string;
+  packageId: string;
+  diamondAmount: number;
+  bonusDiamonds: number;
+  totalDiamonds: number;
+  amountUsd: number;
+  stripePaymentId: string | null;
+  status: string;
+  createdAt: string;
+  user: { id: string; email: string; displayName?: string } | null;
+}
+
+export interface AdminDiamondPackage {
+  id: string;
+  name: string;
+  diamondAmount: number;
+  bonusDiamonds: number;
+  priceUsd: number;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface AdminDiamondConfig {
+  superLikeCost: number;
+  boostCost: number;
+  boostDurationMinutes: number;
+  conversionRate: number;
+  platformFeeRate: number;
+  minConversionDiamonds: number;
+}
+
 // ---- Audit Log Types ----
 
 export interface AuditLogRecord {
@@ -347,6 +419,108 @@ export interface AuditLogRecord {
   path: string;
   statusCode: number | null;
   createdAt: string;
+}
+
+// ---- Chat Management Types ----
+
+export interface ChatParticipant {
+  id: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+  username?: string | null;
+  userType?: string | null;
+  permissionRole?: string | null;
+}
+
+export interface ChatLastMessage {
+  id: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface ChatConversation {
+  id: string;
+  participants: ChatParticipant[];
+  lastMessage: ChatLastMessage | null;
+  lastMessageAt: string | null;
+}
+
+export interface ChatStats {
+  totalConversations: number;
+  totalMessages: number;
+  onlineUsers: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  attachments: { id: string; type: string; url: string; thumbnailUrl?: string }[];
+  createdAt: string;
+  sender: ChatParticipant;
+}
+
+export interface ConversationMessagesResponse {
+  conversation: {
+    id: string;
+    participantIds: string[];
+    participants: ChatParticipant[];
+  };
+  messages: ChatMessage[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UserConversationsResponse {
+  userId: string;
+  displayName: string;
+  conversations: {
+    id: string;
+    participants: ChatParticipant[];
+    lastMessageAt?: string;
+  }[];
+  total: number;
+}
+
+// ---- Super Admin Types ----
+
+export interface AdminRecord {
+  id: string;
+  email: string;
+  displayName: string;
+  username: string | null;
+  permissionRole: string;
+  avatarUrl: string | null;
+  lastActiveAt: string | null;
+  createdAt: string;
+}
+
+export interface PermissionOverview {
+  totalUsers: number;
+  roleDistribution: Record<string, number>;
+  recentAdminActions: AuditLogRecord[];
+}
+
+export interface UpdateUserDto {
+  displayName?: string;
+  email?: string;
+  username?: string;
+  bio?: string;
+  avatarUrl?: string;
+  userType?: string;
+  permissionRole?: string;
+  city?: string;
+  country?: string;
+  dmPrice?: number;
+  birthDate?: string;
+  preferredAgeMin?: number;
+  preferredAgeMax?: number;
+  preferredDistance?: number;
+  verificationStatus?: string;
 }
 
 // ---- Admin API Client ----
@@ -652,6 +826,134 @@ export class AdminApi {
     return this.client.post<{ success: boolean; resolvedCount: number }>(
       '/api/admin/content/reports/batch/resolve',
       { reportIds },
+    );
+  }
+
+  // -- Diamonds --
+
+  getDiamondStats() {
+    return this.client.get<DiamondStats>('/api/admin/diamonds/stats');
+  }
+
+  listDiamondBalances(page = 1, limit = 20, search?: string) {
+    return this.client.get<PaginatedResponse<DiamondBalanceRecord>>(
+      '/api/admin/diamonds/balances',
+      { params: this.buildParams({ page, limit, search }) },
+    );
+  }
+
+  getDiamondBalance(userId: string) {
+    return this.client.get<DiamondBalanceDetail>(
+      `/api/admin/diamonds/balances/${userId}`,
+    );
+  }
+
+  adjustDiamondBalance(userId: string, amount: number, reason: string) {
+    return this.client.post<{ success: boolean; newBalance: number }>(
+      `/api/admin/diamonds/balances/${userId}/adjust`,
+      { amount, reason },
+    );
+  }
+
+  listDiamondTransactions(page = 1, limit = 20, type?: string, userId?: string) {
+    return this.client.get<PaginatedResponse<DiamondTransactionRecord>>(
+      '/api/admin/diamonds/transactions',
+      { params: this.buildParams({ page, limit, type, userId }) },
+    );
+  }
+
+  listDiamondPurchases(page = 1, limit = 20, status?: string, userId?: string) {
+    return this.client.get<PaginatedResponse<DiamondPurchaseRecord>>(
+      '/api/admin/diamonds/purchases',
+      { params: this.buildParams({ page, limit, status, userId }) },
+    );
+  }
+
+  getDiamondPackages() {
+    return this.client.get<AdminDiamondPackage[]>('/api/admin/diamonds/packages');
+  }
+
+  createDiamondPackage(dto: Omit<AdminDiamondPackage, 'id'>) {
+    return this.client.post<AdminDiamondPackage>('/api/admin/diamonds/packages', dto);
+  }
+
+  updateDiamondPackage(id: string, dto: Partial<AdminDiamondPackage>) {
+    return this.client.put<AdminDiamondPackage>(`/api/admin/diamonds/packages/${id}`, dto);
+  }
+
+  deleteDiamondPackage(id: string) {
+    return this.client.delete<{ success: boolean }>(`/api/admin/diamonds/packages/${id}`);
+  }
+
+  getDiamondConfig() {
+    return this.client.get<AdminDiamondConfig>('/api/admin/diamonds/config');
+  }
+
+  updateDiamondConfig(dto: Partial<AdminDiamondConfig>) {
+    return this.client.put<AdminDiamondConfig>('/api/admin/diamonds/config', dto);
+  }
+
+  // -- Chat Management (Super Admin) --
+
+  listConversations(page = 1, limit = 20, search?: string) {
+    return this.client.get<PaginatedResponse<ChatConversation>>(
+      '/api/admin/chats',
+      { params: this.buildParams({ page, limit, search }) },
+    );
+  }
+
+  getChatStats() {
+    return this.client.get<ChatStats>('/api/admin/chats/stats');
+  }
+
+  getUserConversations(userId: string) {
+    return this.client.get<UserConversationsResponse>(
+      `/api/admin/chats/user/${userId}`,
+    );
+  }
+
+  getConversationMessages(conversationId: string, page = 1, limit = 50) {
+    return this.client.get<ConversationMessagesResponse>(
+      `/api/admin/chats/${conversationId}/messages`,
+      { params: this.buildParams({ page, limit }) },
+    );
+  }
+
+  // -- Super Admin Management --
+
+  listAdmins() {
+    return this.client.get<AdminRecord[]>('/api/admin/super-admin/admins');
+  }
+
+  getPermissionOverview() {
+    return this.client.get<PermissionOverview>('/api/admin/super-admin/permissions');
+  }
+
+  promoteToAdmin(userId: string, role: string) {
+    return this.client.post<{ success: boolean; message: string; user: AdminRecord }>(
+      `/api/admin/super-admin/promote/${userId}`,
+      { role },
+    );
+  }
+
+  demoteAdmin(userId: string) {
+    return this.client.post<{ success: boolean; message: string }>(
+      `/api/admin/super-admin/demote/${userId}`,
+    );
+  }
+
+  forcePasswordReset(userId: string) {
+    return this.client.post<{ success: boolean; message: string }>(
+      `/api/admin/super-admin/force-password-reset/${userId}`,
+    );
+  }
+
+  // -- User Edit (Super Admin) --
+
+  updateUser(userId: string, data: UpdateUserDto) {
+    return this.client.put<{ success: boolean; message: string; changes: Record<string, { from: unknown; to: unknown }>; user: AdminUser }>(
+      `/api/admin/users/${userId}`,
+      data,
     );
   }
 }

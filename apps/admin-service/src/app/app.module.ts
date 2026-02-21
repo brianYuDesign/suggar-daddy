@@ -1,6 +1,7 @@
 /**
  * Admin Service 主模組
  * 整合所有管理功能模組：用戶管理、內容審核、支付統計、系統監控、數據分析
+ * 新增：聊天室管理、超級管理員管理
  */
 
 import { Module } from "@nestjs/common";
@@ -30,6 +31,9 @@ import {
   SwipeEntity,
   MatchEntity,
   AuditLogEntity,
+  DiamondBalanceEntity,
+  DiamondTransactionEntity,
+  DiamondPurchaseEntity,
 } from "@suggar-daddy/database";
 
 import { AppController } from "./app.controller";
@@ -53,6 +57,12 @@ import { TransactionManagementService } from "./transaction-management.service";
 import { AuditLogController } from "./audit-log.controller";
 import { AuditLogService } from "./audit-log.service";
 import { AuditLogInterceptor } from "./audit-log.interceptor";
+import { DiamondManagementController } from "./diamond-management.controller";
+import { DiamondManagementService } from "./diamond-management.service";
+import { ChatManagementController } from "./chat-management.controller";
+import { ChatManagementService } from "./chat-management.service";
+import { SuperAdminController } from "./super-admin.controller";
+import { SuperAdminService } from "./super-admin.service";
 
 /** 所有資料庫實體 */
 const ALL_ENTITIES = [
@@ -69,6 +79,9 @@ const ALL_ENTITIES = [
   SwipeEntity,
   MatchEntity,
   AuditLogEntity,
+  DiamondBalanceEntity,
+  DiamondTransactionEntity,
+  DiamondPurchaseEntity,
 ];
 
 @Module({
@@ -111,6 +124,9 @@ const ALL_ENTITIES = [
     SubscriptionManagementController,
     TransactionManagementController,
     AuditLogController,
+    DiamondManagementController,
+    ChatManagementController,
+    SuperAdminController,
   ],
   providers: [
     AppService,
@@ -127,6 +143,9 @@ const ALL_ENTITIES = [
     WithdrawalManagementService,
     SubscriptionManagementService,
     TransactionManagementService,
+    DiamondManagementService,
+    ChatManagementService,
+    SuperAdminService,
   ],
 })
 export class AppModule {}
