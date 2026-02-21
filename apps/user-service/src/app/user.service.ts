@@ -18,6 +18,7 @@ import {
   FOLLOWING_SET, FOLLOWERS_SET,
   BLOCK_SET, BLOCKED_BY_SET,
   USERS_ALL_SET, CREATORS_SET,
+  USERNAME_KEY,
 } from './user.types';
 
 @Injectable()
@@ -59,6 +60,7 @@ export class UserService {
     if (!user) return null;
     return {
       id: user.id,
+      username: user.username,
       displayName: user.displayName,
       bio: user.bio,
       avatarUrl: user.avatarUrl,
@@ -85,6 +87,7 @@ export class UserService {
       const user = JSON.parse(values[i]!) as UserRecord;
       result.push({
         id: user.id,
+        username: user.username,
         displayName: user.displayName,
         bio: user.bio,
         avatarUrl: user.avatarUrl,
@@ -95,7 +98,7 @@ export class UserService {
         city: user.city,
       });
     }
-    
+
     return result;
   }
 
@@ -134,6 +137,7 @@ export class UserService {
       const user = JSON.parse(values[i]!) as UserRecord;
       result.push({
         id: user.id,
+        username: user.username,
         displayName: user.displayName,
         bio: user.bio,
         avatarUrl: user.avatarUrl,
@@ -208,6 +212,22 @@ export class UserService {
     if (dto.birthDate !== undefined) user.birthDate = new Date(dto.birthDate);
     if (dto.city !== undefined) user.city = dto.city;
     if (dto.country !== undefined) user.country = dto.country;
+
+    if (dto.username !== undefined) {
+      const normalizedUsername = dto.username.trim().toLowerCase();
+      // Check uniqueness
+      const existingUserId = await this.redisService.get(USERNAME_KEY(normalizedUsername));
+      if (existingUserId && existingUserId !== userId) {
+        throw new ConflictException('Username already taken');
+      }
+      // Remove old username index
+      if (user.username && user.username !== normalizedUsername) {
+        await this.redisService.del(USERNAME_KEY(user.username));
+      }
+      // Set new username index
+      await this.redisService.set(USERNAME_KEY(normalizedUsername), userId);
+      user.username = normalizedUsername;
+    }
 
     // 位置更新：同步寫入 Redis GEO
     if (dto.latitude !== undefined && dto.longitude !== undefined) {
@@ -357,17 +377,18 @@ export class UserService {
     const data: FollowerDto[] = [];
     for (const value of values) {
       if (!value) continue;
-      
+
       const user = JSON.parse(value) as UserRecord;
       data.push({
         id: user.id,
+        username: user.username,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         userType: user.userType,
         permissionRole: user.permissionRole,
       });
     }
-    
+
     return { data, total };
   }
 
@@ -386,17 +407,18 @@ export class UserService {
     const data: FollowerDto[] = [];
     for (const value of values) {
       if (!value) continue;
-      
+
       const user = JSON.parse(value) as UserRecord;
       data.push({
         id: user.id,
+        username: user.username,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         userType: user.userType,
         permissionRole: user.permissionRole,
       });
     }
-    
+
     return { data, total };
   }
 
@@ -466,6 +488,7 @@ export class UserService {
       const user = JSON.parse(value) as UserRecord;
       creators.push({
         id: user.id,
+        username: user.username,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         bio: user.bio,
@@ -515,10 +538,12 @@ export class UserService {
         if (results.length >= limit) break;
         
         const user = JSON.parse(value) as UserRecord;
-        // 搜尋 displayName 或 email（如果需要）
-        if (user.displayName.toLowerCase().includes(lowerQuery)) {
+        // 搜尋 displayName 或 username
+        if (user.displayName.toLowerCase().includes(lowerQuery) ||
+            (user.username && user.username.toLowerCase().includes(lowerQuery))) {
           results.push({
             id: user.id,
+            username: user.username,
             displayName: user.displayName,
             avatarUrl: user.avatarUrl,
             userType: user.userType,
@@ -537,6 +562,14 @@ export class UserService {
     } while (cursor !== 0);
     
     return results;
+  }
+
+  /** 透過 username 查詢用戶 */
+  async findByUsername(username: string): Promise<UserProfileDto | null> {
+    const normalizedUsername = username.trim().toLowerCase();
+    const userId = await this.redisService.get(USERNAME_KEY(normalizedUsername));
+    if (!userId) return null;
+    return this.getProfile(userId);
   }
 
   // ── Block / Unblock ──────────────────────────────────────────────
@@ -612,6 +645,7 @@ export class UserService {
   private toProfileDto(user: UserRecord): UserProfileDto {
     return {
       id: user.id,
+      username: user.username,
       userType: user.userType,
       permissionRole: user.permissionRole,
       displayName: user.displayName,

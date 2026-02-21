@@ -23,18 +23,21 @@ const TEST_USERS = [
     password: 'Test1234!',
     userType: 'sugar_daddy',
     displayName: 'Test Subscriber',
+    username: 'daddy_test',
   },
   {
     email: 'creator@test.com',
     password: 'Test1234!',
     userType: 'sugar_baby',
     displayName: 'Test Creator',
+    username: 'creator_test',
   },
   {
     email: 'admin@test.com',
     password: 'Admin1234!',
     userType: 'sugar_daddy',
     displayName: 'Test Admin',
+    username: 'admin_test',
     isAdmin: true,
   },
 ];
@@ -78,6 +81,7 @@ async function main() {
       const storedUser = {
         userId,
         email: normalizedEmail,
+        username: testUser.username,
         passwordHash,
         userType: testUser.userType,
         displayName: testUser.displayName,
@@ -95,8 +99,9 @@ async function main() {
       const userKey = `user:${userId}`;
       await redis.set(userKey, JSON.stringify(storedUser));
       await redis.set(emailKey, userId);
+      await redis.set(`user:username:${testUser.username}`, userId);
 
-      console.log(`✓ Created ${normalizedEmail} → userId=${userId} (${testUser.userType}${testUser.isAdmin ? ', ADMIN' : ''})`);
+      console.log(`✓ Created ${normalizedEmail} (@${testUser.username}) → userId=${userId} (${testUser.userType}${testUser.isAdmin ? ', ADMIN' : ''})`);
     }
 
     // Verify all users can be looked up

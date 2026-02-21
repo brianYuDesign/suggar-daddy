@@ -24,6 +24,13 @@ const profileSchema = z.object({
     .string()
     .min(1, '顯示名稱不能為空')
     .max(50, '顯示名稱最多 50 個字'),
+  username: z
+    .string()
+    .min(3, '用戶名至少 3 個字元')
+    .max(20, '用戶名不可超過 20 個字元')
+    .regex(/^[a-zA-Z0-9_]+$/, '用戶名只能包含英文字母、數字和底線')
+    .optional()
+    .or(z.literal('')),
   bio: z
     .string()
     .max(500, '自我介紹最多 500 個字')
@@ -61,6 +68,7 @@ export default function EditProfilePage() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       displayName: user?.displayName || '',
+      username: user?.username || '',
       bio: user?.bio || '',
       birthDate: user?.birthDate
         ? new Date(user.birthDate).toISOString().split('T')[0]
@@ -82,6 +90,10 @@ export default function EditProfilePage() {
       const payload: Record<string, unknown> = {
         displayName: data.displayName,
       };
+
+      if (data.username) {
+        payload.username = data.username;
+      }
 
       if (data.bio !== undefined) {
         payload.bio = data.bio || null;
@@ -205,6 +217,27 @@ export default function EditProfilePage() {
                   {errors.displayName.message}
                 </p>
               )}
+            </div>
+
+            {/* Username */}
+            <div className="space-y-2">
+              <Label htmlFor="username">用戶名</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">@</span>
+                <Input
+                  id="username"
+                  placeholder="your_username"
+                  maxLength={20}
+                  className="pl-7"
+                  {...register('username')}
+                />
+              </div>
+              {errors.username && (
+                <p className="text-xs text-red-500">
+                  {errors.username.message}
+                </p>
+              )}
+              <p className="text-xs text-gray-400">3-20 字元，英文字母、數字和底線</p>
             </div>
 
             {/* Bio */}

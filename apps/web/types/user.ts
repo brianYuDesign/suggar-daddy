@@ -21,6 +21,7 @@ export interface UserCard {
 
 export interface UserProfile {
   id: string;
+  username?: string;
   userType: string;
   permissionRole: string;
   displayName: string;

@@ -19,6 +19,7 @@ import { Heart, X, Star, MessageCircle, Sparkles, Users } from 'lucide-react';
 import { matchingApi, ApiError } from '../../../lib/api';
 import { useAuth } from '../../../providers/auth-provider';
 import type { UserCard } from '../../../types/user';
+import { BoostButton } from '../../components/BoostButton';
 
 /* ---------- Local types ---------- */
 
@@ -184,10 +185,13 @@ export default function DiscoverPage() {
 
   return (
     <div className="flex flex-col items-center px-4 pt-2 pb-6">
-      {/* Page title */}
-      <div className="mb-4 w-full max-w-sm">
-        <h1 className="text-xl font-bold text-gray-900">探索</h1>
-        <p className="text-sm text-gray-500">找到你感興趣的人</p>
+      {/* Page title + Boost */}
+      <div className="mb-4 flex w-full max-w-sm items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">探索</h1>
+          <p className="text-sm text-gray-500">找到你感興趣的人</p>
+        </div>
+        <BoostButton />
       </div>
 
       {/* Profile card */}
@@ -216,6 +220,9 @@ export default function DiscoverPage() {
             <h2 className="text-xl font-bold text-white" data-testid="profile-name">
               {currentCard.displayName}
             </h2>
+            {currentCard.username && (
+              <span className="text-sm text-white/80">@{currentCard.username}</span>
+            )}
             <div className="mt-1 flex items-center gap-2">
               <Badge
                 variant="warning"
@@ -264,20 +271,23 @@ export default function DiscoverPage() {
           <X className="h-6 w-6 text-gray-400" />
         </button>
 
-        {/* Super Like */}
+        {/* Super Like (costs diamonds) */}
         <button
           onClick={() => handleSwipe('super_like')}
           disabled={swiping}
           className={cn(
-            'flex h-12 w-12 items-center justify-center rounded-full border-2 border-yellow-300 bg-white shadow-md transition-all',
-            'hover:scale-105 hover:border-yellow-400 hover:shadow-lg',
+            'relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-violet-300 bg-white shadow-md transition-all',
+            'hover:scale-105 hover:border-violet-400 hover:shadow-lg',
             'active:scale-95',
             'disabled:opacity-50 disabled:hover:scale-100'
           )}
-          aria-label="超級喜歡"
+          aria-label="超級喜歡 (鑽石)"
           data-action="super-like"
         >
-          <Star className="h-5 w-5 text-yellow-500" />
+          <Star className="h-5 w-5 text-violet-500" />
+          <span className="absolute -bottom-1 -right-1 flex h-5 items-center rounded-full bg-violet-500 px-1.5 text-[10px] font-bold text-white">
+            💎
+          </span>
         </button>
 
         {/* Like */}

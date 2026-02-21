@@ -19,6 +19,9 @@ import {
   DmPurchaseEntity,
   StoryEntity,
   StoryViewEntity,
+  DiamondBalanceEntity,
+  DiamondTransactionEntity,
+  DiamondPurchaseEntity,
 } from "@suggar-daddy/database";
 
 const USER_KEY = (id: string) => `user:${id}`;
@@ -64,11 +67,17 @@ export class DbWriterService {
     private readonly storyRepo: Repository<StoryEntity>,
     @InjectRepository(StoryViewEntity)
     private readonly storyViewRepo: Repository<StoryViewEntity>,
+    @InjectRepository(DiamondBalanceEntity)
+    private readonly diamondBalanceRepo: Repository<DiamondBalanceEntity>,
+    @InjectRepository(DiamondTransactionEntity)
+    private readonly diamondTxRepo: Repository<DiamondTransactionEntity>,
+    @InjectRepository(DiamondPurchaseEntity)
+    private readonly diamondPurchaseRepo: Repository<DiamondPurchaseEntity>,
     private readonly redis: RedisService,
   ) {}
 
   async handleUserCreated(payload: Record<string, unknown>): Promise<void> {
-    const { id, email, displayName, userType, bio, createdAt } = payload;
+    const { id, email, displayName, userType, bio, createdAt, username } = payload;
     if (!id || !email || !displayName) {
       this.logger.warn("user.created missing required fields");
       return;
@@ -89,6 +98,7 @@ export class DbWriterService {
       email: normalizedEmail,
       passwordHash,
       displayName: displayName as string,
+      username: (username as string) || null,
       userType: (userType as UserType) || UserType.SUGAR_BABY,
       permissionRole: PermissionRole.SUBSCRIBER,
       bio: (bio as string) || null,
@@ -102,6 +112,7 @@ export class DbWriterService {
       email: normalizedEmail,
       passwordHash,
       displayName: displayName as string,
+      username: (username as string) || null,
       userType: (userType as string) || "sugar_baby",
       permissionRole: "subscriber",
       bio: (bio as string) ?? null,
@@ -111,6 +122,9 @@ export class DbWriterService {
     };
     await this.redis.set(USER_KEY(id as string), JSON.stringify(redisUser));
     await this.redis.set(USER_EMAIL_KEY(normalizedEmail), id as string);
+    if (username) {
+      await this.redis.set(`user:username:${username}`, id as string);
+    }
     this.logger.log(`user.created persisted id=${id}`);
   }
 
@@ -555,5 +569,85 @@ export class DbWriterService {
       createdAt: createdAt ? new Date(createdAt as string) : new Date(),
     });
     this.logger.log(`messaging.dm.purchased purchaseId=${purchaseId}`);
+  }
+
+  // ── Diamond Event Handlers ────────────────────────────────────
+
+  async handleDiamondPurchased(payload: Record<string, unknown>): Promise<void> {
+    const { purchaseId, userId, diamondAmount, amountUsd, stripePaymentId, purchasedAt } = payload;
+    if (!purchaseId || !userId) return;
+
+    await this.diamondPurchaseRepo.insert({
+      id: purchaseId as string,
+      userId: userId as string,
+      packageId: 'unknown',
+      diamondAmount: (diamondAmount as number) || 0,
+      bonusDiamonds: 0,
+      totalDiamonds: (diamondAmount as number) || 0,
+      amountUsd: (amountUsd as number) || 0,
+      stripePaymentId: (stripePaymentId as string) || null,
+      status: 'completed',
+      createdAt: purchasedAt ? new Date(purchasedAt as string) : new Date(),
+    });
+
+    // Upsert diamond balance
+    const existing = await this.diamondBalanceRepo.findOne({ where: { userId: userId as string } });
+    if (existing) {
+      existing.totalPurchased += (diamondAmount as number) || 0;
+      existing.balance += (diamondAmount as number) || 0;
+      await this.diamondBalanceRepo.save(existing);
+    } else {
+      await this.diamondBalanceRepo.insert({
+        userId: userId as string,
+        balance: (diamondAmount as number) || 0,
+        totalPurchased: (diamondAmount as number) || 0,
+        totalSpent: 0,
+        totalReceived: 0,
+        totalConverted: 0,
+      });
+    }
+
+    this.logger.log(`diamond.purchased persisted purchaseId=${purchaseId}`);
+  }
+
+  async handleDiamondSpent(payload: Record<string, unknown>): Promise<void> {
+    const { userId, amount, referenceType, referenceId, spentAt } = payload;
+    if (!userId || amount == null) return;
+
+    await this.diamondTxRepo.insert({
+      userId: userId as string,
+      type: 'spend',
+      amount: -(amount as number),
+      referenceType: (referenceType as string) || null,
+      referenceId: (referenceId as string) || null,
+      description: `Spent ${amount} diamonds on ${referenceType || 'unknown'}`,
+      createdAt: spentAt ? new Date(spentAt as string) : new Date(),
+    });
+
+    this.logger.log(`diamond.spent persisted userId=${userId} amount=${amount}`);
+  }
+
+  async handleDiamondConverted(payload: Record<string, unknown>): Promise<void> {
+    const { userId, diamondAmount, cashAmount, convertedAt } = payload;
+    if (!userId || diamondAmount == null) return;
+
+    await this.diamondTxRepo.insert({
+      userId: userId as string,
+      type: 'conversion',
+      amount: -(diamondAmount as number),
+      referenceType: 'cash_conversion',
+      description: `Converted ${diamondAmount} diamonds to $${cashAmount}`,
+      createdAt: convertedAt ? new Date(convertedAt as string) : new Date(),
+    });
+
+    // Update balance in DB
+    const existing = await this.diamondBalanceRepo.findOne({ where: { userId: userId as string } });
+    if (existing) {
+      existing.totalConverted += (diamondAmount as number) || 0;
+      existing.balance -= (diamondAmount as number) || 0;
+      await this.diamondBalanceRepo.save(existing);
+    }
+
+    this.logger.log(`diamond.converted persisted userId=${userId} diamonds=${diamondAmount} cash=${cashAmount}`);
   }
 }

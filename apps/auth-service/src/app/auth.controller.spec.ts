@@ -72,6 +72,7 @@ describe("AuthController", () => {
   describe("POST /register", () => {
     const validRegisterDto: RegisterDto = {
       email: "newuser@example.com",
+      username: "newuser",
       password: "Password123!",
       displayName: "New User",
       userType: UserType.SUGAR_DADDY,

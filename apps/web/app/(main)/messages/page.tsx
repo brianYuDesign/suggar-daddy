@@ -20,6 +20,7 @@ interface Conversation {
 
 interface ConversationWithName extends Conversation {
   otherName?: string;
+  otherUsername?: string;
   lastMessageText?: string;
 }
 
@@ -35,7 +36,7 @@ export default function MessagesPage() {
   const [error, setError] = useState<string | null>(null);
 
   /** 名稱快取，避免重複查詢 */
-  const [nameCache, setNameCache] = useState<Record<string, string>>({});
+  const [nameCache, setNameCache] = useState<Record<string, { displayName: string; username?: string }>>({});
 
   const enrichConversations = useCallback(
     async (data: Conversation[]): Promise<ConversationWithName[]> => {
@@ -51,13 +52,14 @@ export default function MessagesPage() {
             nameCache[otherId]
               ? Promise.resolve(nameCache[otherId])
               : usersApi.getProfile(otherId).then((p) => {
-                  setNameCache((prev) => ({ ...prev, [otherId]: p.displayName }));
-                  return p.displayName;
+                  const info = { displayName: p.displayName, username: p.username };
+                  setNameCache((prev) => ({ ...prev, [otherId]: info }));
+                  return info;
                 }),
             messagingApi.getMessages(conv.id),
           ]);
 
-          const otherName =
+          const otherInfo =
             nameResult.status === 'fulfilled' ? nameResult.value : undefined;
           const messages =
             messagesResult.status === 'fulfilled' ? messagesResult.value : [];
@@ -65,7 +67,8 @@ export default function MessagesPage() {
 
           return {
             ...conv,
-            otherName: typeof otherName === 'string' ? otherName : undefined,
+            otherName: otherInfo?.displayName,
+            otherUsername: otherInfo?.username,
             lastMessageText: lastMsg?.content,
           };
         })
@@ -190,9 +193,14 @@ export default function MessagesPage() {
                 <Avatar fallback={getInitials(conv.otherName || getOtherParticipantId(conv))} size="md" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-medium text-gray-900">
-                      {conv.otherName || '使用者'}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-gray-900">
+                        {conv.otherName || '使用者'}
+                      </p>
+                      {conv.otherUsername && (
+                        <span className="text-sm text-gray-500">@{conv.otherUsername}</span>
+                      )}
+                    </div>
                     {conv.lastMessageAt && (
                       <span className="shrink-0 text-xs text-gray-400">
                         {timeAgo(conv.lastMessageAt)}

@@ -85,6 +85,9 @@ export default function ProfilePage() {
           <h2 className="mt-4 text-xl font-bold text-gray-900">
             {user.displayName}
           </h2>
+          {user.username && (
+            <p className="mt-1 text-sm text-gray-500">@{user.username}</p>
+          )}
           <Badge
             variant={getRoleBadgeVariant(user.userType) as 'warning' | 'default'}
             className="mt-2"

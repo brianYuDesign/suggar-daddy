@@ -25,6 +25,10 @@ export class UserEntity {
   @Column('varchar', { length: 255 })
   email!: string;
 
+  @Index('idx_users_username', { unique: true })
+  @Column('varchar', { length: 20, unique: true, nullable: true })
+  username!: string | null;
+
   @Exclude()
   @Column('varchar', { length: 255 })
   passwordHash!: string;

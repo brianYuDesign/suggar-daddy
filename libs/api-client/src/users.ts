@@ -24,6 +24,7 @@ export interface UserCard {
 /** Backend FollowerDto shape */
 interface BackendFollowerDto {
   id: string;
+  username?: string;
   displayName: string;
   avatarUrl?: string;
   userType: string;
@@ -33,6 +34,7 @@ interface BackendFollowerDto {
 /** Backend RecommendedCreatorDto shape */
 interface BackendRecommendedCreatorDto {
   id: string;
+  username?: string;
   displayName: string;
   avatarUrl?: string;
   bio?: string;
@@ -44,7 +46,7 @@ interface BackendRecommendedCreatorDto {
 function mapFollowerToUserCard(f: BackendFollowerDto): UserCard {
   return {
     userId: f.id,
-    username: f.displayName,
+    username: f.username || f.displayName,
     displayName: f.displayName,
     avatarUrl: f.avatarUrl,
     role: (f.permissionRole?.toUpperCase() || 'SUBSCRIBER') as UserCard['role'],
@@ -54,7 +56,7 @@ function mapFollowerToUserCard(f: BackendFollowerDto): UserCard {
 function mapRecommendedToUserCard(r: BackendRecommendedCreatorDto): UserCard {
   return {
     userId: r.id,
-    username: r.displayName,
+    username: r.username || r.displayName,
     displayName: r.displayName,
     avatarUrl: r.avatarUrl,
     bio: r.bio,
@@ -283,5 +285,14 @@ export class UsersApi {
     return this.client.put<{ success: boolean }>('/api/users/settings/dm-price', {
       dmPrice: price,
     });
+  }
+
+  /**
+   * 透過用戶名取得用戶資料
+   * @param username - 用戶名
+   * @returns 用戶資料
+   */
+  getUserByUsername(username: string): Promise<UserProfileDto> {
+    return this.client.get<UserProfileDto>(`/api/users/by-username/${encodeURIComponent(username)}`);
   }
 }

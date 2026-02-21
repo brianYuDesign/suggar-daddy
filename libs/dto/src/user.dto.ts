@@ -1,11 +1,12 @@
 /**
  * User 相關 DTO
  */
-import { IsString, IsNotEmpty, IsOptional, IsEnum, MaxLength, IsDateString, IsNumber, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, MaxLength, MinLength, Matches, IsDateString, IsNumber, Min, Max } from 'class-validator';
 import { UserType, PermissionRole } from '@suggar-daddy/common';
 
 export interface UserCardDto {
   id: string;
+  username?: string;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
@@ -21,6 +22,7 @@ export interface UserCardDto {
 
 export interface UserProfileDto {
   id: string;
+  username?: string;
   /** 業務角色 */
   userType: UserType;
   /** 權限角色 */
@@ -69,6 +71,13 @@ export class CreateUserDto {
 
 /** 更新個人資料（部分欄位） */
 export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(20)
+  @Matches(/^[a-zA-Z0-9_]+$/, { message: 'Username can only contain letters, numbers and underscores' })
+  username?: string;
+
   @IsOptional()
   @IsString()
   @IsNotEmpty()

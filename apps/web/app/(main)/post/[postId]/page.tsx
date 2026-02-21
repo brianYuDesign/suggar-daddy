@@ -25,7 +25,7 @@ import {
   Trash2,
   Lock,
   Calendar,
-  DollarSign,
+  Gem,
   Flag,
   MessageCircle,
   Send,
@@ -38,6 +38,8 @@ interface Post {
   content: string;
   mediaUrls?: string[];
   isPremium: boolean;
+  likeCount: number;
+  tipCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -93,6 +95,7 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<Post | null>(null);
   const [authorName, setAuthorName] = useState<string>('');
   const [authorAvatar, setAuthorAvatar] = useState<string | undefined>();
+  const [authorUsername, setAuthorUsername] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isLiked: checkIsLiked, toggleLike } = useLikedPosts();
@@ -137,6 +140,7 @@ export default function PostDetailPage() {
         const profile = await usersApi.getProfile(data.authorId);
         setAuthorName(profile.displayName || data.authorId.slice(0, 8));
         setAuthorAvatar(profile.avatarUrl);
+        setAuthorUsername(profile.username);
       } catch {
         setAuthorName(data.authorId.slice(0, 8));
       }
@@ -188,10 +192,18 @@ export default function PostDetailPage() {
 
   const handleLikeToggle = async () => {
     if (!post) return;
+    // Optimistic update likeCount
+    const wasLiked = checkIsLiked(post.id);
+    setPost((prev) =>
+      prev ? { ...prev, likeCount: prev.likeCount + (wasLiked ? -1 : 1) } : prev
+    );
     try {
       await toggleLike(post.id);
     } catch {
-      // Error handled by hook (reverts optimistic update)
+      // Revert optimistic update
+      setPost((prev) =>
+        prev ? { ...prev, likeCount: prev.likeCount + (wasLiked ? 1 : -1) } : prev
+      );
     }
   };
 
@@ -309,6 +321,9 @@ export default function PostDetailPage() {
                     >
                       {authorName || post.authorId.slice(0, 8)}
                     </Link>
+                    {authorUsername && (
+                      <span className="text-xs text-gray-500">@{authorUsername}</span>
+                    )}
                     {post.isPremium && (
                       <Badge
                         variant="warning"
@@ -358,7 +373,7 @@ export default function PostDetailPage() {
                       解鎖後即可查看完整內容
                     </p>
                     <Button
-                      className="bg-brand-500 hover:bg-brand-600 text-white"
+                      className="bg-violet-500 hover:bg-violet-600 text-white"
                       disabled={isPurchasing}
                       onClick={async () => {
                         setIsPurchasing(true);
@@ -367,15 +382,15 @@ export default function PostDetailPage() {
                           fetchPost();
                         } catch (err) {
                           toast.error(
-                            ApiError.getMessage(err, '購買失敗，請稍後再試')
+                            ApiError.getMessage(err, '鑽石不足或購買失敗')
                           );
                         } finally {
                           setIsPurchasing(false);
                         }
                       }}
                     >
-                      <Lock className="mr-2 h-4 w-4" />
-                      {isPurchasing ? '處理中...' : '解鎖此內容'}
+                      <Gem className="mr-2 h-4 w-4" />
+                      {isPurchasing ? '處理中...' : '💎 用鑽石解鎖'}
                     </Button>
                   </div>
                 </div>
@@ -434,7 +449,11 @@ export default function PostDetailPage() {
                   <Heart
                     className={cn('h-4 w-4', isLiked && 'fill-current')}
                   />
-                  {isLiked ? '已喜歡' : '喜歡'}
+                  {post.likeCount > 0
+                    ? `${post.likeCount} 人喜歡`
+                    : isLiked
+                      ? '已喜歡'
+                      : '喜歡'}
                 </Button>
 
                 <Button
@@ -448,11 +467,11 @@ export default function PostDetailPage() {
 
                 <Button
                   variant="outline"
-                  className="flex-1 gap-2 text-brand-600 border-brand-200 hover:bg-brand-50"
+                  className="flex-1 gap-2 text-violet-600 border-violet-200 hover:bg-violet-50"
                   onClick={() => setShowTipDialog(true)}
                 >
-                  <DollarSign className="h-4 w-4" />
-                  打賞
+                  <Gem className="h-4 w-4" />
+                  {post.tipCount > 0 ? `${post.tipCount} 人打賞` : '💎 打賞'}
                 </Button>
 
                 {!isOwner && (
@@ -634,7 +653,13 @@ export default function PostDetailPage() {
         <TipModal
           recipientId={post.authorId}
           recipientName={authorName || undefined}
+          postId={post.id}
           onClose={() => setShowTipDialog(false)}
+          onSuccess={() => {
+            setPost((prev) =>
+              prev ? { ...prev, tipCount: prev.tipCount + 1 } : prev
+            );
+          }}
         />
       )}
 

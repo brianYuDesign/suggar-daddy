@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Unique,
+  Index,
   OneToMany,
 } from 'typeorm';
 import { UserInterest } from '../recommendation/user-interest.entity';
@@ -18,6 +19,10 @@ export class User {
 
   @Column('varchar', { length: 255 })
   email!: string;
+
+  @Index('idx_user_username', { unique: true })
+  @Column('varchar', { length: 20, unique: true, nullable: true })
+  username!: string | null;
 
   @Column('varchar', { length: 255 })
   passwordHash!: string;

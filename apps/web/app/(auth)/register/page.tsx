@@ -19,6 +19,11 @@ enum UserType {
 
 const registerSchema = z.object({
   email: z.string().email('請輸入有效的 Email'),
+  username: z
+    .string()
+    .min(3, '用戶名至少 3 個字元')
+    .max(20, '用戶名不可超過 20 個字元')
+    .regex(/^[a-zA-Z0-9_]+$/, '用戶名只能包含英文字母、數字和底線'),
   password: z
     .string()
     .min(8, '密碼至少 8 個字元')
@@ -154,6 +159,32 @@ export default function RegisterPage() {
               {errors.displayName.message}
             </p>
           )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="username">用戶名</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">@</span>
+            <Input
+              id="username"
+              type="text"
+              placeholder="your_username"
+              autoComplete="username"
+              className="pl-7"
+              aria-required="true"
+              aria-invalid={!!errors.username}
+              aria-describedby={errors.username ? "username-error username-hint" : "username-hint"}
+              {...register('username')}
+            />
+          </div>
+          {errors.username && (
+            <p id="username-error" className="text-xs text-red-500" role="alert">
+              {errors.username.message}
+            </p>
+          )}
+          <p id="username-hint" className="text-xs text-gray-500">
+            3-20 個字元，只能包含英文字母、數字和底線
+          </p>
         </div>
 
         <div className="space-y-1.5">

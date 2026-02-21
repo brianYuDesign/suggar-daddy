@@ -19,6 +19,7 @@ export interface UserProfile {
   id: string;
   userType: string;
   permissionRole: string;
+  username?: string;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
@@ -42,6 +43,7 @@ interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (data: {
     email: string;
+    username: string;
     password: string;
     userType: 'sugar_daddy' | 'sugar_baby';
     displayName: string;
@@ -169,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(
     async (data: {
       email: string;
+      username: string;
       password: string;
       userType: 'sugar_daddy' | 'sugar_baby';
       displayName: string;

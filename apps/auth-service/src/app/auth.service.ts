@@ -37,9 +37,12 @@ const EMAIL_VERIFY_TTL = 24 * 60 * 60; // 24 hours
 const PASSWORD_RESET_PREFIX = 'auth:password-reset:';
 const PASSWORD_RESET_TTL = 60 * 60; // 1 hour
 
+const USERNAME_PREFIX = 'user:username:';
+
 interface StoredUser {
   userId: string;
   email: string;
+  username?: string;
   passwordHash: string;
   userType: string; // 業務角色：sugar_baby or sugar_daddy
   permissionRole?: string; // 權限角色：ADMIN, CREATOR, SUBSCRIBER
@@ -154,6 +157,15 @@ export class AuthService {
         throw new ConflictException('Email already registered');
       }
 
+      // Step 5b: Check username uniqueness
+      const normalizedUsername = dto.username.trim().toLowerCase();
+      this.logger.debug(`[REGISTER] Step 5b: Checking for existing username: ${normalizedUsername}`);
+      const existingUsername = await this.redis.get(USERNAME_PREFIX + normalizedUsername);
+      if (existingUsername) {
+        this.logger.warn(`[REGISTER] Username already taken: ${normalizedUsername}`);
+        throw new ConflictException('Username already taken');
+      }
+
       this.logger.debug('[REGISTER] Step 6: Generating userId and hashing password');
       const userId = `user-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
@@ -162,6 +174,7 @@ export class AuthService {
       const user: StoredUser = {
         userId,
         email: normalizedEmail,
+        username: normalizedUsername,
         passwordHash,
         userType: dto.userType,
         displayName: dto.displayName.trim(),
@@ -181,6 +194,9 @@ export class AuthService {
         
         await this.redis.set(emailKey, userId);
         this.logger.debug(`[REGISTER] ✓ Email mapping stored: ${emailKey}`);
+
+        await this.redis.set(USERNAME_PREFIX + normalizedUsername, userId);
+        this.logger.debug(`[REGISTER] ✓ Username mapping stored: ${USERNAME_PREFIX}${normalizedUsername}`);
       } catch (redisError) {
         this.logger.error(`[REGISTER] ✗ Redis error:`, redisError);
         throw new Error(`Failed to store user data: ${redisError.message}`);
@@ -194,6 +210,7 @@ export class AuthService {
         await this.kafkaProducer.sendEvent(USER_EVENTS.USER_CREATED, {
           id: userId,
           email: normalizedEmail,
+          username: normalizedUsername,
           displayName: user.displayName,
           userType: user.userType,
           bio: user.bio,

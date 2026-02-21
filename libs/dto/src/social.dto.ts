@@ -10,6 +10,7 @@ export interface FollowStatusDto {
 
 export interface FollowerDto {
   id: string;
+  username?: string;
   displayName: string;
   avatarUrl?: string;
   userType: UserType;

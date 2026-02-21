@@ -57,6 +57,7 @@ describe('Auth Service (e2e)', () => {
     it('should register a new user successfully', async () => {
       const registerDto = {
         email: `test-${Date.now()}@example.com`,
+        username: `tu_${Date.now().toString(36)}`,
         password: 'Test@1234',
         displayName: `Test User`,
         userType: 'sugar_baby',
@@ -80,6 +81,7 @@ describe('Auth Service (e2e)', () => {
       const email = `duplicate-${Date.now()}@example.com`;
       const registerDto = {
         email,
+        username: `du_${Date.now().toString(36)}`,
         password: 'Test@1234',
         displayName: `Duplicate User`,
         userType: 'sugar_baby',

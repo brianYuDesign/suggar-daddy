@@ -250,6 +250,9 @@ export default function UserProfilePage() {
           <h2 className="mt-4 text-xl font-bold text-gray-900">
             {profile.displayName}
           </h2>
+          {profile.username && (
+            <p className="text-sm text-gray-500">@{profile.username}</p>
+          )}
           <Badge
             variant={getRoleBadgeVariant(profile.userType) as 'warning' | 'default'}
             className="mt-2"

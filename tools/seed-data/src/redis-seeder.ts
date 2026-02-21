@@ -90,7 +90,7 @@ async function main() {
   // ────────────────────────────────────────────────────
   log('👥', '同步用戶...');
   const users: any[] = await ds.query(`
-    SELECT id, email, "passwordHash", "displayName", "userType", "permissionRole", role,
+    SELECT id, email, username, "passwordHash", "displayName", "userType", "permissionRole", role,
            bio, "avatarUrl", latitude, longitude, city, country,
            "locationUpdatedAt", "dmPrice", "createdAt", "updatedAt"
     FROM users
@@ -111,6 +111,10 @@ async function main() {
     // user:email:{email} → userId
     pipeline.set(`user:email:${u.email}`, u.id);
 
+    // user:username:{username} → userId (reverse index for uniqueness lookup)
+    const username = u.username || u.displayName?.toLowerCase().replace(/\s+/g, '_') || `user_${u.id.substring(0, 8)}`;
+    pipeline.set(`user:username:${username}`, u.id);
+
     // user:{userId} → JSON (shared by auth-service + user-service)
     // auth-service reads: userId, email, passwordHash, userType, permissionRole, displayName, bio, accountStatus, emailVerified, createdAt
     // user-service reads: id, userType, permissionRole, displayName, bio, avatarUrl, followerCount, followingCount, preferences, verificationStatus, lastActiveAt, dmPrice, createdAt, updatedAt, latitude, longitude, city, country
@@ -118,6 +122,7 @@ async function main() {
       // auth-service fields
       userId: u.id,
       email: u.email,
+      username,
       passwordHash: u.passwordHash,
       accountStatus: 'active',
       emailVerified: true,

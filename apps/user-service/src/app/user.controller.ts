@@ -110,6 +110,17 @@ export class UserController {
     return this.userService.searchUsers(query, limit);
   }
 
+  /** 透過 username 查詢用戶 */
+  @Public()
+  @Get('by-username/:username')
+  async getByUsername(@Param('username') username: string): Promise<UserProfileDto> {
+    const profile = await this.userService.findByUsername(username);
+    if (!profile) {
+      throw new NotFoundException('User not found');
+    }
+    return profile;
+  }
+
   // ── Followers / Following (parameterized routes must come after specific routes) ──
 
   @Public()

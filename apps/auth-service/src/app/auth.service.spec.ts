@@ -77,6 +77,7 @@ describe('AuthService', () => {
   describe('register', () => {
     const validDto = {
       email: 'Test@Example.COM',
+      username: 'testuser',
       password: 'Secret123',
       userType: UserType.SUGAR_BABY,
       displayName: 'Test User',

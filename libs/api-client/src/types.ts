@@ -55,6 +55,7 @@ export interface LoginDto {
 
 export interface RegisterDto {
   email: string;
+  username: string;
   password: string;
   userType: UserType;
   displayName: string;
@@ -92,6 +93,7 @@ export interface TokenResponseDto {
 
 export interface UserCardDto {
   id: string;
+  username?: string;
   displayName: string;
   bio?: string;
   avatarUrl?: string;
@@ -107,6 +109,7 @@ export interface UserCardDto {
 
 export interface UserProfileDto {
   id: string;
+  username?: string;
   /** 業務角色 */
   userType: UserType;
   /** 權限角色 */
@@ -130,6 +133,7 @@ export interface UserProfileDto {
 }
 
 export interface UpdateProfileDto {
+  username?: string;
   displayName?: string;
   bio?: string;
   avatarUrl?: string;

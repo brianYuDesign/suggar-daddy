@@ -26,6 +26,7 @@ interface MatchWithUser extends Match {
   otherUser?: {
     id: string;
     displayName: string;
+    username?: string;
     avatarUrl?: string;
   };
 }
@@ -110,6 +111,7 @@ interface MatchCardProps {
 
 function MatchCard({ match, onClick }: MatchCardProps) {
   const displayName = match.otherUser?.displayName ?? '未知用戶';
+  const username = match.otherUser?.username;
   const avatarUrl = match.otherUser?.avatarUrl;
 
   return (
@@ -154,6 +156,9 @@ function MatchCard({ match, onClick }: MatchCardProps) {
         <h3 className="truncate text-sm font-semibold text-gray-900">
           {displayName}
         </h3>
+        {username && (
+          <p className="truncate text-sm text-gray-500">@{username}</p>
+        )}
         <p className="mt-0.5 text-xs text-gray-400">
           {formatMatchDate(match.matchedAt)}
         </p>
@@ -197,6 +202,7 @@ export default function MatchesPage() {
               otherUser: {
                 id: userProfile.id,
                 displayName: userProfile.displayName,
+                username: userProfile.username,
                 avatarUrl: userProfile.avatarUrl,
               },
             };

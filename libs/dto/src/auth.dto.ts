@@ -1,7 +1,7 @@
 /**
  * Auth 相關 DTO
  */
-import { IsEmail, IsNotEmpty, IsString, IsEnum, IsOptional, MinLength, MaxLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsEnum, IsOptional, MinLength, MaxLength, Matches } from 'class-validator';
 import { UserType } from '@suggar-daddy/common';
 
 /** 登入請求 */
@@ -18,6 +18,12 @@ export class LoginDto {
 export class RegisterDto {
   @IsEmail()
   email: string;
+
+  @IsString()
+  @MinLength(3)
+  @MaxLength(20)
+  @Matches(/^[a-zA-Z0-9_]+$/, { message: 'Username can only contain letters, numbers and underscores' })
+  username: string;
 
   @IsString()
   @MinLength(8)
