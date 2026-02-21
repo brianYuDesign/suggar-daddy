@@ -296,17 +296,21 @@ export class AuthService {
     const stored = JSON.parse(raw) as StoredRefresh;
     await this.redis.del(key);
 
-    // Check account status on refresh
+    // Check account status on refresh and retrieve latest role info
     const userRaw = await this.redis.get(`user:${stored.userId}`);
+    let userType: string | undefined;
+    let permissionRole: string | undefined;
     if (userRaw) {
       const user = JSON.parse(userRaw) as StoredUser;
       if (user.accountStatus !== 'active') {
         throw new ForbiddenException('Account is not active');
       }
+      userType = user.userType;
+      permissionRole = user.permissionRole;
     }
 
-    this.logger.log(`refresh userId=${stored.userId}`);
-    return this.issueTokens(stored.userId, stored.email);
+    this.logger.log(`refresh userId=${stored.userId} permissionRole=${permissionRole || 'none'}`);
+    return this.issueTokens(stored.userId, stored.email, userType, permissionRole);
   }
 
   async logout(refreshToken: string, jti?: string): Promise<{ success: boolean }> {
