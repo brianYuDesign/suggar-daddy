@@ -353,6 +353,45 @@ export class WalletService {
     return out.sort((a, b) => (b.requestedAt > a.requestedAt ? 1 : -1));
   }
 
+  /**
+   * Credit wallet from diamond conversion (no platform fee, already deducted at conversion)
+   */
+  async creditFromDiamondConversion(
+    userId: string,
+    cashAmount: number,
+    diamondAmount: number,
+  ): Promise<WalletRecord> {
+    const now = new Date().toISOString();
+
+    // Atomic wallet credit (no platform fee — fee is deducted during diamond conversion)
+    const result = await this.redis.getClient().eval(
+      this.creditWalletScript,
+      1,
+      WALLET_KEY(userId),
+      cashAmount.toString(),
+      now,
+      userId,
+    ) as [string, number];
+
+    const wallet: WalletRecord = JSON.parse(result[0]);
+
+    const txId = this.genId('wt');
+    const walletTx: WalletTransaction = {
+      id: txId,
+      userId,
+      type: 'ppv_received',
+      amount: cashAmount,
+      netAmount: cashAmount,
+      referenceId: `diamond-conversion-${diamondAmount}`,
+      description: `Diamond conversion: ${diamondAmount} diamonds → $${cashAmount.toFixed(2)}`,
+      createdAt: now,
+    };
+    await this.redis.lPush(WALLET_HISTORY(userId), JSON.stringify(walletTx));
+
+    this.logger.log(`wallet credited from diamond conversion userId=${userId} cash=$${cashAmount}`);
+    return wallet;
+  }
+
   // ── Admin: Process Withdrawals ──────────────────────────────────
 
   async getPendingWithdrawals(): Promise<WithdrawalRecord[]> {

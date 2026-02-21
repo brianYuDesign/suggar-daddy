@@ -63,13 +63,16 @@ export default function CreatePostPage() {
 
   function handleMediaSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     if (files.length + mediaFiles.length > 4) {
       setSubmitError('最多只能上傳 4 張圖片');
+      e.target.value = '';
       return;
     }
     setMediaFiles((prev) => [...prev, ...files]);
     const newPreviews = files.map((f) => URL.createObjectURL(f));
     setMediaPreviews((prev) => [...prev, ...newPreviews]);
+    e.target.value = '';
   }
 
   function removeMedia(index: number) {
@@ -246,7 +249,7 @@ export default function CreatePostPage() {
                     type="file"
                     accept="image/*"
                     multiple
-                    className="hidden"
+                    className="sr-only"
                     onChange={handleMediaSelect}
                     disabled={isSubmitting || uploading}
                   />

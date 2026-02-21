@@ -89,6 +89,7 @@ export class LocalStorageService {
   }
 
   getPublicUrl(relativePath: string): string {
-    return `${this.baseUrl}/uploads/${relativePath.replace(/\\/g, '/')}`;
+    // Return relative path so frontend can proxy via Next.js rewrites (avoids CORS)
+    return `/uploads/${relativePath.replace(/\\/g, '/')}`;
   }
 }

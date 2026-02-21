@@ -81,6 +81,27 @@ export class UserEntity {
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
   dmPrice!: number | null;
 
+  @Column('date', { nullable: true })
+  birthDate!: Date | null;
+
+  @Column('int', { nullable: true })
+  preferredAgeMin!: number | null;
+
+  @Column('int', { nullable: true })
+  preferredAgeMax!: number | null;
+
+  @Column('int', { nullable: true, default: 50 })
+  preferredDistance!: number | null;
+
+  @Column('varchar', { length: 20, nullable: true })
+  preferredUserType!: string | null;
+
+  @Column('timestamp', { nullable: true })
+  lastActiveAt!: Date | null;
+
+  @Column('varchar', { length: 20, default: 'unverified' })
+  verificationStatus!: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 

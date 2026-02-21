@@ -69,8 +69,9 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
-    // 檢查角色權限 - 使用 permissionRole，統一轉小寫比較
-    if (payload.permissionRole?.toLowerCase() !== 'admin') {
+    // 檢查角色權限 - 使用 permissionRole，統一轉小寫比較（允許 admin 和 super_admin）
+    const permRole = payload.permissionRole?.toLowerCase();
+    if (permRole !== 'admin' && permRole !== 'super_admin') {
       console.error('[Middleware] Unauthorized access attempt:', {
         pathname,
         userId: payload.userId,

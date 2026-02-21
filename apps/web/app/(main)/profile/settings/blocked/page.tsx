@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../../../../../providers/auth-provider';
 import { usersApi, ApiError } from '../../../../../lib/api';
 import {
   Avatar,
@@ -24,6 +25,7 @@ interface BlockedUser {
 
 export default function BlockedUsersPage() {
   const router = useRouter();
+  const { isLoading: authLoading } = useAuth();
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,8 +62,10 @@ export default function BlockedUsersPage() {
   }, []);
 
   useEffect(() => {
-    fetchBlocked();
-  }, [fetchBlocked]);
+    if (!authLoading) {
+      fetchBlocked();
+    }
+  }, [fetchBlocked, authLoading]);
 
   const handleUnblock = async (userId: string) => {
     setUnblocking(userId);

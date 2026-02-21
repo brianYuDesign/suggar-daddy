@@ -73,7 +73,7 @@ export const envValidationSchema = Joi.object({
     then: Joi.required(),
     otherwise: Joi.string().allow("").default(""),
   }),
-  STRIPE_PUBLISHABLE_KEY: Joi.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: Joi.string().allow("").optional(),
 
   // ─── Firebase Configuration (Optional) ───
   FIREBASE_PROJECT_ID: Joi.string().allow("").default(""),

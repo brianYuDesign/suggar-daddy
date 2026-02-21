@@ -22,6 +22,9 @@ import {
   DiamondBalanceEntity,
   DiamondTransactionEntity,
   DiamondPurchaseEntity,
+  UserBehaviorEventEntity,
+  SwipeEntity,
+  MatchEntity,
 } from "@suggar-daddy/database";
 
 const USER_KEY = (id: string) => `user:${id}`;
@@ -73,6 +76,12 @@ export class DbWriterService {
     private readonly diamondTxRepo: Repository<DiamondTransactionEntity>,
     @InjectRepository(DiamondPurchaseEntity)
     private readonly diamondPurchaseRepo: Repository<DiamondPurchaseEntity>,
+    @InjectRepository(UserBehaviorEventEntity)
+    private readonly behaviorEventRepo: Repository<UserBehaviorEventEntity>,
+    @InjectRepository(SwipeEntity)
+    private readonly swipeRepo: Repository<SwipeEntity>,
+    @InjectRepository(MatchEntity)
+    private readonly matchRepo: Repository<MatchEntity>,
     private readonly redis: RedisService,
   ) {}
 
@@ -649,5 +658,75 @@ export class DbWriterService {
     }
 
     this.logger.log(`diamond.converted persisted userId=${userId} diamonds=${diamondAmount} cash=${cashAmount}`);
+  }
+
+  // ── Behavior Event Handlers ────────────────────────────────────
+
+  async handleBehaviorBatch(payload: Record<string, unknown>): Promise<void> {
+    const { userId, events } = payload;
+    if (!userId || !Array.isArray(events) || events.length === 0) return;
+
+    const entities = events.map((evt: Record<string, unknown>) => {
+      const entity = new UserBehaviorEventEntity();
+      entity.userId = userId as string;
+      entity.eventType = evt.eventType as UserBehaviorEventEntity['eventType'];
+      entity.targetUserId = (evt.targetUserId as string) || null;
+      entity.metadata = (evt.metadata as Record<string, unknown>) || null;
+      entity.createdAt = evt.timestamp
+        ? new Date(evt.timestamp as number)
+        : new Date();
+      return entity;
+    });
+
+    await this.behaviorEventRepo.save(entities);
+    this.logger.log(`behavior.batch persisted userId=${userId} count=${entities.length}`);
+  }
+
+  // ── Matching Event Handlers ────────────────────────────────────
+
+  async handleSwipeEvent(payload: Record<string, unknown>): Promise<void> {
+    const { swiperId, targetUserId, action } = payload;
+    if (!swiperId || !targetUserId || !action) return;
+
+    await this.swipeRepo.upsert(
+      {
+        swiperId: swiperId as string,
+        swipedId: targetUserId as string,
+        action: action as string,
+        createdAt: new Date(),
+      },
+      ['swiperId', 'swipedId'],
+    );
+    this.logger.log(`matching.swipe persisted swiper=${swiperId} target=${targetUserId} action=${action}`);
+  }
+
+  async handleMatchEvent(payload: Record<string, unknown>): Promise<void> {
+    const { userAId, userBId } = payload;
+    if (!userAId || !userBId) return;
+
+    // Normalize order to avoid duplicate matches
+    const [first, second] = [userAId as string, userBId as string].sort();
+    await this.matchRepo.upsert(
+      {
+        userAId: first,
+        userBId: second,
+        status: 'active',
+        matchedAt: new Date(),
+      },
+      ['userAId', 'userBId'],
+    );
+    this.logger.log(`matching.matched persisted userA=${first} userB=${second}`);
+  }
+
+  async handleUnmatchEvent(payload: Record<string, unknown>): Promise<void> {
+    const { userAId, userBId } = payload;
+    if (!userAId || !userBId) return;
+
+    const [first, second] = [userAId as string, userBId as string].sort();
+    await this.matchRepo.update(
+      { userAId: first, userBId: second },
+      { status: 'unmatched' },
+    );
+    this.logger.log(`matching.unmatched persisted userA=${first} userB=${second}`);
   }
 }

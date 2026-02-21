@@ -6,6 +6,7 @@ import { PAYMENT_EVENTS, InjectLogger, PaymentMetricsService } from '@suggar-dad
 import { TransactionService } from '../transaction.service';
 import { PostPurchaseService } from '../post-purchase.service';
 import { TipService } from '../tip.service';
+import { DiamondPurchaseService } from '../diamond-purchase.service';
 
 const WEBHOOK_IDEMPOTENCY_PREFIX = 'stripe:webhook:processed:';
 const WEBHOOK_IDEMPOTENCY_TTL_SEC = 86400; // 24h
@@ -21,6 +22,7 @@ export class StripeWebhookService {
     private readonly postPurchaseService: PostPurchaseService,
     private readonly tipService: TipService,
     private readonly metricsService: PaymentMetricsService,
+    private readonly diamondPurchaseService: DiamondPurchaseService,
   ) {}
 
   async handleEvent(event: Stripe.Event): Promise<void> {
@@ -32,6 +34,13 @@ export class StripeWebhookService {
     }
 
     switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.type === 'diamond_purchase') {
+          await this.handleDiamondPurchase(session);
+        }
+        break;
+      }
       case 'payment_intent.succeeded':
         await this.handlePaymentSuccess(event.data.object as Stripe.PaymentIntent);
         break;
@@ -56,7 +65,6 @@ export class StripeWebhookService {
           postId: transaction.relatedEntityId,
           buyerId: transaction.userId,
           amount: transaction.amount,
-          stripePaymentId: paymentIntent.id,
         });
         this.logger.log(`Post purchase created for transaction ${transaction.id}`);
       } catch (e) {
@@ -69,7 +77,6 @@ export class StripeWebhookService {
           fromUserId: transaction.userId,
           toUserId: transaction.relatedEntityId,
           amount: transaction.amount,
-          stripePaymentId: paymentIntent.id,
         });
         this.logger.log(`Tip created for transaction ${transaction.id}`);
       } catch (e) {
@@ -184,5 +191,22 @@ export class StripeWebhookService {
         reason: paymentIntent.last_payment_error?.message,
       }
     );
+  }
+
+  private async handleDiamondPurchase(session: Stripe.Checkout.Session): Promise<void> {
+    if (session.payment_status !== 'paid') {
+      this.logger.warn(`Diamond purchase session not paid: ${session.id}`);
+      return;
+    }
+
+    const metadata = session.metadata || {};
+    const stripePaymentId = session.payment_intent as string || session.id;
+
+    try {
+      await this.diamondPurchaseService.handlePaymentSuccess(stripePaymentId, metadata);
+      this.logger.log(`Diamond purchase completed: session=${session.id}`);
+    } catch (err) {
+      this.logger.error(`Diamond purchase handling failed: session=${session.id}`, err);
+    }
   }
 }

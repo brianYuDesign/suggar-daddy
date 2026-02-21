@@ -52,15 +52,11 @@ export class SubscriptionController {
   }
 
   // Protected endpoint - requires authentication
-  @Get('my-subscription')
+  @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get current user subscription' })
   async getMySubscription(@CurrentUser() user: CurrentUserData) {
-    return {
-      message: 'Protected: Get my subscription',
-      userId: user.userId,
-      email: user.email,
-    };
+    return this.subscriptionService.getMySubscription(user.userId);
   }
 
   // Creator-only endpoint

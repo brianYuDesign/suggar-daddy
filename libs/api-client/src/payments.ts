@@ -104,6 +104,46 @@ export interface Withdrawal {
   processedAt?: string;
 }
 
+// ==================== Diamond Types ====================
+
+export interface DiamondBalance {
+  balance: number;
+  totalPurchased: number;
+  totalSpent: number;
+  totalReceived: number;
+  totalConverted: number;
+  updatedAt: string;
+}
+
+export interface DiamondTransaction {
+  id: string;
+  type: 'purchase' | 'spend' | 'credit' | 'transfer_in' | 'transfer_out' | 'conversion';
+  amount: number;
+  referenceId?: string;
+  referenceType?: string;
+  description: string;
+  createdAt: string;
+}
+
+export interface DiamondPackage {
+  id: string;
+  name: string;
+  diamondAmount: number;
+  bonusDiamonds: number;
+  priceUsd: number;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface DiamondConfig {
+  superLikeCost: number;
+  boostCost: number;
+  boostDurationMinutes: number;
+  conversionRate: number;
+  platformFeeRate: number;
+  minConversionDiamonds: number;
+}
+
 // ==================== API Class ====================
 
 export class PaymentsApi {
@@ -117,11 +157,12 @@ export class PaymentsApi {
    * @param amount - Tip amount in cents
    * @returns Tip transaction record
    */
-  sendTip(toUserId: string, amount: number) {
+  sendTip(toUserId: string, amount: number, postId?: string) {
     return this.client.post<Tip>('/api/tips', {
       fromUserId: 'placeholder', // overridden by backend from JWT
       toUserId,
       amount,
+      ...(postId ? { postId } : {}),
     });
   }
 
@@ -271,5 +312,39 @@ export class PaymentsApi {
    */
   updateTransaction(transactionId: string, status: TransactionStatus, notes?: string) {
     return this.client.put<TransactionDetail>(`/api/transactions/${transactionId}`, { status, notes });
+  }
+
+  // ==================== Diamond APIs ====================
+
+  getDiamondBalance() {
+    return this.client.get<DiamondBalance>('/api/diamonds/balance');
+  }
+
+  getDiamondHistory(limit = 50) {
+    return this.client.get<DiamondTransaction[]>('/api/diamonds/history', {
+      params: { limit: String(limit) },
+    });
+  }
+
+  getDiamondConfig() {
+    return this.client.get<DiamondConfig>('/api/diamonds/config');
+  }
+
+  getDiamondPackages() {
+    return this.client.get<DiamondPackage[]>('/api/diamond-packages');
+  }
+
+  purchaseDiamonds(packageId: string) {
+    return this.client.post<{ sessionId: string; sessionUrl: string }>(
+      '/api/diamonds/purchase',
+      { packageId },
+    );
+  }
+
+  convertDiamondsToCash(amount: number) {
+    return this.client.post<{ cashAmount: number; remainingDiamonds: number }>(
+      '/api/diamonds/convert',
+      { amount },
+    );
   }
 }

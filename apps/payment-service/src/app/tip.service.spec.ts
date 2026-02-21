@@ -3,11 +3,13 @@ import { NotFoundException } from '@nestjs/common';
 import { TipService } from './tip.service';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { DiamondService } from './diamond.service';
 
 describe('TipService', () => {
   let service: TipService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'lLen' | 'mget'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'lLen' | 'mget' | 'sAdd'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
+  let diamondService: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     redis = {
@@ -17,14 +19,19 @@ describe('TipService', () => {
       lRange: jest.fn(),
       lLen: jest.fn().mockResolvedValue(0),
       mget: jest.fn().mockResolvedValue([]),
+      sAdd: jest.fn(),
     };
     kafka = { sendEvent: jest.fn() };
+    diamondService = {
+      transferDiamonds: jest.fn().mockResolvedValue({ fromBalance: 900, toBalance: 100 }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TipService,
         { provide: RedisService, useValue: redis },
         { provide: KafkaProducerService, useValue: kafka },
+        { provide: DiamondService, useValue: diamondService },
       ],
     }).compile();
 

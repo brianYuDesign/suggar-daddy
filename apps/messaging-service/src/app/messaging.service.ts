@@ -121,7 +121,7 @@ export class MessagingService {
 
           if (!hasDmAccess) {
             throw new HttpException(
-              `This creator requires a DM payment of $${recipient.dmPrice} to message. Purchase DM access first.`,
+              `This creator requires ${recipient.dmPrice} diamonds to unlock DMs. Purchase DM access first.`,
               HttpStatus.PAYMENT_REQUIRED,
             );
           }

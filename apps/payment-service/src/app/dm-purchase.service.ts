@@ -7,7 +7,7 @@ import {
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { MESSAGING_EVENTS, InjectLogger } from '@suggar-daddy/common';
-import { TransactionService } from './transaction.service';
+import { DiamondService } from './diamond.service';
 
 const DM_UNLOCK_KEY = (buyerId: string, creatorId: string) =>
   `dm:unlock:${buyerId}:${creatorId}`;
@@ -20,14 +20,14 @@ export class DmPurchaseService {
   constructor(
     private readonly redis: RedisService,
     private readonly kafkaProducer: KafkaProducerService,
-    private readonly transactionService: TransactionService,
+    private readonly diamondService: DiamondService,
   ) {}
 
   async purchaseDmAccess(
     buyerId: string,
     creatorId: string,
   ): Promise<{ purchaseId: string }> {
-    // 1. Read creator's dmPrice from user record
+    // 1. Read creator's dmPrice from user record (now in diamonds)
     const creatorRaw = await this.redis.get(USER_KEY(creatorId));
     if (!creatorRaw) {
       throw new BadRequestException('Creator not found');
@@ -49,23 +49,20 @@ export class DmPurchaseService {
       throw new ConflictException('DM access already purchased');
     }
 
-    // 3. Create transaction record (Stripe integration can be added later)
-    const purchaseId = `dmp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    // 3. Transfer diamonds from buyer to creator
+    const { purchaseId: _pid, buyerBalance: _bb } = await this.diamondService.spendOnDmUnlock(
+      buyerId,
+      creatorId,
+      dmPrice,
+    );
 
-    const transaction = await this.transactionService.create({
-      userId: buyerId,
-      type: 'ppv',
-      amount: dmPrice,
-      relatedEntityId: creatorId,
-      relatedEntityType: 'dm_purchase',
-    });
+    const purchaseId = `dmp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
     // 4. Set dm:unlock permanently in Redis
     await this.redis.setPermanent(
       DM_UNLOCK_KEY(buyerId, creatorId),
       JSON.stringify({
         purchaseId,
-        transactionId: transaction.id,
         amount: dmPrice,
         createdAt: new Date().toISOString(),
       }),
@@ -85,7 +82,7 @@ export class DmPurchaseService {
     }
 
     this.logger.log(
-      `DM access purchased: buyer=${buyerId} creator=${creatorId} amount=${dmPrice}`,
+      `DM access purchased (diamonds): buyer=${buyerId} creator=${creatorId} diamonds=${dmPrice}`,
     );
 
     return { purchaseId };

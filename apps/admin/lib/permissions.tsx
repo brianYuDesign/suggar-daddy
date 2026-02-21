@@ -18,13 +18,33 @@ export enum AdminPermission {
   VIEW_ANALYTICS = 'view_analytics',
   VIEW_AUDIT_LOG = 'view_audit_log',
   MANAGE_SYSTEM = 'manage_system',
+  // 超級管理員專屬權限
+  VIEW_CHAT_ROOMS = 'view_chat_rooms',
+  MANAGE_ADMINS = 'manage_admins',
+  EDIT_ALL_DATA = 'edit_all_data',
+  FORCE_PASSWORD_RESET = 'force_password_reset',
+  VIEW_PERMISSIONS = 'view_permissions',
 }
 
 /**
  * 權限配置 - 定義哪些角色擁有哪些權限
  */
 const ROLE_PERMISSIONS: Record<string, AdminPermission[]> = {
-  ADMIN: Object.values(AdminPermission), // 管理員擁有所有權限
+  SUPER_ADMIN: Object.values(AdminPermission), // 超級管理員擁有所有權限
+  ADMIN: [
+    AdminPermission.VIEW_USERS,
+    AdminPermission.EDIT_USERS,
+    AdminPermission.DELETE_USERS,
+    AdminPermission.VIEW_CONTENT,
+    AdminPermission.MODERATE_CONTENT,
+    AdminPermission.DELETE_CONTENT,
+    AdminPermission.VIEW_PAYMENTS,
+    AdminPermission.APPROVE_WITHDRAWALS,
+    AdminPermission.VIEW_SUBSCRIPTIONS,
+    AdminPermission.VIEW_ANALYTICS,
+    AdminPermission.VIEW_AUDIT_LOG,
+    AdminPermission.MANAGE_SYSTEM,
+  ],
   MODERATOR: [
     AdminPermission.VIEW_USERS,
     AdminPermission.VIEW_CONTENT,
@@ -44,19 +64,6 @@ const ROLE_PERMISSIONS: Record<string, AdminPermission[]> = {
 
 /**
  * 權限檢查 Hook
- * 
- * 使用範例：
- * ```tsx
- * const { hasPermission, requirePermission } = usePermissions();
- * 
- * // 檢查權限
- * if (hasPermission(AdminPermission.EDIT_USERS)) {
- *   return <EditButton />;
- * }
- * 
- * // 強制要求權限（無權限則跳轉）
- * requirePermission(AdminPermission.MANAGE_SYSTEM);
- * ```
  */
 export function usePermissions() {
   const router = useRouter();
@@ -69,7 +76,9 @@ export function usePermissions() {
     if (!token) return null;
 
     const payload = getTokenPayload(token);
-    return payload?.role || null;
+    // 優先使用 permissionRole，轉大寫以匹配 ROLE_PERMISSIONS keys
+    const role = payload?.permissionRole || payload?.role;
+    return role?.toUpperCase() || null;
   }, []);
 
   /**
@@ -136,7 +145,7 @@ export function usePermissions() {
    */
   const isSuperAdmin = useCallback((): boolean => {
     const role = getUserRole();
-    return role === 'ADMIN';
+    return role === 'SUPER_ADMIN';
   }, [getUserRole]);
 
   return {
@@ -152,14 +161,6 @@ export function usePermissions() {
 
 /**
  * 權限守衛 HOC
- * 
- * 使用範例：
- * ```tsx
- * const ProtectedPage = withPermission(
- *   MyPage,
- *   AdminPermission.MANAGE_SYSTEM
- * );
- * ```
  */
 export function withPermission<P extends object>(
   Component: React.ComponentType<P>,
@@ -168,7 +169,6 @@ export function withPermission<P extends object>(
   return function ProtectedComponent(props: P) {
     const { requirePermission } = usePermissions();
 
-    // 在組件渲染時檢查權限
     if (!requirePermission(requiredPermission)) {
       return (
         <div className="flex min-h-screen items-center justify-center">

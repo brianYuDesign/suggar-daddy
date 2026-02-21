@@ -121,6 +121,28 @@ export class UpdateProfileDto {
   @IsString()
   @MaxLength(100)
   country?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(18)
+  @Max(80)
+  preferredAgeMin?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(18)
+  @Max(80)
+  preferredAgeMax?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(500)
+  preferredDistance?: number;
+
+  @IsOptional()
+  @IsString()
+  preferredUserType?: 'sugar_daddy' | 'sugar_baby' | 'both';
 }
 
 /** 位置更新（專用端點） */

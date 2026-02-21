@@ -18,13 +18,22 @@ import {
   DmPurchaseEntity,
   StoryEntity,
   StoryViewEntity,
+  DiamondBalanceEntity,
+  DiamondTransactionEntity,
+  DiamondPurchaseEntity,
+  UserBehaviorEventEntity,
+  SwipeEntity,
+  MatchEntity,
 } from '@suggar-daddy/database';
 
 const mockRepo = () => ({
   insert: jest.fn(),
   update: jest.fn(),
+  upsert: jest.fn(),
   delete: jest.fn(),
+  find: jest.fn(),
   findOne: jest.fn(),
+  save: jest.fn(),
   increment: jest.fn(),
   decrement: jest.fn(),
 });
@@ -55,6 +64,12 @@ describe('DbWriterService', () => {
         { provide: getRepositoryToken(DmPurchaseEntity), useFactory: mockRepo },
         { provide: getRepositoryToken(StoryEntity), useFactory: mockRepo },
         { provide: getRepositoryToken(StoryViewEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(DiamondBalanceEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(DiamondTransactionEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(DiamondPurchaseEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(UserBehaviorEventEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(SwipeEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(MatchEntity), useFactory: mockRepo },
         { provide: RedisService, useValue: redis },
       ],
     }).compile();

@@ -3,11 +3,13 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { PostPurchaseService } from './post-purchase.service';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { DiamondService } from './diamond.service';
 
 describe('PostPurchaseService', () => {
   let service: PostPurchaseService;
   let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'lPush' | 'lRange' | 'mget'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
+  let diamondService: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     redis = {
@@ -18,12 +20,17 @@ describe('PostPurchaseService', () => {
       mget: jest.fn().mockResolvedValue([]),
     };
     kafka = { sendEvent: jest.fn() };
+    diamondService = {
+      transferDiamonds: jest.fn().mockResolvedValue({ fromBalance: 800, toBalance: 200 }),
+      spendDiamonds: jest.fn().mockResolvedValue({ balance: 800 }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PostPurchaseService,
         { provide: RedisService, useValue: redis },
         { provide: KafkaProducerService, useValue: kafka },
+        { provide: DiamondService, useValue: diamondService },
       ],
     }).compile();
 

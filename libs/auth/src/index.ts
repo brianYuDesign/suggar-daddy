@@ -17,6 +17,7 @@ export { AppleStrategy } from './strategies/oauth-apple.strategy';
 export { JwtAuthGuard } from './guards/jwt-auth.guard';
 export { OptionalJwtGuard } from './guards/optional-jwt.guard';
 export { RolesGuard } from './guards/roles.guard';
+export { SuperAdminGuard } from './guards/super-admin.guard';
 
 // Decorators
 export { CurrentUser } from './decorators/current-user.decorator';

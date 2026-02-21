@@ -6,6 +6,8 @@ import { SkillEntity } from './entities/skill.entity';
 import { UserSkillEntity } from './entities/user-skill.entity';
 import { SkillRequestEntity } from './entities/skill-request.entity';
 import { UserEntity } from './entities/user.entity';
+import { InterestTagEntity } from './entities/interest-tag.entity';
+import { UserInterestTagEntity } from './entities/user-interest-tag.entity';
 
 @Module({})
 export class DatabaseModule {
@@ -25,7 +27,7 @@ export class DatabaseModule {
       password,
       database,
       port,
-      entities: [SwipeEntity, MatchEntity, SkillEntity, UserSkillEntity, SkillRequestEntity, UserEntity],
+      entities: [SwipeEntity, MatchEntity, SkillEntity, UserSkillEntity, SkillRequestEntity, UserEntity, InterestTagEntity, UserInterestTagEntity],
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
       // Connection pool settings

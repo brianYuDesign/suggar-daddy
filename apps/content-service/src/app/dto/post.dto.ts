@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsArray, IsIn, Min, MaxLength, ArrayMaxSize, IsUrl } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsInt, IsArray, IsIn, Min, MaxLength, ArrayMaxSize, Matches } from 'class-validator';
 
 export interface VideoMetaInput {
   mediaId: string;
@@ -23,7 +23,7 @@ export class CreatePostDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMaxSize(10)
-  @IsUrl({}, { each: true })
+  @Matches(/^(https?:\/\/|\/uploads\/)/, { each: true, message: 'each value in mediaUrls must be a URL or a local upload path' })
   mediaUrls: string[];
 
   @IsIn(['public', 'subscribers', 'tier_specific', 'ppv'])
@@ -34,9 +34,9 @@ export class CreatePostDto {
   requiredTierId?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  ppvPrice?: number;
+  @IsInt()
+  @Min(1)
+  ppvPrice?: number; // diamonds
 
   @IsOptional()
   videoMeta?: VideoMetaInput;
@@ -57,7 +57,7 @@ export class UpdatePostDto {
   requiredTierId?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  ppvPrice?: number;
+  @IsInt()
+  @Min(1)
+  ppvPrice?: number; // diamonds
 }

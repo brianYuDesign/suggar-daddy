@@ -3,6 +3,7 @@ import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { PAYMENT_EVENTS } from '@suggar-daddy/common';
 import { CreatePostPurchaseDto } from './dto/post-purchase.dto';
+import { DiamondService } from './diamond.service';
 
 const PURCHASE_KEY = (id: string) => `post-purchase:${id}`;
 const PURCHASES_BUYER = (userId: string) => `post-purchases:buyer:${userId}`;
@@ -14,8 +15,7 @@ export interface PostPurchase {
   id: string;
   postId: string;
   buyerId: string;
-  amount: number;
-  stripePaymentId: string | null;
+  amount: number; // diamonds
   createdAt: string;
 }
 
@@ -24,19 +24,38 @@ export class PostPurchaseService {
   constructor(
     private readonly redis: RedisService,
     private readonly kafkaProducer: KafkaProducerService,
+    private readonly diamondService: DiamondService,
   ) {}
 
   private genId(): string {
     return `ppv-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  async create(dto: CreatePostPurchaseDto & { stripePaymentId?: string }): Promise<PostPurchase> {
+  async create(dto: CreatePostPurchaseDto): Promise<PostPurchase> {
     const existingId = await this.redis.get(PURCHASE_BY_BUYER_POST(dto.buyerId, dto.postId));
     if (existingId) {
       const existingRaw = await this.redis.get(PURCHASE_KEY(existingId));
       if (existingRaw) {
         throw new ConflictException('You have already purchased this post');
       }
+    }
+
+    // Transfer diamonds from buyer to creator
+    if (dto.creatorId) {
+      await this.diamondService.transferDiamonds(
+        dto.buyerId,
+        dto.creatorId,
+        dto.amount,
+        'ppv',
+        dto.postId,
+        `Unlocked post ${dto.postId} for ${dto.amount} diamonds`,
+      );
+    } else {
+      // If no creatorId provided, just spend (edge case)
+      await this.diamondService.spendDiamonds(
+        dto.buyerId, dto.amount, 'ppv', dto.postId,
+        `Unlocked post ${dto.postId} for ${dto.amount} diamonds`,
+      );
     }
 
     const id = this.genId();
@@ -46,7 +65,6 @@ export class PostPurchaseService {
       postId: dto.postId,
       buyerId: dto.buyerId,
       amount: dto.amount,
-      stripePaymentId: dto.stripePaymentId ?? null,
       createdAt: now,
     };
     await this.redis.set(PURCHASE_KEY(id), JSON.stringify(purchase));

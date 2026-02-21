@@ -25,6 +25,12 @@ import { StripeWebhookService } from "./stripe/stripe-webhook.service";
 import { StripePaymentService } from "./stripe/stripe-payment.service";
 import { DmPurchaseController } from "./dm-purchase.controller";
 import { DmPurchaseService } from "./dm-purchase.service";
+import { DiamondController } from "./diamond.controller";
+import { DiamondService } from "./diamond.service";
+import { DiamondPackageController } from "./diamond-package.controller";
+import { DiamondPackageService } from "./diamond-package.service";
+import { DiamondPurchaseController } from "./diamond-purchase.controller";
+import { DiamondPurchaseService } from "./diamond-purchase.service";
 
 @Module({
   imports: [
@@ -55,6 +61,9 @@ import { DmPurchaseService } from "./dm-purchase.service";
     WalletController,
     StripeWebhookController,
     DmPurchaseController,
+    DiamondController,
+    DiamondPackageController,
+    DiamondPurchaseController,
   ],
   providers: [
     AppService,
@@ -65,6 +74,9 @@ import { DmPurchaseService } from "./dm-purchase.service";
     StripeWebhookService,
     StripePaymentService,
     DmPurchaseService,
+    DiamondService,
+    DiamondPackageService,
+    DiamondPurchaseService,
   ],
 })
 export class AppModule {}

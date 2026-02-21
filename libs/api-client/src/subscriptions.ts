@@ -95,8 +95,23 @@ export class SubscriptionsApi {
    * Get all available subscription tiers
    * @returns List of subscription tiers
    */
-  getTiers() {
-    return this.client.get<SubscriptionTier[]>('/api/subscription-tiers');
+  async getTiers(): Promise<SubscriptionTier[]> {
+    const raw = await this.client.get<Array<{
+      id: string;
+      name: string;
+      priceMonthly?: number;
+      price?: number;
+      currency?: string;
+      benefits?: string[];
+      features?: string[];
+    }>>('/api/subscription-tiers');
+    return (Array.isArray(raw) ? raw : []).map((t) => ({
+      id: t.id,
+      name: t.name,
+      price: t.price ?? t.priceMonthly ?? 0,
+      currency: t.currency || 'USD',
+      features: t.features ?? t.benefits ?? [],
+    }));
   }
 
   /**
@@ -110,10 +125,22 @@ export class SubscriptionsApi {
 
   /**
    * Get the current user's subscription
-   * @returns Current subscription information
+   * @returns Current subscription information, or null if none
    */
-  getMySubscription() {
-    return this.client.get<Subscription>('/api/subscriptions/me');
+  async getMySubscription(): Promise<Subscription | null> {
+    try {
+      const raw = await this.client.get<Record<string, unknown>>('/api/subscriptions/me');
+      if (!raw || !raw.id) return null;
+      return {
+        id: raw.id as string,
+        userId: (raw.userId ?? raw.subscriberId ?? '') as string,
+        tierId: (raw.tierId ?? '') as string,
+        status: (raw.status ?? 'active') as string,
+        currentPeriodEnd: (raw.currentPeriodEnd ?? '') as string,
+      };
+    } catch {
+      return null;
+    }
   }
 
   /**

@@ -7,6 +7,10 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { StripeService } from '@suggar-daddy/common';
 
 // Mock external services
+const mockRedisClient = {
+  eval: jest.fn().mockResolvedValue(JSON.stringify({ ok: true, balance: 1000 })),
+};
+
 const mockRedisService = {
   get: jest.fn(),
   set: jest.fn(),
@@ -16,6 +20,13 @@ const mockRedisService = {
   expire: jest.fn(),
   ttl: jest.fn(),
   keys: jest.fn(),
+  lPush: jest.fn(),
+  lRange: jest.fn().mockResolvedValue([]),
+  lLen: jest.fn().mockResolvedValue(0),
+  mget: jest.fn().mockResolvedValue([]),
+  sAdd: jest.fn(),
+  setPermanent: jest.fn(),
+  getClient: jest.fn(() => mockRedisClient),
   onModuleDestroy: jest.fn().mockResolvedValue(undefined),
 };
 

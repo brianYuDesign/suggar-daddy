@@ -7,7 +7,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('PostService', () => {
   let service: PostService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'setex' | 'del' | 'lPush' | 'lRange' | 'mget'>>;
+  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'setex' | 'del' | 'lPush' | 'lRange' | 'mget' | 'sCard'>>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
   let subscriptionClient: jest.Mocked<Pick<SubscriptionServiceClient, 'hasActiveSubscription'>>;
 
@@ -20,6 +20,7 @@ describe('PostService', () => {
       lPush: jest.fn(),
       lRange: jest.fn(),
       mget: jest.fn().mockResolvedValue([]),
+      sCard: jest.fn().mockResolvedValue(0),
     };
     kafka = { sendEvent: jest.fn() };
     subscriptionClient = {
@@ -192,8 +193,8 @@ describe('PostService', () => {
       const mockRedis = {
         sRem: jest.fn().mockResolvedValue(1),
       };
-      (service as any).redis = { ...redis, ...mockRedis };
-      
+      (service as any).redis = { ...redis, sCard: jest.fn().mockResolvedValue(0), ...mockRedis };
+
       await service.unlikePost('post-1', 'user-1');
       
       const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
@@ -218,8 +219,8 @@ describe('PostService', () => {
       const mockRedis = {
         sRem: jest.fn().mockResolvedValue(1),
       };
-      (service as any).redis = { ...redis, ...mockRedis };
-      
+      (service as any).redis = { ...redis, sCard: jest.fn().mockResolvedValue(0), ...mockRedis };
+
       await service.unlikePost('post-2', 'user-1');
       
       const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
@@ -244,8 +245,8 @@ describe('PostService', () => {
       const mockRedis = {
         sRem: jest.fn().mockResolvedValue(1),
       };
-      (service as any).redis = { ...redis, ...mockRedis };
-      
+      (service as any).redis = { ...redis, sCard: jest.fn().mockResolvedValue(0), ...mockRedis };
+
       await service.unlikePost('post-3', 'user-1');
       
       const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
@@ -272,7 +273,7 @@ describe('PostService', () => {
       const mockRedis = {
         zRem: jest.fn().mockResolvedValue(1),
       };
-      (service as any).redis = { ...redis, ...mockRedis };
+      (service as any).redis = { ...redis, sCard: jest.fn().mockResolvedValue(0), ...mockRedis };
       
       await service.unbookmarkPost('post-1', 'user-1');
       

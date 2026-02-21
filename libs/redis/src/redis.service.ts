@@ -176,6 +176,11 @@ export class RedisService implements OnModuleDestroy {
     return this.client.zcard(key);
   }
 
+  /** Count members in Sorted Set within score range */
+  async zCount(key: string, min: number | string, max: number | string): Promise<number> {
+    return this.client.zcount(key, min, max);
+  }
+
   /** Get score of member in Sorted Set */
   async zScore(key: string, member: string): Promise<number | null> {
     const score = await this.client.zscore(key, member);

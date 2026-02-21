@@ -10,6 +10,8 @@ import {
   Clock,
   TrendingUp,
   ArrowUpFromLine,
+  Gem,
+  ArrowRightLeft,
 } from 'lucide-react';
 import {
   Button,
@@ -18,6 +20,8 @@ import {
   Skeleton,
 } from '@suggar-daddy/ui';
 import { paymentsApi, ApiError } from '../../../lib/api';
+import type { DiamondBalance } from '@suggar-daddy/api-client';
+import { DiamondConvertModal } from '../../components/DiamondConvertModal';
 
 /* ------------------------------------------------------------------ */
 /*  Local types                                                        */
@@ -38,17 +42,27 @@ export default function WalletPage() {
   const router = useRouter();
 
   const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [diamondBalance, setDiamondBalance] = useState<DiamondBalance | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [showConvertModal, setShowConvertModal] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const data = (await paymentsApi.getWallet()) as unknown as Wallet;
-        if (!cancelled) setWallet(data);
+        const [walletData, diamondData] = await Promise.allSettled([
+          paymentsApi.getWallet(),
+          paymentsApi.getDiamondBalance(),
+        ]);
+        if (!cancelled) {
+          if (walletData.status === 'fulfilled')
+            setWallet(walletData.value as unknown as Wallet);
+          if (diamondData.status === 'fulfilled')
+            setDiamondBalance(diamondData.value);
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof ApiError ? err.message : '無法載入錢包');
@@ -156,6 +170,46 @@ export default function WalletPage() {
         <p className="text-sm text-brand-100">可用餘額</p>
       </div>
 
+      {/* Diamond balance section */}
+      {diamondBalance && (
+        <Card className="overflow-hidden border-violet-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="inline-flex rounded-lg bg-violet-50 p-2">
+                  <Gem className="h-5 w-5 text-violet-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">鑽石餘額</p>
+                  <p className="text-xl font-bold text-violet-700">
+                    💎 {diamondBalance.balance.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 border-violet-200 text-violet-600 hover:bg-violet-50"
+                  onClick={() => setShowConvertModal(true)}
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                  兌換
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1 bg-violet-500 text-white hover:bg-violet-600"
+                  onClick={() => router.push('/diamonds')}
+                >
+                  <Gem className="h-3.5 w-3.5" />
+                  儲值
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Balance cards */}
       <div className="grid grid-cols-2 gap-3">
         {balanceCards.map((card) => {
@@ -210,6 +264,12 @@ export default function WalletPage() {
           {portalLoading ? '載入中...' : 'Stripe 付款管理'}
         </Button>
       </div>
+
+      {/* Diamond convert modal */}
+      <DiamondConvertModal
+        isOpen={showConvertModal}
+        onClose={() => setShowConvertModal(false)}
+      />
     </div>
   );
 }

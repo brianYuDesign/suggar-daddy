@@ -8,6 +8,9 @@ import {
   PAYMENT_EVENTS,
   SOCIAL_EVENTS,
   MESSAGING_EVENTS,
+  DIAMOND_EVENTS,
+  BEHAVIOR_EVENTS,
+  MATCHING_EVENTS,
 } from '@suggar-daddy/common';
 import { DbWriterService } from './db-writer.service';
 import { DlqService } from './dlq.service';
@@ -47,6 +50,13 @@ export class DbWriterConsumer implements OnModuleInit {
       { topic: CONTENT_EVENTS.COMMENT_DELETED, handler: (p) => this.dbWriter.handleCommentDeleted(p) },
       { topic: CONTENT_EVENTS.STORY_CREATED, handler: (p) => this.dbWriter.handleStoryCreated(p) },
       { topic: MESSAGING_EVENTS.DM_PURCHASED, handler: (p) => this.dbWriter.handleDmPurchased(p) },
+      { topic: DIAMOND_EVENTS.DIAMOND_PURCHASED, handler: (p) => this.dbWriter.handleDiamondPurchased(p) },
+      { topic: DIAMOND_EVENTS.DIAMOND_SPENT, handler: (p) => this.dbWriter.handleDiamondSpent(p) },
+      { topic: DIAMOND_EVENTS.DIAMOND_CONVERTED, handler: (p) => this.dbWriter.handleDiamondConverted(p) },
+      { topic: BEHAVIOR_EVENTS.BEHAVIOR_BATCH, handler: (p) => this.dbWriter.handleBehaviorBatch(p) },
+      { topic: MATCHING_EVENTS.SWIPE, handler: (p) => this.dbWriter.handleSwipeEvent(p) },
+      { topic: MATCHING_EVENTS.MATCHED, handler: (p) => this.dbWriter.handleMatchEvent(p) },
+      { topic: MATCHING_EVENTS.UNMATCHED, handler: (p) => this.dbWriter.handleUnmatchEvent(p) },
     ];
 
     const maxRetries = 3;

@@ -18,8 +18,27 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- Enable pg_trgm for full-text search and similarity matching
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
+-- Enable pgvector for ML embedding similarity search
+CREATE EXTENSION IF NOT EXISTS "vector";
+
 -- ==========================================
--- 2. Recommendation Service Schema
+-- 2. ML Recommendation Embeddings
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS user_embeddings (
+    user_id UUID PRIMARY KEY,
+    embedding vector(128),
+    model_version VARCHAR(20) DEFAULT 'v1.0',
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_embedding_vector
+    ON user_embeddings
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100);
+
+-- ==========================================
+-- 3. Recommendation Service Schema
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS recommendations (

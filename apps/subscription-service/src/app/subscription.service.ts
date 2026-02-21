@@ -101,6 +101,20 @@ export class SubscriptionService {
     };
   }
 
+  async getMySubscription(subscriberId: string): Promise<Subscription | null> {
+    const ids = await this.redis.lRange(SUBS_SUBSCRIBER(subscriberId), 0, -1);
+    if (ids.length === 0) return null;
+    const keys = ids.map((id) => SUB_KEY(id));
+    const values = await this.redis.mget(...keys);
+    const now = new Date().toISOString();
+    const active = values
+      .filter(Boolean)
+      .map((raw) => JSON.parse(raw!))
+      .filter((s) => s.status === 'active' && (!s.currentPeriodEnd || s.currentPeriodEnd >= now))
+      .sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
+    return active[0] || null;
+  }
+
   async findBySubscriber(subscriberId: string, page = 1, limit = 20): Promise<PaginatedResponse<Subscription>> {
     // ✅ 優化：使用 Redis List 的範圍查詢實現真正的分頁
     // 計算起始和結束索引

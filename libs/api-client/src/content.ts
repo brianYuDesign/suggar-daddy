@@ -7,6 +7,8 @@ export interface Post {
   content: string;
   mediaUrls?: string[];
   isPremium: boolean;
+  likeCount: number;
+  tipCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -66,6 +68,8 @@ export class ContentApi {
         caption: string;
         mediaUrls?: string[];
         visibility: string;
+        likeCount?: number;
+        tipCount?: number;
         createdAt: string;
         updatedAt: string;
       }>;
@@ -80,6 +84,8 @@ export class ContentApi {
       content: p.caption || '',
       mediaUrls: p.mediaUrls,
       isPremium: p.visibility !== 'public',
+      likeCount: p.likeCount ?? 0,
+      tipCount: p.tipCount ?? 0,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     }));
@@ -98,6 +104,8 @@ export class ContentApi {
       caption: string;
       mediaUrls?: string[];
       visibility: string;
+      likeCount?: number;
+      tipCount?: number;
       createdAt: string;
       updatedAt: string;
     }>(`/api/posts/${postId}`);
@@ -107,6 +115,8 @@ export class ContentApi {
       content: raw.caption || '',
       mediaUrls: raw.mediaUrls,
       isPremium: raw.visibility !== 'public',
+      likeCount: raw.likeCount ?? 0,
+      tipCount: raw.tipCount ?? 0,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     } as Post;
@@ -270,6 +280,8 @@ export class ContentApi {
         caption: string;
         mediaUrls?: string[];
         visibility: string;
+        likeCount?: number;
+        tipCount?: number;
         createdAt: string;
         updatedAt: string;
       }>;
@@ -281,6 +293,8 @@ export class ContentApi {
       content: p.caption || '',
       mediaUrls: p.mediaUrls,
       isPremium: p.visibility !== 'public',
+      likeCount: p.likeCount ?? 0,
+      tipCount: p.tipCount ?? 0,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     }));
@@ -301,6 +315,8 @@ export class ContentApi {
         caption: string;
         mediaUrls?: string[];
         visibility: string;
+        likeCount?: number;
+        tipCount?: number;
         createdAt: string;
         updatedAt: string;
       }>;
@@ -314,6 +330,8 @@ export class ContentApi {
       content: p.caption || '',
       mediaUrls: p.mediaUrls,
       isPremium: p.visibility !== 'public',
+      likeCount: p.likeCount ?? 0,
+      tipCount: p.tipCount ?? 0,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     }));

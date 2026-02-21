@@ -21,6 +21,7 @@ const POST_COMMENTS = (postId: string) => `post:${postId}:comments`;
 const COMMENT_KEY = (commentId: string) => `comment:${commentId}`;
 const COMMENT_REPLIES = (commentId: string) => `comment:${commentId}:replies`;
 const USER_BOOKMARKS = (userId: string) => `user:bookmarks:${userId}`;
+const POST_TIPPERS = (postId: string) => `post:${postId}:tippers`;
 const USER_BLOCKS = (userId: string) => `user:blocks:${userId}`;
 const USER_BLOCKED_BY = (userId: string) => `user:blocked-by:${userId}`;
 const SUBSCRIPTION_CHECK_KEY = (viewerId: string, creatorId: string) => 
@@ -47,6 +48,7 @@ export interface Post {
   likeCount: number;
   commentCount: number;
   bookmarkCount: number;
+  tipCount: number;
   createdAt: string;
   updatedAt?: string;
   moderationStatus?: string;
@@ -85,6 +87,21 @@ export class PostService {
     return new Set(ids);
   }
 
+  /** Enrich a single post with live tipCount from Redis */
+  private async enrichTipCount(post: Post): Promise<Post> {
+    const tipCount = await this.redis.sCard(POST_TIPPERS(post.id));
+    return { ...post, tipCount };
+  }
+
+  /** Enrich multiple posts with live tipCount from Redis */
+  private async enrichTipCounts(posts: Post[]): Promise<Post[]> {
+    if (posts.length === 0) return posts;
+    const counts = await Promise.all(
+      posts.map((p) => this.redis.sCard(POST_TIPPERS(p.id)))
+    );
+    return posts.map((p, i) => ({ ...p, tipCount: counts[i] }));
+  }
+
   // ── Post CRUD ─────────────────────────────────────────────────
 
   async create(createDto: CreatePostDto): Promise<Post> {
@@ -102,6 +119,7 @@ export class PostService {
       likeCount: 0,
       commentCount: 0,
       bookmarkCount: 0,
+      tipCount: 0,
       createdAt: now,
       videoMeta: createDto.videoMeta
         ? {
@@ -152,6 +170,7 @@ export class PostService {
       }
     }
 
+    data = await this.enrichTipCounts(data);
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
@@ -162,7 +181,8 @@ export class PostService {
     const ids = await this.redis.lRange(key, skip, skip + limit - 1);
     const keys = ids.map((id) => POST_KEY(id));
     const values = await this.redis.mget(...keys);
-    const data = values.filter(Boolean).map((raw) => JSON.parse(raw!));
+    let data: Post[] = values.filter(Boolean).map((raw) => JSON.parse(raw!));
+    data = await this.enrichTipCounts(data);
     return { data: data.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1)), total, page, limit };
   }
 
@@ -231,7 +251,9 @@ export class PostService {
 
     filtered.sort((a, b) => (b.createdAt > a.createdAt ? 1 : -1));
     const skip = (page - 1) * limit;
-    return { data: filtered.slice(skip, skip + limit), total: filtered.length, page, limit };
+    const paged = filtered.slice(skip, skip + limit);
+    const enriched = await this.enrichTipCounts(paged);
+    return { data: enriched, total: filtered.length, page, limit };
   }
 
   private readonly POST_UNLOCK = (postId: string, userId: string) =>
@@ -242,7 +264,8 @@ export class PostService {
     if (!raw) {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
-    return JSON.parse(raw);
+    const post: Post = JSON.parse(raw);
+    return this.enrichTipCount(post);
   }
 
   async findOneWithAccess(id: string, viewerId?: string | null): Promise<Post & { locked?: boolean }> {
@@ -398,10 +421,11 @@ export class PostService {
     }
     const keys = ids.map((id) => POST_KEY(id));
     const values = await this.redis.mget(...keys);
-    const data: Post[] = values
+    let data: Post[] = values
       .filter(Boolean)
       .map((raw) => JSON.parse(raw!))
       .filter((p) => p.visibility === 'public' || p.creatorId === userId);
+    data = await this.enrichTipCounts(data);
     return { data, total, page, limit };
   }
 

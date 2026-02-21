@@ -3,13 +3,13 @@ import { BadRequestException, ConflictException } from '@nestjs/common';
 import { DmPurchaseService } from './dm-purchase.service';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { TransactionService } from './transaction.service';
+import { DiamondService } from './diamond.service';
 
 describe('DmPurchaseService', () => {
   let service: DmPurchaseService;
   let redis: Record<string, jest.Mock>;
   let kafka: Record<string, jest.Mock>;
-  let transactionService: Record<string, jest.Mock>;
+  let diamondService: Record<string, jest.Mock>;
 
   const mockCreator = (overrides = {}) => ({
     id: 'creator-1',
@@ -25,8 +25,8 @@ describe('DmPurchaseService', () => {
       setPermanent: jest.fn().mockResolvedValue(undefined),
     };
     kafka = { sendEvent: jest.fn().mockResolvedValue(undefined) };
-    transactionService = {
-      create: jest.fn().mockResolvedValue({ id: 'tx-1' }),
+    diamondService = {
+      spendOnDmUnlock: jest.fn().mockResolvedValue({ purchaseId: 'dmp-1', buyerBalance: 450 }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,7 +34,7 @@ describe('DmPurchaseService', () => {
         DmPurchaseService,
         { provide: RedisService, useValue: redis },
         { provide: KafkaProducerService, useValue: kafka },
-        { provide: TransactionService, useValue: transactionService },
+        { provide: DiamondService, useValue: diamondService },
       ],
     }).compile();
 
@@ -50,13 +50,8 @@ describe('DmPurchaseService', () => {
       const result = await service.purchaseDmAccess('buyer-1', 'creator-1');
 
       expect(result.purchaseId).toMatch(/^dmp-/);
-      expect(transactionService.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: 'buyer-1',
-          type: 'ppv',
-          amount: 50,
-          relatedEntityType: 'dm_purchase',
-        }),
+      expect(diamondService.spendOnDmUnlock).toHaveBeenCalledWith(
+        'buyer-1', 'creator-1', 50,
       );
       expect(redis.setPermanent).toHaveBeenCalled();
       expect(kafka.sendEvent).toHaveBeenCalledWith(

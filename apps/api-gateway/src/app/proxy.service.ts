@@ -91,6 +91,27 @@ export class ProxyService {
         ),
       },
       {
+        prefix: '/api/blogs',
+        baseUrl: this.config.get<string>(
+          'CONTENT_SERVICE_URL',
+          'http://localhost:3006',
+        ),
+      },
+      {
+        prefix: '/api/diamonds',
+        baseUrl: this.config.get<string>(
+          'PAYMENT_SERVICE_URL',
+          'http://localhost:3007',
+        ),
+      },
+      {
+        prefix: '/api/diamond-packages',
+        baseUrl: this.config.get<string>(
+          'PAYMENT_SERVICE_URL',
+          'http://localhost:3007',
+        ),
+      },
+      {
         prefix: '/api/tips',
         baseUrl: this.config.get<string>(
           'PAYMENT_SERVICE_URL',

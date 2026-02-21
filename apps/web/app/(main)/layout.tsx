@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { MobileNav } from '../../components/layout/mobile-nav';
 import { DesktopSidebar } from '../../components/layout/desktop-sidebar';
 import { NotificationProvider } from '../../providers/notification-provider';
+import DiamondBalance from '../components/DiamondBalance';
 
 export default function MainLayout({
   children,
@@ -38,7 +39,11 @@ export default function MainLayout({
 
         {/* Main content area */}
         <div className="md:pl-60">
-          <main className="mx-auto max-w-2xl px-4 pb-20 pt-4 md:pb-8 md:pt-6">
+          {/* Top bar with diamond balance */}
+          <div className="sticky top-0 z-10 flex items-center justify-end bg-gray-50/80 px-4 py-2 backdrop-blur-sm md:px-6">
+            <DiamondBalance />
+          </div>
+          <main className="mx-auto max-w-2xl px-4 pb-20 pt-2 md:pb-8 md:pt-4">
             {children}
           </main>
         </div>

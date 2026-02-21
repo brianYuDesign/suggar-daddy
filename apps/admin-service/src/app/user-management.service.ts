@@ -161,19 +161,84 @@ export class UserManagementService {
 
   /** 變更用戶角色 */
   async changeUserRole(userId: string, newRole: string) {
-    const validRoles = ['ADMIN', 'CREATOR', 'SUBSCRIBER'];
-    if (!validRoles.includes(newRole)) {
+    const validRoles = ['admin', 'creator', 'subscriber', 'super_admin'];
+    const normalizedRole = newRole.toLowerCase();
+    if (!validRoles.includes(normalizedRole)) {
       throw new BadRequestException('無效的角色: ' + newRole);
     }
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('用戶 ' + userId + ' 不存在');
     }
-    const oldRole = user.role;
-    user.role = newRole;
+    const oldPermissionRole = user.permissionRole;
+    user.permissionRole = normalizedRole as any;
+    user.role = normalizedRole;
     await this.userRepo.save(user);
-    this.logger.warn(`用戶角色變更: ${userId} ${oldRole} -> ${newRole}`);
-    return { success: true, message: `角色已從 ${oldRole} 變更為 ${newRole}` };
+    this.logger.warn(`用戶角色變更: ${userId} ${oldPermissionRole} -> ${normalizedRole}`);
+    return { success: true, message: `角色已從 ${oldPermissionRole} 變更為 ${normalizedRole}` };
+  }
+
+  /** 編輯用戶資料（超級管理員專用） */
+  async updateUser(userId: string, updateData: {
+    displayName?: string;
+    email?: string;
+    username?: string;
+    bio?: string;
+    avatarUrl?: string;
+    userType?: string;
+    permissionRole?: string;
+    city?: string;
+    country?: string;
+    dmPrice?: number;
+    birthDate?: string;
+    preferredAgeMin?: number;
+    preferredAgeMax?: number;
+    preferredDistance?: number;
+    verificationStatus?: string;
+  }) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('用戶 ' + userId + ' 不存在');
+    }
+
+    const allowedFields = [
+      'displayName', 'email', 'username', 'bio', 'avatarUrl',
+      'userType', 'permissionRole', 'city', 'country', 'dmPrice',
+      'birthDate', 'preferredAgeMin', 'preferredAgeMax',
+      'preferredDistance', 'verificationStatus',
+    ];
+
+    const changes: Record<string, { from: unknown; to: unknown }> = {};
+
+    for (const field of allowedFields) {
+      if (updateData[field as keyof typeof updateData] !== undefined) {
+        const oldValue = (user as any)[field];
+        const newValue = updateData[field as keyof typeof updateData];
+        if (oldValue !== newValue) {
+          changes[field] = { from: oldValue, to: newValue };
+          (user as any)[field] = newValue;
+        }
+      }
+    }
+
+    // 同步 role 欄位（向後兼容）
+    if (updateData.permissionRole) {
+      user.role = updateData.permissionRole;
+    }
+
+    if (Object.keys(changes).length === 0) {
+      return { success: true, message: '沒有需要更新的欄位', changes: {} };
+    }
+
+    await this.userRepo.save(user);
+
+    this.logger.warn(`用戶資料更新: ${userId}`, { changes });
+    return {
+      success: true,
+      message: `已更新 ${Object.keys(changes).length} 個欄位`,
+      changes,
+      user: this.sanitizeUser(user),
+    };
   }
 
   /** 取得用戶活動摘要（訂閱、交易、貼文） */

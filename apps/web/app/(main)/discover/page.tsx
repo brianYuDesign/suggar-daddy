@@ -1,12 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Button,
-  Card,
-  CardContent,
-  Badge,
   Skeleton,
   Dialog,
   DialogHeader,
@@ -15,28 +12,21 @@ import {
   DialogFooter,
   cn,
 } from '@suggar-daddy/ui';
-import { Heart, X, Star, MessageCircle, Sparkles, Users } from 'lucide-react';
-import { matchingApi, ApiError } from '../../../lib/api';
+import { Heart, X, MessageCircle, Sparkles, Users, SlidersHorizontal } from 'lucide-react';
+import { matchingApi, tagsApi, ApiError } from '../../../lib/api';
 import { useAuth } from '../../../providers/auth-provider';
-import type { UserCard } from '../../../types/user';
 import { BoostButton } from '../../components/BoostButton';
-
-/* ---------- Local types ---------- */
-
-interface SwipeResponse {
-  matched: boolean;
-  matchId?: string;
-}
+import { CardMode } from './components/CardMode';
+import { GridMode } from './components/GridMode';
+import { MapMode } from './components/MapMode';
+import { ModeSwitcher, type ViewMode } from './components/ModeSwitcher';
+import { FilterDrawer } from './components/FilterDrawer';
+import { UndoButton } from './components/UndoButton';
+import { useFilters } from './hooks/useFilters';
+import { useBehaviorTracker } from './hooks/useBehaviorTracker';
+import type { EnhancedUserCardDto, InterestTagDto } from '@suggar-daddy/dto';
 
 /* ---------- Helpers ---------- */
-
-function roleLabelMap(userType: string): string {
-  const map: Record<string, string> = {
-    sugar_daddy: 'Sugar Daddy',
-    sugar_baby: 'Sugar Baby',
-  };
-  return map[userType] || userType;
-}
 
 function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
@@ -95,68 +85,127 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 export default function DiscoverPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { filters, updateFilter, resetFilters, activeFilterCount, toQueryParams } = useFilters();
+  const { trackSwipe, trackCardView, trackDetailView, trackDwell } = useBehaviorTracker();
 
-  const [cards, setCards] = useState<UserCard[]>([]);
+  const [cards, setCards] = useState<EnhancedUserCardDto[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [swiping, setSwiping] = useState(false);
+  const [canUndo, setCanUndo] = useState(false);
+
+  // View mode
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'card';
+    return (localStorage.getItem('discover_view_mode') as ViewMode) || 'card';
+  });
+
+  // Filter drawer
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [availableTags, setAvailableTags] = useState<InterestTagDto[]>([]);
 
   // Match celebration modal
   const [matchModalOpen, setMatchModalOpen] = useState(false);
-  const [matchedUser, setMatchedUser] = useState<UserCard | null>(null);
+  const [matchedUser, setMatchedUser] = useState<EnhancedUserCardDto | null>(null);
 
-  const fetchCards = useCallback(async (cursor?: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const res = await matchingApi.getCards(cursor);
-      setCards((prev) => (cursor ? [...prev, ...res.cards as any] : res.cards as any));
-      setNextCursor(res.nextCursor);
-      if (!cursor) setCurrentIndex(0);
-    } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : '無法載入推薦用戶';
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
+  // Card view timing
+  const cardViewTimeRef = useRef(Date.now());
+
+  // Persist view mode
+  useEffect(() => {
+    localStorage.setItem('discover_view_mode', viewMode);
+  }, [viewMode]);
+
+  // Fetch available tags for filter
+  useEffect(() => {
+    tagsApi
+      .getAllTags()
+      .then((res) => setAvailableTags(res.tags ?? []))
+      .catch(() => {});
   }, []);
+
+  const fetchCards = useCallback(
+    async (cursor?: string) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const params = {
+          ...toQueryParams(),
+          cursor,
+          limit: viewMode === 'grid' ? 30 : 20,
+        };
+        const res = await matchingApi.getCards(params);
+        const newCards = res.cards as EnhancedUserCardDto[];
+        setCards((prev) => (cursor ? [...prev, ...newCards] : newCards));
+        setNextCursor(res.nextCursor);
+        if (!cursor) setCurrentIndex(0);
+      } catch (err) {
+        const message =
+          err instanceof ApiError ? err.message : '無法載入推薦用戶';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [toQueryParams, viewMode]
+  );
 
   useEffect(() => {
     fetchCards();
   }, [fetchCards]);
 
+  // Track card view time when card changes
+  useEffect(() => {
+    if (cards[currentIndex]) {
+      const prev = cardViewTimeRef.current;
+      const prevCard = cards[currentIndex - 1];
+      if (prevCard && Date.now() - prev > 500) {
+        trackCardView(prevCard.id, Date.now() - prev);
+      }
+      cardViewTimeRef.current = Date.now();
+    }
+  }, [currentIndex, cards, trackCardView]);
+
   const currentCard = cards[currentIndex] ?? null;
 
   const handleSwipe = useCallback(
-    async (action: 'like' | 'pass' | 'super_like') => {
-      if (!currentCard || swiping) return;
+    async (action: 'like' | 'pass' | 'super_like', targetUserId?: string) => {
+      const target = targetUserId || currentCard?.id;
+      if (!target || swiping) return;
 
+      const durationMs = Date.now() - cardViewTimeRef.current;
       setSwiping(true);
       try {
-        const res: SwipeResponse = await matchingApi.swipe({
-          targetUserId: currentCard.id!,
-          action,
-        });
+        const res = await matchingApi.swipe({ targetUserId: target, action });
+        trackSwipe(target, action, durationMs);
+        setCanUndo(true);
 
         if (res.matched) {
-          setMatchedUser(currentCard);
-          setMatchModalOpen(true);
+          const matched = cards.find((c) => c.id === target) || currentCard;
+          if (matched) {
+            setMatchedUser(matched);
+            setMatchModalOpen(true);
+          }
         }
 
-        // Advance to next card
-        const nextIndex = currentIndex + 1;
-        if (nextIndex < cards.length) {
-          setCurrentIndex(nextIndex);
-        } else if (nextCursor) {
-          // Fetch more cards
-          await fetchCards(nextCursor);
-          setCurrentIndex(nextIndex);
-        } else {
-          // No more cards
-          setCurrentIndex(nextIndex);
+        // Card mode: advance index
+        if (!targetUserId && viewMode === 'card') {
+          const nextIndex = currentIndex + 1;
+          if (nextIndex < cards.length) {
+            setCurrentIndex(nextIndex);
+          } else if (nextCursor) {
+            await fetchCards(nextCursor);
+            setCurrentIndex(nextIndex);
+          } else {
+            setCurrentIndex(nextIndex);
+          }
+        }
+
+        // Grid/Map mode: remove card from list
+        if (targetUserId) {
+          setCards((prev) => prev.filter((c) => c.id !== targetUserId));
         }
       } catch (err) {
         const message =
@@ -164,9 +213,34 @@ export default function DiscoverPage() {
         setError(message);
       } finally {
         setSwiping(false);
+        cardViewTimeRef.current = Date.now();
       }
     },
-    [currentCard, currentIndex, cards.length, nextCursor, swiping, fetchCards]
+    [currentCard, currentIndex, cards, nextCursor, swiping, fetchCards, trackSwipe, viewMode]
+  );
+
+  const handleUndo = useCallback(
+    (card: EnhancedUserCardDto) => {
+      if (viewMode === 'card') {
+        setCards((prev) => {
+          const newCards = [...prev];
+          newCards.splice(currentIndex, 0, card);
+          return newCards;
+        });
+        // Don't change currentIndex — the undone card is now at currentIndex
+      } else {
+        setCards((prev) => [card, ...prev]);
+      }
+      setCanUndo(false);
+    },
+    [currentIndex, viewMode]
+  );
+
+  const handleDwellTime = useCallback(
+    (targetUserId: string, durationMs: number, photosViewed: number) => {
+      trackDetailView(targetUserId, durationMs, photosViewed);
+    },
+    [trackDetailView]
   );
 
   /* ---------- Render ---------- */
@@ -179,133 +253,101 @@ export default function DiscoverPage() {
     return <ErrorState message={error} onRetry={() => fetchCards()} />;
   }
 
-  if (!currentCard) {
-    return <EmptyState />;
-  }
-
   return (
     <div className="flex flex-col items-center px-4 pt-2 pb-6">
-      {/* Page title + Boost */}
-      <div className="mb-4 flex w-full max-w-sm items-center justify-between">
+      {/* Header */}
+      <div className="mb-4 flex w-full max-w-lg items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-gray-900">探索</h1>
           <p className="text-sm text-gray-500">找到你感興趣的人</p>
         </div>
-        <BoostButton />
+        <div className="flex items-center gap-2">
+          <UndoButton canUndo={canUndo} onUndone={handleUndo} />
+          <BoostButton />
+          {/* Filter trigger */}
+          <button
+            onClick={() => setFilterOpen(true)}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm hover:bg-gray-50"
+          >
+            <SlidersHorizontal className="h-4 w-4 text-gray-600" />
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Profile card */}
-      <Card className="w-full max-w-sm overflow-hidden rounded-2xl border-0 shadow-lg" data-testid="profile-card">
-        {/* Avatar area */}
-        <div className="relative h-72 bg-gradient-to-br from-brand-100 to-brand-200 sm:h-80">
-          {currentCard.avatarUrl ? (
-            <img
-              src={currentCard.avatarUrl}
-              alt={currentCard.displayName}
-              className="h-full w-full object-cover"
+      {/* Mode switcher */}
+      <div className="mb-4 w-full max-w-lg flex items-center justify-between">
+        <ModeSwitcher mode={viewMode} onChange={setViewMode} />
+        {/* Likes Me link */}
+        <button
+          onClick={() => router.push('/discover/likes-me')}
+          className="flex items-center gap-1.5 rounded-full bg-pink-50 px-3 py-1.5 text-xs font-medium text-pink-600 hover:bg-pink-100 transition-colors"
+        >
+          <Heart className="h-3.5 w-3.5" />
+          誰喜歡我
+        </button>
+      </div>
+
+      {/* Content area */}
+      <div className="w-full max-w-lg">
+        {viewMode === 'card' && (
+          currentCard ? (
+            <div className="flex flex-col items-center">
+              <CardMode
+                card={currentCard}
+                onSwipe={(action) => handleSwipe(action)}
+                swiping={swiping}
+                onDwellTime={handleDwellTime}
+              />
+            </div>
+          ) : (
+            <EmptyState />
+          )
+        )}
+
+        {viewMode === 'grid' && (
+          cards.length > 0 ? (
+            <GridMode
+              cards={cards}
+              onSwipe={(targetUserId, action) => handleSwipe(action, targetUserId)}
+              swiping={swiping}
+              onLoadMore={nextCursor ? () => fetchCards(nextCursor) : undefined}
+              hasMore={!!nextCursor}
+              onDwellTime={handleDwellTime}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <span className="text-6xl font-bold text-brand-500/60">
-                {getInitials(currentCard.displayName)}
-              </span>
-            </div>
-          )}
+            <EmptyState />
+          )
+        )}
 
-          {/* Gradient overlay at bottom for text readability */}
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
-
-          {/* Name overlay */}
-          <div className="absolute bottom-4 left-4 right-4">
-            <h2 className="text-xl font-bold text-white" data-testid="profile-name">
-              {currentCard.displayName}
-            </h2>
-            {currentCard.username && (
-              <span className="text-sm text-white/80">@{currentCard.username}</span>
-            )}
-            <div className="mt-1 flex items-center gap-2">
-              <Badge
-                variant="warning"
-                className="bg-brand-500/90 text-white border-0 text-xs"
-              >
-                {roleLabelMap(currentCard.userType)}
-              </Badge>
-              {currentCard.verificationStatus === 'verified' && (
-                <Badge variant="success" className="text-xs">
-                  已認證
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Bio section */}
-        <CardContent className="p-4">
-          {currentCard.bio ? (
-            <p className="text-sm leading-relaxed text-gray-600" data-testid="profile-bio">
-              {currentCard.bio}
-            </p>
+        {viewMode === 'map' && (
+          cards.length > 0 ? (
+            <MapMode
+              cards={cards}
+              onSwipe={(targetUserId, action) => handleSwipe(action, targetUserId)}
+              swiping={swiping}
+              onDwellTime={handleDwellTime}
+            />
           ) : (
-            <p className="text-sm italic text-gray-400" data-testid="profile-bio">
-              這位用戶還沒有填寫自我介紹
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Action buttons */}
-      <div className="mt-6 flex items-center justify-center gap-5">
-        {/* Pass */}
-        <button
-          onClick={() => handleSwipe('pass')}
-          disabled={swiping}
-          className={cn(
-            'flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 bg-white shadow-md transition-all',
-            'hover:scale-105 hover:border-gray-300 hover:shadow-lg',
-            'active:scale-95',
-            'disabled:opacity-50 disabled:hover:scale-100'
-          )}
-          aria-label="跳過"
-          data-action="pass"
-        >
-          <X className="h-6 w-6 text-gray-400" />
-        </button>
-
-        {/* Super Like (costs diamonds) */}
-        <button
-          onClick={() => handleSwipe('super_like')}
-          disabled={swiping}
-          className={cn(
-            'relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-violet-300 bg-white shadow-md transition-all',
-            'hover:scale-105 hover:border-violet-400 hover:shadow-lg',
-            'active:scale-95',
-            'disabled:opacity-50 disabled:hover:scale-100'
-          )}
-          aria-label="超級喜歡 (鑽石)"
-          data-action="super-like"
-        >
-          <Star className="h-5 w-5 text-violet-500" />
-          <span className="absolute -bottom-1 -right-1 flex h-5 items-center rounded-full bg-violet-500 px-1.5 text-[10px] font-bold text-white">
-            💎
-          </span>
-        </button>
-
-        {/* Like */}
-        <button
-          onClick={() => handleSwipe('like')}
-          disabled={swiping}
-          className={cn(
-            'flex h-16 w-16 items-center justify-center rounded-full bg-brand-500 shadow-lg shadow-brand-500/30 transition-all',
-            'hover:scale-105 hover:bg-brand-600 hover:shadow-xl hover:shadow-brand-500/40',
-            'active:scale-95',
-            'disabled:opacity-50 disabled:hover:scale-100'
-          )}
-          aria-label="喜歡"
-          data-action="like"
-        >
-          <Heart className="h-7 w-7 text-white" />
-        </button>
+            <EmptyState />
+          )
+        )}
       </div>
+
+      {/* Filter drawer */}
+      <FilterDrawer
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        filters={filters}
+        onUpdateFilter={updateFilter}
+        onReset={resetFilters}
+        onApply={() => fetchCards()}
+        availableTags={availableTags}
+      />
 
       {/* Match celebration modal */}
       <Dialog open={matchModalOpen} onClose={() => setMatchModalOpen(false)} data-testid="match-modal">
@@ -314,9 +356,7 @@ export default function DiscoverPage() {
             <Sparkles className="h-10 w-10 text-brand-500" />
           </div>
           <DialogHeader className="items-center">
-            <DialogTitle className="text-center text-2xl">
-              配對成功！
-            </DialogTitle>
+            <DialogTitle className="text-center text-2xl">配對成功！</DialogTitle>
             <DialogDescription className="text-center">
               你和{' '}
               <span className="font-semibold text-brand-600">
@@ -326,36 +366,21 @@ export default function DiscoverPage() {
             </DialogDescription>
           </DialogHeader>
 
-          {/* Matched user mini-avatar */}
           {matchedUser && (
             <div className="mt-4 flex items-center gap-3">
-              {/* Current user avatar */}
               <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-brand-100 ring-2 ring-brand-500">
                 {user?.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.displayName}
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={user.avatarUrl} alt={user.displayName} className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-lg font-bold text-brand-600">
-                    {user?.displayName
-                      ? getInitials(user.displayName)
-                      : '?'}
+                    {user?.displayName ? getInitials(user.displayName) : '?'}
                   </span>
                 )}
               </div>
-
               <Heart className="h-5 w-5 text-brand-500" />
-
-              {/* Matched user avatar */}
               <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-brand-100 ring-2 ring-brand-500">
                 {matchedUser.avatarUrl ? (
-                  <img
-                    src={matchedUser.avatarUrl}
-                    alt={matchedUser.displayName}
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={matchedUser.avatarUrl} alt={matchedUser.displayName} className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-lg font-bold text-brand-600">
                     {getInitials(matchedUser.displayName)}
@@ -381,11 +406,7 @@ export default function DiscoverPage() {
               <MessageCircle className="mr-2 h-4 w-4" />
               發送訊息
             </Button>
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={() => setMatchModalOpen(false)}
-            >
+            <Button variant="ghost" className="w-full" onClick={() => setMatchModalOpen(false)}>
               繼續探索
             </Button>
           </DialogFooter>

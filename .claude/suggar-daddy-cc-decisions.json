@@ -1,0 +1,148 @@
+{
+  "decisions": [
+    {
+      "timestamp": "2026-02-21T23:15:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T23:20:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T18:45:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl empty (0 entries) - no pending tasks",
+      "actions_taken": [],
+      "next_check": "2026-02-21T19:15:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T18:00:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T18:30:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T16:40:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T17:10:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T16:15:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T16:45:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T16:10:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T16:40:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T15:55:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl empty (0 bytes) - no pending tasks",
+      "actions_taken": [],
+      "next_check": "2026-02-21T16:25:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T15:45:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T16:15:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T15:15:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T15:45:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T14:55:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T15:25:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T14:35:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T15:05:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    },
+    {
+      "timestamp": "2026-02-21T14:05:00+08:00",
+      "status": "no_op",
+      "reason": "cc-push-queue.jsonl not found - queue empty",
+      "actions_taken": [],
+      "next_check": "2026-02-21T14:35:00+08:00",
+      "cron_run": "46378939-d89f-43c6-8e98-0788a99ce731",
+      "project_state": {
+        "queue_empty": true,
+        "notification_sent": false
+      }
+    }
+  ]
+}

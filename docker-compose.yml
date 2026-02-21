@@ -7,7 +7,7 @@ services:
 
   # PostgreSQL Master (Primary)
   postgres-master:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: suggar-daddy-postgres-master
     hostname: postgres-master
     environment:
@@ -67,7 +67,7 @@ services:
 
   # PostgreSQL Replica (Standby) - Read-Only
   postgres-replica:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: suggar-daddy-postgres-replica
     hostname: postgres-replica
     environment:
@@ -686,6 +686,8 @@ services:
       # OpenTelemetry / Jaeger
       JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
       OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
+      # ML Recommendation Service
+      ML_SERVICE_URL: http://recommendation-ml:5000
     volumes:
       - .:/app
       - /app/node_modules
@@ -1240,6 +1242,39 @@ services:
     networks:
       - suggar-daddy-network
     restart: unless-stopped
+
+  # Recommendation ML Service (Python) - ML推薦引擎
+  recommendation-ml:
+    build:
+      context: ./services/recommendation-ml
+      dockerfile: Dockerfile
+    container_name: suggar-daddy-recommendation-ml
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-master:5432/${POSTGRES_DB:-suggar_daddy}
+      REDIS_URL: redis://redis-master:6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EMBEDDING_DIMENSIONS: 128
+      MODEL_UPDATE_CRON_HOUR: 3
+      PORT: 5000
+      LOG_LEVEL: info
+    depends_on:
+      postgres-master:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - suggar-daddy-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
 
   # Skill Service - 技能服务
   skill-service:

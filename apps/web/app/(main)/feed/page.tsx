@@ -23,7 +23,7 @@ import {
 } from '@suggar-daddy/ui';
 import {
   Heart,
-  DollarSign,
+  Gem,
   Plus,
   Lock,
   Sparkles,
@@ -40,6 +40,8 @@ interface Post {
   content: string;
   mediaUrls?: string[];
   isPremium: boolean;
+  likeCount: number;
+  tipCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -89,10 +91,11 @@ function PremiumOverlay({ postId }: { postId: string }) {
       </p>
       <Button
         size="sm"
-        className="bg-brand-500 hover:bg-brand-600 text-white"
+        className="bg-violet-500 hover:bg-violet-600 text-white"
         onClick={() => router.push(`/post/${postId}`)}
       >
-        解鎖此內容
+        <Gem className="mr-1.5 h-3.5 w-3.5" />
+        用鑽石解鎖
       </Button>
     </div>
   );
@@ -191,20 +194,22 @@ function PostCard({ post, currentUserId, onLikeToggle, likedPosts, authorName }:
               className={cn('h-4 w-4', isLiked && 'fill-current')}
             />
             <span className="text-xs">
-              {isLiked ? '已喜歡' : '喜歡'}
+              {post.likeCount > 0 ? post.likeCount : (isLiked ? '已喜歡' : '喜歡')}
             </span>
           </Button>
         </Tooltip>
 
         <Link href={`/post/${post.id}`}>
-          <Tooltip content="打賞創作者">
+          <Tooltip content="用鑽石打賞">
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1.5 text-gray-500"
+              className="gap-1.5 text-violet-500 hover:text-violet-600"
             >
-              <DollarSign className="h-4 w-4" />
-              <span className="text-xs">打賞</span>
+              <Gem className="h-4 w-4" />
+              <span className="text-xs">
+                {post.tipCount > 0 ? post.tipCount : '打賞'}
+              </span>
             </Button>
           </Tooltip>
         </Link>

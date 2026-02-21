@@ -3,7 +3,11 @@ import axios from 'axios';
 
 module.exports = async function () {
   // Configure axios for tests to use.
-  const host = process.env.HOST ?? 'localhost';
-  const port = process.env.PORT ?? '3000';
-  axios.defaults.baseURL = `http://${host}:${port}`;
+  // Try multiple environment variables for flexibility
+  const host = process.env.API_HOST ?? process.env.HOST ?? 'localhost';
+  const port = process.env.API_PORT ?? process.env.PORT ?? '3000';
+  const baseURL = `http://${host}:${port}`;
+  
+  console.log(`[E2E Setup] Configuring axios with baseURL: ${baseURL}`);
+  axios.defaults.baseURL = baseURL;
 };

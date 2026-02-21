@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Crown, Check, Loader2, AlertCircle } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
 import {
   Button,
   Card,
@@ -32,7 +31,7 @@ interface Subscription {
   userId: string;
   tierId: string;
   status: string;
-  currentPeriodEnd: string;
+  currentPeriodEnd: string | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -68,13 +67,14 @@ export default function SubscriptionPage() {
         if (cancelled) return;
 
         if (tiersData.status === 'fulfilled') {
-          setTiers(tiersData.value as unknown as SubscriptionTier[]);
+          const raw = tiersData.value;
+          setTiers(Array.isArray(raw) ? (raw as unknown as SubscriptionTier[]) : []);
         }
 
-        if (subData.status === 'fulfilled') {
+        if (subData.status === 'fulfilled' && subData.value) {
           setCurrentSub(subData.value as unknown as Subscription);
         }
-        // 404 means no subscription — that's fine
+        // null or 404 means no subscription — that's fine
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof ApiError ? err.message : '無法載入方案');
@@ -184,7 +184,7 @@ export default function SubscriptionPage() {
 
   /* ---------- helpers ---------- */
   function formatCurrency(amount: number, currency: string) {
-    return new Intl.NumberFormat('zh-TW', { style: 'currency', currency }).format(amount);
+    return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: currency || 'USD' }).format(amount);
   }
 
   function isCurrentTier(tierId: string) {
@@ -242,7 +242,9 @@ export default function SubscriptionPage() {
             <div>
               <p className="text-sm font-medium text-brand-800">目前方案</p>
               <p className="text-xs text-brand-600">
-                到期日：{new Date(currentSub.currentPeriodEnd).toLocaleDateString('zh-TW')}
+                {currentSub.currentPeriodEnd
+                  ? `到期日：${new Date(currentSub.currentPeriodEnd).toLocaleDateString('zh-TW')}`
+                  : '持續訂閱中'}
               </p>
             </div>
             <Badge className="bg-brand-500 text-white">
@@ -253,6 +255,12 @@ export default function SubscriptionPage() {
       )}
 
       {/* Tier cards */}
+      {tiers.length === 0 && (
+        <Card className="p-8 text-center">
+          <Crown className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+          <p className="text-sm text-gray-500">目前尚無訂閱方案</p>
+        </Card>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {tiers.map((tier) => {
           const isCurrent = isCurrentTier(tier.id);
@@ -374,9 +382,11 @@ export default function SubscriptionPage() {
                 <p className="mt-2 text-sm text-gray-600">
                   取消訂閱後，您將無法繼續享受會員權益。訂閱將在當前週期結束後停止。
                 </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  到期日：{new Date(currentSub.currentPeriodEnd).toLocaleDateString('zh-TW')}
-                </p>
+                {currentSub.currentPeriodEnd && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    到期日：{new Date(currentSub.currentPeriodEnd).toLocaleDateString('zh-TW')}
+                  </p>
+                )}
               </div>
             </div>
             <div className="mt-4 flex gap-3">

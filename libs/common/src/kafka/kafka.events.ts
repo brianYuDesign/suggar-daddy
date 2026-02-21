@@ -11,10 +11,18 @@ export const USER_EVENTS = {
   USER_REPORTED: 'user.reported',
 } as const;
 
-// Matching Events (matching-service → notification / messaging)
+// Matching Events (matching-service → notification / messaging / analytics)
 export const MATCHING_EVENTS = {
   MATCHED: 'matching.matched',
   UNMATCHED: 'matching.unmatched',
+  SWIPE: 'matching.swipe',
+  UNDO: 'matching.undo',
+  LIKES_ME_REVEALED: 'matching.likes-me.revealed',
+} as const;
+
+// Behavior Events (matching-service → ML recommendation service)
+export const BEHAVIOR_EVENTS = {
+  BEHAVIOR_BATCH: 'behavior.batch',
 } as const;
 
 // Subscription Events
@@ -77,6 +85,15 @@ export const MEDIA_EVENTS = {
 export const MESSAGING_EVENTS = {
   DM_PURCHASED: 'messaging.dm.purchased',
   BROADCAST_SENT: 'messaging.broadcast.sent',
+} as const;
+
+// Diamond Events (payment-service → DB Writer)
+export const DIAMOND_EVENTS = {
+  DIAMOND_PURCHASED: 'diamond.purchased',
+  DIAMOND_SPENT: 'diamond.spent',
+  DIAMOND_CREDITED: 'diamond.credited',
+  DIAMOND_CONVERTED: 'diamond.converted',
+  BOOST_ACTIVATED: 'diamond.boost.activated',
 } as const;
 
 // 系統事件（DLQ、監控）
@@ -209,4 +226,65 @@ export interface BroadcastSentEvent {
   content: string;
   recipientCount: number;
   createdAt: string;
+}
+
+// Diamond event payloads
+export interface DiamondPurchasedEvent {
+  purchaseId: string;
+  userId: string;
+  diamondAmount: number;
+  amountUsd: number;
+  stripePaymentId: string;
+  purchasedAt: string;
+}
+
+export interface DiamondSpentEvent {
+  userId: string;
+  amount: number;
+  referenceType: string;
+  referenceId?: string;
+  spentAt: string;
+}
+
+export interface DiamondConvertedEvent {
+  userId: string;
+  diamondAmount: number;
+  cashAmount: number;
+  convertedAt: string;
+}
+
+// Matching event payloads
+export interface SwipeEvent {
+  swiperId: string;
+  targetUserId: string;
+  action: 'like' | 'pass' | 'super_like';
+  durationMs: number;
+  timestamp: string;
+}
+
+export interface UndoEvent {
+  userId: string;
+  targetUserId: string;
+  originalAction: 'like' | 'pass' | 'super_like';
+  matchRevoked: boolean;
+  timestamp: string;
+}
+
+export interface LikesMeRevealedEvent {
+  userId: string;
+  likerId: string;
+  diamondCost: number;
+  revealedAt: string;
+}
+
+// Behavior event payloads
+export interface BehaviorBatchEvent {
+  userId: string;
+  events: {
+    eventType: string;
+    targetUserId: string;
+    metadata: Record<string, unknown>;
+    timestamp: number;
+  }[];
+  batchTimestamp: string;
 }

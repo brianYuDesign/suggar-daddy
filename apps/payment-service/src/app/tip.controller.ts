@@ -13,8 +13,8 @@ export class TipController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ 
-    summary: 'Send a tip',
-    description: 'Send a monetary tip to a creator with an optional message'
+    summary: 'Send a diamond tip',
+    description: 'Send diamonds as a tip to a creator with an optional message'
   })
   @ApiResponse({ 
     status: 201, 
@@ -24,21 +24,19 @@ export class TipController {
         id: 'tip-123',
         fromUserId: 'user-456',
         toUserId: 'creator-789',
-        amount: 10.00,
+        amount: 100,
         message: 'Great content!',
-        stripePaymentId: 'pi_123abc',
-        status: 'completed',
         createdAt: '2024-01-20T15:00:00Z'
       }
     }
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Bad Request - Invalid tip data or insufficient funds',
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid tip data or insufficient diamonds',
     schema: {
       example: {
         statusCode: 400,
-        message: 'Insufficient funds',
+        message: 'Insufficient diamonds',
         error: 'Bad Request'
       }
     }

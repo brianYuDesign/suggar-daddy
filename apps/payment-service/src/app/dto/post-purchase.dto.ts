@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, Min, Max } from 'class-validator';
+import { IsString, IsInt, IsOptional, Min, Max } from 'class-validator';
 
 export class CreatePostPurchaseDto {
   @IsString()
@@ -7,12 +7,12 @@ export class CreatePostPurchaseDto {
   @IsString()
   buyerId!: string;
 
-  @IsNumber()
-  @Min(0)
+  @IsInt()
+  @Min(1)
   @Max(999999)
-  amount!: number;
+  amount!: number; // diamonds
 
   @IsOptional()
   @IsString()
-  stripePaymentId?: string;
+  creatorId?: string;
 }

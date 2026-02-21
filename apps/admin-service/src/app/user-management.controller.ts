@@ -1,12 +1,14 @@
 /**
  * 用戶管理控制器
  * 所有端點僅限 ADMIN 角色存取
+ * 編輯用戶資料端點僅限 SUPER_ADMIN 存取
  */
 
 import {
   Controller,
   Get,
   Post,
+  Put,
   Param,
   Query,
   Body,
@@ -16,7 +18,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard, Roles } from '@suggar-daddy/auth';
-import { UserRole } from '@suggar-daddy/common';
+import { UserRole, PermissionRole } from '@suggar-daddy/common';
 import { UserManagementService } from './user-management.service';
 
 @Controller('users')
@@ -63,6 +65,35 @@ export class UserManagementController {
   @Get(':userId')
   getUserDetail(@Param('userId') userId: string) {
     return this.userManagementService.getUserDetail(userId);
+  }
+
+  /**
+   * PUT /api/admin/users/:userId
+   * 編輯用戶資料（僅限 SUPER_ADMIN）
+   */
+  @Put(':userId')
+  @Roles(PermissionRole.SUPER_ADMIN)
+  updateUser(
+    @Param('userId') userId: string,
+    @Body() updateData: {
+      displayName?: string;
+      email?: string;
+      username?: string;
+      bio?: string;
+      avatarUrl?: string;
+      userType?: string;
+      permissionRole?: string;
+      city?: string;
+      country?: string;
+      dmPrice?: number;
+      birthDate?: string;
+      preferredAgeMin?: number;
+      preferredAgeMax?: number;
+      preferredDistance?: number;
+      verificationStatus?: string;
+    },
+  ) {
+    return this.userManagementService.updateUser(userId, updateData);
   }
 
   /**

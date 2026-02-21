@@ -26,6 +26,10 @@ import {
   DmPurchaseEntity,
   StoryEntity,
   StoryViewEntity,
+  DiamondBalanceEntity,
+  DiamondTransactionEntity,
+  DiamondPurchaseEntity,
+  UserBehaviorEventEntity,
 } from "@suggar-daddy/database";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -54,6 +58,10 @@ const ALL_ENTITIES = [
   DmPurchaseEntity,
   StoryEntity,
   StoryViewEntity,
+  DiamondBalanceEntity,
+  DiamondTransactionEntity,
+  DiamondPurchaseEntity,
+  UserBehaviorEventEntity,
 ];
 
 @Module({
