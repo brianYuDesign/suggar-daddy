@@ -17,11 +17,9 @@ import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { BlogQueryDto } from './dto/blog-query.dto';
-import { JwtAuthGuard } from '@app/auth/guards/jwt-auth.guard';
-import { RolesGuard } from '@app/auth/guards/roles.guard';
-import { Roles } from '@app/auth/decorators/roles.decorator';
-import { UserRole } from '@app/auth/entities/role.entity';
-import { CurrentUser } from '@app/auth/decorators/current-user.decorator';
+import { BlogCategory } from './entities/blog.entity';
+import { JwtAuthGuard, RolesGuard, Roles, CurrentUser } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 
 @ApiTags('Blog')
 @Controller('blogs')
@@ -42,7 +40,7 @@ export class BlogController {
     @Query('search') search?: string,
     @Query('tag') tag?: string,
   ) {
-    const query: BlogQueryDto = { page, limit, category, search, tag };
+    const query: BlogQueryDto = { page, limit, category: category as BlogCategory, search, tag };
     const result = await this.blogService.findPublished(query);
     return {
       items: result.data,
@@ -81,9 +79,9 @@ export class BlogController {
   async create(
     @Body() dto: CreateBlogDto,
     @CurrentUser('userId') authorId: string,
-    @CurrentUser('nickname') authorName: string,
+    @CurrentUser('email') authorEmail: string,
   ) {
-    return this.blogService.create(dto, authorId, authorName);
+    return this.blogService.create(dto, authorId, authorEmail);
   }
 
   @Put(':id')

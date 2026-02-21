@@ -18,6 +18,7 @@ import {
   Gem,
   MessageCircle,
   Shield,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth-provider';
@@ -40,6 +41,7 @@ const navItems: NavItem[] = [
   { href: '/payments', labelKey: 'nav.payments', icon: CreditCard },
   { href: '/withdrawals', labelKey: 'nav.withdrawals', icon: Wallet },
   { href: '/chat-rooms', labelKey: 'nav.chatRooms', icon: MessageCircle, permission: AdminPermission.VIEW_CHAT_ROOMS },
+  { href: '/content/blog', labelKey: 'nav.blog', icon: BookOpen },
   { href: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
   { href: '/audit-log', labelKey: 'nav.auditLog', icon: ScrollText },
   { href: '/super-admin', labelKey: 'nav.superAdmin', icon: Shield, permission: AdminPermission.MANAGE_ADMINS },
