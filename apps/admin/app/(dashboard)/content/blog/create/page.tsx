@@ -108,7 +108,7 @@ export default function CreateBlogPage() {
         throw new Error(error.message || 'Failed to create blog');
       }
 
-      const data = await response.json();
+      await response.json();
 
       toast({
         title: '成功',

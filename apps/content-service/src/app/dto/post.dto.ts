@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsInt, IsArray, IsIn, Min, MaxLength, ArrayMaxSize, Matches } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsArray, IsIn, Min, MaxLength, ArrayMaxSize, Matches } from 'class-validator';
 
 export interface VideoMetaInput {
   mediaId: string;

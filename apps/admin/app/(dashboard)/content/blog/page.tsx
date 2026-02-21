@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getToken } from '@/lib/auth';
@@ -9,7 +9,6 @@ import { zhTW } from 'date-fns/locale';
 import {
   Plus,
   Search,
-  Filter,
   Edit,
   Trash2,
   Eye,
@@ -76,7 +75,7 @@ export default function BlogManagementPage() {
   const [total, setTotal] = useState(0);
   const limit = 10;
 
-  const fetchBlogs = useCallback(async () => {
+  const fetchBlogs = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -92,11 +91,11 @@ export default function BlogManagementPage() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!response.ok) throw new Error('Failed to fetch blogs');
-      
+
       const data = await response.json();
       setBlogs(data.items || []);
       setTotal(data.total || 0);
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: '錯誤',
         description: '無法載入文章列表',
@@ -133,7 +132,7 @@ export default function BlogManagementPage() {
         description: '文章已刪除',
       });
       fetchBlogs();
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: '錯誤',
         description: '刪除失敗',
@@ -157,7 +156,7 @@ export default function BlogManagementPage() {
         description: '文章已發布',
       });
       fetchBlogs();
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: '錯誤',
         description: '發布失敗',
@@ -181,7 +180,7 @@ export default function BlogManagementPage() {
         description: '文章已歸檔',
       });
       fetchBlogs();
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: '錯誤',
         description: '歸檔失敗',
@@ -348,10 +347,9 @@ export default function BlogManagementPage() {
 
       {/* Pagination */}
       <Pagination
-        currentPage={page}
+        page={page}
         totalPages={Math.ceil(total / limit)}
         onPageChange={setPage}
-        total={total}
       />
     </div>
   );

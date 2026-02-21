@@ -9,9 +9,6 @@ import { SubscriptionServiceClient } from './subscription-service.client';
 
 // ✅ Redis 快取 TTL 設定（秒）
 const POST_CACHE_TTL = 3600; // 1 小時
-const FEED_CACHE_TTL = 300; // 5 分鐘
-const USER_PROFILE_CACHE_TTL = 1800; // 30 分鐘
-const SUBSCRIPTION_CHECK_CACHE_TTL = 600; // 10 分鐘
 
 const POST_KEY = (id: string) => `post:${id}`;
 const POSTS_PUBLIC_IDS = 'posts:public:ids';
@@ -24,9 +21,6 @@ const USER_BOOKMARKS = (userId: string) => `user:bookmarks:${userId}`;
 const POST_TIPPERS = (postId: string) => `post:${postId}:tippers`;
 const USER_BLOCKS = (userId: string) => `user:blocks:${userId}`;
 const USER_BLOCKED_BY = (userId: string) => `user:blocked-by:${userId}`;
-const SUBSCRIPTION_CHECK_KEY = (viewerId: string, creatorId: string) => 
-  `subscription:check:${viewerId}:${creatorId}`;
-
 export interface VideoMeta {
   mediaId: string;
   s3Key: string;

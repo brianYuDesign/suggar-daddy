@@ -126,7 +126,7 @@ describe("WalletService", () => {
     // ✅ Bug 1 修復: 金額精度測試
     it("should calculate fees correctly for standard amounts", async () => {
       const grossAmount = 100;
-      const expectedPlatformFee = 20; // 20% of 100
+      const _expectedPlatformFee = 20; // 20% of 100
       const expectedNetAmount = 80; // 100 - 20
 
       mockRedisClient.eval.mockResolvedValue([
@@ -152,7 +152,7 @@ describe("WalletService", () => {
 
     it("should handle edge case amounts with precise calculation", async () => {
       const grossAmount = 99.99;
-      const expectedPlatformFee = 20.0; // 99.99 * 0.2 = 19.998 → 20.00 (rounded)
+      const _expectedPlatformFee = 20.0; // 99.99 * 0.2 = 19.998 → 20.00 (rounded)
       const expectedNetAmount = 79.99; // 99.99 - 20.00 = 79.99 (precise)
 
       mockRedisClient.eval.mockResolvedValue([

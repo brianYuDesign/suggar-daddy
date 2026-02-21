@@ -8,7 +8,6 @@ import { useAdminQuery } from '@/lib/hooks';
 import { useSort } from '@/lib/use-sort';
 import { useSelection } from '@/lib/use-selection';
 import { useToast } from '@/components/toast';
-import { SortableTableHead } from '@/components/sortable-table-head';
 import { BatchActionBar } from '@/components/batch-action-bar';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Select, Avatar, Skeleton, Input, Button, ConfirmDialog, Tooltip, ResponsiveTable, type Column } from '@suggar-daddy/ui';
 import { Pagination } from '@/components/pagination';
@@ -40,7 +39,7 @@ export default function UsersPage() {
     [page, role, status, search],
   );
 
-  const { sorted, sort, toggleSort } = useSort(data?.data, 'createdAt');
+  const { sorted } = useSort(data?.data, 'createdAt');
   const selection = useSelection(data?.data);
 
   const handleSearch = () => {

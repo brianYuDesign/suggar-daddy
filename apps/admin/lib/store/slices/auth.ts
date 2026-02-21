@@ -75,12 +75,12 @@ export const registerUser = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   'auth/logout',
-  async (_, { rejectWithValue }) => {
+  async (_) => {
     try {
       await authApi.logout();
       tokenManager.clearTokens();
       return null;
-    } catch (error: any) {
+    } catch (_error) {
       // Even if logout API fails, clear local tokens
       tokenManager.clearTokens();
       return null;
@@ -265,7 +265,7 @@ const authSlice = createSlice({
 
     // Refresh Token
     builder
-      .addCase(refreshTokenUser.pending, (state) => {
+      .addCase(refreshTokenUser.pending, (_state) => {
         // Don't set loading to true to avoid UI flashing
       })
       .addCase(refreshTokenUser.fulfilled, (state, action) => {

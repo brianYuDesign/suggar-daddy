@@ -65,6 +65,15 @@ export class BlogController {
     };
   }
 
+  @Get('by-id/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '通過 ID 獲取文章（管理員）' })
+  async findById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.blogService.findOne(id);
+  }
+
   @Get(':slug')
   @ApiOperation({ summary: '通過 slug 獲取文章' })
   async findBySlug(@Param('slug') slug: string) {

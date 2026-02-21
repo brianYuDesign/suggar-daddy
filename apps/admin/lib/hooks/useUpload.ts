@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { uploadsApi, Upload, UploadProgress } from '@/lib/api';
+import { uploadsApi, UploadProgress } from '@/lib/api';
 import { useAppDispatch } from './redux';
 import { addNotification } from '@/lib/store/slices/notifications';
 

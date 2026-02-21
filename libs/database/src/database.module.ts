@@ -29,6 +29,7 @@ export class DatabaseModule {
       port,
       entities: [SwipeEntity, MatchEntity, SkillEntity, UserSkillEntity, SkillRequestEntity, UserEntity, InterestTagEntity, UserInterestTagEntity],
       synchronize: process.env.NODE_ENV !== 'production',
+      autoLoadEntities: true,
       logging: process.env.NODE_ENV === 'development',
       // Connection pool settings
       extra: {

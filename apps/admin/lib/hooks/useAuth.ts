@@ -6,8 +6,8 @@ import {
   RegisterRequest,
   UpdateProfileRequest,
   ChangePasswordRequest,
+  tokenManager,
 } from '@/lib/api';
-import { tokenManager } from '@/lib/api';
 
 /**
  * Custom hook for authentication

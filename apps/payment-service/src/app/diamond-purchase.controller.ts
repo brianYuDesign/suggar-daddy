@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Logger, Inject } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
 import { InjectLogger } from '@suggar-daddy/common';

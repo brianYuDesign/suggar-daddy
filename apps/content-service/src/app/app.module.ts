@@ -8,6 +8,7 @@ import {
   CloudFrontModule,
 } from "@suggar-daddy/common";
 import { AuthModule } from "@suggar-daddy/auth";
+import { DatabaseModule } from "@suggar-daddy/database";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { PostController } from "./post.controller";
@@ -46,6 +47,7 @@ import { BlogModule } from "./blog/blog.module";
       inject: [AppConfigService],
     }),
     CloudFrontModule.forRoot(),
+    DatabaseModule.forRoot(),
     BlogModule,
   ],
   controllers: [

@@ -8,11 +8,6 @@ import {
   ResponsiveContainer,
   Tooltip,
   Legend,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
 } from 'recharts';
 import { ExclamationTriangleIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline';
 

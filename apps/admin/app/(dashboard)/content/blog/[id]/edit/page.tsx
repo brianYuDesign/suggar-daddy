@@ -96,14 +96,14 @@ export default function EditBlogPage() {
   const fetchBlog = async () => {
     try {
       const token = getToken();
-      const response = await fetch(`/api/blogs/${blogId}`, {
+      const response = await fetch(`/api/blogs/by-id/${blogId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!response.ok) throw new Error('Failed to fetch blog');
-      
+
       const data = await response.json();
       setFormData(data);
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: '錯誤',
         description: '無法載入文章',
@@ -185,7 +185,7 @@ export default function EditBlogPage() {
         description: '文章已刪除',
       });
       router.push('/content/blog');
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: '錯誤',
         description: '刪除失敗',

@@ -1,8 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { DIAMOND_EVENTS } from '@suggar-daddy/common';
-import { InjectLogger } from '@suggar-daddy/common';
+import { DIAMOND_EVENTS, InjectLogger } from '@suggar-daddy/common';
 
 // ── Redis key helpers ────────────────────────────────────────────
 const DIAMOND_KEY = (userId: string) => `diamond:${userId}`;
@@ -421,8 +420,6 @@ export class DiamondService {
     amount: number,
     reason: string,
   ): Promise<{ success: boolean; newBalance: number }> {
-    const now = new Date().toISOString();
-
     if (amount > 0) {
       const result = await this.creditDiamonds(
         userId, amount, 'purchase', undefined, 'admin_adjust',
