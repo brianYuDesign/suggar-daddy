@@ -26,6 +26,7 @@ import { StoryController } from "./story.controller";
 import { StoryService } from "./story.service";
 import { FeedConsumer } from "./consumers/feed.consumer";
 import { TrendingConsumer } from "./consumers/trending.consumer";
+import { BlogModule } from "./blog/blog.module";
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { TrendingConsumer } from "./consumers/trending.consumer";
       inject: [AppConfigService],
     }),
     CloudFrontModule.forRoot(),
+    BlogModule,
   ],
   controllers: [
     AppController,
