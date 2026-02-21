@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { getToken, clearToken, getRefreshToken, isAuthenticated, getTokenTTL } from '@/lib/auth';
 import { authApi } from '@/lib/api';
 
@@ -27,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setTokenState] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
+  const { t } = useTranslation('common');
 
   const logout = useCallback(() => {
     const refreshToken = getRefreshToken();
@@ -98,16 +100,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {showWarning && (
         <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-yellow-500 bg-yellow-50 p-4 shadow-lg dark:bg-yellow-900/20">
           <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-            Your session will expire soon.
+            {t('session.expiringSoon')}
           </p>
           <p className="mt-1 text-xs text-yellow-600 dark:text-yellow-300">
-            Please save your work. You will be logged out automatically.
+            {t('session.saveWork')}
           </p>
           <button
             onClick={logout}
             className="mt-2 rounded-md bg-yellow-600 px-3 py-1 text-xs text-white hover:bg-yellow-700"
           >
-            Logout Now
+            {t('session.logoutNow')}
           </button>
         </div>
       )}

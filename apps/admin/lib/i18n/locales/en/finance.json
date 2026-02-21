@@ -1,0 +1,20 @@
+{
+  "title": "Financial Reports",
+  "subtitle": "Monitor platform revenue, transaction statistics, and refund analysis",
+  "refreshData": "Refresh Data",
+  "dateRange": "Date Range",
+  "days": "{{count}} days",
+  "year1": "1 year",
+  "to": "to",
+  "transactionOverview": "Transaction Overview",
+  "revenueTrend": "Revenue Trend",
+  "refundAnalysis": "Refund Analysis",
+  "showingMockData": "(showing mock data)",
+  "fetchRevenueFailed": "Failed to fetch revenue data",
+  "fetchTransactionsFailed": "Failed to fetch transaction stats",
+  "fetchRefundsFailed": "Failed to fetch refund analysis",
+  "footer": {
+    "lastUpdated": "Data updated: {{time}}",
+    "copyright": "Sugar-Daddy Financial Reports © 2026"
+  }
+}

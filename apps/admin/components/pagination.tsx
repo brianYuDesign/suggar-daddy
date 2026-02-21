@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface PaginationProps {
@@ -9,6 +10,8 @@ interface PaginationProps {
 }
 
 export function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
+  const { t } = useTranslation('common');
+
   if (totalPages <= 1) return null;
 
   const pages: (number | 'ellipsis')[] = [];
@@ -27,7 +30,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
       >
-        Previous
+        {t('pagination.previous')}
       </button>
       {pages.map((p, i) =>
         p === 'ellipsis' ? (
@@ -52,7 +55,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
         disabled={page >= totalPages}
         onClick={() => onPageChange(page + 1)}
       >
-        Next
+        {t('pagination.next')}
       </button>
     </div>
   );

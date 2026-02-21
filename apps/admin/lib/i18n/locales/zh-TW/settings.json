@@ -1,0 +1,46 @@
+{
+  "title": "系統設定",
+  "subtitle": "配置平台參數與推薦演算法",
+  "tabs": {
+    "platform": "平台設定",
+    "recommendation": "推薦設定"
+  },
+  "platform": {
+    "title": "平台配置",
+    "platformFee": "平台手續費 (%)",
+    "platformFeeDesc": "平台保留的創作者收入百分比",
+    "minWithdrawal": "最低提款金額 ($)",
+    "minWithdrawalDesc": "創作者需累積的最低提款金額",
+    "maxUploadSize": "最大上傳大小 (MB)",
+    "maxUploadSizeDesc": "允許上傳的最大檔案大小",
+    "allowedFileTypes": "允許的檔案類型",
+    "addType": "+ 新增類型",
+    "autoApprove": "自動審核內容",
+    "autoApproveDesc": "自動通過新內容，無需人工審核",
+    "maintenanceMode": "維護模式",
+    "maintenanceModeDesc": "將平台設為維護模式",
+    "save": "儲存平台設定",
+    "saving": "儲存中...",
+    "saveSuccess": "平台設定儲存成功！"
+  },
+  "recommendation": {
+    "title": "推薦演算法",
+    "enabled": "啟用推薦",
+    "enabledDesc": "向用戶展示個性化內容推薦",
+    "algorithm": "推薦演算法",
+    "algorithmDesc": "用於產生內容推薦的演算法",
+    "popularity": "基於熱門度",
+    "engagement": "基於互動度",
+    "hybrid": "混合（熱門度 + 互動度）",
+    "ai": "AI 個性化推薦",
+    "maxRecommendations": "最大推薦數",
+    "maxRecommendationsDesc": "每位用戶顯示的最大推薦數量",
+    "refreshInterval": "更新間隔（小時）",
+    "refreshIntervalDesc": "每位用戶推薦的更新頻率",
+    "personalizationWeight": "個性化權重",
+    "personalizationWeightDesc": "個性化推薦與趨勢內容的平衡（0% = 全部趨勢，100% = 完全個性化）",
+    "save": "儲存推薦設定",
+    "saving": "儲存中...",
+    "saveSuccess": "推薦設定儲存成功！"
+  }
+}

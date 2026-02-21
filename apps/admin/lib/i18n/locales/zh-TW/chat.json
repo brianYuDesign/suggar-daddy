@@ -1,0 +1,17 @@
+{
+  "title": "聊天室管理",
+  "superAdminOnly": "僅超級管理員",
+  "stats": {
+    "totalConversations": "總對話數",
+    "totalMessages": "總訊息數",
+    "onlineUsers": "線上用戶"
+  },
+  "searchPlaceholder": "搜尋參與者名稱或信箱...",
+  "conversations": "對話",
+  "noConversations": "找不到對話",
+  "noMessages": "此對話無訊息",
+  "backToChatRooms": "返回聊天室",
+  "participants": "參與者",
+  "messages": "訊息",
+  "unknown": "未知"
+}

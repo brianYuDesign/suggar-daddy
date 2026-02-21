@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
@@ -28,6 +29,7 @@ import {
 import { HealthBadge } from '@/components/health-badge';
 
 export default function SystemPage() {
+  const { t } = useTranslation('system');
   const toast = useToast();
   const health = useAdminQuery(() => adminApi.getSystemHealth());
   const kafka = useAdminQuery(() => adminApi.getKafkaStatus());
@@ -71,24 +73,24 @@ export default function SystemPage() {
   const handleRetry = async (messageId: string) => {
     try {
       await adminApi.retryDlqMessage(messageId);
-      toast.success('Message retry initiated');
+      toast.success(t('toast.retrySuccess'));
       fetchDlqMessages();
       dlq.refetch();
     } catch (err) {
       console.error('Failed to retry message:', err);
-      toast.error('Failed to retry message');
+      toast.error(t('toast.retryFailed'));
     }
   };
 
   const handleDelete = async (messageId: string) => {
     try {
       await adminApi.deleteDlqMessage(messageId);
-      toast.success('Message deleted');
+      toast.success(t('toast.deleteSuccess'));
       fetchDlqMessages();
       dlq.refetch();
     } catch (err) {
       console.error('Failed to delete message:', err);
-      toast.error('Failed to delete message');
+      toast.error(t('toast.deleteFailed'));
     }
   };
 
@@ -98,16 +100,16 @@ export default function SystemPage() {
     try {
       if (confirmDialog.action === 'retryAll') {
         await adminApi.retryAllDlqMessages();
-        toast.success('All messages retry initiated');
+        toast.success(t('toast.retryAllSuccess'));
       } else {
         await adminApi.purgeDlqMessages();
-        toast.success('All DLQ messages purged');
+        toast.success(t('toast.purgeSuccess'));
       }
       fetchDlqMessages();
       dlq.refetch();
     } catch (err) {
       console.error('DLQ operation failed:', err);
-      toast.error('Operation failed');
+      toast.error(t('toast.operationFailed'));
     } finally {
       setActionLoading(false);
       setConfirmDialog(null);
@@ -117,7 +119,7 @@ export default function SystemPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">System Monitor</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         <button
           onClick={() => {
             health.refetch();
@@ -128,7 +130,7 @@ export default function SystemPage() {
           }}
           className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
         >
-          Refresh
+          {t('refresh')}
         </button>
       </div>
 
@@ -136,7 +138,7 @@ export default function SystemPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">System Health</CardTitle>
+            <CardTitle className="text-base">{t('systemHealth')}</CardTitle>
             {health.data && <HealthBadge status={health.data.status} />}
           </div>
         </CardHeader>
@@ -150,7 +152,7 @@ export default function SystemPage() {
                   <div>
                     <p className="text-sm font-medium capitalize">{name}</p>
                     {svc.latencyMs !== undefined && (
-                      <p className="text-xs text-muted-foreground">Latency: {svc.latencyMs}ms</p>
+                      <p className="text-xs text-muted-foreground">{t('latency', { ms: svc.latencyMs })}</p>
                     )}
                     {svc.error && (
                       <p className="text-xs text-destructive">{svc.error}</p>
@@ -160,7 +162,7 @@ export default function SystemPage() {
                 </div>
               ))}
               <p className="text-xs text-muted-foreground">
-                Last checked: {new Date(health.data.timestamp).toLocaleString()}
+                {t('lastChecked', { time: new Date(health.data.timestamp).toLocaleString() })}
               </p>
             </div>
           ) : health.error ? (
@@ -174,7 +176,7 @@ export default function SystemPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Kafka Status</CardTitle>
+              <CardTitle className="text-base">{t('kafkaStatus')}</CardTitle>
               {kafka.data && <HealthBadge status={kafka.data.status} />}
             </div>
           </CardHeader>
@@ -184,14 +186,14 @@ export default function SystemPage() {
             ) : kafka.data ? (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Status</span>
+                  <span className="text-muted-foreground">{t('status')}</span>
                   <span className="font-medium">{kafka.data.status}</span>
                 </div>
                 {kafka.data.error && (
                   <p className="text-xs text-destructive">{kafka.data.error}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Checked: {new Date(kafka.data.timestamp).toLocaleString()}
+                  {t('checked', { time: new Date(kafka.data.timestamp).toLocaleString() })}
                 </p>
               </div>
             ) : kafka.error ? (
@@ -203,7 +205,7 @@ export default function SystemPage() {
         {/* DLQ Stats */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Dead Letter Queue</CardTitle>
+            <CardTitle className="text-base">{t('dlq')}</CardTitle>
           </CardHeader>
           <CardContent>
             {dlq.loading ? (
@@ -220,7 +222,7 @@ export default function SystemPage() {
             ) : dlq.error ? (
               <p className="text-sm text-destructive">{dlq.error}</p>
             ) : (
-              <p className="text-sm text-muted-foreground">No DLQ data available</p>
+              <p className="text-sm text-muted-foreground">{t('noDlqData')}</p>
             )}
           </CardContent>
         </Card>
@@ -230,7 +232,7 @@ export default function SystemPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">DLQ Messages</CardTitle>
+            <CardTitle className="text-base">{t('dlqMessages')}</CardTitle>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -238,7 +240,7 @@ export default function SystemPage() {
                 onClick={() => setConfirmDialog({ action: 'retryAll' })}
                 disabled={dlqMessages.length === 0}
               >
-                Retry All
+                {t('retryAll')}
               </Button>
               <Button
                 variant="outline"
@@ -246,7 +248,7 @@ export default function SystemPage() {
                 onClick={() => setConfirmDialog({ action: 'purge' })}
                 disabled={dlqMessages.length === 0}
               >
-                Purge All
+                {t('purgeAll')}
               </Button>
             </div>
           </div>
@@ -258,12 +260,12 @@ export default function SystemPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Topic</TableHead>
-                  <TableHead>Error</TableHead>
-                  <TableHead>Retries</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('dlqTable.id')}</TableHead>
+                  <TableHead>{t('dlqTable.topic')}</TableHead>
+                  <TableHead>{t('dlqTable.error')}</TableHead>
+                  <TableHead>{t('dlqTable.retries')}</TableHead>
+                  <TableHead>{t('dlqTable.date')}</TableHead>
+                  <TableHead>{t('dlqTable.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -283,10 +285,10 @@ export default function SystemPage() {
                     <TableCell>
                       <div className="flex gap-1">
                         <Button variant="outline" size="sm" onClick={() => handleRetry(msg.id)}>
-                          Retry
+                          {t('dlqTable.retry')}
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => handleDelete(msg.id)}>
-                          Delete
+                          {t('dlqTable.delete')}
                         </Button>
                       </div>
                     </TableCell>
@@ -295,7 +297,7 @@ export default function SystemPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground">No DLQ messages</p>
+            <p className="text-sm text-muted-foreground">{t('noDlqMessages')}</p>
           )}
         </CardContent>
       </Card>
@@ -303,7 +305,7 @@ export default function SystemPage() {
       {/* Consistency Metrics */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Data Consistency Metrics</CardTitle>
+          <CardTitle className="text-base">{t('consistency')}</CardTitle>
         </CardHeader>
         <CardContent>
           {consistency.loading ? (
@@ -320,7 +322,7 @@ export default function SystemPage() {
           ) : consistency.error ? (
             <p className="text-sm text-destructive">{consistency.error}</p>
           ) : (
-            <p className="text-sm text-muted-foreground">No consistency data available</p>
+            <p className="text-sm text-muted-foreground">{t('noConsistencyData')}</p>
           )}
         </CardContent>
       </Card>
@@ -329,24 +331,24 @@ export default function SystemPage() {
       <Dialog open={!!confirmDialog} onClose={() => setConfirmDialog(null)}>
         <DialogHeader>
           <DialogTitle>
-            {confirmDialog?.action === 'retryAll' ? 'Retry All Messages' : 'Purge All Messages'}
+            {confirmDialog?.action === 'retryAll' ? t('dialog.retryAllTitle') : t('dialog.purgeTitle')}
           </DialogTitle>
           <DialogDescription>
             {confirmDialog?.action === 'retryAll'
-              ? 'This will retry all messages in the dead letter queue. Are you sure?'
-              : 'This will permanently delete all messages in the dead letter queue. This action cannot be undone.'}
+              ? t('dialog.retryAllDesc')
+              : t('dialog.purgeDesc')}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => setConfirmDialog(null)} disabled={actionLoading}>
-            Cancel
+            {t('common:actions.cancel')}
           </Button>
           <Button
             variant={confirmDialog?.action === 'purge' ? 'destructive' : 'default'}
             onClick={handleConfirmAction}
             disabled={actionLoading}
           >
-            {actionLoading ? 'Processing...' : 'Confirm'}
+            {actionLoading ? t('common:status.processing') : t('common:actions.confirm')}
           </Button>
         </DialogFooter>
       </Dialog>

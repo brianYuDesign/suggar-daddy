@@ -1,0 +1,28 @@
+{
+  "title": "Transactions",
+  "typeLabels": {
+    "tip": "Tip",
+    "subscription": "Subscription",
+    "post_purchase": "Post Purchase",
+    "withdrawal": "Withdrawal"
+  },
+  "filters": {
+    "allTypes": "All Types",
+    "allStatus": "All Status",
+    "completed": "Completed",
+    "pending": "Pending",
+    "failed": "Failed",
+    "refunded": "Refunded"
+  },
+  "table": {
+    "title": "Transaction List",
+    "user": "User",
+    "type": "Type",
+    "amount": "Amount",
+    "status": "Status",
+    "stripeId": "Stripe ID",
+    "date": "Date",
+    "unknown": "Unknown",
+    "noTransactions": "No transactions found"
+  }
+}

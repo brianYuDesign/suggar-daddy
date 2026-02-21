@@ -1,0 +1,27 @@
+{
+  "title": "總覽",
+  "stats": {
+    "totalUsers": "總用戶數",
+    "totalPosts": "總貼文數",
+    "totalRevenue": "總營收",
+    "pendingWithdrawals": "待處理提款",
+    "systemStatus": "系統狀態",
+    "newThisWeek": "+{{count}} 本週新增",
+    "pendingReports": "{{count}} 個待處理檢舉",
+    "successRate": "{{rate}}% 成功率",
+    "toReview": "${{amount}} 待審核"
+  },
+  "charts": {
+    "dailyRevenue": "每日營收（14 天）",
+    "noRevenueData": "無營收數據",
+    "systemHealth": "系統健康",
+    "unableToFetch": "無法取得健康數據"
+  },
+  "sections": {
+    "usersByRole": "各角色用戶數",
+    "contentModeration": "內容審核",
+    "pendingReports": "待處理檢舉",
+    "resolvedReports": "已處理檢舉",
+    "takenDown": "已下架"
+  }
+}

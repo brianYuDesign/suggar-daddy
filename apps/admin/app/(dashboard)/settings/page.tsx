@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PlatformSettings, RecommendationSettings } from '@/types/admin';
 
 // Mock data - replace with actual API calls
@@ -22,6 +23,7 @@ const mockRecommendationSettings: RecommendationSettings = {
 };
 
 export default function SettingsPage() {
+  const { t } = useTranslation('settings');
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(mockPlatformSettings);
   const [recommendationSettings, setRecommendationSettings] = useState<RecommendationSettings>(mockRecommendationSettings);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,7 +59,7 @@ export default function SettingsPage() {
     
     await new Promise((resolve) => setTimeout(resolve, 800));
     setIsSaving(false);
-    setSaveMessage('Platform settings saved successfully!');
+    setSaveMessage(t('platform.saveSuccess'));
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
@@ -73,7 +75,7 @@ export default function SettingsPage() {
     
     await new Promise((resolve) => setTimeout(resolve, 800));
     setIsSaving(false);
-    setSaveMessage('Recommendation settings saved successfully!');
+    setSaveMessage(t('recommendation.saveSuccess'));
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
@@ -98,9 +100,9 @@ export default function SettingsPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-white">System Settings</h1>
+          <h1 className="text-3xl font-bold text-white">{t('title')}</h1>
           <p className="text-gray-400 mt-1">
-            Configure platform parameters and recommendation algorithms
+            {t('subtitle')}
           </p>
         </div>
 
@@ -114,7 +116,7 @@ export default function SettingsPage() {
                 : 'text-gray-400 hover:text-white hover:bg-slate-700'
             }`}
           >
-            Platform Settings
+            {t('tabs.platform')}
           </button>
           <button
             onClick={() => setActiveTab('recommendation')}
@@ -124,7 +126,7 @@ export default function SettingsPage() {
                 : 'text-gray-400 hover:text-white hover:bg-slate-700'
             }`}
           >
-            Recommendation Settings
+            {t('tabs.recommendation')}
           </button>
         </div>
 
@@ -139,12 +141,12 @@ export default function SettingsPage() {
         {/* Platform Settings Tab */}
         {activeTab === 'platform' && (
           <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6 space-y-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Platform Configuration</h2>
+            <h2 className="text-xl font-semibold text-white mb-4">{t('platform.title')}</h2>
             
             {/* Platform Fee */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Platform Fee (%)
+                {t('platform.platformFee')}
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -165,14 +167,14 @@ export default function SettingsPage() {
                 </span>
               </div>
               <p className="text-gray-500 text-sm">
-                Percentage of creator earnings retained by the platform
+                {t('platform.platformFeeDesc')}
               </p>
             </div>
 
             {/* Minimum Withdrawal */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Minimum Withdrawal Amount ($)
+                {t('platform.minWithdrawal')}
               </label>
               <input
                 type="number"
@@ -186,14 +188,14 @@ export default function SettingsPage() {
                 className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-colors"
               />
               <p className="text-gray-500 text-sm">
-                Minimum amount creators must accumulate before withdrawing
+                {t('platform.minWithdrawalDesc')}
               </p>
             </div>
 
             {/* Max Upload Size */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Maximum Upload Size (MB)
+                {t('platform.maxUploadSize')}
               </label>
               <input
                 type="number"
@@ -207,14 +209,14 @@ export default function SettingsPage() {
                 className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-colors"
               />
               <p className="text-gray-500 text-sm">
-                Maximum file size allowed for uploads
+                {t('platform.maxUploadSizeDesc')}
               </p>
             </div>
 
             {/* Allowed File Types */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Allowed File Types
+                {t('platform.allowedFileTypes')}
               </label>
               <div className="flex flex-wrap gap-2">
                 {platformSettings.allowedFileTypes.map((type) => (
@@ -226,7 +228,7 @@ export default function SettingsPage() {
                   </span>
                 ))}
                 <button className="px-3 py-1 bg-purple-600/20 border border-purple-500/30 rounded-lg text-purple-400 text-sm hover:bg-purple-600/30 transition-colors">
-                  + Add Type
+                  {t('platform.addType')}
                 </button>
               </div>
             </div>
@@ -236,10 +238,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <label className="block text-sm font-medium text-gray-300">
-                    Auto-Approve Content
+                    {t('platform.autoApprove')}
                   </label>
                   <p className="text-gray-500 text-sm">
-                    Automatically approve new content without review
+                    {t('platform.autoApproveDesc')}
                   </p>
                 </div>
                 <button
@@ -268,10 +270,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <label className="block text-sm font-medium text-gray-300">
-                    Maintenance Mode
+                    {t('platform.maintenanceMode')}
                   </label>
                   <p className="text-gray-500 text-sm">
-                    Put the platform in maintenance mode
+                    {t('platform.maintenanceModeDesc')}
                   </p>
                 </div>
                 <button
@@ -305,7 +307,7 @@ export default function SettingsPage() {
                 disabled={isSaving}
                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
               >
-                {isSaving ? 'Saving...' : 'Save Platform Settings'}
+                {isSaving ? t('platform.saving') : t('platform.save')}
               </button>
             </div>
           </div>
@@ -314,16 +316,16 @@ export default function SettingsPage() {
         {/* Recommendation Settings Tab */}
         {activeTab === 'recommendation' && (
           <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-6 space-y-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Recommendation Algorithm</h2>
+            <h2 className="text-xl font-semibold text-white mb-4">{t('recommendation.title')}</h2>
 
             {/* Enable Recommendations */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-700">
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Enable Recommendations
+                  {t('recommendation.enabled')}
                 </label>
                 <p className="text-gray-500 text-sm">
-                  Show personalized content recommendations to users
+                  {t('recommendation.enabledDesc')}
                 </p>
               </div>
               <button
@@ -348,7 +350,7 @@ export default function SettingsPage() {
             {/* Algorithm Selection */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Recommendation Algorithm
+                {t('recommendation.algorithm')}
               </label>
               <select
                 value={recommendationSettings.algorithm}
@@ -360,20 +362,20 @@ export default function SettingsPage() {
                 }
                 className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-colors"
               >
-                <option value="popularity">Popularity Based</option>
-                <option value="engagement">Engagement Based</option>
-                <option value="hybrid">Hybrid (Popularity + Engagement)</option>
-                <option value="ai">AI-Powered Personalization</option>
+                <option value="popularity">{t('recommendation.popularity')}</option>
+                <option value="engagement">{t('recommendation.engagement')}</option>
+                <option value="hybrid">{t('recommendation.hybrid')}</option>
+                <option value="ai">{t('recommendation.ai')}</option>
               </select>
               <p className="text-gray-500 text-sm">
-                Algorithm used to generate content recommendations
+                {t('recommendation.algorithmDesc')}
               </p>
             </div>
 
             {/* Max Recommendations */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Maximum Recommendations
+                {t('recommendation.maxRecommendations')}
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -394,14 +396,14 @@ export default function SettingsPage() {
                 </span>
               </div>
               <p className="text-gray-500 text-sm">
-                Maximum number of recommendations to show per user
+                {t('recommendation.maxRecommendationsDesc')}
               </p>
             </div>
 
             {/* Refresh Interval */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Refresh Interval (hours)
+                {t('recommendation.refreshInterval')}
               </label>
               <input
                 type="number"
@@ -417,14 +419,14 @@ export default function SettingsPage() {
                 className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-colors"
               />
               <p className="text-gray-500 text-sm">
-                How often to refresh recommendations for each user
+                {t('recommendation.refreshIntervalDesc')}
               </p>
             </div>
 
             {/* Personalized Weight */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Personalization Weight
+                {t('recommendation.personalizationWeight')}
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -445,7 +447,7 @@ export default function SettingsPage() {
                 </span>
               </div>
               <p className="text-gray-500 text-sm">
-                Balance between personalized recommendations and trending content (0% = all trending, 100% = fully personalized)
+                {t('recommendation.personalizationWeightDesc')}
               </p>
             </div>
 
@@ -456,7 +458,7 @@ export default function SettingsPage() {
                 disabled={isSaving}
                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
               >
-                {isSaving ? 'Saving...' : 'Save Recommendation Settings'}
+                {isSaving ? t('recommendation.saving') : t('recommendation.save')}
               </button>
             </div>
           </div>

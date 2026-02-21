@@ -1,0 +1,72 @@
+{
+  "title": "Content Moderation",
+  "stats": {
+    "totalPosts": "Total Posts",
+    "pendingReports": "Pending Reports",
+    "resolved": "Resolved",
+    "takenDown": "Taken Down"
+  },
+  "tabs": {
+    "reports": "Reports",
+    "allPosts": "All Posts"
+  },
+  "reports": {
+    "title": "Reports",
+    "resolveSelected": "Resolve Selected",
+    "resolving": "Resolving...",
+    "reportId": "Report ID",
+    "postId": "Post ID",
+    "reason": "Reason",
+    "status": "Status",
+    "date": "Date",
+    "review": "Review",
+    "noReports": "No reports found",
+    "batchSuccess": "{{count}} report(s) resolved",
+    "batchFailed": "Batch resolve failed"
+  },
+  "posts": {
+    "title": "Posts",
+    "searchPlaceholder": "Search by caption...",
+    "allVisibility": "All Visibility",
+    "public": "Public",
+    "subscribers": "Subscribers",
+    "ppv": "Pay-per-view",
+    "creator": "Creator",
+    "caption": "Caption",
+    "type": "Type",
+    "visibility": "Visibility",
+    "likes": "Likes",
+    "date": "Date",
+    "unknown": "Unknown",
+    "noPosts": "No posts found"
+  },
+  "reportDetail": {
+    "title": "Report Detail",
+    "notFound": "Report not found.",
+    "reportInfo": "Report Information",
+    "reportId": "Report ID",
+    "reporterId": "Reporter ID",
+    "reason": "Reason",
+    "reportedAt": "Reported At",
+    "postContent": "Post Content",
+    "postId": "Post ID",
+    "creatorId": "Creator ID",
+    "caption": "Caption",
+    "media": "Media",
+    "likes": "Likes: {{count}}",
+    "comments": "Comments: {{count}}",
+    "postNotFound": "Post not found or already deleted.",
+    "takeDown": "Take Down Post",
+    "reinstate": "Reinstate Post",
+    "takenDownSuccess": "Post has been taken down",
+    "reinstatedSuccess": "Post has been reinstated",
+    "takeDownFailed": "Failed to take down post",
+    "reinstateFailed": "Failed to reinstate post"
+  },
+  "filters": {
+    "all": "All",
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "dismissed": "Dismissed"
+  }
+}

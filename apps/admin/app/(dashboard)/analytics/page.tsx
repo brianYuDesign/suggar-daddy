@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { SimpleBarChart } from '@/components/simple-chart';
@@ -9,6 +10,7 @@ import { StatsCard } from '@/components/stats-card';
 import { Heart, Users, Zap, Target } from 'lucide-react';
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation('analytics');
   const [dauDays, setDauDays] = useState(7);
   const [churnPeriod, setChurnPeriod] = useState('month');
 
@@ -20,12 +22,12 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Analytics</h1>
+      <h1 className="text-2xl font-bold">{t('title')}</h1>
 
       {/* Matching Stats */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Matching Statistics</CardTitle>
+          <CardTitle className="text-base">{t('matching.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {matching.loading ? (
@@ -33,33 +35,33 @@ export default function AnalyticsPage() {
           ) : matching.data ? (
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatsCard title="Total Swipes" value={matching.data.totalSwipes.toLocaleString()} icon={Zap} />
-                <StatsCard title="Total Matches" value={matching.data.totalMatches.toLocaleString()} icon={Heart} />
-                <StatsCard title="Active Matches" value={matching.data.activeMatches.toLocaleString()} icon={Users} />
+                <StatsCard title={t('matching.totalSwipes')} value={matching.data.totalSwipes.toLocaleString()} icon={Zap} />
+                <StatsCard title={t('matching.totalMatches')} value={matching.data.totalMatches.toLocaleString()} icon={Heart} />
+                <StatsCard title={t('matching.activeMatches')} value={matching.data.activeMatches.toLocaleString()} icon={Users} />
                 <StatsCard
-                  title="Match Rate"
+                  title={t('matching.matchRate')}
                   value={`${matching.data.matchRate}%`}
                   icon={Target}
-                  description={`${matching.data.likeCount} likes, ${matching.data.passCount} passes`}
+                  description={t('matching.matchRateDesc', { likes: matching.data.likeCount, passes: matching.data.passCount })}
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-md bg-muted p-4">
-                  <p className="text-sm text-muted-foreground">Likes</p>
+                  <p className="text-sm text-muted-foreground">{t('matching.likes')}</p>
                   <p className="mt-1 text-2xl font-bold">{matching.data.likeCount.toLocaleString()}</p>
                 </div>
                 <div className="rounded-md bg-muted p-4">
-                  <p className="text-sm text-muted-foreground">Passes</p>
+                  <p className="text-sm text-muted-foreground">{t('matching.passes')}</p>
                   <p className="mt-1 text-2xl font-bold">{matching.data.passCount.toLocaleString()}</p>
                 </div>
                 <div className="rounded-md bg-muted p-4">
-                  <p className="text-sm text-muted-foreground">Super Likes</p>
+                  <p className="text-sm text-muted-foreground">{t('matching.superLikes')}</p>
                   <p className="mt-1 text-2xl font-bold">{matching.data.superLikeCount.toLocaleString()}</p>
                 </div>
               </div>
               {matching.data.dailyMatches.length > 0 && (
                 <div>
-                  <p className="mb-2 text-sm font-medium text-muted-foreground">Daily Matches (14 days)</p>
+                  <p className="mb-2 text-sm font-medium text-muted-foreground">{t('matching.dailyMatches')}</p>
                   <SimpleBarChart
                     data={matching.data.dailyMatches.map((d) => ({
                       label: d.date.slice(5),
@@ -70,7 +72,7 @@ export default function AnalyticsPage() {
               )}
             </div>
           ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">No matching data</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t('matching.noData')}</p>
           )}
         </CardContent>
       </Card>
@@ -78,11 +80,11 @@ export default function AnalyticsPage() {
       {/* DAU/MAU */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Daily / Monthly Active Users</CardTitle>
+          <CardTitle className="text-base">{t('dauMau.title')}</CardTitle>
           <Select value={String(dauDays)} onChange={(e) => setDauDays(Number(e.target.value))} className="w-32">
-            <option value="7">7 days</option>
-            <option value="14">14 days</option>
-            <option value="30">30 days</option>
+            <option value="7">{t('days7')}</option>
+            <option value="14">{t('days14')}</option>
+            <option value="30">{t('days30')}</option>
           </Select>
         </CardHeader>
         <CardContent>
@@ -92,15 +94,15 @@ export default function AnalyticsPage() {
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-md bg-muted p-4">
-                  <p className="text-sm text-muted-foreground">DAU (Today)</p>
+                  <p className="text-sm text-muted-foreground">{t('dauMau.dau')}</p>
                   <p className="mt-1 text-2xl font-bold">{dauMau.data.dau.toLocaleString()}</p>
                 </div>
                 <div className="rounded-md bg-muted p-4">
-                  <p className="text-sm text-muted-foreground">MAU (30 days)</p>
+                  <p className="text-sm text-muted-foreground">{t('dauMau.mau')}</p>
                   <p className="mt-1 text-2xl font-bold">{dauMau.data.mau.toLocaleString()}</p>
                 </div>
                 <div className="rounded-md bg-muted p-4">
-                  <p className="text-sm text-muted-foreground">DAU/MAU Ratio</p>
+                  <p className="text-sm text-muted-foreground">{t('dauMau.ratio')}</p>
                   <p className="mt-1 text-2xl font-bold">{dauMau.data.dauMauRatio}%</p>
                 </div>
               </div>
@@ -114,7 +116,7 @@ export default function AnalyticsPage() {
               )}
             </div>
           ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">No DAU/MAU data</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t('dauMau.noData')}</p>
           )}
         </CardContent>
       </Card>
@@ -123,7 +125,7 @@ export default function AnalyticsPage() {
         {/* Creator Revenue Ranking */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Creator Revenue Ranking</CardTitle>
+            <CardTitle className="text-base">{t('creatorRevenue.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             {creatorRevenue.loading ? (
@@ -132,10 +134,10 @@ export default function AnalyticsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Creator</TableHead>
-                    <TableHead>Revenue</TableHead>
-                    <TableHead>Tips</TableHead>
+                    <TableHead>{t('creatorRevenue.rank')}</TableHead>
+                    <TableHead>{t('creatorRevenue.creator')}</TableHead>
+                    <TableHead>{t('creatorRevenue.revenue')}</TableHead>
+                    <TableHead>{t('creatorRevenue.tips')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -149,7 +151,7 @@ export default function AnalyticsPage() {
                   ))}
                   {creatorRevenue.data?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground">No data</TableCell>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">{t('creatorRevenue.noData')}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -161,7 +163,7 @@ export default function AnalyticsPage() {
         {/* Popular Content */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Popular Content</CardTitle>
+            <CardTitle className="text-base">{t('popularContent.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             {popularContent.loading ? (
@@ -170,10 +172,10 @@ export default function AnalyticsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Post</TableHead>
-                    <TableHead>Engagement</TableHead>
-                    <TableHead>Likes</TableHead>
+                    <TableHead>{t('popularContent.rank')}</TableHead>
+                    <TableHead>{t('popularContent.post')}</TableHead>
+                    <TableHead>{t('popularContent.engagement')}</TableHead>
+                    <TableHead>{t('popularContent.likes')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -189,7 +191,7 @@ export default function AnalyticsPage() {
                   ))}
                   {popularContent.data?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground">No data</TableCell>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">{t('popularContent.noData')}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -202,16 +204,16 @@ export default function AnalyticsPage() {
       {/* Churn Rate */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Subscription Churn Rate</CardTitle>
+          <CardTitle className="text-base">{t('churn.title')}</CardTitle>
           <TabsList>
-            {['week', 'month', 'quarter'].map((p) => (
+            {(['week', 'month', 'quarter'] as const).map((p) => (
               <TabsTrigger
                 key={p}
                 value={p}
                 active={churnPeriod === p}
                 onClick={() => setChurnPeriod(p)}
               >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
+                {t(`churn.${p}`)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -222,28 +224,28 @@ export default function AnalyticsPage() {
           ) : churnRate.data ? (
             <div className="grid gap-4 sm:grid-cols-5">
               <div className="rounded-md bg-muted p-4">
-                <p className="text-sm text-muted-foreground">Churn Rate</p>
+                <p className="text-sm text-muted-foreground">{t('churn.churnRate')}</p>
                 <p className="mt-1 text-2xl font-bold">{churnRate.data.churnRate}%</p>
               </div>
               <div className="rounded-md bg-muted p-4">
-                <p className="text-sm text-muted-foreground">Active (Start)</p>
+                <p className="text-sm text-muted-foreground">{t('churn.activeAtStart')}</p>
                 <p className="mt-1 text-2xl font-bold">{churnRate.data.activeAtStart}</p>
               </div>
               <div className="rounded-md bg-muted p-4">
-                <p className="text-sm text-muted-foreground">Cancelled</p>
+                <p className="text-sm text-muted-foreground">{t('churn.cancelled')}</p>
                 <p className="mt-1 text-2xl font-bold">{churnRate.data.cancelledDuring}</p>
               </div>
               <div className="rounded-md bg-muted p-4">
-                <p className="text-sm text-muted-foreground">New</p>
+                <p className="text-sm text-muted-foreground">{t('churn.new')}</p>
                 <p className="mt-1 text-2xl font-bold">{churnRate.data.newDuring}</p>
               </div>
               <div className="rounded-md bg-muted p-4">
-                <p className="text-sm text-muted-foreground">Current Active</p>
+                <p className="text-sm text-muted-foreground">{t('churn.currentActive')}</p>
                 <p className="mt-1 text-2xl font-bold">{churnRate.data.currentActive}</p>
               </div>
             </div>
           ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">No churn data</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t('churn.noData')}</p>
           )}
         </CardContent>
       </Card>

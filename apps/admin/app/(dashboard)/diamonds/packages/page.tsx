@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
@@ -26,6 +27,7 @@ const emptyForm: PackageForm = {
 };
 
 export default function PackagesPage() {
+  const { t } = useTranslation('diamonds');
   const toast = useToast();
   const { data: packages, loading, refetch } = useAdminQuery(() => adminApi.getDiamondPackages());
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -63,50 +65,50 @@ export default function PackagesPage() {
     try {
       if (editingId) {
         await adminApi.updateDiamondPackage(editingId, form);
-        toast.success('Package updated');
+        toast.success(t('packages.packageUpdated'));
       } else {
         await adminApi.createDiamondPackage(form as Omit<AdminDiamondPackage, 'id'>);
-        toast.success('Package created');
+        toast.success(t('packages.packageCreated'));
       }
       cancelEdit();
       refetch();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save package');
+      toast.error(err instanceof Error ? err.message : t('packages.saveFailed'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Deactivate this package?')) return;
+    if (!confirm(t('packages.deactivateConfirm'))) return;
     try {
       await adminApi.deleteDiamondPackage(id);
-      toast.success('Package deactivated');
+      toast.success(t('packages.packageDeactivated'));
       refetch();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete');
+      toast.error(err instanceof Error ? err.message : t('packages.deleteFailed'));
     }
   };
 
   const handleToggleActive = async (pkg: AdminDiamondPackage) => {
     try {
       await adminApi.updateDiamondPackage(pkg.id, { isActive: !pkg.isActive });
-      toast.success(pkg.isActive ? 'Package deactivated' : 'Package activated');
+      toast.success(pkg.isActive ? t('packages.packageDeactivated') : t('packages.packageActivated'));
       refetch();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to toggle');
+      toast.error(err instanceof Error ? err.message : t('packages.toggleFailed'));
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Diamond Packages</h1>
+        <h1 className="text-2xl font-bold">{t('packages.title')}</h1>
         <button
           onClick={startCreate}
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
-          New Package
+          {t('packages.newPackage')}
         </button>
       </div>
 
@@ -114,12 +116,12 @@ export default function PackagesPage() {
       {(showCreate || editingId) && (
         <Card>
           <CardHeader>
-            <CardTitle>{editingId ? 'Edit Package' : 'Create Package'}</CardTitle>
+            <CardTitle>{editingId ? t('packages.editPackage') : t('packages.createPackage')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <label className="mb-1 block text-sm font-medium">Name</label>
+                <label className="mb-1 block text-sm font-medium">{t('packages.name')}</label>
                 <input
                   type="text"
                   value={form.name}
@@ -129,7 +131,7 @@ export default function PackagesPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">Diamond Amount</label>
+                <label className="mb-1 block text-sm font-medium">{t('packages.diamondAmount')}</label>
                 <input
                   type="number"
                   value={form.diamondAmount}
@@ -139,7 +141,7 @@ export default function PackagesPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">Bonus Diamonds</label>
+                <label className="mb-1 block text-sm font-medium">{t('packages.bonus')}</label>
                 <input
                   type="number"
                   value={form.bonusDiamonds}
@@ -149,7 +151,7 @@ export default function PackagesPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">Price (USD)</label>
+                <label className="mb-1 block text-sm font-medium">{t('packages.price')}</label>
                 <input
                   type="number"
                   value={form.priceUsd}
@@ -160,7 +162,7 @@ export default function PackagesPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">Sort Order</label>
+                <label className="mb-1 block text-sm font-medium">{t('packages.sortOrder')}</label>
                 <input
                   type="number"
                   value={form.sortOrder}
@@ -177,7 +179,7 @@ export default function PackagesPage() {
                     onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
                     className="rounded"
                   />
-                  Active
+                  {t('packages.active')}
                 </label>
               </div>
             </div>
@@ -187,13 +189,13 @@ export default function PackagesPage() {
                 disabled={saving || !form.name}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
-                {saving ? 'Saving...' : editingId ? 'Update' : 'Create'}
+                {saving ? t('packages.saving') : editingId ? t('packages.update') : t('packages.create')}
               </button>
               <button
                 onClick={cancelEdit}
                 className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
               >
-                Cancel
+                {t('common:actions.cancel')}
               </button>
             </div>
           </CardContent>
@@ -204,7 +206,7 @@ export default function PackagesPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            All Packages{' '}
+            {t('packages.allPackages')}{' '}
             {packages && (
               <span className="font-normal text-muted-foreground">
                 ({Array.isArray(packages) ? packages.length : 0})
@@ -220,19 +222,19 @@ export default function PackagesPage() {
               ))}
             </div>
           ) : !packages || !Array.isArray(packages) || packages.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No packages found</p>
+            <p className="text-sm text-muted-foreground">{t('packages.noPackages')}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-2 font-medium">Name</th>
-                    <th className="pb-2 font-medium">Diamonds</th>
-                    <th className="pb-2 font-medium">Bonus</th>
-                    <th className="pb-2 font-medium">Price</th>
-                    <th className="pb-2 font-medium">Status</th>
-                    <th className="pb-2 font-medium">Order</th>
-                    <th className="pb-2 font-medium">Actions</th>
+                    <th className="pb-2 font-medium">{t('packages.name')}</th>
+                    <th className="pb-2 font-medium">{t('table.diamonds')}</th>
+                    <th className="pb-2 font-medium">{t('packages.bonus')}</th>
+                    <th className="pb-2 font-medium">{t('packages.price')}</th>
+                    <th className="pb-2 font-medium">{t('table.status')}</th>
+                    <th className="pb-2 font-medium">{t('packages.sortOrder')}</th>
+                    <th className="pb-2 font-medium">{t('common:table.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -250,7 +252,7 @@ export default function PackagesPage() {
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
                           }`}
                         >
-                          {pkg.isActive ? 'Active' : 'Inactive'}
+                          {pkg.isActive ? t('packages.active') : t('packages.inactive')}
                         </span>
                       </td>
                       <td className="py-3">{pkg.sortOrder}</td>
@@ -260,19 +262,19 @@ export default function PackagesPage() {
                             onClick={() => startEdit(pkg)}
                             className="rounded px-2 py-1 text-xs hover:bg-muted"
                           >
-                            Edit
+                            {t('packages.edit')}
                           </button>
                           <button
                             onClick={() => handleToggleActive(pkg)}
                             className="rounded px-2 py-1 text-xs hover:bg-muted"
                           >
-                            {pkg.isActive ? 'Deactivate' : 'Activate'}
+                            {pkg.isActive ? t('packages.deactivate') : t('packages.activate')}
                           </button>
                           <button
                             onClick={() => handleDelete(pkg.id)}
                             className="rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
-                            Delete
+                            {t('packages.delete')}
                           </button>
                         </div>
                       </td>

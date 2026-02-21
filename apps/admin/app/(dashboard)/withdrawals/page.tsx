@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
@@ -58,6 +59,7 @@ interface Withdrawal {
 }
 
 export default function WithdrawalsPage() {
+  const { t } = useTranslation('withdrawals');
   const toast = useToast();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
@@ -88,7 +90,7 @@ export default function WithdrawalsPage() {
   const columns: Column<Withdrawal>[] = [
     {
       key: 'creator',
-      header: 'Creator',
+      header: t('table.creator'),
       render: (w) => (
         <div className="flex items-center gap-3">
           <Avatar
@@ -98,7 +100,7 @@ export default function WithdrawalsPage() {
           />
           <div>
             <p className="font-medium">
-              {w.user?.displayName || 'Unknown'}
+              {w.user?.displayName || t('table.unknown')}
             </p>
             <p className="text-xs text-muted-foreground">
               {w.user?.email || w.userId}
@@ -109,7 +111,7 @@ export default function WithdrawalsPage() {
     },
     {
       key: 'amount',
-      header: 'Amount',
+      header: t('table.amount'),
       render: (w) => (
         <span className="font-semibold">
           ${w.amount.toFixed(2)}
@@ -118,7 +120,7 @@ export default function WithdrawalsPage() {
     },
     {
       key: 'method',
-      header: 'Method',
+      header: t('table.method'),
       hideOnMobile: true,
       render: (w) => (
         <span className="text-muted-foreground">
@@ -128,7 +130,7 @@ export default function WithdrawalsPage() {
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('table.status'),
       render: (w) => (
         <Badge variant={statusVariant[w.status] || 'secondary'}>
           {w.status}
@@ -137,7 +139,7 @@ export default function WithdrawalsPage() {
     },
     {
       key: 'requested',
-      header: 'Requested',
+      header: t('table.requested'),
       hideOnMobile: true,
       render: (w) => (
         <span className="text-muted-foreground">
@@ -147,13 +149,13 @@ export default function WithdrawalsPage() {
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('table.actions'),
       hideOnMobile: true,
       render: (w) => {
         if (w.status === 'pending') {
           return (
             <div className="flex gap-2">
-              <Tooltip content="批准此提款請求">
+              <Tooltip content={t('actions.approveTooltip')}>
                 <Button
                   size="sm"
                   onClick={() =>
@@ -165,10 +167,10 @@ export default function WithdrawalsPage() {
                     })
                   }
                 >
-                  Approve
+                  {t('actions.approve')}
                 </Button>
               </Tooltip>
-              <Tooltip content="拒絕此提款請求">
+              <Tooltip content={t('actions.rejectTooltip')}>
                 <Button
                   size="sm"
                   variant="outline"
@@ -181,7 +183,7 @@ export default function WithdrawalsPage() {
                     })
                   }
                 >
-                  Reject
+                  {t('actions.reject')}
                 </Button>
               </Tooltip>
             </div>
@@ -210,7 +212,7 @@ export default function WithdrawalsPage() {
           />
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm truncate">
-              {w.user?.displayName || 'Unknown'}
+              {w.user?.displayName || t('table.unknown')}
             </p>
             <p className="text-xs text-muted-foreground truncate">
               {w.user?.email || w.userId}
@@ -242,7 +244,7 @@ export default function WithdrawalsPage() {
               })
             }
           >
-            Approve
+            {t('actions.approve')}
           </Button>
           <Button
             size="sm"
@@ -257,7 +259,7 @@ export default function WithdrawalsPage() {
               })
             }
           >
-            Reject
+            {t('actions.reject')}
           </Button>
         </div>
       )}
@@ -271,12 +273,12 @@ export default function WithdrawalsPage() {
       if (actionDialog.type === 'approve') {
         await adminApi.approveWithdrawal(actionDialog.id);
         toast.success(
-          `Withdrawal $${actionDialog.amount} approved for ${actionDialog.userName}`,
+          t('dialog.approveSuccess', { amount: actionDialog.amount.toFixed(2), name: actionDialog.userName }),
         );
       } else {
         await adminApi.rejectWithdrawal(actionDialog.id, rejectReason || undefined);
         toast.success(
-          `Withdrawal $${actionDialog.amount} rejected for ${actionDialog.userName}`,
+          t('dialog.rejectSuccess', { amount: actionDialog.amount.toFixed(2), name: actionDialog.userName }),
         );
       }
       setActionDialog(null);
@@ -284,7 +286,7 @@ export default function WithdrawalsPage() {
       refetch();
       stats.refetch();
     } catch (err) {
-      toast.error(ApiError.getMessage(err, 'Failed to process withdrawal'));
+      toast.error(ApiError.getMessage(err, t('dialog.processFailed')));
     } finally {
       setProcessing(false);
     }
@@ -292,7 +294,7 @@ export default function WithdrawalsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Withdrawals</h1>
+      <h1 className="text-2xl font-bold">{t('title')}</h1>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -303,24 +305,24 @@ export default function WithdrawalsPage() {
         ) : (
           <>
             <StatsCard
-              title="Pending"
+              title={t('stats.pending')}
               value={stats.data?.pendingCount ?? 0}
               icon={Clock}
-              description={`$${(stats.data?.pendingAmount ?? 0).toLocaleString()} total`}
+              description={t('stats.pendingTotal', { amount: (stats.data?.pendingAmount ?? 0).toLocaleString() })}
             />
             <StatsCard
-              title="Completed"
+              title={t('stats.completed')}
               value={stats.data?.completedCount ?? 0}
               icon={CheckCircle2}
-              description={`$${(stats.data?.completedAmount ?? 0).toLocaleString()} paid out`}
+              description={t('stats.completedTotal', { amount: (stats.data?.completedAmount ?? 0).toLocaleString() })}
             />
             <StatsCard
-              title="Rejected"
+              title={t('stats.rejected')}
               value={stats.data?.rejectedCount ?? 0}
               icon={XCircle}
             />
             <StatsCard
-              title="Total Requests"
+              title={t('stats.totalRequests')}
               value={stats.data?.totalCount ?? 0}
               icon={Wallet}
             />
@@ -338,10 +340,10 @@ export default function WithdrawalsPage() {
           }}
           className="w-44"
         >
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="completed">Completed</option>
-          <option value="rejected">Rejected</option>
+          <option value="">{t('filters.allStatus')}</option>
+          <option value="pending">{t('filters.pending')}</option>
+          <option value="completed">{t('filters.completed')}</option>
+          <option value="rejected">{t('filters.rejected')}</option>
         </Select>
       </div>
 
@@ -349,7 +351,7 @@ export default function WithdrawalsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Withdrawal Requests{' '}
+            {t('table.title')}{' '}
             {data && (
               <span className="font-normal text-muted-foreground">
                 ({data.total} total)
@@ -373,7 +375,7 @@ export default function WithdrawalsPage() {
                 mobileCard={renderMobileCard}
                 emptyState={
                   <div className="text-center py-8 text-muted-foreground">
-                    No withdrawal requests found
+                    {t('table.noWithdrawals')}
                   </div>
                 }
               />
@@ -400,23 +402,23 @@ export default function WithdrawalsPage() {
         <DialogHeader>
           <DialogTitle>
             {actionDialog?.type === 'approve'
-              ? 'Approve Withdrawal'
-              : 'Reject Withdrawal'}
+              ? t('dialog.approveTitle')
+              : t('dialog.rejectTitle')}
           </DialogTitle>
           <DialogDescription>
             {actionDialog?.type === 'approve'
-              ? `Approve $${actionDialog?.amount.toFixed(2)} withdrawal for ${actionDialog?.userName}? This will process the payout.`
-              : `Reject $${actionDialog?.amount.toFixed(2)} withdrawal for ${actionDialog?.userName}? The amount will be refunded to their wallet.`}
+              ? t('dialog.approveDesc', { amount: actionDialog?.amount.toFixed(2), name: actionDialog?.userName })
+              : t('dialog.rejectDesc', { amount: actionDialog?.amount.toFixed(2), name: actionDialog?.userName })}
           </DialogDescription>
         </DialogHeader>
 
         {actionDialog?.type === 'reject' && (
           <div className="py-4">
-            <Label htmlFor="reject-reason">Reason (optional)</Label>
+            <Label htmlFor="reject-reason">{t('dialog.rejectReason')}</Label>
             <textarea
               id="reject-reason"
               className="mt-2 flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="Enter the reason for rejection..."
+              placeholder={t('dialog.rejectPlaceholder')}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
             />
@@ -432,7 +434,7 @@ export default function WithdrawalsPage() {
             }}
             disabled={processing}
           >
-            Cancel
+            {t('common:actions.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button
             variant={actionDialog?.type === 'approve' ? 'default' : 'destructive'}
@@ -440,10 +442,10 @@ export default function WithdrawalsPage() {
             disabled={processing}
           >
             {processing
-              ? 'Processing...'
+              ? t('common:actions.processing', { defaultValue: 'Processing...' })
               : actionDialog?.type === 'approve'
-                ? 'Confirm Approve'
-                : 'Confirm Reject'}
+                ? t('dialog.confirmApprove')
+                : t('dialog.confirmReject')}
           </Button>
         </DialogFooter>
       </Dialog>

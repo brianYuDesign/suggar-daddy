@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
 import { setToken, setRefreshToken } from '@/lib/auth';
@@ -39,6 +40,7 @@ function clearLoginAttempts() {
 }
 
 export default function LoginPage() {
+  const { t } = useTranslation('login');
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -99,10 +101,10 @@ export default function LoginPage() {
       const result = recordFailedAttempt();
       if (result.locked) {
         setLockedUntil(result.lockedUntil);
-        setError(`Too many failed attempts. Account locked for 15 minutes.`);
+        setError(t('tooManyAttempts'));
       } else {
         const remaining = MAX_ATTEMPTS - parseInt(localStorage.getItem(ATTEMPTS_KEY) || '0', 10);
-        setError(`${msg} (${remaining} attempt${remaining !== 1 ? 's' : ''} remaining)`);
+        setError(t('attemptsRemaining', { msg, count: remaining }));
       }
     } finally {
       setLoading(false);
@@ -113,8 +115,8 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Admin Login</CardTitle>
-          <CardDescription>Sign in to the management panel</CardDescription>
+          <CardTitle className="text-xl">{t('title')}</CardTitle>
+          <CardDescription>{t('subtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -122,16 +124,16 @@ export default function LoginPage() {
               <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
                 {isLocked && countdown && (
-                  <p className="mt-1 font-mono text-xs">Try again in {countdown}</p>
+                  <p className="mt-1 font-mono text-xs">{t('tryAgainIn', { time: countdown })}</p>
                 )}
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('email')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@example.com"
+                placeholder={t('emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -139,7 +141,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -150,7 +152,7 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading || isLocked}>
-              {loading ? 'Signing in...' : isLocked ? 'Account Locked' : 'Sign In'}
+              {loading ? t('signingIn') : isLocked ? t('accountLocked') : t('signIn')}
             </Button>
           </form>
         </CardContent>

@@ -1,0 +1,28 @@
+{
+  "title": "支付管理",
+  "stats": {
+    "totalRevenue": "總營收",
+    "transactions": "交易數",
+    "successful": "{{count}} 筆成功",
+    "avgTransaction": "平均交易額",
+    "successRate": "成功率"
+  },
+  "revenueReport": "營收報告",
+  "totalRevenue": "總營收",
+  "transactions": "交易數",
+  "types": "類型",
+  "noDataForRange": "所選範圍無數據",
+  "dailyRevenue": "每日營收",
+  "days7": "7 天",
+  "days14": "14 天",
+  "days30": "30 天",
+  "days90": "90 天",
+  "noRevenueData": "此期間無營收數據",
+  "topCreators": "營收排行創作者",
+  "rank": "#",
+  "creatorId": "創作者 ID",
+  "tipRevenue": "打賞營收",
+  "tips": "打賞數",
+  "subscribers": "訂閱者數",
+  "noCreatorData": "無創作者數據"
+}

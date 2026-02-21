@@ -1,0 +1,13 @@
+{
+  "title": "Admin Login",
+  "subtitle": "Sign in to the management panel",
+  "email": "Email",
+  "emailPlaceholder": "admin@example.com",
+  "password": "Password",
+  "signingIn": "Signing in...",
+  "accountLocked": "Account Locked",
+  "signIn": "Sign In",
+  "tooManyAttempts": "Too many failed attempts. Account locked for 15 minutes.",
+  "attemptsRemaining": "{{msg}} ({{count}} attempt(s) remaining)",
+  "tryAgainIn": "Try again in {{time}}"
+}

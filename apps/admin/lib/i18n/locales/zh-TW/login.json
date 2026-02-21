@@ -1,0 +1,13 @@
+{
+  "title": "管理員登入",
+  "subtitle": "登入管理面板",
+  "email": "電子信箱",
+  "emailPlaceholder": "admin@example.com",
+  "password": "密碼",
+  "signingIn": "登入中...",
+  "accountLocked": "帳號已鎖定",
+  "signIn": "登入",
+  "tooManyAttempts": "登入失敗次數過多。帳號已鎖定 15 分鐘。",
+  "attemptsRemaining": "{{msg}}（剩餘 {{count}} 次嘗試）",
+  "tryAgainIn": "請在 {{time}} 後重試"
+}

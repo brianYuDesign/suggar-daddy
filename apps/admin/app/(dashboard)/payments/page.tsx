@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { StatsCard } from '@/components/stats-card';
@@ -21,6 +22,7 @@ function getDefaultDates() {
 }
 
 export default function PaymentsPage() {
+  const { t } = useTranslation('payments');
   const [days, setDays] = useState(30);
   const defaultDates = getDefaultDates();
   const [startDate, setStartDate] = useState(defaultDates.start);
@@ -37,7 +39,7 @@ export default function PaymentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Payments</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         <CsvExport
           data={dailyRevenue.data}
           columns={[
@@ -56,23 +58,23 @@ export default function PaymentsPage() {
         ) : (
           <>
             <StatsCard
-              title="Total Revenue"
+              title={t('stats.totalRevenue')}
               value={`$${(stats.data?.totalAmount ?? 0).toLocaleString()}`}
               icon={CreditCard}
             />
             <StatsCard
-              title="Transactions"
+              title={t('stats.transactions')}
               value={stats.data?.totalTransactions ?? 0}
               icon={TrendingUp}
-              description={`${stats.data?.successfulTransactions ?? 0} successful`}
+              description={t('stats.successful', { count: stats.data?.successfulTransactions ?? 0 })}
             />
             <StatsCard
-              title="Avg Transaction"
+              title={t('stats.avgTransaction')}
               value={`$${(stats.data?.averageAmount ?? 0).toFixed(2)}`}
               icon={BarChart3}
             />
             <StatsCard
-              title="Success Rate"
+              title={t('stats.successRate')}
               value={`${stats.data?.successRate ?? 0}%`}
               icon={Percent}
             />
@@ -83,7 +85,7 @@ export default function PaymentsPage() {
       {/* Revenue Report with Date Range */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Revenue Report</CardTitle>
+          <CardTitle className="text-base">{t('revenueReport')}</CardTitle>
           <DateRangePicker
             startDate={startDate}
             endDate={endDate}
@@ -97,15 +99,15 @@ export default function PaymentsPage() {
           ) : revenue.data ? (
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-md bg-muted p-4">
-                <p className="text-sm text-muted-foreground">Total Revenue</p>
+                <p className="text-sm text-muted-foreground">{t('totalRevenue')}</p>
                 <p className="mt-1 text-2xl font-bold">${revenue.data.totalRevenue.toLocaleString()}</p>
               </div>
               <div className="rounded-md bg-muted p-4">
-                <p className="text-sm text-muted-foreground">Transactions</p>
+                <p className="text-sm text-muted-foreground">{t('transactions')}</p>
                 <p className="mt-1 text-2xl font-bold">{revenue.data.transactionCount}</p>
               </div>
               <div className="rounded-md bg-muted p-4">
-                <p className="text-sm text-muted-foreground">Types</p>
+                <p className="text-sm text-muted-foreground">{t('types')}</p>
                 <div className="mt-1 space-y-1">
                   {Object.entries(revenue.data.byType).map(([type, info]) => (
                     <div key={type} className="flex justify-between text-sm">
@@ -117,7 +119,7 @@ export default function PaymentsPage() {
               </div>
             </div>
           ) : (
-            <p className="py-4 text-center text-sm text-muted-foreground">No data for selected range</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">{t('noDataForRange')}</p>
           )}
         </CardContent>
       </Card>
@@ -125,12 +127,12 @@ export default function PaymentsPage() {
       {/* Daily Revenue Chart */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Daily Revenue</CardTitle>
+          <CardTitle className="text-base">{t('dailyRevenue')}</CardTitle>
           <Select value={String(days)} onChange={(e) => setDays(Number(e.target.value))} className="w-32">
-            <option value="7">7 days</option>
-            <option value="14">14 days</option>
-            <option value="30">30 days</option>
-            <option value="90">90 days</option>
+            <option value="7">{t('days7')}</option>
+            <option value="14">{t('days14')}</option>
+            <option value="30">{t('days30')}</option>
+            <option value="90">{t('days90')}</option>
           </Select>
         </CardHeader>
         <CardContent>
@@ -144,7 +146,7 @@ export default function PaymentsPage() {
               }))}
             />
           ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">No revenue data for this period</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t('noRevenueData')}</p>
           )}
         </CardContent>
       </Card>
@@ -152,7 +154,7 @@ export default function PaymentsPage() {
       {/* Top Creators */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Top Creators by Revenue</CardTitle>
+          <CardTitle className="text-base">{t('topCreators')}</CardTitle>
         </CardHeader>
         <CardContent>
           {topCreators.loading ? (
@@ -163,11 +165,11 @@ export default function PaymentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>#</TableHead>
-                  <TableHead>Creator ID</TableHead>
-                  <TableHead>Tip Revenue</TableHead>
-                  <TableHead>Tips</TableHead>
-                  <TableHead>Subscribers</TableHead>
+                  <TableHead>{t('rank')}</TableHead>
+                  <TableHead>{t('creatorId')}</TableHead>
+                  <TableHead>{t('tipRevenue')}</TableHead>
+                  <TableHead>{t('tips')}</TableHead>
+                  <TableHead>{t('subscribers')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -183,7 +185,7 @@ export default function PaymentsPage() {
                 {topCreators.data?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      No creator data
+                      {t('noCreatorData')}
                     </TableCell>
                   </TableRow>
                 )}

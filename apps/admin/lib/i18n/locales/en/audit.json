@@ -1,0 +1,32 @@
+{
+  "title": "Audit Log",
+  "filterAdminId": "Filter by Admin ID...",
+  "filters": {
+    "allTargets": "All Targets",
+    "allActions": "All Actions",
+    "users": "Users",
+    "content": "Content",
+    "reports": "Reports",
+    "subscriptions": "Subscriptions",
+    "withdrawals": "Withdrawals",
+    "system": "System",
+    "disableUser": "Disable User",
+    "enableUser": "Enable User",
+    "changeRole": "Change Role",
+    "takeDownPost": "Take Down Post",
+    "reinstatePost": "Reinstate Post",
+    "batchDisable": "Batch Disable",
+    "batchResolve": "Batch Resolve"
+  },
+  "table": {
+    "title": "Audit Logs",
+    "action": "Action",
+    "method": "Method",
+    "path": "Path",
+    "adminId": "Admin ID",
+    "target": "Target",
+    "status": "Status",
+    "date": "Date",
+    "noLogs": "No audit logs found"
+  }
+}

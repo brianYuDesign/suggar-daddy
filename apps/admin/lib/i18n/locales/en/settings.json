@@ -1,0 +1,46 @@
+{
+  "title": "System Settings",
+  "subtitle": "Configure platform parameters and recommendation algorithms",
+  "tabs": {
+    "platform": "Platform Settings",
+    "recommendation": "Recommendation Settings"
+  },
+  "platform": {
+    "title": "Platform Configuration",
+    "platformFee": "Platform Fee (%)",
+    "platformFeeDesc": "Percentage of creator earnings retained by the platform",
+    "minWithdrawal": "Minimum Withdrawal Amount ($)",
+    "minWithdrawalDesc": "Minimum amount creators must accumulate before withdrawing",
+    "maxUploadSize": "Maximum Upload Size (MB)",
+    "maxUploadSizeDesc": "Maximum file size allowed for uploads",
+    "allowedFileTypes": "Allowed File Types",
+    "addType": "+ Add Type",
+    "autoApprove": "Auto-Approve Content",
+    "autoApproveDesc": "Automatically approve new content without review",
+    "maintenanceMode": "Maintenance Mode",
+    "maintenanceModeDesc": "Put the platform in maintenance mode",
+    "save": "Save Platform Settings",
+    "saving": "Saving...",
+    "saveSuccess": "Platform settings saved successfully!"
+  },
+  "recommendation": {
+    "title": "Recommendation Algorithm",
+    "enabled": "Enable Recommendations",
+    "enabledDesc": "Show personalized content recommendations to users",
+    "algorithm": "Recommendation Algorithm",
+    "algorithmDesc": "Algorithm used to generate content recommendations",
+    "popularity": "Popularity Based",
+    "engagement": "Engagement Based",
+    "hybrid": "Hybrid (Popularity + Engagement)",
+    "ai": "AI-Powered Personalization",
+    "maxRecommendations": "Maximum Recommendations",
+    "maxRecommendationsDesc": "Maximum number of recommendations to show per user",
+    "refreshInterval": "Refresh Interval (hours)",
+    "refreshIntervalDesc": "How often to refresh recommendations for each user",
+    "personalizationWeight": "Personalization Weight",
+    "personalizationWeightDesc": "Balance between personalized recommendations and trending content (0% = all trending, 100% = fully personalized)",
+    "save": "Save Recommendation Settings",
+    "saving": "Saving...",
+    "saveSuccess": "Recommendation settings saved successfully!"
+  }
+}

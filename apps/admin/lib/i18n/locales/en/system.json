@@ -1,0 +1,43 @@
+{
+  "title": "System Monitor",
+  "refresh": "Refresh",
+  "systemHealth": "System Health",
+  "latency": "Latency: {{ms}}ms",
+  "lastChecked": "Last checked: {{time}}",
+  "kafkaStatus": "Kafka Status",
+  "status": "Status",
+  "checked": "Checked: {{time}}",
+  "dlq": "Dead Letter Queue",
+  "dlqMessages": "DLQ Messages",
+  "retryAll": "Retry All",
+  "purgeAll": "Purge All",
+  "noDlqMessages": "No DLQ messages",
+  "noDlqData": "No DLQ data available",
+  "dlqTable": {
+    "id": "ID",
+    "topic": "Topic",
+    "error": "Error",
+    "retries": "Retries",
+    "date": "Date",
+    "actions": "Actions",
+    "retry": "Retry",
+    "delete": "Delete"
+  },
+  "consistency": "Data Consistency Metrics",
+  "noConsistencyData": "No consistency data available",
+  "dialog": {
+    "retryAllTitle": "Retry All Messages",
+    "purgeTitle": "Purge All Messages",
+    "retryAllDesc": "This will retry all messages in the dead letter queue. Are you sure?",
+    "purgeDesc": "This will permanently delete all messages in the dead letter queue. This action cannot be undone."
+  },
+  "toast": {
+    "retrySuccess": "Message retry initiated",
+    "retryFailed": "Failed to retry message",
+    "deleteSuccess": "Message deleted",
+    "deleteFailed": "Failed to delete message",
+    "retryAllSuccess": "All messages retry initiated",
+    "purgeSuccess": "All DLQ messages purged",
+    "operationFailed": "Operation failed"
+  }
+}

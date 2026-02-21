@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowPathIcon,
   CalendarIcon,
@@ -27,6 +28,7 @@ interface DateRange {
 }
 
 export default function AdminFinancePage() {
+  const { t } = useTranslation('finance');
   // 日期範圍狀態
   const [dateRange, setDateRange] = useState<DateRange>(() => {
     const end = new Date();
@@ -79,7 +81,7 @@ export default function AdminFinancePage() {
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
-        revenue: error instanceof Error ? error.message : '獲取營收數據失敗',
+        revenue: error instanceof Error ? error.message : t('fetchRevenueFailed'),
       }));
       // 使用模擬數據
       setRevenueData(generateMockRevenueData(groupBy));
@@ -111,7 +113,7 @@ export default function AdminFinancePage() {
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
-        transactions: error instanceof Error ? error.message : '獲取交易統計失敗',
+        transactions: error instanceof Error ? error.message : t('fetchTransactionsFailed'),
       }));
       // 使用模擬數據
       setTransactionStats(generateMockTransactionStats());
@@ -143,7 +145,7 @@ export default function AdminFinancePage() {
     } catch (error) {
       setErrors((prev) => ({
         ...prev,
-        refunds: error instanceof Error ? error.message : '獲取退款分析失敗',
+        refunds: error instanceof Error ? error.message : t('fetchRefundsFailed'),
       }));
       // 使用模擬數據
       setRefundAnalysis(generateMockRefundAnalysis());
@@ -183,9 +185,9 @@ export default function AdminFinancePage() {
           <div>
             <h1 className="text-3xl font-bold text-white flex items-center gap-3">
               <ChartPieIcon className="w-8 h-8 text-purple-500" />
-              財務報表
+              {t('title')}
             </h1>
-            <p className="text-gray-400 mt-2">監控平台營收、交易統計與退款分析</p>
+            <p className="text-gray-400 mt-2">{t('subtitle')}</p>
           </div>
 
           {/* 刷新按鈕 */}
@@ -195,7 +197,7 @@ export default function AdminFinancePage() {
             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/50 text-white px-4 py-2 rounded-lg font-medium transition-colors"
           >
             <ArrowPathIcon className={`w-5 h-5 ${Object.values(loading).some(Boolean) ? 'animate-spin' : ''}`} />
-            刷新數據
+            {t('refreshData')}
           </button>
         </div>
 
@@ -204,7 +206,7 @@ export default function AdminFinancePage() {
           <div className="flex flex-col lg:flex-row lg:items-center gap-4">
             <div className="flex items-center gap-2 text-gray-400">
               <CalendarIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">日期範圍</span>
+              <span className="text-sm font-medium">{t('dateRange')}</span>
             </div>
 
             {/* 快捷按鈕 */}
@@ -215,7 +217,7 @@ export default function AdminFinancePage() {
                   onClick={() => setPresetRange(days)}
                   className="px-3 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 text-gray-300 rounded-md transition-colors"
                 >
-                  {days === 365 ? '1年' : `${days}天`}
+                  {days === 365 ? t('year1') : t('days', { count: days })}
                 </button>
               ))}
             </div>
@@ -230,7 +232,7 @@ export default function AdminFinancePage() {
                 }
                 className="bg-slate-900 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-purple-500"
               />
-              <span className="text-gray-500">至</span>
+              <span className="text-gray-500">{t('to')}</span>
               <input
                 type="date"
                 value={dateRange.endDate}
@@ -247,7 +249,7 @@ export default function AdminFinancePage() {
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
             <BanknotesIcon className="w-6 h-6 text-emerald-400" />
-            交易總覽
+            {t('transactionOverview')}
           </h2>
           <TransactionStats
             data={transactionStats}
@@ -261,11 +263,11 @@ export default function AdminFinancePage() {
           <div className="lg:col-span-2">
             <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               <ArrowTrendingUpIcon className="w-6 h-6 text-blue-400" />
-              營收趨勢
+              {t('revenueTrend')}
             </h2>
             {errors.revenue && (
               <div className="mb-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-yellow-400 text-sm">
-                {errors.revenue} (顯示模擬數據)
+                {errors.revenue} {t('showingMockData')}
               </div>
             )}
             <RevenueChart
@@ -280,11 +282,11 @@ export default function AdminFinancePage() {
           <div className="lg:col-span-2">
             <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               <ArrowPathIcon className="w-6 h-6 text-red-400" />
-              退款分析
+              {t('refundAnalysis')}
             </h2>
             {errors.refunds && (
               <div className="mb-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-yellow-400 text-sm">
-                {errors.refunds} (顯示模擬數據)
+                {errors.refunds} {t('showingMockData')}
               </div>
             )}
             <RefundAnalysis
@@ -296,8 +298,8 @@ export default function AdminFinancePage() {
 
         {/* 頁尾 */}
         <div className="text-center text-gray-500 text-sm pt-8 border-t border-slate-700">
-          <p>數據更新時間: {new Date().toLocaleString('zh-TW')}</p>
-          <p className="mt-1">Sugar-Daddy 財務報表系統 © 2026</p>
+          <p>{t('footer.lastUpdated', { time: new Date().toLocaleString() })}</p>
+          <p className="mt-1">{t('footer.copyright')}</p>
         </div>
       </div>
     </div>

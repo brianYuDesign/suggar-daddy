@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { Pagination } from '@/components/pagination';
@@ -9,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@suggar-daddy/ui';
 const TX_TYPES = ['purchase', 'spend', 'credit', 'transfer_in', 'transfer_out', 'conversion'];
 
 export default function DiamondTransactionsPage() {
+  const { t } = useTranslation('diamonds');
   const [page, setPage] = useState(1);
   const [type, setType] = useState('');
   const [userId, setUserId] = useState('');
@@ -24,7 +26,7 @@ export default function DiamondTransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Diamond Transactions</h1>
+      <h1 className="text-2xl font-bold">{t('transactions.title')}</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
@@ -33,15 +35,15 @@ export default function DiamondTransactionsPage() {
           onChange={(e) => { setType(e.target.value); setPage(1); }}
           className="rounded-md border bg-background px-3 py-2 text-sm"
         >
-          <option value="">All Types</option>
-          {TX_TYPES.map((t) => (
-            <option key={t} value={t}>{t}</option>
+          <option value="">{t('transactions.allTypes')}</option>
+          {TX_TYPES.map((txType) => (
+            <option key={txType} value={txType}>{txType}</option>
           ))}
         </select>
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Filter by User ID..."
+            placeholder={t('transactions.filterByUser')}
             value={userIdInput}
             onChange={(e) => setUserIdInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { setUserId(userIdInput); setPage(1); } }}
@@ -51,14 +53,14 @@ export default function DiamondTransactionsPage() {
             onClick={() => { setUserId(userIdInput); setPage(1); }}
             className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
           >
-            Search
+            {t('common:actions.search')}
           </button>
           {userId && (
             <button
               onClick={() => { setUserId(''); setUserIdInput(''); setPage(1); }}
               className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
             >
-              Clear
+              {t('common:batch.clear')}
             </button>
           )}
         </div>
@@ -68,7 +70,7 @@ export default function DiamondTransactionsPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            Transactions{' '}
+            {t('transactions.title')}{' '}
             {data && <span className="font-normal text-muted-foreground">({data.total} total)</span>}
           </CardTitle>
         </CardHeader>
@@ -80,19 +82,19 @@ export default function DiamondTransactionsPage() {
               ))}
             </div>
           ) : !data?.data.length ? (
-            <p className="text-sm text-muted-foreground">No transactions found</p>
+            <p className="text-sm text-muted-foreground">{t('transactions.noTransactions')}</p>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 font-medium">User</th>
-                      <th className="pb-2 font-medium">Type</th>
-                      <th className="pb-2 font-medium">Amount</th>
-                      <th className="pb-2 font-medium">Ref Type</th>
-                      <th className="pb-2 font-medium">Description</th>
-                      <th className="pb-2 font-medium">Date</th>
+                      <th className="pb-2 font-medium">{t('table.user')}</th>
+                      <th className="pb-2 font-medium">{t('table.type')}</th>
+                      <th className="pb-2 font-medium">{t('table.amount')}</th>
+                      <th className="pb-2 font-medium">{t('transactions.refType')}</th>
+                      <th className="pb-2 font-medium">{t('transactions.description')}</th>
+                      <th className="pb-2 font-medium">{t('table.date')}</th>
                     </tr>
                   </thead>
                   <tbody>

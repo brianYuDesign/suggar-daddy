@@ -1,0 +1,28 @@
+{
+  "title": "Payments",
+  "stats": {
+    "totalRevenue": "Total Revenue",
+    "transactions": "Transactions",
+    "successful": "{{count}} successful",
+    "avgTransaction": "Avg Transaction",
+    "successRate": "Success Rate"
+  },
+  "revenueReport": "Revenue Report",
+  "totalRevenue": "Total Revenue",
+  "transactions": "Transactions",
+  "types": "Types",
+  "noDataForRange": "No data for selected range",
+  "dailyRevenue": "Daily Revenue",
+  "days7": "7 days",
+  "days14": "14 days",
+  "days30": "30 days",
+  "days90": "90 days",
+  "noRevenueData": "No revenue data for this period",
+  "topCreators": "Top Creators by Revenue",
+  "rank": "#",
+  "creatorId": "Creator ID",
+  "tipRevenue": "Tip Revenue",
+  "tips": "Tips",
+  "subscribers": "Subscribers",
+  "noCreatorData": "No creator data"
+}

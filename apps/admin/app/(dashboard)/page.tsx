@@ -1,6 +1,7 @@
 'use client';
 
 import { Users, FileText, CreditCard, Activity, Wallet } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { StatsCard } from '@/components/stats-card';
@@ -9,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent, Skeleton } from '@suggar-dadd
 import { HealthBadge } from '@/components/health-badge';
 
 export default function DashboardPage() {
+  const { t } = useTranslation('dashboard');
   const userStats = useAdminQuery(() => adminApi.getUserStats());
   const contentStats = useAdminQuery(() => adminApi.getContentStats());
   const paymentStats = useAdminQuery(() => adminApi.getPaymentStats());
@@ -18,7 +20,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Overview</h1>
+      <h1 className="text-2xl font-bold">{t('title')}</h1>
 
       {/* Stats Row */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -26,47 +28,47 @@ export default function DashboardPage() {
           <Skeleton className="h-[100px]" />
         ) : (
           <StatsCard
-            title="Total Users"
+            title={t('stats.totalUsers')}
             value={userStats.data?.totalUsers ?? 0}
             icon={Users}
-            description={`+${userStats.data?.newUsersThisWeek ?? 0} this week`}
+            description={t('stats.newThisWeek', { count: userStats.data?.newUsersThisWeek ?? 0 })}
           />
         )}
         {contentStats.loading ? (
           <Skeleton className="h-[100px]" />
         ) : (
           <StatsCard
-            title="Total Posts"
+            title={t('stats.totalPosts')}
             value={contentStats.data?.totalPosts ?? 0}
             icon={FileText}
-            description={`${contentStats.data?.pendingReports ?? 0} pending reports`}
+            description={t('stats.pendingReports', { count: contentStats.data?.pendingReports ?? 0 })}
           />
         )}
         {paymentStats.loading ? (
           <Skeleton className="h-[100px]" />
         ) : (
           <StatsCard
-            title="Total Revenue"
+            title={t('stats.totalRevenue')}
             value={`$${(paymentStats.data?.totalAmount ?? 0).toLocaleString()}`}
             icon={CreditCard}
-            description={`${paymentStats.data?.successRate ?? 0}% success rate`}
+            description={t('stats.successRate', { rate: paymentStats.data?.successRate ?? 0 })}
           />
         )}
         {withdrawalStats.loading ? (
           <Skeleton className="h-[100px]" />
         ) : (
           <StatsCard
-            title="Pending Withdrawals"
+            title={t('stats.pendingWithdrawals')}
             value={withdrawalStats.data?.pendingCount ?? 0}
             icon={Wallet}
-            description={`$${(withdrawalStats.data?.pendingAmount ?? 0).toLocaleString()} to review`}
+            description={t('stats.toReview', { amount: (withdrawalStats.data?.pendingAmount ?? 0).toLocaleString() })}
           />
         )}
         {systemHealth.loading ? (
           <Skeleton className="h-[100px]" />
         ) : (
           <StatsCard
-            title="System Status"
+            title={t('stats.systemStatus')}
             value={systemHealth.data?.status === 'healthy' ? 'Healthy' : systemHealth.data?.status ?? 'Unknown'}
             icon={Activity}
           />
@@ -77,7 +79,7 @@ export default function DashboardPage() {
         {/* Revenue Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Daily Revenue (14 days)</CardTitle>
+            <CardTitle className="text-base">{t('charts.dailyRevenue')}</CardTitle>
           </CardHeader>
           <CardContent>
             {dailyRevenue.loading ? (
@@ -90,7 +92,7 @@ export default function DashboardPage() {
                 }))}
               />
             ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">No revenue data</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">{t('charts.noRevenueData')}</p>
             )}
           </CardContent>
         </Card>
@@ -98,7 +100,7 @@ export default function DashboardPage() {
         {/* System Health */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">System Health</CardTitle>
+            <CardTitle className="text-base">{t('charts.systemHealth')}</CardTitle>
           </CardHeader>
           <CardContent>
             {systemHealth.loading ? (
@@ -118,7 +120,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">Unable to fetch health data</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">{t('charts.unableToFetch')}</p>
             )}
           </CardContent>
         </Card>
@@ -129,7 +131,7 @@ export default function DashboardPage() {
         {/* User Breakdown */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Users by Role</CardTitle>
+            <CardTitle className="text-base">{t('sections.usersByRole')}</CardTitle>
           </CardHeader>
           <CardContent>
             {userStats.loading ? (
@@ -150,7 +152,7 @@ export default function DashboardPage() {
         {/* Content Stats */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Content Moderation</CardTitle>
+            <CardTitle className="text-base">{t('sections.contentModeration')}</CardTitle>
           </CardHeader>
           <CardContent>
             {contentStats.loading ? (
@@ -158,19 +160,19 @@ export default function DashboardPage() {
             ) : contentStats.data ? (
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm">Pending Reports</span>
+                  <span className="text-sm">{t('sections.pendingReports')}</span>
                   <span className="text-sm font-medium text-yellow-600">
                     {contentStats.data.pendingReports}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Resolved Reports</span>
+                  <span className="text-sm">{t('sections.resolvedReports')}</span>
                   <span className="text-sm font-medium text-green-600">
                     {contentStats.data.resolvedReports}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Taken Down</span>
+                  <span className="text-sm">{t('sections.takenDown')}</span>
                   <span className="text-sm font-medium text-destructive">
                     {contentStats.data.takenDownCount}
                   </span>

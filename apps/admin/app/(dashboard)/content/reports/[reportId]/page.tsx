@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
@@ -10,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent, Badge, Skeleton, Separator, B
 import { TakeDownDialog } from '@/components/take-down-dialog';
 
 export default function ReportDetailPage() {
+  const { t } = useTranslation('content');
   const { reportId } = useParams<{ reportId: string }>();
   const router = useRouter();
   const toast = useToast();
@@ -26,10 +28,10 @@ export default function ReportDetailPage() {
     setActionLoading(true);
     try {
       await adminApi.takeDownPost(report.post.id, reason);
-      toast.success('Post has been taken down');
+      toast.success(t('reportDetail.takenDownSuccess'));
       refetch();
     } catch (err) {
-      toast.error(ApiError.getMessage(err, 'Failed to take down post'));
+      toast.error(ApiError.getMessage(err, t('reportDetail.takeDownFailed')));
     } finally {
       setActionLoading(false);
       setTakeDownOpen(false);
@@ -41,10 +43,10 @@ export default function ReportDetailPage() {
     setActionLoading(true);
     try {
       await adminApi.reinstatePost(report.post.id);
-      toast.success('Post has been reinstated');
+      toast.success(t('reportDetail.reinstatedSuccess'));
       refetch();
     } catch (err) {
-      toast.error(ApiError.getMessage(err, 'Failed to reinstate post'));
+      toast.error(ApiError.getMessage(err, t('reportDetail.reinstateFailed')));
     } finally {
       setActionLoading(false);
     }
@@ -60,7 +62,7 @@ export default function ReportDetailPage() {
   }
 
   if (!report) {
-    return <p className="text-muted-foreground">Report not found.</p>;
+    return <p className="text-muted-foreground">{t('reportDetail.notFound')}</p>;
   }
 
   const statusVariant = report.status === 'pending' ? 'warning' : report.status === 'resolved' ? 'success' : 'secondary';
@@ -69,35 +71,35 @@ export default function ReportDetailPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <button onClick={() => router.back()} className="text-sm text-muted-foreground hover:text-foreground">
-          &larr; Back
+          &larr; {t('common:actions.back')}
         </button>
-        <h1 className="text-2xl font-bold">Report Detail</h1>
+        <h1 className="text-2xl font-bold">{t('reportDetail.title')}</h1>
       </div>
 
       {/* Report Info */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Report Information</CardTitle>
+            <CardTitle className="text-base">{t('reportDetail.reportInfo')}</CardTitle>
             <Badge variant={statusVariant}>{report.status}</Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Report ID</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('reportDetail.reportId')}</p>
               <p className="mt-1 text-sm font-mono">{report.id}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Reporter ID</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('reportDetail.reporterId')}</p>
               <p className="mt-1 text-sm font-mono">{report.reporterId}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Reason</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('reportDetail.reason')}</p>
               <p className="mt-1 text-sm">{report.reason}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Reported At</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('reportDetail.reportedAt')}</p>
               <p className="mt-1 text-sm">{new Date(report.createdAt).toLocaleString()}</p>
             </div>
           </div>
@@ -107,30 +109,30 @@ export default function ReportDetailPage() {
       {/* Post Preview */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Post Content</CardTitle>
+          <CardTitle className="text-base">{t('reportDetail.postContent')}</CardTitle>
         </CardHeader>
         <CardContent>
           {report.post ? (
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Post ID</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('reportDetail.postId')}</p>
                   <p className="mt-1 text-sm font-mono">{report.post.id}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Creator ID</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('reportDetail.creatorId')}</p>
                   <p className="mt-1 text-sm font-mono">{report.post.creatorId}</p>
                 </div>
               </div>
               {report.post.caption && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Caption</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('reportDetail.caption')}</p>
                   <p className="mt-1 rounded-md bg-muted p-3 text-sm">{report.post.caption}</p>
                 </div>
               )}
               {report.post.mediaUrls && report.post.mediaUrls.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Media</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('reportDetail.media')}</p>
                   <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     {report.post.mediaUrls.map((url, idx) => {
                       const isVideo = /\.(mp4|webm|mov)$/i.test(url);
@@ -154,8 +156,8 @@ export default function ReportDetailPage() {
                 </div>
               )}
               <div className="flex gap-4 text-sm text-muted-foreground">
-                {report.post.likeCount !== undefined && <span>Likes: {report.post.likeCount}</span>}
-                {report.post.commentCount !== undefined && <span>Comments: {report.post.commentCount}</span>}
+                {report.post.likeCount !== undefined && <span>{t('reportDetail.likes', { count: report.post.likeCount })}</span>}
+                {report.post.commentCount !== undefined && <span>{t('reportDetail.comments', { count: report.post.commentCount })}</span>}
                 {report.post.visibility && <span>Visibility: {report.post.visibility}</span>}
               </div>
 
@@ -164,16 +166,16 @@ export default function ReportDetailPage() {
               <div className="flex gap-3">
                 {report.status === 'pending' && (
                   <Button variant="default" onClick={() => setTakeDownOpen(true)} disabled={actionLoading}>
-                    Take Down Post
+                    {t('reportDetail.takeDown')}
                   </Button>
                 )}
                 <Button variant="outline" onClick={handleReinstate} disabled={actionLoading}>
-                  {actionLoading ? 'Processing...' : 'Reinstate Post'}
+                  {actionLoading ? t('dialog.processing', { ns: 'users' }) : t('reportDetail.reinstate')}
                 </Button>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Post not found or already deleted.</p>
+            <p className="text-sm text-muted-foreground">{t('reportDetail.postNotFound')}</p>
           )}
         </CardContent>
       </Card>

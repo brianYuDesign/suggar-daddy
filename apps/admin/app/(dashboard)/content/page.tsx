@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useSort } from '@/lib/use-sort';
@@ -35,6 +36,7 @@ import {
 import { FileText, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 export default function ContentPage() {
+  const { t } = useTranslation('content');
   const toast = useToast();
   const [tab, setTab] = useState<'reports' | 'posts'>('reports');
 
@@ -81,13 +83,13 @@ export default function ContentPage() {
     setBatchLoading(true);
     try {
       const result = await adminApi.batchResolveReports(reportSelection.selectedIds);
-      toast.success(`${result.resolvedCount} report(s) resolved`);
+      toast.success(t('reports.batchSuccess', { count: result.resolvedCount }));
       reportSelection.clear();
       reports.refetch();
       stats.refetch();
     } catch (err) {
       console.error('Batch resolve failed:', err);
-      toast.error('Batch resolve failed');
+      toast.error(t('reports.batchFailed'));
     } finally {
       setBatchLoading(false);
     }
@@ -95,7 +97,7 @@ export default function ContentPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Content Moderation</h1>
+      <h1 className="text-2xl font-bold">{t('title')}</h1>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -103,10 +105,10 @@ export default function ContentPage() {
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[100px]" />)
         ) : (
           <>
-            <StatsCard title="Total Posts" value={stats.data?.totalPosts ?? 0} icon={FileText} />
-            <StatsCard title="Pending Reports" value={stats.data?.pendingReports ?? 0} icon={AlertTriangle} />
-            <StatsCard title="Resolved" value={stats.data?.resolvedReports ?? 0} icon={CheckCircle} />
-            <StatsCard title="Taken Down" value={stats.data?.takenDownCount ?? 0} icon={XCircle} />
+            <StatsCard title={t('stats.totalPosts')} value={stats.data?.totalPosts ?? 0} icon={FileText} />
+            <StatsCard title={t('stats.pendingReports')} value={stats.data?.pendingReports ?? 0} icon={AlertTriangle} />
+            <StatsCard title={t('stats.resolved')} value={stats.data?.resolvedReports ?? 0} icon={CheckCircle} />
+            <StatsCard title={t('stats.takenDown')} value={stats.data?.takenDownCount ?? 0} icon={XCircle} />
           </>
         )}
       </div>
@@ -115,10 +117,10 @@ export default function ContentPage() {
       <Tabs value={tab} onValueChange={(v) => setTab(v as 'reports' | 'posts')}>
         <TabsList>
           <TabsTrigger value="reports" active={tab === 'reports'} onClick={() => setTab('reports')}>
-            Reports {reports.data && `(${reports.data.total})`}
+            {t('tabs.reports')} {reports.data && `(${reports.data.total})`}
           </TabsTrigger>
           <TabsTrigger value="posts" active={tab === 'posts'} onClick={() => setTab('posts')}>
-            All Posts {posts.data && `(${posts.data.total})`}
+            {t('tabs.allPosts')} {posts.data && `(${posts.data.total})`}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -133,18 +135,18 @@ export default function ContentPage() {
               onClick={handleBatchResolve}
               disabled={batchLoading}
             >
-              {batchLoading ? 'Resolving...' : 'Resolve Selected'}
+              {batchLoading ? t('reports.resolving') : t('reports.resolveSelected')}
             </Button>
           </BatchActionBar>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Reports</CardTitle>
+              <CardTitle className="text-base">{t('reports.title')}</CardTitle>
               <Select value={reportStatus} onChange={(e) => { setReportStatus(e.target.value); setReportPage(1); }} className="w-36">
-                <option value="">All</option>
-                <option value="pending">Pending</option>
-                <option value="resolved">Resolved</option>
-                <option value="dismissed">Dismissed</option>
+                <option value="">{t('filters.all')}</option>
+                <option value="pending">{t('filters.pending')}</option>
+                <option value="resolved">{t('filters.resolved')}</option>
+                <option value="dismissed">{t('filters.dismissed')}</option>
               </Select>
             </CardHeader>
             <CardContent>
@@ -165,12 +167,12 @@ export default function ContentPage() {
                             className="h-4 w-4 rounded border-gray-300"
                           />
                         </TableHead>
-                        <TableHead>Report ID</TableHead>
-                        <TableHead>Post ID</TableHead>
-                        <SortableTableHead label="Reason" sortKey="reason" sort={reportSort} onToggle={toggleReportSort} />
-                        <SortableTableHead label="Status" sortKey="status" sort={reportSort} onToggle={toggleReportSort} />
-                        <SortableTableHead label="Date" sortKey="createdAt" sort={reportSort} onToggle={toggleReportSort} />
-                        <TableHead>Actions</TableHead>
+                        <TableHead>{t('reports.reportId')}</TableHead>
+                        <TableHead>{t('reports.postId')}</TableHead>
+                        <SortableTableHead label={t('reports.reason')} sortKey="reason" sort={reportSort} onToggle={toggleReportSort} />
+                        <SortableTableHead label={t('reports.status')} sortKey="status" sort={reportSort} onToggle={toggleReportSort} />
+                        <SortableTableHead label={t('reports.date')} sortKey="createdAt" sort={reportSort} onToggle={toggleReportSort} />
+                        <TableHead>{t('common:table.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -184,8 +186,8 @@ export default function ContentPage() {
                               className="h-4 w-4 rounded border-gray-300"
                             />
                           </TableCell>
-                          <TableCell className="font-mono text-xs">{report.id.slice(0, 8)}...</TableCell>
-                          <TableCell className="font-mono text-xs">{report.postId.slice(0, 8)}...</TableCell>
+                          <TableCell className="font-mono text-xs">{report.id?.slice(0, 8) ?? '-'}...</TableCell>
+                          <TableCell className="font-mono text-xs">{report.postId?.slice(0, 8) ?? '-'}...</TableCell>
                           <TableCell>{report.reason}</TableCell>
                           <TableCell>
                             <Badge variant={statusVariant(report.status)}>{report.status}</Badge>
@@ -195,14 +197,14 @@ export default function ContentPage() {
                           </TableCell>
                           <TableCell>
                             <Link href={`/content/reports/${report.id}`} className="text-sm text-primary hover:underline">
-                              Review
+                              {t('reports.review')}
                             </Link>
                           </TableCell>
                         </TableRow>
                       ))}
                       {sortedReports?.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center text-muted-foreground">No reports found</TableCell>
+                          <TableCell colSpan={7} className="text-center text-muted-foreground">{t('reports.noReports')}</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
@@ -221,7 +223,7 @@ export default function ContentPage() {
         <>
           <div className="flex gap-4">
             <Input
-              placeholder="Search by caption..."
+              placeholder={t('posts.searchPlaceholder')}
               value={postSearchInput}
               onChange={(e) => setPostSearchInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { setPostSearch(postSearchInput); setPostPage(1); } }}
@@ -232,17 +234,17 @@ export default function ContentPage() {
               onChange={(e) => { setPostVisibility(e.target.value); setPostPage(1); }}
               className="w-40"
             >
-              <option value="">All Visibility</option>
-              <option value="public">Public</option>
-              <option value="subscribers">Subscribers</option>
-              <option value="ppv">Pay-per-view</option>
+              <option value="">{t('posts.allVisibility')}</option>
+              <option value="public">{t('posts.public')}</option>
+              <option value="subscribers">{t('posts.subscribers')}</option>
+              <option value="ppv">{t('posts.ppv')}</option>
             </Select>
           </div>
 
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                Posts {posts.data && <span className="font-normal text-muted-foreground">({posts.data.total} total)</span>}
+                {t('posts.title')} {posts.data && <span className="font-normal text-muted-foreground">({posts.data.total} total)</span>}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -255,12 +257,12 @@ export default function ContentPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Creator</TableHead>
-                        <TableHead>Caption</TableHead>
-                        <SortableTableHead label="Type" sortKey="contentType" sort={postSort} onToggle={togglePostSort} />
-                        <SortableTableHead label="Visibility" sortKey="visibility" sort={postSort} onToggle={togglePostSort} />
-                        <SortableTableHead label="Likes" sortKey="likeCount" sort={postSort} onToggle={togglePostSort} />
-                        <SortableTableHead label="Date" sortKey="createdAt" sort={postSort} onToggle={togglePostSort} />
+                        <TableHead>{t('posts.creator')}</TableHead>
+                        <TableHead>{t('posts.caption')}</TableHead>
+                        <SortableTableHead label={t('posts.type')} sortKey="contentType" sort={postSort} onToggle={togglePostSort} />
+                        <SortableTableHead label={t('posts.visibility')} sortKey="visibility" sort={postSort} onToggle={togglePostSort} />
+                        <SortableTableHead label={t('posts.likes')} sortKey="likeCount" sort={postSort} onToggle={togglePostSort} />
+                        <SortableTableHead label={t('posts.date')} sortKey="createdAt" sort={postSort} onToggle={togglePostSort} />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -270,7 +272,7 @@ export default function ContentPage() {
                             <div className="flex items-center gap-2">
                               <Avatar src={post.creator?.avatarUrl} fallback={post.creator?.displayName || '?'} size="sm" />
                               <div>
-                                <p className="text-sm font-medium">{post.creator?.displayName || 'Unknown'}</p>
+                                <p className="text-sm font-medium">{post.creator?.displayName || t('posts.unknown')}</p>
                                 <p className="text-xs text-muted-foreground">{post.creator?.email || '-'}</p>
                               </div>
                             </div>
@@ -288,7 +290,7 @@ export default function ContentPage() {
                       ))}
                       {sortedPosts?.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-muted-foreground">No posts found</TableCell>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">{t('posts.noPosts')}</TableCell>
                         </TableRow>
                       )}
                     </TableBody>

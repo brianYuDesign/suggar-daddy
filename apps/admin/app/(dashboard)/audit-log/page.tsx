@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useSort } from '@/lib/use-sort';
@@ -31,6 +32,7 @@ const methodVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'w
 };
 
 export default function AuditLogPage() {
+  const { t } = useTranslation('audit');
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const [adminIdFilter, setAdminIdFilter] = useState('');
@@ -55,12 +57,12 @@ export default function AuditLogPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Audit Log</h1>
+      <h1 className="text-2xl font-bold">{t('title')}</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
         <Input
-          placeholder="Filter by Admin ID..."
+          placeholder={t('filterAdminId')}
           value={adminIdInput}
           onChange={(e) => setAdminIdInput(e.target.value)}
           onKeyDown={(e) => {
@@ -76,34 +78,34 @@ export default function AuditLogPage() {
           onChange={(e) => { setTargetTypeFilter(e.target.value); setPage(1); }}
           className="w-40"
         >
-          <option value="">All Targets</option>
-          <option value="users">Users</option>
-          <option value="content">Content</option>
-          <option value="reports">Reports</option>
-          <option value="subscriptions">Subscriptions</option>
-          <option value="withdrawals">Withdrawals</option>
-          <option value="system">System</option>
+          <option value="">{t('filters.allTargets')}</option>
+          <option value="users">{t('filters.users')}</option>
+          <option value="content">{t('filters.content')}</option>
+          <option value="reports">{t('filters.reports')}</option>
+          <option value="subscriptions">{t('filters.subscriptions')}</option>
+          <option value="withdrawals">{t('filters.withdrawals')}</option>
+          <option value="system">{t('filters.system')}</option>
         </Select>
         <Select
           value={actionFilter}
           onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
           className="w-48"
         >
-          <option value="">All Actions</option>
-          <option value="post.users.disable">Disable User</option>
-          <option value="post.users.enable">Enable User</option>
-          <option value="post.users.role">Change Role</option>
-          <option value="post.content.posts.take-down">Take Down Post</option>
-          <option value="post.content.posts.reinstate">Reinstate Post</option>
-          <option value="post.users.batch.disable">Batch Disable</option>
-          <option value="post.reports.batch.resolve">Batch Resolve</option>
+          <option value="">{t('filters.allActions')}</option>
+          <option value="post.users.disable">{t('filters.disableUser')}</option>
+          <option value="post.users.enable">{t('filters.enableUser')}</option>
+          <option value="post.users.role">{t('filters.changeRole')}</option>
+          <option value="post.content.posts.take-down">{t('filters.takeDownPost')}</option>
+          <option value="post.content.posts.reinstate">{t('filters.reinstatePost')}</option>
+          <option value="post.users.batch.disable">{t('filters.batchDisable')}</option>
+          <option value="post.reports.batch.resolve">{t('filters.batchResolve')}</option>
         </Select>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Audit Logs{' '}
+            {t('table.title')}{' '}
             {data && <span className="font-normal text-muted-foreground">({data.total} total)</span>}
           </CardTitle>
         </CardHeader>
@@ -119,13 +121,13 @@ export default function AuditLogPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <SortableTableHead label="Action" sortKey="action" sort={sort} onToggle={toggleSort} />
-                    <TableHead>Method</TableHead>
-                    <TableHead>Path</TableHead>
-                    <TableHead>Admin ID</TableHead>
-                    <TableHead>Target</TableHead>
-                    <TableHead>Status</TableHead>
-                    <SortableTableHead label="Date" sortKey="createdAt" sort={sort} onToggle={toggleSort} />
+                    <SortableTableHead label={t('table.action')} sortKey="action" sort={sort} onToggle={toggleSort} />
+                    <TableHead>{t('table.method')}</TableHead>
+                    <TableHead>{t('table.path')}</TableHead>
+                    <TableHead>{t('table.adminId')}</TableHead>
+                    <TableHead>{t('table.target')}</TableHead>
+                    <TableHead>{t('table.status')}</TableHead>
+                    <SortableTableHead label={t('table.date')} sortKey="createdAt" sort={sort} onToggle={toggleSort} />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -161,7 +163,7 @@ export default function AuditLogPage() {
                   {sorted?.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center text-muted-foreground">
-                        No audit logs found
+                        {t('table.noLogs')}
                       </TableCell>
                     </TableRow>
                   )}

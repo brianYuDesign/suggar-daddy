@@ -1,0 +1,54 @@
+{
+  "title": "Analytics",
+  "matching": {
+    "title": "Matching Statistics",
+    "totalSwipes": "Total Swipes",
+    "totalMatches": "Total Matches",
+    "activeMatches": "Active Matches",
+    "matchRate": "Match Rate",
+    "matchRateDesc": "{{likes}} likes, {{passes}} passes",
+    "likes": "Likes",
+    "passes": "Passes",
+    "superLikes": "Super Likes",
+    "dailyMatches": "Daily Matches (14 days)",
+    "noData": "No matching data"
+  },
+  "dauMau": {
+    "title": "Daily / Monthly Active Users",
+    "dau": "DAU (Today)",
+    "mau": "MAU (30 days)",
+    "ratio": "DAU/MAU Ratio",
+    "noData": "No DAU/MAU data"
+  },
+  "creatorRevenue": {
+    "title": "Creator Revenue Ranking",
+    "rank": "#",
+    "creator": "Creator",
+    "revenue": "Revenue",
+    "tips": "Tips",
+    "noData": "No data"
+  },
+  "popularContent": {
+    "title": "Popular Content",
+    "rank": "#",
+    "post": "Post",
+    "engagement": "Engagement",
+    "likes": "Likes",
+    "noData": "No data"
+  },
+  "churn": {
+    "title": "Subscription Churn Rate",
+    "churnRate": "Churn Rate",
+    "activeAtStart": "Active (Start)",
+    "cancelled": "Cancelled",
+    "new": "New",
+    "currentActive": "Current Active",
+    "noData": "No churn data",
+    "week": "Week",
+    "month": "Month",
+    "quarter": "Quarter"
+  },
+  "days7": "7 days",
+  "days14": "14 days",
+  "days30": "30 days"
+}

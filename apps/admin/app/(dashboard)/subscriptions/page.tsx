@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
@@ -37,6 +38,7 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'w
 };
 
 export default function SubscriptionsPage() {
+  const { t } = useTranslation('subscriptions');
   const toast = useToast();
   const [tab, setTab] = useState<'subscriptions' | 'tiers'>('subscriptions');
   const [page, setPage] = useState(1);
@@ -62,10 +64,10 @@ export default function SubscriptionsPage() {
     setToggling(tierId);
     try {
       const res = await adminApi.toggleTierActive(tierId);
-      toast.success(`"${tierName}" ${res.isActive ? 'activated' : 'deactivated'}`);
+      toast.success(res.isActive ? t('tiers.activated', { name: tierName }) : t('tiers.deactivated', { name: tierName }));
       tiers.refetch();
     } catch (err) {
-      toast.error(ApiError.getMessage(err, 'Failed to update tier'));
+      toast.error(ApiError.getMessage(err, t('tiers.toggleFailed')));
     } finally {
       setToggling(null);
     }
@@ -73,7 +75,7 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Subscriptions</h1>
+      <h1 className="text-2xl font-bold">{t('title')}</h1>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -81,12 +83,12 @@ export default function SubscriptionsPage() {
           Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-[100px]" />)
         ) : (
           <>
-            <StatsCard title="Active" value={stats.data?.totalActive ?? 0} icon={Users} />
-            <StatsCard title="Cancelled" value={stats.data?.totalCancelled ?? 0} icon={XCircle} />
-            <StatsCard title="Expired" value={stats.data?.totalExpired ?? 0} icon={CreditCard} />
-            <StatsCard title="Total" value={stats.data?.total ?? 0} icon={TrendingUp} />
+            <StatsCard title={t('stats.active')} value={stats.data?.totalActive ?? 0} icon={Users} />
+            <StatsCard title={t('stats.cancelled')} value={stats.data?.totalCancelled ?? 0} icon={XCircle} />
+            <StatsCard title={t('stats.expired')} value={stats.data?.totalExpired ?? 0} icon={CreditCard} />
+            <StatsCard title={t('stats.total')} value={stats.data?.total ?? 0} icon={TrendingUp} />
             <StatsCard
-              title="MRR"
+              title={t('stats.mrr')}
               value={`$${(stats.data?.mrr ?? 0).toLocaleString()}`}
               icon={DollarSign}
             />
@@ -98,10 +100,10 @@ export default function SubscriptionsPage() {
       <Tabs value={tab} onValueChange={(v) => setTab(v as 'subscriptions' | 'tiers')}>
         <TabsList>
           <TabsTrigger value="subscriptions" active={tab === 'subscriptions'} onClick={() => setTab('subscriptions')}>
-            Subscriptions
+            {t('tabs.subscriptions')}
           </TabsTrigger>
           <TabsTrigger value="tiers" active={tab === 'tiers'} onClick={() => setTab('tiers')}>
-            Tiers
+            {t('tabs.tiers')}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -115,17 +117,17 @@ export default function SubscriptionsPage() {
               onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
               className="w-44"
             >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="expired">Expired</option>
+              <option value="">{t('filters.allStatus')}</option>
+              <option value="active">{t('filters.active')}</option>
+              <option value="cancelled">{t('filters.cancelled')}</option>
+              <option value="expired">{t('filters.expired')}</option>
             </Select>
           </div>
 
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                Subscription List{' '}
+                {t('subscriptionList')}{' '}
                 {subs.data && (
                   <span className="font-normal text-muted-foreground">({subs.data.total} total)</span>
                 )}
@@ -141,12 +143,12 @@ export default function SubscriptionsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Subscriber</TableHead>
-                        <TableHead>Creator</TableHead>
-                        <TableHead>Tier</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created</TableHead>
+                        <TableHead>{t('table.subscriber')}</TableHead>
+                        <TableHead>{t('table.creator')}</TableHead>
+                        <TableHead>{t('table.tier')}</TableHead>
+                        <TableHead>{t('table.price')}</TableHead>
+                        <TableHead>{t('table.status')}</TableHead>
+                        <TableHead>{t('table.created')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -156,7 +158,7 @@ export default function SubscriptionsPage() {
                             <div className="flex items-center gap-2">
                               <Avatar src={s.subscriber?.avatarUrl} fallback={s.subscriber?.displayName || '?'} size="sm" />
                               <div>
-                                <p className="text-sm font-medium">{s.subscriber?.displayName || 'Unknown'}</p>
+                                <p className="text-sm font-medium">{s.subscriber?.displayName || t('table.unknown')}</p>
                                 <p className="text-xs text-muted-foreground">{s.subscriber?.email || '—'}</p>
                               </div>
                             </div>
@@ -165,7 +167,7 @@ export default function SubscriptionsPage() {
                             <div className="flex items-center gap-2">
                               <Avatar src={s.creator?.avatarUrl} fallback={s.creator?.displayName || '?'} size="sm" />
                               <div>
-                                <p className="text-sm font-medium">{s.creator?.displayName || 'Unknown'}</p>
+                                <p className="text-sm font-medium">{s.creator?.displayName || t('table.unknown')}</p>
                                 <p className="text-xs text-muted-foreground">{s.creator?.email || '—'}</p>
                               </div>
                             </div>
@@ -185,7 +187,7 @@ export default function SubscriptionsPage() {
                       {subs.data?.data.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center text-muted-foreground">
-                            No subscriptions found
+                            {t('table.noSubscriptions')}
                           </TableCell>
                         </TableRow>
                       )}
@@ -205,7 +207,7 @@ export default function SubscriptionsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              Subscription Tiers{' '}
+              {t('tiers.title')}{' '}
               {tiers.data && (
                 <span className="font-normal text-muted-foreground">({tiers.data.total} total)</span>
               )}
@@ -221,45 +223,45 @@ export default function SubscriptionsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Tier Name</TableHead>
-                      <TableHead>Creator</TableHead>
-                      <TableHead>Monthly</TableHead>
-                      <TableHead>Yearly</TableHead>
-                      <TableHead>Subscribers</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t('tiers.tierName')}</TableHead>
+                      <TableHead>{t('tiers.creator')}</TableHead>
+                      <TableHead>{t('tiers.monthly')}</TableHead>
+                      <TableHead>{t('tiers.yearly')}</TableHead>
+                      <TableHead>{t('tiers.subscribers')}</TableHead>
+                      <TableHead>{t('tiers.status')}</TableHead>
+                      <TableHead>{t('tiers.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {tiers.data?.data.map((t) => (
-                      <TableRow key={t.id}>
+                    {tiers.data?.data.map((tier) => (
+                      <TableRow key={tier.id}>
                         <TableCell>
-                          <p className="text-sm font-medium">{t.name}</p>
-                          {t.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>
+                          <p className="text-sm font-medium">{tier.name}</p>
+                          {tier.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">{tier.description}</p>
                           )}
                         </TableCell>
                         <TableCell className="text-sm">
-                          {t.creator?.displayName || t.creator?.email || '—'}
+                          {tier.creator?.displayName || tier.creator?.email || '—'}
                         </TableCell>
-                        <TableCell className="text-sm font-semibold">${t.priceMonthly.toFixed(2)}</TableCell>
+                        <TableCell className="text-sm font-semibold">${tier.priceMonthly.toFixed(2)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {t.priceYearly ? `$${t.priceYearly.toFixed(2)}` : '—'}
+                          {tier.priceYearly ? `$${tier.priceYearly.toFixed(2)}` : '—'}
                         </TableCell>
-                        <TableCell className="text-sm">{t.activeSubscribers}</TableCell>
+                        <TableCell className="text-sm">{tier.activeSubscribers}</TableCell>
                         <TableCell>
-                          <Badge variant={t.isActive ? 'default' : 'secondary'}>
-                            {t.isActive ? 'Active' : 'Inactive'}
+                          <Badge variant={tier.isActive ? 'default' : 'secondary'}>
+                            {tier.isActive ? t('tiers.active') : t('tiers.inactive')}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <Button
                             size="sm"
-                            variant={t.isActive ? 'outline' : 'default'}
-                            onClick={() => handleToggleTier(t.id, t.name)}
-                            disabled={toggling === t.id}
+                            variant={tier.isActive ? 'outline' : 'default'}
+                            onClick={() => handleToggleTier(tier.id, tier.name)}
+                            disabled={toggling === tier.id}
                           >
-                            {toggling === t.id ? '...' : t.isActive ? 'Deactivate' : 'Activate'}
+                            {toggling === tier.id ? '...' : tier.isActive ? t('common:actions.deactivate', { defaultValue: 'Deactivate' }) : t('common:actions.activate', { defaultValue: 'Activate' })}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -267,7 +269,7 @@ export default function SubscriptionsPage() {
                     {tiers.data?.data.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center text-muted-foreground">
-                          No tiers found
+                          {t('tiers.noTiers')}
                         </TableCell>
                       </TableRow>
                     )}

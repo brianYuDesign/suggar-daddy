@@ -1,0 +1,43 @@
+{
+  "title": "系統監控",
+  "refresh": "重新整理",
+  "systemHealth": "系統健康",
+  "latency": "延遲：{{ms}}ms",
+  "lastChecked": "最後檢查：{{time}}",
+  "kafkaStatus": "Kafka 狀態",
+  "status": "狀態",
+  "checked": "檢查時間：{{time}}",
+  "dlq": "死信佇列",
+  "dlqMessages": "DLQ 訊息",
+  "retryAll": "重試全部",
+  "purgeAll": "清除全部",
+  "noDlqMessages": "無 DLQ 訊息",
+  "noDlqData": "無 DLQ 數據",
+  "dlqTable": {
+    "id": "ID",
+    "topic": "主題",
+    "error": "錯誤",
+    "retries": "重試次數",
+    "date": "日期",
+    "actions": "操作",
+    "retry": "重試",
+    "delete": "刪除"
+  },
+  "consistency": "數據一致性指標",
+  "noConsistencyData": "無一致性數據",
+  "dialog": {
+    "retryAllTitle": "重試所有訊息",
+    "purgeTitle": "清除所有訊息",
+    "retryAllDesc": "這將重試死信佇列中的所有訊息。確定嗎？",
+    "purgeDesc": "這將永久刪除死信佇列中的所有訊息。此操作無法復原。"
+  },
+  "toast": {
+    "retrySuccess": "訊息重試已啟動",
+    "retryFailed": "重試訊息失敗",
+    "deleteSuccess": "訊息已刪除",
+    "deleteFailed": "刪除訊息失敗",
+    "retryAllSuccess": "所有訊息重試已啟動",
+    "purgeSuccess": "所有 DLQ 訊息已清除",
+    "operationFailed": "操作失敗"
+  }
+}

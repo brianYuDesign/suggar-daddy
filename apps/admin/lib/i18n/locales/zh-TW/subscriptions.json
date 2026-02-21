@@ -1,0 +1,47 @@
+{
+  "title": "訂閱管理",
+  "stats": {
+    "active": "啟用",
+    "cancelled": "已取消",
+    "expired": "已過期",
+    "total": "總計",
+    "mrr": "月經常性收入"
+  },
+  "tabs": {
+    "subscriptions": "訂閱",
+    "tiers": "方案等級"
+  },
+  "filters": {
+    "allStatus": "所有狀態",
+    "active": "啟用",
+    "cancelled": "已取消",
+    "expired": "已過期"
+  },
+  "subscriptionList": "訂閱列表",
+  "table": {
+    "subscriber": "訂閱者",
+    "creator": "創作者",
+    "tier": "方案",
+    "price": "價格",
+    "status": "狀態",
+    "created": "建立日期",
+    "unknown": "未知",
+    "noSubscriptions": "找不到訂閱"
+  },
+  "tiers": {
+    "title": "訂閱方案等級",
+    "tierName": "方案名稱",
+    "creator": "創作者",
+    "monthly": "月費",
+    "yearly": "年費",
+    "subscribers": "訂閱者數",
+    "status": "狀態",
+    "actions": "操作",
+    "active": "啟用",
+    "inactive": "停用",
+    "noTiers": "找不到方案",
+    "activated": "「{{name}}」已啟用",
+    "deactivated": "「{{name}}」已停用",
+    "toggleFailed": "更新方案失敗"
+  }
+}

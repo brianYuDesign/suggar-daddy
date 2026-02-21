@@ -1,0 +1,54 @@
+{
+  "title": "數據分析",
+  "matching": {
+    "title": "配對統計",
+    "totalSwipes": "總滑動次數",
+    "totalMatches": "總配對數",
+    "activeMatches": "活躍配對",
+    "matchRate": "配對率",
+    "matchRateDesc": "{{likes}} 個喜歡，{{passes}} 個略過",
+    "likes": "喜歡",
+    "passes": "略過",
+    "superLikes": "Super Like",
+    "dailyMatches": "每日配對（14 天）",
+    "noData": "無配對數據"
+  },
+  "dauMau": {
+    "title": "每日 / 每月活躍用戶",
+    "dau": "DAU（今日）",
+    "mau": "MAU（30 天）",
+    "ratio": "DAU/MAU 比率",
+    "noData": "無 DAU/MAU 數據"
+  },
+  "creatorRevenue": {
+    "title": "創作者營收排行",
+    "rank": "#",
+    "creator": "創作者",
+    "revenue": "營收",
+    "tips": "打賞數",
+    "noData": "無數據"
+  },
+  "popularContent": {
+    "title": "熱門內容",
+    "rank": "#",
+    "post": "貼文",
+    "engagement": "互動數",
+    "likes": "按讚數",
+    "noData": "無數據"
+  },
+  "churn": {
+    "title": "訂閱流失率",
+    "churnRate": "流失率",
+    "activeAtStart": "期初活躍",
+    "cancelled": "取消數",
+    "new": "新增數",
+    "currentActive": "目前活躍",
+    "noData": "無流失數據",
+    "week": "週",
+    "month": "月",
+    "quarter": "季"
+  },
+  "days7": "7 天",
+  "days14": "14 天",
+  "days30": "30 天"
+}

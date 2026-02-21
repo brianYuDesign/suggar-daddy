@@ -1,0 +1,47 @@
+{
+  "title": "提款管理",
+  "stats": {
+    "pending": "待處理",
+    "pendingTotal": "${{amount}} 待處理",
+    "completed": "已完成",
+    "completedTotal": "${{amount}} 已付款",
+    "rejected": "已拒絕",
+    "totalRequests": "總請求數"
+  },
+  "filters": {
+    "allStatus": "所有狀態",
+    "pending": "待處理",
+    "completed": "已完成",
+    "rejected": "已拒絕"
+  },
+  "table": {
+    "title": "提款請求",
+    "creator": "創作者",
+    "amount": "金額",
+    "method": "方式",
+    "status": "狀態",
+    "requested": "請求日期",
+    "actions": "操作",
+    "unknown": "未知",
+    "noWithdrawals": "找不到提款請求"
+  },
+  "actions": {
+    "approve": "核准",
+    "reject": "拒絕",
+    "approveTooltip": "批准此提款請求",
+    "rejectTooltip": "拒絕此提款請求"
+  },
+  "dialog": {
+    "approveTitle": "核准提款",
+    "rejectTitle": "拒絕提款",
+    "approveDesc": "核准 {{name}} 的 ${{amount}} 提款請求？此操作將處理付款。",
+    "rejectDesc": "拒絕 {{name}} 的 ${{amount}} 提款請求？金額將退回錢包。",
+    "rejectReason": "原因（選填）",
+    "rejectPlaceholder": "輸入拒絕原因...",
+    "confirmApprove": "確認核准",
+    "confirmReject": "確認拒絕",
+    "approveSuccess": "已核准 {{name}} 的 ${{amount}} 提款",
+    "rejectSuccess": "已拒絕 {{name}} 的 ${{amount}} 提款",
+    "processFailed": "處理提款失敗"
+  }
+}

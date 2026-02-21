@@ -1,0 +1,17 @@
+{
+  "title": "Chat Room Management",
+  "superAdminOnly": "Super Admin Only",
+  "stats": {
+    "totalConversations": "Total Conversations",
+    "totalMessages": "Total Messages",
+    "onlineUsers": "Online Users"
+  },
+  "searchPlaceholder": "Search by participant name or email...",
+  "conversations": "Conversations",
+  "noConversations": "No conversations found",
+  "noMessages": "No messages in this conversation",
+  "backToChatRooms": "Back to Chat Rooms",
+  "participants": "Participants",
+  "messages": "Messages",
+  "unknown": "Unknown"
+}

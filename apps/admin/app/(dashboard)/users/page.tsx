@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useSort } from '@/lib/use-sort';
@@ -23,6 +24,7 @@ interface User {
 }
 
 export default function UsersPage() {
+  const { t } = useTranslation('users');
   const toast = useToast();
   const [page, setPage] = useState(1);
   const [role, setRole] = useState('');
@@ -55,12 +57,12 @@ export default function UsersPage() {
     setBatchLoading(true);
     try {
       const result = await adminApi.batchDisableUsers(selection.selectedIds);
-      toast.success(`已禁用 ${result.disabledCount} 位用戶`);
+      toast.success(t('batch.success', { count: result.disabledCount }));
       selection.clear();
       refetch();
     } catch (err) {
       console.error('Batch disable failed:', err);
-      toast.error('批量禁用失敗，請重試');
+      toast.error(t('batch.failed'));
     } finally {
       setBatchLoading(false);
       setShowDisableConfirm(false);
@@ -87,7 +89,7 @@ export default function UsersPage() {
     },
     {
       key: 'user',
-      header: 'User',
+      header: t('table.user'),
       render: (user) => (
         <div className="flex items-center gap-3">
           <Avatar
@@ -96,21 +98,21 @@ export default function UsersPage() {
             size="sm"
           />
           <span className="font-medium">
-            {user.displayName || 'No name'}
+            {user.displayName || t('table.noName')}
           </span>
         </div>
       ),
     },
     {
       key: 'email',
-      header: 'Email',
+      header: t('table.email'),
       render: (user) => (
         <span className="text-muted-foreground">{user.email}</span>
       ),
     },
     {
       key: 'role',
-      header: 'Role',
+      header: t('table.role'),
       render: (user) => (
         <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
           {user.role}
@@ -119,7 +121,7 @@ export default function UsersPage() {
     },
     {
       key: 'joined',
-      header: 'Joined',
+      header: t('table.joined'),
       hideOnMobile: true,
       render: (user) => (
         <span className="text-muted-foreground">
@@ -129,15 +131,15 @@ export default function UsersPage() {
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('table.actions'),
       hideOnMobile: true,
       render: (user) => (
-        <Tooltip content="查看用戶詳情">
+        <Tooltip content={t('table.viewDetails')}>
           <Link
             href={`/users/${user.id}`}
             className="text-sm text-primary hover:underline"
           >
-            View
+            {t('common:actions.view')}
           </Link>
         </Tooltip>
       ),
@@ -162,7 +164,7 @@ export default function UsersPage() {
           />
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm truncate">
-              {user.displayName || 'No name'}
+              {user.displayName || t('table.noName')}
             </p>
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
           </div>
@@ -179,7 +181,7 @@ export default function UsersPage() {
           href={`/users/${user.id}`}
           className="text-sm text-primary hover:underline"
         >
-          View Details
+          {t('table.viewDetails')}
         </Link>
       </div>
     </div>
@@ -188,14 +190,14 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Users</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
       </div>
 
       {/* Filters */}
       <div className="flex gap-4">
         <div className="flex gap-2">
           <Input
-            placeholder="Search by name or email..."
+            placeholder={t('searchPlaceholder')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -203,27 +205,27 @@ export default function UsersPage() {
           />
         </div>
         <Select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="w-40">
-          <option value="">All Roles</option>
+          <option value="">{t('filters.allRoles')}</option>
           <option value="ADMIN">Admin</option>
           <option value="CREATOR">Creator</option>
           <option value="SUBSCRIBER">Subscriber</option>
         </Select>
         <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="w-40">
-          <option value="">All Status</option>
-          <option value="disabled">Disabled</option>
+          <option value="">{t('filters.allStatus')}</option>
+          <option value="disabled">{t('filters.disabled')}</option>
         </Select>
       </div>
 
       {/* Batch Action Bar */}
       <BatchActionBar selectedCount={selection.selectedCount} onClear={selection.clear}>
-        <Tooltip content={selection.selectedCount === 0 ? '請先選擇要禁用的用戶' : `禁用選中的 ${selection.selectedCount} 位用戶`}>
+        <Tooltip content={selection.selectedCount === 0 ? t('batch.disableTooltipEmpty') : t('batch.disableTooltip', { count: selection.selectedCount })}>
           <Button
             variant="destructive"
             size="sm"
             onClick={handleBatchDisable}
             disabled={batchLoading || selection.selectedCount === 0}
           >
-            {batchLoading ? 'Disabling...' : 'Disable Selected'}
+            {batchLoading ? t('batch.disabling') : t('batch.disableSelected')}
           </Button>
         </Tooltip>
       </BatchActionBar>
@@ -231,7 +233,7 @@ export default function UsersPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            User List {data && <span className="font-normal text-muted-foreground">({data.total} total)</span>}
+            {t('table.userList')} {data && <span className="font-normal text-muted-foreground">({data.total} total)</span>}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -252,7 +254,7 @@ export default function UsersPage() {
                     onChange={selection.toggleAll}
                     className="h-4 w-4 rounded border-gray-300"
                   />
-                  <span>Select All</span>
+                  <span>{t('table.selectAll')}</span>
                 </label>
               </div>
 
@@ -263,7 +265,7 @@ export default function UsersPage() {
                 mobileCard={renderMobileCard}
                 emptyState={
                   <div className="text-center py-8 text-muted-foreground">
-                    No users found
+                    {t('table.noUsers')}
                   </div>
                 }
               />
@@ -279,10 +281,10 @@ export default function UsersPage() {
       {/* Confirm Dialog */}
       <ConfirmDialog
         open={showDisableConfirm}
-        title="確認批量禁用用戶"
-        description={`您即將禁用 ${selection.selectedCount} 位用戶。禁用後，這些用戶將無法登入系統。此操作可以在用戶詳情頁面中恢復。確定要繼續嗎？`}
-        confirmText="確認禁用"
-        cancelText="取消"
+        title={t('batch.confirmTitle')}
+        description={t('batch.confirmDesc', { count: selection.selectedCount })}
+        confirmText={t('batch.confirmButton')}
+        cancelText={t('common:actions.cancel')}
         isDestructive={true}
         isLoading={batchLoading}
         onConfirm={confirmBatchDisable}

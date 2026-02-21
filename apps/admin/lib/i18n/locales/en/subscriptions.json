@@ -1,0 +1,47 @@
+{
+  "title": "Subscriptions",
+  "stats": {
+    "active": "Active",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "total": "Total",
+    "mrr": "MRR"
+  },
+  "tabs": {
+    "subscriptions": "Subscriptions",
+    "tiers": "Tiers"
+  },
+  "filters": {
+    "allStatus": "All Status",
+    "active": "Active",
+    "cancelled": "Cancelled",
+    "expired": "Expired"
+  },
+  "subscriptionList": "Subscription List",
+  "table": {
+    "subscriber": "Subscriber",
+    "creator": "Creator",
+    "tier": "Tier",
+    "price": "Price",
+    "status": "Status",
+    "created": "Created",
+    "unknown": "Unknown",
+    "noSubscriptions": "No subscriptions found"
+  },
+  "tiers": {
+    "title": "Subscription Tiers",
+    "tierName": "Tier Name",
+    "creator": "Creator",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "subscribers": "Subscribers",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "noTiers": "No tiers found",
+    "activated": "\"{{name}}\" activated",
+    "deactivated": "\"{{name}}\" deactivated",
+    "toggleFailed": "Failed to update tier"
+  }
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@suggar-daddy/ui';
 import { Download } from 'lucide-react';
 
@@ -16,6 +17,7 @@ export function CsvExport<T extends object>({
   filename = 'export',
 }: CsvExportProps<T>) {
   const [exporting, setExporting] = useState(false);
+  const { t } = useTranslation('common');
 
   const handleExport = useCallback(() => {
     if (!data || data.length === 0) return;
@@ -57,7 +59,7 @@ export function CsvExport<T extends object>({
       disabled={!data || data.length === 0 || exporting}
     >
       <Download className="mr-2 h-4 w-4" />
-      {exporting ? 'Exporting...' : 'Export CSV'}
+      {exporting ? t('csv.exporting') : t('csv.export')}
     </Button>
   );
 }

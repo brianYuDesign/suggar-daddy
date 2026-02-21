@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import {
   Gem,
   ShoppingCart,
@@ -17,6 +18,7 @@ import { StatsCard } from '@/components/stats-card';
 import { Card, CardHeader, CardTitle, CardContent } from '@suggar-daddy/ui';
 
 export default function DiamondsPage() {
+  const { t } = useTranslation('diamonds');
   const stats = useAdminQuery(() => adminApi.getDiamondStats());
   const purchases = useAdminQuery(() => adminApi.listDiamondPurchases(1, 10));
   const transactions = useAdminQuery(() => adminApi.listDiamondTransactions(1, 10));
@@ -24,19 +26,19 @@ export default function DiamondsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Diamond Economy</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         <div className="flex gap-2">
           <Link
             href="/diamonds/packages"
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
-            Manage Packages
+            {t('managePackages')}
           </Link>
           <Link
             href="/diamonds/config"
             className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
           >
-            Pricing Config
+            {t('pricingConfig')}
           </Link>
         </div>
       </div>
@@ -50,28 +52,28 @@ export default function DiamondsPage() {
         ) : (
           <>
             <StatsCard
-              title="In Circulation"
+              title={t('stats.inCirculation')}
               value={(stats.data?.totalInCirculation ?? 0).toLocaleString()}
               icon={Gem}
-              description="Total diamonds held by users"
+              description={t('stats.inCirculationDesc')}
             />
             <StatsCard
-              title="Total Purchased"
+              title={t('stats.totalPurchased')}
               value={(stats.data?.totalPurchased ?? 0).toLocaleString()}
               icon={ShoppingCart}
-              description="All-time purchased diamonds"
+              description={t('stats.totalPurchasedDesc')}
             />
             <StatsCard
-              title="Total Spent"
+              title={t('stats.totalSpent')}
               value={(stats.data?.totalSpent ?? 0).toLocaleString()}
               icon={TrendingDown}
-              description="Diamonds spent on features"
+              description={t('stats.totalSpentDesc')}
             />
             <StatsCard
-              title="Total Converted"
+              title={t('stats.totalConverted')}
               value={(stats.data?.totalConverted ?? 0).toLocaleString()}
               icon={ArrowRightLeft}
-              description="Converted to cash"
+              description={t('stats.totalConvertedDesc')}
             />
           </>
         )}
@@ -79,17 +81,17 @@ export default function DiamondsPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <StatsCard
-          title="Total Received"
+          title={t('stats.totalReceived')}
           value={stats.loading ? '...' : (stats.data?.totalReceived ?? 0).toLocaleString()}
           icon={Gift}
         />
         <StatsCard
-          title="Users with Balance"
+          title={t('stats.usersWithBalance')}
           value={stats.loading ? '...' : (stats.data?.userCount ?? 0).toLocaleString()}
           icon={Users}
         />
         <StatsCard
-          title="Average Balance"
+          title={t('stats.averageBalance')}
           value={stats.loading ? '...' : (stats.data?.averageBalance ?? 0).toLocaleString()}
           icon={BarChart3}
         />
@@ -100,9 +102,9 @@ export default function DiamondsPage() {
         {/* Recent Purchases */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Purchases</CardTitle>
+            <CardTitle>{t('recentPurchases')}</CardTitle>
             <Link href="/diamonds/purchases" className="text-sm text-primary hover:underline">
-              View all
+              {t('viewAll')}
             </Link>
           </CardHeader>
           <CardContent>
@@ -113,16 +115,16 @@ export default function DiamondsPage() {
                 ))}
               </div>
             ) : !purchases.data?.data.length ? (
-              <p className="text-sm text-muted-foreground">No purchases yet</p>
+              <p className="text-sm text-muted-foreground">{t('noPurchases')}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 font-medium">User</th>
-                      <th className="pb-2 font-medium">Diamonds</th>
-                      <th className="pb-2 font-medium">USD</th>
-                      <th className="pb-2 font-medium">Status</th>
+                      <th className="pb-2 font-medium">{t('table.user')}</th>
+                      <th className="pb-2 font-medium">{t('table.diamonds')}</th>
+                      <th className="pb-2 font-medium">{t('table.usd')}</th>
+                      <th className="pb-2 font-medium">{t('table.status')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -158,9 +160,9 @@ export default function DiamondsPage() {
         {/* Recent Transactions */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Transactions</CardTitle>
+            <CardTitle>{t('recentTransactions')}</CardTitle>
             <Link href="/diamonds/transactions" className="text-sm text-primary hover:underline">
-              View all
+              {t('viewAll')}
             </Link>
           </CardHeader>
           <CardContent>
@@ -171,36 +173,36 @@ export default function DiamondsPage() {
                 ))}
               </div>
             ) : !transactions.data?.data.length ? (
-              <p className="text-sm text-muted-foreground">No transactions yet</p>
+              <p className="text-sm text-muted-foreground">{t('noTransactions')}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 font-medium">User</th>
-                      <th className="pb-2 font-medium">Type</th>
-                      <th className="pb-2 font-medium">Amount</th>
-                      <th className="pb-2 font-medium">Date</th>
+                      <th className="pb-2 font-medium">{t('table.user')}</th>
+                      <th className="pb-2 font-medium">{t('table.type')}</th>
+                      <th className="pb-2 font-medium">{t('table.amount')}</th>
+                      <th className="pb-2 font-medium">{t('table.date')}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.data.data.map((t) => (
-                      <tr key={t.id} className="border-b last:border-0">
+                    {transactions.data.data.map((txn) => (
+                      <tr key={txn.id} className="border-b last:border-0">
                         <td className="py-2">
                           <span className="font-mono text-xs">
-                            {t.user?.displayName || t.userId.slice(0, 8)}
+                            {txn.user?.displayName || txn.userId.slice(0, 8)}
                           </span>
                         </td>
                         <td className="py-2">
                           <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
-                            {t.type}
+                            {txn.type}
                           </span>
                         </td>
-                        <td className={`py-2 font-medium ${t.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {t.amount > 0 ? '+' : ''}{t.amount}
+                        <td className={`py-2 font-medium ${txn.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {txn.amount > 0 ? '+' : ''}{txn.amount}
                         </td>
                         <td className="py-2 text-muted-foreground">
-                          {new Date(t.createdAt).toLocaleDateString()}
+                          {new Date(txn.createdAt).toLocaleDateString()}
                         </td>
                       </tr>
                     ))}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
@@ -8,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@suggar-daddy/ui';
 import type { AdminDiamondConfig } from '@suggar-daddy/api-client';
 
 export default function DiamondConfigPage() {
+  const { t } = useTranslation('diamonds');
   const toast = useToast();
   const { data: config, loading, refetch } = useAdminQuery(() => adminApi.getDiamondConfig());
   const [form, setForm] = useState<AdminDiamondConfig>({
@@ -28,10 +30,10 @@ export default function DiamondConfigPage() {
     setSaving(true);
     try {
       await adminApi.updateDiamondConfig(form);
-      toast.success('Diamond config updated');
+      toast.success(t('config.configUpdated'));
       refetch();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update config');
+      toast.error(err instanceof Error ? err.message : t('config.updateFailed'));
     } finally {
       setSaving(false);
     }
@@ -47,51 +49,51 @@ export default function DiamondConfigPage() {
   }> = [
     {
       key: 'superLikeCost',
-      label: 'Super Like Cost',
-      description: 'Diamonds required to send a Super Like',
+      label: t('config.superLikeCost'),
+      description: t('config.superLikeCostDesc'),
       min: 1,
     },
     {
       key: 'boostCost',
-      label: 'Profile Boost Cost',
-      description: 'Diamonds required for a profile boost',
+      label: t('config.boostCost'),
+      description: t('config.boostCostDesc'),
       min: 1,
     },
     {
       key: 'boostDurationMinutes',
-      label: 'Boost Duration (minutes)',
-      description: 'How long a profile boost lasts',
+      label: t('config.boostDuration'),
+      description: t('config.boostDurationDesc'),
       min: 1,
     },
     {
       key: 'conversionRate',
-      label: 'Conversion Rate',
-      description: 'Diamonds per 1 USD (e.g. 100 = 100 diamonds per $1)',
+      label: t('config.conversionRate'),
+      description: t('config.conversionRateDesc'),
       min: 1,
     },
     {
       key: 'platformFeeRate',
-      label: 'Platform Fee Rate',
-      description: 'Fee taken on conversions (0.2 = 20%)',
+      label: t('config.platformFeeRate'),
+      description: t('config.platformFeeRateDesc'),
       step: 0.01,
       min: 0,
       max: 1,
     },
     {
       key: 'minConversionDiamonds',
-      label: 'Min Conversion Diamonds',
-      description: 'Minimum diamonds needed for cash conversion',
+      label: t('config.minConversion'),
+      description: t('config.minConversionDesc'),
       min: 1,
     },
   ];
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Diamond Pricing Config</h1>
+      <h1 className="text-2xl font-bold">{t('config.title')}</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Settings</CardTitle>
+          <CardTitle>{t('config.settings')}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -127,16 +129,18 @@ export default function DiamondConfigPage() {
 
               {/* Preview */}
               <div className="rounded-lg border bg-muted/50 p-4">
-                <h3 className="mb-2 text-sm font-medium">Preview</h3>
+                <h3 className="mb-2 text-sm font-medium">{t('config.preview')}</h3>
                 <div className="grid gap-2 text-sm text-muted-foreground">
-                  <p>Super Like: {form.superLikeCost} diamonds</p>
-                  <p>Boost: {form.boostCost} diamonds for {form.boostDurationMinutes} min</p>
+                  <p>{t('config.previewSuperLike', { count: form.superLikeCost })}</p>
+                  <p>{t('config.previewBoost', { cost: form.boostCost, duration: form.boostDurationMinutes })}</p>
                   <p>
-                    Conversion: {form.conversionRate} diamonds = $1.00 (after{' '}
-                    {(form.platformFeeRate * 100).toFixed(0)}% fee ={' '}
-                    ${((1 - form.platformFeeRate) * 1).toFixed(2)} net)
+                    {t('config.previewConversion', {
+                      rate: form.conversionRate,
+                      fee: (form.platformFeeRate * 100).toFixed(0),
+                      net: ((1 - form.platformFeeRate) * 1).toFixed(2),
+                    })}
                   </p>
-                  <p>Min conversion: {form.minConversionDiamonds} diamonds</p>
+                  <p>{t('config.previewMinConversion', { count: form.minConversionDiamonds })}</p>
                 </div>
               </div>
 
@@ -145,7 +149,7 @@ export default function DiamondConfigPage() {
                 disabled={saving}
                 className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
-                {saving ? 'Saving...' : 'Save Config'}
+                {saving ? t('config.saving') : t('config.saveConfig')}
               </button>
             </div>
           )}

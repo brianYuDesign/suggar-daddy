@@ -1,0 +1,28 @@
+{
+  "title": "交易紀錄",
+  "typeLabels": {
+    "tip": "打賞",
+    "subscription": "訂閱",
+    "post_purchase": "貼文購買",
+    "withdrawal": "提款"
+  },
+  "filters": {
+    "allTypes": "所有類型",
+    "allStatus": "所有狀態",
+    "completed": "已完成",
+    "pending": "待處理",
+    "failed": "失敗",
+    "refunded": "已退款"
+  },
+  "table": {
+    "title": "交易列表",
+    "user": "用戶",
+    "type": "類型",
+    "amount": "金額",
+    "status": "狀態",
+    "stripeId": "Stripe ID",
+    "date": "日期",
+    "unknown": "未知",
+    "noTransactions": "找不到交易"
+  }
+}

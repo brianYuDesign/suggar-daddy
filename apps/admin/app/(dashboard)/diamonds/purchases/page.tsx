@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { Pagination } from '@/components/pagination';
 import { Card, CardHeader, CardTitle, CardContent } from '@suggar-daddy/ui';
 
 export default function DiamondPurchasesPage() {
+  const { t } = useTranslation('diamonds');
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
   const [userId, setUserId] = useState('');
@@ -22,7 +24,7 @@ export default function DiamondPurchasesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Diamond Purchases</h1>
+      <h1 className="text-2xl font-bold">{t('purchases.title')}</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
@@ -31,7 +33,7 @@ export default function DiamondPurchasesPage() {
           onChange={(e) => { setStatus(e.target.value); setPage(1); }}
           className="rounded-md border bg-background px-3 py-2 text-sm"
         >
-          <option value="">All Statuses</option>
+          <option value="">{t('purchases.allStatuses')}</option>
           <option value="completed">Completed</option>
           <option value="pending">Pending</option>
           <option value="failed">Failed</option>
@@ -40,7 +42,7 @@ export default function DiamondPurchasesPage() {
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Filter by User ID..."
+            placeholder={t('purchases.filterByUser')}
             value={userIdInput}
             onChange={(e) => setUserIdInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { setUserId(userIdInput); setPage(1); } }}
@@ -50,14 +52,14 @@ export default function DiamondPurchasesPage() {
             onClick={() => { setUserId(userIdInput); setPage(1); }}
             className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
           >
-            Search
+            {t('common:actions.search')}
           </button>
           {userId && (
             <button
               onClick={() => { setUserId(''); setUserIdInput(''); setPage(1); }}
               className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
             >
-              Clear
+              {t('common:batch.clear')}
             </button>
           )}
         </div>
@@ -67,7 +69,7 @@ export default function DiamondPurchasesPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            Purchases{' '}
+            {t('purchases.title')}{' '}
             {data && <span className="font-normal text-muted-foreground">({data.total} total)</span>}
           </CardTitle>
         </CardHeader>
@@ -79,21 +81,21 @@ export default function DiamondPurchasesPage() {
               ))}
             </div>
           ) : !data?.data.length ? (
-            <p className="text-sm text-muted-foreground">No purchases found</p>
+            <p className="text-sm text-muted-foreground">{t('purchases.noPurchases')}</p>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 font-medium">User</th>
-                      <th className="pb-2 font-medium">Package</th>
-                      <th className="pb-2 font-medium">Diamonds</th>
-                      <th className="pb-2 font-medium">Bonus</th>
-                      <th className="pb-2 font-medium">Total</th>
-                      <th className="pb-2 font-medium">USD</th>
-                      <th className="pb-2 font-medium">Status</th>
-                      <th className="pb-2 font-medium">Date</th>
+                      <th className="pb-2 font-medium">{t('table.user')}</th>
+                      <th className="pb-2 font-medium">{t('purchases.package')}</th>
+                      <th className="pb-2 font-medium">{t('table.diamonds')}</th>
+                      <th className="pb-2 font-medium">{t('packages.bonus')}</th>
+                      <th className="pb-2 font-medium">{t('purchases.total')}</th>
+                      <th className="pb-2 font-medium">{t('table.usd')}</th>
+                      <th className="pb-2 font-medium">{t('table.status')}</th>
+                      <th className="pb-2 font-medium">{t('table.date')}</th>
                     </tr>
                   </thead>
                   <tbody>

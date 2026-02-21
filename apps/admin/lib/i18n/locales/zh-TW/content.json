@@ -1,0 +1,72 @@
+{
+  "title": "內容審核",
+  "stats": {
+    "totalPosts": "總貼文數",
+    "pendingReports": "待處理檢舉",
+    "resolved": "已處理",
+    "takenDown": "已下架"
+  },
+  "tabs": {
+    "reports": "檢舉",
+    "allPosts": "所有貼文"
+  },
+  "reports": {
+    "title": "檢舉列表",
+    "resolveSelected": "處理選取",
+    "resolving": "處理中...",
+    "reportId": "檢舉 ID",
+    "postId": "貼文 ID",
+    "reason": "原因",
+    "status": "狀態",
+    "date": "日期",
+    "review": "審查",
+    "noReports": "找不到檢舉",
+    "batchSuccess": "已處理 {{count}} 個檢舉",
+    "batchFailed": "批量處理失敗"
+  },
+  "posts": {
+    "title": "貼文列表",
+    "searchPlaceholder": "搜尋標題...",
+    "allVisibility": "所有可見性",
+    "public": "公開",
+    "subscribers": "訂閱者",
+    "ppv": "付費觀看",
+    "creator": "創作者",
+    "caption": "標題",
+    "type": "類型",
+    "visibility": "可見性",
+    "likes": "按讚數",
+    "date": "日期",
+    "unknown": "未知",
+    "noPosts": "找不到貼文"
+  },
+  "reportDetail": {
+    "title": "檢舉詳情",
+    "notFound": "找不到檢舉。",
+    "reportInfo": "檢舉資訊",
+    "reportId": "檢舉 ID",
+    "reporterId": "檢舉者 ID",
+    "reason": "原因",
+    "reportedAt": "檢舉時間",
+    "postContent": "貼文內容",
+    "postId": "貼文 ID",
+    "creatorId": "創作者 ID",
+    "caption": "標題",
+    "media": "媒體",
+    "likes": "按讚：{{count}}",
+    "comments": "留言：{{count}}",
+    "postNotFound": "貼文不存在或已刪除。",
+    "takeDown": "下架貼文",
+    "reinstate": "恢復貼文",
+    "takenDownSuccess": "貼文已下架",
+    "reinstatedSuccess": "貼文已恢復",
+    "takeDownFailed": "下架貼文失敗",
+    "reinstateFailed": "恢復貼文失敗"
+  },
+  "filters": {
+    "all": "全部",
+    "pending": "待處理",
+    "resolved": "已處理",
+    "dismissed": "已駁回"
+  }
+}

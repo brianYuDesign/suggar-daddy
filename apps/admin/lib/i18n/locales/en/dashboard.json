@@ -1,0 +1,27 @@
+{
+  "title": "Overview",
+  "stats": {
+    "totalUsers": "Total Users",
+    "totalPosts": "Total Posts",
+    "totalRevenue": "Total Revenue",
+    "pendingWithdrawals": "Pending Withdrawals",
+    "systemStatus": "System Status",
+    "newThisWeek": "+{{count}} this week",
+    "pendingReports": "{{count}} pending reports",
+    "successRate": "{{rate}}% success rate",
+    "toReview": "${{amount}} to review"
+  },
+  "charts": {
+    "dailyRevenue": "Daily Revenue (14 days)",
+    "noRevenueData": "No revenue data",
+    "systemHealth": "System Health",
+    "unableToFetch": "Unable to fetch health data"
+  },
+  "sections": {
+    "usersByRole": "Users by Role",
+    "contentModeration": "Content Moderation",
+    "pendingReports": "Pending Reports",
+    "resolvedReports": "Resolved Reports",
+    "takenDown": "Taken Down"
+  }
+}

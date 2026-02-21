@@ -1,0 +1,27 @@
+{
+  "title": "Super Admin Management",
+  "superAdminOnly": "Super Admin Only",
+  "permissionOverview": "Permission Overview",
+  "totalUsers": "Total Users",
+  "adminAccounts": "Admin Accounts",
+  "recentActions": "Recent Admin Actions",
+  "table": {
+    "action": "Action",
+    "adminId": "Admin ID",
+    "target": "Target",
+    "method": "Method",
+    "status": "Status",
+    "time": "Time"
+  },
+  "actions": {
+    "resetPassword": "Reset Password",
+    "demote": "Demote",
+    "lastActive": "Last active: {{date}}",
+    "neverActive": "Never active"
+  },
+  "dialog": {
+    "demoteTitle": "Confirm Demote Admin",
+    "demoteDesc": "Are you sure you want to remove admin privileges from {{name}}? They will be demoted to a regular subscriber.",
+    "confirmDemote": "Confirm Demote"
+  }
+}

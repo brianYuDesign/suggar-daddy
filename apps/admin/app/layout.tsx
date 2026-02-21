@@ -1,9 +1,7 @@
-import './globals.css';
+'use client';
 
-export const metadata = {
-  title: 'Suggar Daddy Admin',
-  description: 'Administration panel',
-};
+import './globals.css';
+import '@/lib/i18n';
 
 export default function RootLayout({
   children,
@@ -11,7 +9,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="zh-TW">
       <body className="min-h-screen bg-background font-sans antialiased">
         {children}
       </body>

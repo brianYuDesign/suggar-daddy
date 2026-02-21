@@ -1,0 +1,20 @@
+{
+  "title": "財務報表",
+  "subtitle": "監控平台營收、交易統計與退款分析",
+  "refreshData": "刷新數據",
+  "dateRange": "日期範圍",
+  "days": "{{count}}天",
+  "year1": "1年",
+  "to": "至",
+  "transactionOverview": "交易總覽",
+  "revenueTrend": "營收趨勢",
+  "refundAnalysis": "退款分析",
+  "showingMockData": "（顯示模擬數據）",
+  "fetchRevenueFailed": "獲取營收數據失敗",
+  "fetchTransactionsFailed": "獲取交易統計失敗",
+  "fetchRefundsFailed": "獲取退款分析失敗",
+  "footer": {
+    "lastUpdated": "數據更新時間：{{time}}",
+    "copyright": "Sugar-Daddy 財務報表系統 © 2026"
+  }
+}

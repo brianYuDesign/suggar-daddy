@@ -1,0 +1,113 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "content": "Content",
+    "subscriptions": "Subscriptions",
+    "transactions": "Transactions",
+    "diamonds": "Diamonds",
+    "payments": "Payments",
+    "withdrawals": "Withdrawals",
+    "chatRooms": "Chat Rooms",
+    "analytics": "Analytics",
+    "auditLog": "Audit Log",
+    "superAdmin": "Super Admin",
+    "system": "System",
+    "settings": "Settings",
+    "finance": "Finance"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "refresh": "Refresh",
+    "export": "Export",
+    "import": "Import",
+    "submit": "Submit",
+    "back": "Back",
+    "close": "Close",
+    "reset": "Reset",
+    "apply": "Apply",
+    "approve": "Approve",
+    "reject": "Reject",
+    "ban": "Ban",
+    "unban": "Unban",
+    "suspend": "Suspend",
+    "activate": "Activate",
+    "deactivate": "Deactivate"
+  },
+  "table": {
+    "total": "{{count}} total",
+    "selected": "{{count}} selected",
+    "noData": "No data",
+    "loading": "Loading...",
+    "id": "ID",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "actions": "Actions",
+    "status": "Status"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "processing": "Processing",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "healthy": "Healthy",
+    "unhealthy": "Unhealthy",
+    "unknown": "Unknown"
+  },
+  "filters": {
+    "all": "All",
+    "searchPlaceholder": "Search...",
+    "dateRange": "Date Range",
+    "startDate": "Start Date",
+    "endDate": "End Date"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "batch": {
+    "selected": "{{count}} selected",
+    "clear": "Clear"
+  },
+  "csv": {
+    "export": "Export CSV",
+    "exporting": "Exporting..."
+  },
+  "takeDown": {
+    "title": "Take Down Post",
+    "description": "This action will hide the post from all users. Please provide a reason.",
+    "reason": "Reason",
+    "placeholder": "Enter the reason for taking down this post...",
+    "processing": "Processing...",
+    "confirmButton": "Confirm Take Down"
+  },
+  "session": {
+    "expiringSoon": "Your session will expire soon.",
+    "saveWork": "Please save your work. You will be logged out automatically.",
+    "logoutNow": "Logout Now"
+  },
+  "sidebar": {
+    "title": "SD Admin",
+    "logout": "Logout"
+  },
+  "language": {
+    "switchTo": "中"
+  },
+  "error": {
+    "loadFailed": "Load failed",
+    "saveFailed": "Save failed",
+    "unknownError": "Unknown error"
+  }
+}

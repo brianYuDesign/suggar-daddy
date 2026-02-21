@@ -1,0 +1,47 @@
+{
+  "title": "Withdrawals",
+  "stats": {
+    "pending": "Pending",
+    "pendingTotal": "${{amount}} total",
+    "completed": "Completed",
+    "completedTotal": "${{amount}} paid out",
+    "rejected": "Rejected",
+    "totalRequests": "Total Requests"
+  },
+  "filters": {
+    "allStatus": "All Status",
+    "pending": "Pending",
+    "completed": "Completed",
+    "rejected": "Rejected"
+  },
+  "table": {
+    "title": "Withdrawal Requests",
+    "creator": "Creator",
+    "amount": "Amount",
+    "method": "Method",
+    "status": "Status",
+    "requested": "Requested",
+    "actions": "Actions",
+    "unknown": "Unknown",
+    "noWithdrawals": "No withdrawal requests found"
+  },
+  "actions": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "approveTooltip": "Approve this withdrawal request",
+    "rejectTooltip": "Reject this withdrawal request"
+  },
+  "dialog": {
+    "approveTitle": "Approve Withdrawal",
+    "rejectTitle": "Reject Withdrawal",
+    "approveDesc": "Approve ${{amount}} withdrawal for {{name}}? This will process the payout.",
+    "rejectDesc": "Reject ${{amount}} withdrawal for {{name}}? The amount will be refunded to their wallet.",
+    "rejectReason": "Reason (optional)",
+    "rejectPlaceholder": "Enter the reason for rejection...",
+    "confirmApprove": "Confirm Approve",
+    "confirmReject": "Confirm Reject",
+    "approveSuccess": "Withdrawal ${{amount}} approved for {{name}}",
+    "rejectSuccess": "Withdrawal ${{amount}} rejected for {{name}}",
+    "processFailed": "Failed to process withdrawal"
+  }
+}

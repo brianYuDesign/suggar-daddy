@@ -1,0 +1,27 @@
+{
+  "title": "超級管理員管理",
+  "superAdminOnly": "僅超級管理員",
+  "permissionOverview": "權限總覽",
+  "totalUsers": "總用戶數",
+  "adminAccounts": "管理員帳號",
+  "recentActions": "近期管理員操作",
+  "table": {
+    "action": "操作",
+    "adminId": "管理員 ID",
+    "target": "目標",
+    "method": "方法",
+    "status": "狀態",
+    "time": "時間"
+  },
+  "actions": {
+    "resetPassword": "重設密碼",
+    "demote": "降級",
+    "lastActive": "最後活躍：{{date}}",
+    "neverActive": "從未活躍"
+  },
+  "dialog": {
+    "demoteTitle": "確認降級管理員",
+    "demoteDesc": "確定要移除 {{name}} 的管理員權限嗎？該用戶將被降級為一般訂閱者。",
+    "confirmDemote": "確認降級"
+  }
+}
