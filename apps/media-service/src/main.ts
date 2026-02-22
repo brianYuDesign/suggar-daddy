@@ -30,6 +30,16 @@ async function bootstrap() {
     }),
   );
 
+  // CORS — allow admin/web frontends to upload directly
+  app.enableCors({
+    origin: (
+      process.env.CORS_ORIGINS || 'http://localhost:4200,http://localhost:4300'
+    ).split(','),
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
+
   // Setup Swagger documentation
   setupSwagger(app, {
     title: "Media Service API",

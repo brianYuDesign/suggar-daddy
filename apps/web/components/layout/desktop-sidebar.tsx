@@ -13,6 +13,7 @@ import {
   Wallet,
   Heart,
   Crown,
+  BookOpen,
   LogOut,
 } from 'lucide-react';
 import { cn } from '@suggar-daddy/ui';
@@ -32,6 +33,7 @@ const mainNav = [
 const secondaryNav = [
   { href: '/subscription', icon: Crown, label: '訂閱方案' },
   { href: '/wallet', icon: Wallet, label: '錢包' },
+  { href: '/blog', icon: BookOpen, label: '部落格' },
   { href: '/profile', icon: User, label: '個人檔案' },
 ];
 

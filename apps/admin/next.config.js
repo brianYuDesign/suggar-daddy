@@ -7,6 +7,16 @@ const { composePlugins, withNx } = require('@nx/next');
  */
 const nextConfig = {
   nx: {},
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3008',
+        pathname: '/uploads/**',
+      },
+    ],
+  },
   typescript: {
     ignoreBuildErrors: false,
     tsconfigPath: './tsconfig.json',
