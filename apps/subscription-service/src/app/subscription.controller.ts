@@ -1,6 +1,8 @@
 import {
   Controller,
+  Delete,
   Get,
+  NotFoundException,
   Post,
   Body,
   Query,
@@ -16,12 +18,33 @@ import {
 } from '@suggar-daddy/auth';
 import { UserRole } from '@suggar-daddy/common';
 import { SubscriptionService } from './subscription.service';
+import { SubscriptionTierService } from './subscription-tier.service';
+import { SubscribeDto } from './dto/subscription.dto';
 
 @ApiTags('Subscriptions')
 @ApiBearerAuth()
 @Controller('subscriptions')
 export class SubscriptionController {
-  constructor(private subscriptionService: SubscriptionService) {}
+  constructor(
+    private subscriptionService: SubscriptionService,
+    private subscriptionTierService: SubscriptionTierService,
+  ) {}
+
+  /** 訂閱創作者方案 */
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Subscribe to a creator tier' })
+  async subscribe(
+    @CurrentUser() user: CurrentUserData,
+    @Body() dto: SubscribeDto,
+  ) {
+    const tier = await this.subscriptionTierService.findOne(dto.tierId);
+    return this.subscriptionService.create({
+      subscriberId: user.userId,
+      creatorId: tier.creatorId,
+      tierId: dto.tierId,
+    });
+  }
 
   /** 檢查訂閱者是否對創作者有有效訂閱（供 content-service 訂閱牆可見性使用） */
   @Public()
@@ -57,6 +80,18 @@ export class SubscriptionController {
   @ApiOperation({ summary: 'Get current user subscription' })
   async getMySubscription(@CurrentUser() user: CurrentUserData) {
     return this.subscriptionService.getMySubscription(user.userId);
+  }
+
+  /** 取消當前訂閱 */
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Cancel current user subscription' })
+  async cancelMySubscription(@CurrentUser() user: CurrentUserData) {
+    const sub = await this.subscriptionService.getMySubscription(user.userId);
+    if (!sub) {
+      throw new NotFoundException('No active subscription found');
+    }
+    return this.subscriptionService.cancel(sub.id);
   }
 
   // Creator-only endpoint

@@ -1,5 +1,10 @@
 import { IsString, IsOptional, IsIn } from 'class-validator';
 
+export class SubscribeDto {
+  @IsString()
+  tierId: string;
+}
+
 export class CreateSubscriptionDto {
   @IsString()
   subscriberId: string;
