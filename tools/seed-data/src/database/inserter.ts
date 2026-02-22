@@ -338,10 +338,37 @@ export class DatabaseInserter {
     this.logInsert('部落格文章', blogs.length);
   }
 
+  async insertStaticPages(pages: any[]): Promise<void> {
+    if (pages.length === 0) return;
+
+    console.log('📄 插入靜態頁面...');
+
+    const query = `
+      INSERT INTO static_pages (
+        id, title, slug, content, "pageType", status,
+        "metaTitle", "metaDescription", "lastEditedBy",
+        "publishedAt", "createdAt", "updatedAt"
+      ) VALUES ${pages.map((_, i) => `(
+        $${i * 12 + 1}, $${i * 12 + 2}, $${i * 12 + 3}, $${i * 12 + 4}, $${i * 12 + 5},
+        $${i * 12 + 6}, $${i * 12 + 7}, $${i * 12 + 8}, $${i * 12 + 9}, $${i * 12 + 10},
+        $${i * 12 + 11}, $${i * 12 + 12}
+      )`).join(',')}
+    `;
+    const params = pages.flatMap(p => [
+      p.id, p.title, p.slug, p.content, p.pageType, p.status,
+      p.metaTitle, p.metaDescription, p.lastEditedBy,
+      p.publishedAt, p.createdAt, p.updatedAt
+    ]);
+
+    await this.dataSource.query(query, params);
+    this.logInsert('靜態頁面', pages.length);
+  }
+
   async clearAllData(): Promise<void> {
     console.log(chalk.yellow('\n⚠️  清除現有數據...'));
 
     const tables = [
+      'static_pages',
       'blogs',
       'matches',
       'swipes',

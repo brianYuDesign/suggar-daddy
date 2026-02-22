@@ -8,6 +8,7 @@ import { ContentSeeder } from './generators/content';
 import { PaymentSeeder } from './generators/payments';
 import { SocialSeeder } from './generators/social';
 import { BlogSeeder } from './generators/blogs';
+import { StaticPageSeeder } from './generators/static-pages';
 import { DatabaseInserter } from './database/inserter';
 
 const program = new Command();
@@ -74,6 +75,11 @@ const showSummary = (data: any) => {
   if (data.blogs?.length) {
     console.log(chalk.cyan('\n📰 部落格：'));
     console.log(`  文章: ${data.blogs.length}`);
+  }
+
+  if (data.staticPages?.length) {
+    console.log(chalk.cyan('\n📄 靜態頁面：'));
+    console.log(`  頁面: ${data.staticPages.length}`);
   }
 
   console.log(chalk.gray('─'.repeat(40)));
@@ -208,6 +214,15 @@ const generateAllData = async (options: any) => {
       await inserter.insertBlogs(generatedData.blogs);
     }
 
+    // 6. 生成靜態頁面（不依賴用戶模組）
+    if (!options.module || options.module === 'all' || options.module === 'pages') {
+      console.log(chalk.blue('\n🚀 開始生成靜態頁面...\n'));
+
+      const staticPageSeeder = new StaticPageSeeder();
+      generatedData.staticPages = staticPageSeeder.generatePages();
+      await inserter.insertStaticPages(generatedData.staticPages);
+    }
+
     // 顯示摘要
     showSummary(generatedData);
     
@@ -226,7 +241,7 @@ program
   .version('1.0.0');
 
 program
-  .option('-m, --module <module>', '指定生成模組 (users, content, payments, social, all)', 'all')
+  .option('-m, --module <module>', '指定生成模組 (users, content, payments, social, blogs, pages, all)', 'all')
   .option('-c, --clear', '清除現有數據後再生成', false)
   .option('-u, --users <count>', '用戶數量', '100')
   .action(generateAllData);

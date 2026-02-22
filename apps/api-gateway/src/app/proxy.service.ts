@@ -98,6 +98,13 @@ export class ProxyService {
         ),
       },
       {
+        prefix: '/api/pages',
+        baseUrl: this.config.get<string>(
+          'CONTENT_SERVICE_URL',
+          'http://localhost:3006',
+        ),
+      },
+      {
         prefix: '/api/diamonds',
         baseUrl: this.config.get<string>(
           'PAYMENT_SERVICE_URL',

@@ -553,28 +553,9 @@ export interface StaticPageRecord {
   updatedAt: string;
 }
 
-export interface StaticPageStats {
-  total: number;
-  published: number;
-  draft: number;
-  archived: number;
-}
-
-export interface CreatePagePayload {
-  title: string;
-  content: string;
-  slug?: string;
-  pageType?: string;
-  status?: string;
-  metaTitle?: string;
-  metaDescription?: string;
-}
-
 export interface UpdatePagePayload {
   title?: string;
   content?: string;
-  slug?: string;
-  pageType?: string;
   status?: string;
   metaTitle?: string;
   metaDescription?: string;
@@ -1117,14 +1098,10 @@ export class AdminApi {
 
   // -- Static Pages --
 
-  getPageStats() {
-    return this.client.get<StaticPageStats>('/api/pages/stats');
-  }
-
-  listPages(page = 1, limit = 20, pageType?: string, status?: string, search?: string) {
+  listPages(page = 1, limit = 20) {
     return this.client.get<{ items: StaticPageRecord[]; total: number; page: number; limit: number }>(
       '/api/pages/admin',
-      { params: this.buildParams({ page, limit, pageType, status, search }) },
+      { params: this.buildParams({ page, limit }) },
     );
   }
 
@@ -1132,24 +1109,8 @@ export class AdminApi {
     return this.client.get<StaticPageRecord>(`/api/pages/${id}`);
   }
 
-  createPage(dto: CreatePagePayload) {
-    return this.client.post<StaticPageRecord>('/api/pages', dto);
-  }
-
   updatePage(id: string, dto: UpdatePagePayload) {
     return this.client.put<StaticPageRecord>(`/api/pages/${id}`, dto);
-  }
-
-  deletePage(id: string) {
-    return this.client.delete<{ message: string }>(`/api/pages/${id}`);
-  }
-
-  publishPage(id: string) {
-    return this.client.post<StaticPageRecord>(`/api/pages/${id}/publish`);
-  }
-
-  archivePage(id: string) {
-    return this.client.post<StaticPageRecord>(`/api/pages/${id}/archive`);
   }
 
   // ==================== Verification Management ====================

@@ -4,18 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ChevronDown, ChevronUp, Send, Archive, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
 import { useToast } from '@/components/toast';
 import { TiptapEditor } from '@/components/tiptap-editor';
 import { uploadImage } from '@/lib/upload-image';
-import { Card, CardContent, Input, Button, Select, Badge, Skeleton, ConfirmDialog } from '@suggar-daddy/ui';
-
-const PAGE_TYPES = [
-  'privacy', 'terms', 'community-guidelines', 'about',
-  'contact', 'faq', 'cookie-policy', 'custom',
-];
+import { Card, CardContent, Input, Button, Badge, Skeleton } from '@suggar-daddy/ui';
 
 export default function PageEditPage() {
   const { t } = useTranslation('pages');
@@ -31,21 +26,16 @@ export default function PageEditPage() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [slug, setSlug] = useState('');
-  const [pageType, setPageType] = useState('custom');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [seoOpen, setSeoOpen] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     if (pageData && !initialized) {
       setTitle(pageData.title);
       setContent(pageData.content);
-      setSlug(pageData.slug);
-      setPageType(pageData.pageType);
       setMetaTitle(pageData.metaTitle || '');
       setMetaDescription(pageData.metaDescription || '');
       setInitialized(true);
@@ -59,8 +49,6 @@ export default function PageEditPage() {
       await adminApi.updatePage(id, {
         title,
         content,
-        slug: slug || undefined,
-        pageType,
         ...(publishStatus ? { status: publishStatus } : {}),
         metaTitle: metaTitle || undefined,
         metaDescription: metaDescription || undefined,
@@ -71,36 +59,6 @@ export default function PageEditPage() {
       toast.error(t('editor.saveFailed'));
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handlePublish = async () => {
-    try {
-      await adminApi.publishPage(id);
-      toast.success(t('editor.saveSuccess'));
-      router.push('/content/pages');
-    } catch {
-      toast.error(t('editor.saveFailed'));
-    }
-  };
-
-  const handleArchive = async () => {
-    try {
-      await adminApi.archivePage(id);
-      toast.success(t('editor.saveSuccess'));
-      router.push('/content/pages');
-    } catch {
-      toast.error(t('editor.saveFailed'));
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await adminApi.deletePage(id);
-      toast.success(t('editor.deleteSuccess'));
-      router.push('/content/pages');
-    } catch {
-      toast.error(t('editor.saveFailed'));
     }
   };
 
@@ -136,25 +94,15 @@ export default function PageEditPage() {
             </Badge>
           )}
         </div>
-        <div className="flex gap-2">
-          {pageData?.status === 'draft' && (
-            <Button variant="outline" size="sm" onClick={handlePublish}>
-              <Send className="h-4 w-4 mr-1" />
-              {t('editor.publish')}
-            </Button>
-          )}
-          {pageData?.status === 'published' && (
-            <Button variant="outline" size="sm" onClick={handleArchive}>
-              <Archive className="h-4 w-4 mr-1" />
-              {t('editor.archive')}
-            </Button>
-          )}
-          <Button variant="destructive" size="sm" onClick={() => setShowDeleteConfirm(true)}>
-            <Trash2 className="h-4 w-4 mr-1" />
-            {t('editor.delete')}
-          </Button>
-        </div>
       </div>
+
+      {/* Page type info */}
+      {pageData && (
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <span>{t('editor.pageTypeLabel')}: <strong>{t(`pageType.${pageData.pageType}`)}</strong></span>
+          <span>{t('editor.slugLabel')}: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">/{pageData.slug}</code></span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Content */}
@@ -188,27 +136,6 @@ export default function PageEditPage() {
 
         {/* Right: Sidebar */}
         <div className="space-y-6">
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1.5">{t('editor.slugLabel')}</label>
-                <Input
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder={t('editor.slugPlaceholder')}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">{t('editor.pageTypeLabel')}</label>
-                <Select value={pageType} onChange={(e) => setPageType(e.target.value)}>
-                  {PAGE_TYPES.map((pt) => (
-                    <option key={pt} value={pt}>{t(`pageType.${pt}`)}</option>
-                  ))}
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* SEO */}
           <Card>
             <CardContent className="p-6">
@@ -265,18 +192,6 @@ export default function PageEditPage() {
           </div>
         </div>
       </div>
-
-      {/* Delete Confirm Dialog */}
-      <ConfirmDialog
-        open={showDeleteConfirm}
-        title={t('editor.confirmDeleteTitle')}
-        description={t('editor.confirmDeleteDesc')}
-        confirmText={t('editor.delete')}
-        cancelText={t('common:actions.cancel')}
-        isDestructive={true}
-        onConfirm={handleDelete}
-        onCancel={() => setShowDeleteConfirm(false)}
-      />
     </div>
   );
 }

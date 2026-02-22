@@ -1,18 +1,7 @@
 {
   "title": "Page Management",
-  "subtitle": "Manage website static pages (privacy policy, terms, etc.)",
-  "createNew": "New Page",
-  "stats": {
-    "total": "Total Pages",
-    "published": "Published",
-    "draft": "Draft",
-    "archived": "Archived"
-  },
-  "filters": {
-    "allTypes": "All Types",
-    "allStatus": "All Status",
-    "searchPlaceholder": "Search page title..."
-  },
+  "subtitle": "Manage website static page content",
+  "lastUpdated": "Updated",
   "pageType": {
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
@@ -20,28 +9,24 @@
     "about": "About Us",
     "contact": "Contact Us",
     "faq": "FAQ",
-    "cookie-policy": "Cookie Policy",
-    "custom": "Custom Page"
+    "cookie-policy": "Cookie Policy"
+  },
+  "pageDesc": {
+    "privacy": "How we collect, use, and protect user data",
+    "terms": "User rights and obligations for using the platform",
+    "community-guidelines": "Community rules and prohibited behaviors",
+    "about": "Platform introduction, mission, and core features",
+    "contact": "User contact methods and feedback channels",
+    "faq": "Common questions about accounts, subscriptions, safety",
+    "cookie-policy": "Cookie usage and management information"
   },
   "status": {
     "draft": "Draft",
     "published": "Published",
-    "archived": "Archived"
-  },
-  "table": {
-    "title": "Title",
-    "slug": "Slug",
-    "pageType": "Type",
-    "status": "Status",
-    "updatedAt": "Last Updated",
-    "publishedAt": "Published At",
-    "actions": "Actions",
-    "noPages": "No pages found",
-    "selectAll": "Select All",
-    "pageList": "Page List"
+    "archived": "Archived",
+    "notCreated": "Not Created"
   },
   "editor": {
-    "createTitle": "Create New Page",
     "editTitle": "Edit Page",
     "backToList": "Back to List",
     "titleLabel": "Page Title",
@@ -49,7 +34,6 @@
     "contentLabel": "Page Content (HTML)",
     "contentPlaceholder": "Enter page HTML content...",
     "slugLabel": "URL Slug",
-    "slugPlaceholder": "e.g. privacy, terms",
     "pageTypeLabel": "Page Type",
     "seoSection": "SEO Settings",
     "metaTitleLabel": "Meta Title",
@@ -60,14 +44,6 @@
     "saveAndPublish": "Save & Publish",
     "saving": "Saving...",
     "saveSuccess": "Page saved",
-    "saveFailed": "Save failed",
-    "deleteSuccess": "Page deleted",
-    "confirmDeleteTitle": "Confirm Delete Page",
-    "confirmDeleteDesc": "Are you sure you want to delete this page? This action cannot be undone.",
-    "publish": "Publish",
-    "archive": "Archive",
-    "delete": "Delete",
-    "edit": "Edit",
-    "preview": "Preview"
+    "saveFailed": "Save failed"
   }
 }
