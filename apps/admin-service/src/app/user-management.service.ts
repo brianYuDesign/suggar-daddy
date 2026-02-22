@@ -213,11 +213,11 @@ export class UserManagementService {
 
     for (const field of allowedFields) {
       if (updateData[field as keyof typeof updateData] !== undefined) {
-        const oldValue = (user as Record<string, unknown>)[field];
+        const oldValue = (user as unknown as Record<string, unknown>)[field];
         const newValue = updateData[field as keyof typeof updateData];
         if (oldValue !== newValue) {
           changes[field] = { from: oldValue, to: newValue };
-          (user as Record<string, unknown>)[field] = newValue;
+          (user as unknown as Record<string, unknown>)[field] = newValue;
         }
       }
     }

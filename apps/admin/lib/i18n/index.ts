@@ -20,6 +20,7 @@ import superadminZhTW from './locales/zh-TW/superadmin.json';
 import settingsZhTW from './locales/zh-TW/settings.json';
 import loginZhTW from './locales/zh-TW/login.json';
 import financeZhTW from './locales/zh-TW/finance.json';
+import blogZhTW from './locales/zh-TW/blog.json';
 
 // en
 import commonEn from './locales/en/common.json';
@@ -39,6 +40,7 @@ import superadminEn from './locales/en/superadmin.json';
 import settingsEn from './locales/en/settings.json';
 import loginEn from './locales/en/login.json';
 import financeEn from './locales/en/finance.json';
+import blogEn from './locales/en/blog.json';
 
 i18n
   .use(LanguageDetector)
@@ -63,6 +65,7 @@ i18n
         settings: settingsZhTW,
         login: loginZhTW,
         finance: financeZhTW,
+        blog: blogZhTW,
       },
       en: {
         common: commonEn,
@@ -82,8 +85,10 @@ i18n
         settings: settingsEn,
         login: loginEn,
         finance: financeEn,
+        blog: blogEn,
       },
     },
+    lng: 'zh-TW',
     fallbackLng: 'zh-TW',
     defaultNS: 'common',
     interpolation: {

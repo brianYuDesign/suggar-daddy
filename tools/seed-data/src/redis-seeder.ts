@@ -223,7 +223,7 @@ async function main() {
       videoMeta: p.videoMeta || null,
     });
 
-    pipe3.set(`post:${p.id}`, postJson, 'EX', 3600);
+    pipe3.set(`post:${p.id}`, postJson);
     pipe3.lpush(`posts:creator:${p.creatorId}`, p.id);
 
     if (p.visibility === 'public') {

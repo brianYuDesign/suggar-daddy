@@ -18,7 +18,8 @@ interface User {
   email: string;
   displayName?: string;
   avatarUrl?: string | null;
-  role: string;
+  role?: string;
+  permissionRole?: string;
   createdAt: string;
 }
 
@@ -112,11 +113,15 @@ export default function UsersPage() {
     {
       key: 'role',
       header: t('table.role'),
-      render: (user) => (
-        <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-          {user.role}
-        </Badge>
-      ),
+      render: (user) => {
+        const displayRole = user.permissionRole || user.role || '—';
+        const isAdmin = displayRole === 'admin' || displayRole === 'super_admin';
+        return (
+          <Badge variant={isAdmin ? 'default' : 'secondary'}>
+            {displayRole}
+          </Badge>
+        );
+      },
     },
     {
       key: 'joined',

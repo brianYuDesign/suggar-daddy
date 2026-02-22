@@ -30,15 +30,23 @@ interface DateRange {
 export default function AdminFinancePage() {
   const { t } = useTranslation('finance');
   // 日期範圍狀態
-  const [dateRange, setDateRange] = useState<DateRange>(() => {
+  const [dateRange, setDateRange] = useState<DateRange>({
+    startDate: '',
+    endDate: '',
+  });
+  const [mounted, setMounted] = useState(false);
+
+  // 避免 hydration mismatch：日期計算僅在 client 端執行
+  useEffect(() => {
     const end = new Date();
     const start = new Date();
     start.setDate(start.getDate() - 30);
-    return {
+    setDateRange({
       startDate: start.toISOString().split('T')[0],
       endDate: end.toISOString().split('T')[0],
-    };
-  });
+    });
+    setMounted(true);
+  }, []);
 
   // 分組方式
   const [groupBy, setGroupBy] = useState<GroupByOption>('day');
@@ -298,7 +306,7 @@ export default function AdminFinancePage() {
 
         {/* 頁尾 */}
         <div className="text-center text-gray-500 text-sm pt-8 border-t border-slate-700">
-          <p>{t('footer.lastUpdated', { time: new Date().toLocaleString() })}</p>
+          <p>{t('footer.lastUpdated', { time: mounted ? new Date().toLocaleString() : '...' })}</p>
           <p className="mt-1">{t('footer.copyright')}</p>
         </div>
       </div>

@@ -16,7 +16,7 @@ export class SystemMonitorService {
 
   /** db-writer-service 的 API 基底 URL */
   private readonly dbWriterBaseUrl =
-    process.env['DB_WRITER_URL'] || 'http://localhost:3010';
+    process.env['DB_WRITER_URL'] || 'http://db-writer-service:3010';
 
   constructor(
     @InjectRepository(UserEntity)

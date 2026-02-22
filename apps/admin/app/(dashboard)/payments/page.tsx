@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminApi } from '@/lib/api';
 import { useAdminQuery } from '@/lib/hooks';
@@ -11,22 +11,19 @@ import { DateRangePicker } from '@/components/date-range-picker';
 import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Select, Skeleton } from '@suggar-daddy/ui';
 import { CreditCard, TrendingUp, BarChart3, Percent } from 'lucide-react';
 
-function getDefaultDates() {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 30);
-  return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10),
-  };
-}
-
 export default function PaymentsPage() {
   const { t } = useTranslation('payments');
   const [days, setDays] = useState(30);
-  const defaultDates = getDefaultDates();
-  const [startDate, setStartDate] = useState(defaultDates.start);
-  const [endDate, setEndDate] = useState(defaultDates.end);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  // 避免 hydration mismatch：日期計算僅在 client 端執行
+  useEffect(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    setStartDate(start.toISOString().slice(0, 10));
+    setEndDate(end.toISOString().slice(0, 10));
+  }, []);
 
   const stats = useAdminQuery(() => adminApi.getPaymentStats());
   const dailyRevenue = useAdminQuery(() => adminApi.getDailyRevenue(days), [days]);

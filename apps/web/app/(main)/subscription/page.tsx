@@ -68,7 +68,15 @@ export default function SubscriptionPage() {
 
         if (tiersData.status === 'fulfilled') {
           const raw = tiersData.value;
-          setTiers(Array.isArray(raw) ? (raw as unknown as SubscriptionTier[]) : []);
+          const allTiers = Array.isArray(raw) ? (raw as unknown as SubscriptionTier[]) : [];
+          // 去重：按 name 分組，每個 name 只取第一個
+          const seen = new Map<string, SubscriptionTier>();
+          for (const tier of allTiers) {
+            if (!seen.has(tier.name)) {
+              seen.set(tier.name, tier);
+            }
+          }
+          setTiers(Array.from(seen.values()));
         }
 
         if (subData.status === 'fulfilled' && subData.value) {
