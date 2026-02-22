@@ -165,6 +165,47 @@ export class DiamondPurchaseService {
     this.logger.log(`Diamonds credited userId=${userId} amount=${diamondAmount} purchaseId=${purchaseId}`);
   }
 
+  /**
+   * Local dev bypass: skip Stripe, directly credit diamonds
+   */
+  async mockPurchase(
+    userId: string,
+    packageId: string,
+  ): Promise<{ sessionId: string; sessionUrl: string }> {
+    const pkg = await this.packageService.getPackageById(packageId);
+    const purchaseId = this.genId();
+    const totalDiamonds = pkg.diamondAmount + pkg.bonusDiamonds;
+
+    const purchase: DiamondPurchaseRecord = {
+      id: purchaseId,
+      userId,
+      packageId,
+      diamondAmount: pkg.diamondAmount,
+      bonusDiamonds: pkg.bonusDiamonds,
+      totalDiamonds,
+      amountUsd: pkg.priceUsd,
+      stripeSessionId: null,
+      stripePaymentId: `mock_${purchaseId}`,
+      status: 'completed',
+      createdAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+    };
+    await this.redis.set(PURCHASE_KEY(purchaseId), JSON.stringify(purchase));
+    await this.redis.lPush(PURCHASES_USER(userId), purchaseId);
+
+    await this.diamondService.creditDiamonds(
+      userId,
+      totalDiamonds,
+      'purchase',
+      purchaseId,
+      'diamond_purchase',
+      `[DEV] Purchased ${totalDiamonds} diamonds`,
+    );
+
+    this.logger.warn(`[DEV] Mock diamond purchase userId=${userId} packageId=${packageId} diamonds=${totalDiamonds}`);
+    return { sessionId: `mock_${purchaseId}`, sessionUrl: '' };
+  }
+
   async getUserPurchases(userId: string): Promise<DiamondPurchaseRecord[]> {
     const ids = await this.redis.lRange(PURCHASES_USER(userId), 0, -1);
     if (ids.length === 0) return [];

@@ -23,6 +23,11 @@ export class DiamondPurchaseController {
     });
   }
 
+  private isStripeConfigured(): boolean {
+    const key = this.config.get<string>('STRIPE_SECRET_KEY', '');
+    return key.startsWith('sk_') && !key.includes('your_stripe') && !key.includes('placeholder') && key.length > 20;
+  }
+
   @Post('purchase')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Purchase diamonds via Stripe checkout' })
@@ -34,16 +39,18 @@ export class DiamondPurchaseController {
   ) {
     this.logger.log(`Diamond purchase request userId=${user.userId} packageId=${dto.packageId}`);
 
+    if (!this.isStripeConfigured()) {
+      return this.purchaseService.mockPurchase(user.userId, dto.packageId);
+    }
+
     const baseUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:4200');
-    const result = await this.purchaseService.createCheckoutSession(
+    return this.purchaseService.createCheckoutSession(
       user.userId,
       dto.packageId,
       this.stripe,
       `${baseUrl}/diamonds?success=true`,
       `${baseUrl}/diamonds?cancelled=true`,
     );
-
-    return result;
   }
 
   @Get('purchases')
