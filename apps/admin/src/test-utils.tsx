@@ -81,7 +81,7 @@ export function mockApiSuccess<T>(data: T) {
 }
 
 export function mockApiError(message: string, status = 400) {
-  const error = new Error(message) as any;
+  const error = new Error(message) as Error & { response: { status: number } };
   error.response = { status };
   return Promise.reject(error);
 }

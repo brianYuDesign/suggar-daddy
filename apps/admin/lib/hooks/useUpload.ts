@@ -91,14 +91,14 @@ export const useUpload = () => {
             message: `Uploaded ${item.file.name}`,
           })
         );
-      } catch (error: any) {
-        if (error.message !== 'Upload cancelled') {
+      } catch (error: unknown) {
+        if (!(error instanceof Error) || error.message !== 'Upload cancelled') {
           setUploads((prev) => {
             const updated = new Map(prev);
             const uploadItem = updated.get(item.id);
             if (uploadItem) {
               uploadItem.status = 'failed';
-              uploadItem.error = error.message || 'Upload failed';
+              uploadItem.error = error instanceof Error ? error.message : 'Upload failed';
             }
             return updated;
           });

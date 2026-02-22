@@ -91,7 +91,7 @@ export class ChatManagementService {
     if (search) {
       const searchLower = search.toLowerCase();
       conversations = conversations.filter((conv) =>
-        conv.participants?.some((p: any) =>
+        conv.participants?.some((p: { displayName?: string; email?: string }) =>
           p.displayName?.toLowerCase().includes(searchLower) ||
           p.email?.toLowerCase().includes(searchLower),
         ),
@@ -244,7 +244,7 @@ export class ChatManagementService {
     }
     const results = await pipeline.exec();
 
-    const conversations: any[] = [];
+    const conversations: ConversationData[] = [];
     const allParticipantIds = new Set<string>();
 
     if (results) {

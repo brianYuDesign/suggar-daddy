@@ -100,8 +100,8 @@ export const uploadsApi = {
       );
 
       return response.data;
-    } catch (error: any) {
-      if (error.code === 'ERR_CANCELED') {
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error && (error as { code?: string }).code === 'ERR_CANCELED') {
         throw new Error('Upload cancelled');
       }
       throw error;

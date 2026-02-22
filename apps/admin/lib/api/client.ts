@@ -11,7 +11,7 @@ const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 
 // Types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   statusCode: number;
   message: string;
   data?: T;
@@ -93,7 +93,7 @@ const createApiClient = (): AxiosInstance => {
   client.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
-      const originalRequest = error.config as any;
+      const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
       // Token 過期 - 嘗試刷新
       if (error.response?.status === 401 && !originalRequest._retry) {
@@ -148,64 +148,64 @@ export const apiClient = createApiClient();
 
 // API 調用包裝函數
 export const api = {
-  get: async <T = any>(
+  get: async <T = unknown>(
     url: string,
     config?: AxiosRequestConfig
   ): Promise<T> => {
     try {
       const response = await apiClient.get<ApiResponse<T>>(url, config);
-      return response.data.data || (response.data as any);
+      return response.data.data || (response.data as T);
     } catch (error) {
       throw handleApiError(error);
     }
   },
 
-  post: async <T = any>(
+  post: async <T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> => {
     try {
       const response = await apiClient.post<ApiResponse<T>>(url, data, config);
-      return response.data.data || (response.data as any);
+      return response.data.data || (response.data as T);
     } catch (error) {
       throw handleApiError(error);
     }
   },
 
-  put: async <T = any>(
+  put: async <T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> => {
     try {
       const response = await apiClient.put<ApiResponse<T>>(url, data, config);
-      return response.data.data || (response.data as any);
+      return response.data.data || (response.data as T);
     } catch (error) {
       throw handleApiError(error);
     }
   },
 
-  patch: async <T = any>(
+  patch: async <T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> => {
     try {
       const response = await apiClient.patch<ApiResponse<T>>(url, data, config);
-      return response.data.data || (response.data as any);
+      return response.data.data || (response.data as T);
     } catch (error) {
       throw handleApiError(error);
     }
   },
 
-  delete: async <T = any>(
+  delete: async <T = unknown>(
     url: string,
     config?: AxiosRequestConfig
   ): Promise<T> => {
     try {
       const response = await apiClient.delete<ApiResponse<T>>(url, config);
-      return response.data.data || (response.data as any);
+      return response.data.data || (response.data as T);
     } catch (error) {
       throw handleApiError(error);
     }
@@ -217,14 +217,14 @@ export class ApiError extends Error {
   constructor(
     public statusCode: number,
     public message: string,
-    public data?: any
+    public data?: unknown
   ) {
     super(message);
     this.name = 'ApiError';
   }
 }
 
-export const handleApiError = (error: any): ApiError => {
+export const handleApiError = (error: unknown): ApiError => {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status || 0;
     const message =

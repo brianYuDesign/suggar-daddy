@@ -1,6 +1,7 @@
 import {
   createSlice,
   PayloadAction,
+  type Dispatch,
 } from '@reduxjs/toolkit';
 
 // Types
@@ -53,19 +54,19 @@ export const { addNotification, removeNotification, clearNotifications } =
   notificationsSlice.actions;
 
 // Convenience actions
-export const showSuccess = (message: string, duration?: number) => (dispatch: any) => {
+export const showSuccess = (message: string, duration?: number) => (dispatch: Dispatch) => {
   dispatch(addNotification({ type: 'success', message, duration }));
 };
 
-export const showError = (message: string, duration?: number) => (dispatch: any) => {
+export const showError = (message: string, duration?: number) => (dispatch: Dispatch) => {
   dispatch(addNotification({ type: 'error', message, duration: duration ?? 7000 }));
 };
 
-export const showWarning = (message: string, duration?: number) => (dispatch: any) => {
+export const showWarning = (message: string, duration?: number) => (dispatch: Dispatch) => {
   dispatch(addNotification({ type: 'warning', message, duration }));
 };
 
-export const showInfo = (message: string, duration?: number) => (dispatch: any) => {
+export const showInfo = (message: string, duration?: number) => (dispatch: Dispatch) => {
   dispatch(addNotification({ type: 'info', message, duration }));
 };
 

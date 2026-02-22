@@ -125,7 +125,7 @@ export class TransactionService {
     
     // 🔥 記錄交易狀態變更 metrics
     if (updateDto.status) {
-      this.metricsService.recordTransactionStatus(updateDto.status as any);
+      this.metricsService.recordTransactionStatus(updateDto.status as 'pending' | 'succeeded' | 'failed' | 'refunded');
     }
     
     if (tx.status === 'succeeded') {

@@ -15,7 +15,7 @@ declare module 'recharts' {
   export class ResponsiveContainer extends React.Component<ResponsiveContainerProps> {}
 
   export interface ChartProps {
-    data?: any[];
+    data?: Record<string, unknown>[];
     margin?: { top?: number; right?: number; bottom?: number; left?: number };
     width?: number;
     height?: number;
@@ -54,7 +54,7 @@ declare module 'recharts' {
   export interface XAxisProps {
     dataKey?: string;
     tick?: { fill?: string; fontSize?: number };
-    tickFormatter?: (value: any) => string;
+    tickFormatter?: (value: string | number) => string;
     stroke?: string;
   }
 
@@ -62,7 +62,7 @@ declare module 'recharts' {
 
   export interface YAxisProps {
     tick?: { fill?: string; fontSize?: number };
-    tickFormatter?: (value: any) => string;
+    tickFormatter?: (value: string | number) => string;
     stroke?: string;
   }
 
@@ -76,7 +76,7 @@ declare module 'recharts' {
   export class CartesianGrid extends React.Component<CartesianGridProps> {}
 
   export interface TooltipProps {
-    content?: React.ReactElement | ((props: any) => React.ReactElement | null);
+    content?: React.ReactElement | ((props: Record<string, unknown>) => React.ReactElement | null);
   }
 
   export class Tooltip extends React.Component<TooltipProps> {}
@@ -92,7 +92,7 @@ declare module 'recharts' {
   export class Legend extends React.Component<LegendProps> {}
 
   export interface PieProps {
-    data?: any[];
+    data?: Record<string, unknown>[];
     cx?: string | number;
     cy?: string | number;
     innerRadius?: string | number;

@@ -11,6 +11,7 @@ import {
   PostEntity,
   SubscriptionEntity,
   TransactionEntity,
+  PermissionRole,
 } from '@suggar-daddy/database';
 import { RedisService } from '@suggar-daddy/redis';
 
@@ -171,7 +172,7 @@ export class UserManagementService {
       throw new NotFoundException('用戶 ' + userId + ' 不存在');
     }
     const oldPermissionRole = user.permissionRole;
-    user.permissionRole = normalizedRole as any;
+    user.permissionRole = normalizedRole as PermissionRole;
     user.role = normalizedRole;
     await this.userRepo.save(user);
     this.logger.warn(`用戶角色變更: ${userId} ${oldPermissionRole} -> ${normalizedRole}`);
@@ -212,11 +213,11 @@ export class UserManagementService {
 
     for (const field of allowedFields) {
       if (updateData[field as keyof typeof updateData] !== undefined) {
-        const oldValue = (user as any)[field];
+        const oldValue = (user as Record<string, unknown>)[field];
         const newValue = updateData[field as keyof typeof updateData];
         if (oldValue !== newValue) {
           changes[field] = { from: oldValue, to: newValue };
-          (user as any)[field] = newValue;
+          (user as Record<string, unknown>)[field] = newValue;
         }
       }
     }

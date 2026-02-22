@@ -127,7 +127,7 @@ export default function ContentEditor({
         <label className="block text-sm font-medium text-white mb-2">Type</label>
         <select
           value={formData.type || 'video'}
-          onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+          onChange={(e) => setFormData({ ...formData, type: e.target.value as Content['type'] })}
           className="w-full px-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-colors"
           aria-label="Content type"
         >
@@ -207,7 +207,7 @@ export default function ContentEditor({
         <label className="block text-sm font-medium text-white mb-2">Status</label>
         <select
           value={formData.status || 'draft'}
-          onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+          onChange={(e) => setFormData({ ...formData, status: e.target.value as Content['status'] })}
           className="w-full px-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-colors"
           aria-label="Content status"
         >

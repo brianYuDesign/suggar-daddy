@@ -48,18 +48,18 @@ export default function UserEditPage() {
       setForm({
         displayName: user.displayName || '',
         email: user.email || '',
-        username: (user as any).username || '',
-        bio: (user as any).bio || '',
-        userType: (user as any).userType || '',
-        permissionRole: (user as any).permissionRole || '',
-        city: (user as any).city || '',
-        country: (user as any).country || '',
-        dmPrice: (user as any).dmPrice?.toString() || '',
-        birthDate: (user as any).birthDate || '',
-        preferredAgeMin: (user as any).preferredAgeMin?.toString() || '',
-        preferredAgeMax: (user as any).preferredAgeMax?.toString() || '',
-        preferredDistance: (user as any).preferredDistance?.toString() || '',
-        verificationStatus: (user as any).verificationStatus || '',
+        username: (user as Record<string, unknown>).username as string || '',
+        bio: (user as Record<string, unknown>).bio as string || '',
+        userType: (user as Record<string, unknown>).userType as string || '',
+        permissionRole: (user as Record<string, unknown>).permissionRole as string || '',
+        city: (user as Record<string, unknown>).city as string || '',
+        country: (user as Record<string, unknown>).country as string || '',
+        dmPrice: ((user as Record<string, unknown>).dmPrice as number)?.toString() || '',
+        birthDate: (user as Record<string, unknown>).birthDate as string || '',
+        preferredAgeMin: ((user as Record<string, unknown>).preferredAgeMin as number)?.toString() || '',
+        preferredAgeMax: ((user as Record<string, unknown>).preferredAgeMax as number)?.toString() || '',
+        preferredDistance: ((user as Record<string, unknown>).preferredDistance as number)?.toString() || '',
+        verificationStatus: (user as Record<string, unknown>).verificationStatus as string || '',
       });
     }
   }, [user]);
@@ -71,7 +71,7 @@ export default function UserEditPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updateData: Record<string, any> = {};
+      const updateData: Record<string, unknown> = {};
 
       // Only send changed fields
       if (form.displayName) updateData.displayName = form.displayName;
@@ -92,8 +92,8 @@ export default function UserEditPage() {
       const result = await adminApi.updateUser(userId, updateData);
       toast.success(result.message);
       router.push(`/users/${userId}`);
-    } catch (err: any) {
-      toast.error(err?.message || t('edit.updateFailed'));
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t('edit.updateFailed'));
     } finally {
       setSaving(false);
     }

@@ -25,12 +25,12 @@ jest.mock('@/lib/api', () => ({
 
 // Mock hooks
 jest.mock('@/lib/hooks', () => ({
-  useAdminQuery: (fn: any, deps: any[]) => {
+  useAdminQuery: (fn: () => Promise<unknown>, deps: unknown[]) => {
     const [data, setData] = require('react').useState(null);
     const [loading, setLoading] = require('react').useState(true);
-    
+
     require('react').useEffect(() => {
-      fn().then((result: any) => {
+      fn().then((result: unknown) => {
         setData(result);
         setLoading(false);
       });
@@ -41,7 +41,7 @@ jest.mock('@/lib/hooks', () => ({
 }));
 
 jest.mock('@/lib/use-sort', () => ({
-  useSort: (data: any) => ({
+  useSort: (data: unknown) => ({
     sorted: data,
     sort: 'createdAt',
     toggleSort: jest.fn(),
@@ -49,7 +49,7 @@ jest.mock('@/lib/use-sort', () => ({
 }));
 
 jest.mock('@/lib/use-selection', () => ({
-  useSelection: (data: any) => ({
+  useSelection: (_data: unknown) => ({
     selectedIds: [],
     selectedCount: 0,
     isSelected: jest.fn(() => false),

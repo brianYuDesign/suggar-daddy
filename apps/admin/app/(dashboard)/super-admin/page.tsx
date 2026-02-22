@@ -34,20 +34,20 @@ export default function SuperAdminPage() {
       const result = await adminApi.demoteAdmin(demoteTarget.id);
       toast.success(result.message);
       refetchAdmins();
-    } catch (err: any) {
-      toast.error(err?.message || 'Failed to demote admin');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to demote admin');
     } finally {
       setActionLoading(false);
       setDemoteTarget(null);
     }
   };
 
-  const handleForcePasswordReset = async (userId: string, name: string) => {
+  const handleForcePasswordReset = async (userId: string, _name: string) => {
     try {
       const result = await adminApi.forcePasswordReset(userId);
       toast.success(result.message);
-    } catch (err: any) {
-      toast.error(err?.message || 'Failed to force password reset');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to force password reset');
     }
   };
 
@@ -73,9 +73,9 @@ export default function SuperAdminPage() {
                 <p className="text-sm text-muted-foreground">{t('totalUsers')}</p>
               </div>
               {overview?.roleDistribution &&
-                Object.entries(overview.roleDistribution).map(([role, count]) => (
+                Object.entries(overview.roleDistribution).map(([role, count]: [string, unknown]) => (
                   <div key={role}>
-                    <div className="text-2xl font-bold">{count}</div>
+                    <div className="text-2xl font-bold">{String(count)}</div>
                     <p className="text-sm text-muted-foreground">{role}</p>
                   </div>
                 ))}

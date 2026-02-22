@@ -88,7 +88,7 @@ export default function RefundAnalysis({
     color: COLORS[index % COLORS.length],
   }));
 
-  const CustomPieTooltip = ({ active, payload }: any) => {
+  const CustomPieTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) => {
     if (active && payload && payload.length) {
       const total = data.byReason.reduce((sum, item) => sum + item.count, 0);
       const percentage = ((payload[0].value / total) * 100).toFixed(1);

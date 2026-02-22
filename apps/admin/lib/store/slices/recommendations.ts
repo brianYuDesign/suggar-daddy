@@ -47,8 +47,8 @@ export const fetchRecommendations = createAsyncThunk(
     try {
       const response = await recommendationsApi.getRecommendations(params);
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to fetch recommendations');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch recommendations');
     }
   }
 );
@@ -62,8 +62,8 @@ export const rateContent = createAsyncThunk(
     try {
       await recommendationsApi.rateContent(data);
       return data;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to rate content');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to rate content');
     }
   }
 );
@@ -81,8 +81,8 @@ export const recordInteraction = createAsyncThunk(
     try {
       await recommendationsApi.recordInteraction(data);
       return data;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to record interaction');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to record interaction');
     }
   }
 );
@@ -93,8 +93,8 @@ export const subscribeCreator = createAsyncThunk(
     try {
       await recommendationsApi.subscribeCreator(creatorId);
       return creatorId;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to subscribe');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to subscribe');
     }
   }
 );
@@ -105,8 +105,8 @@ export const unsubscribeCreator = createAsyncThunk(
     try {
       await recommendationsApi.unsubscribeCreator(creatorId);
       return creatorId;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to unsubscribe');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to unsubscribe');
     }
   }
 );

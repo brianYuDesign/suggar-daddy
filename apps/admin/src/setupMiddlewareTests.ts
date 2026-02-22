@@ -6,8 +6,8 @@
 // Polyfill for Next.js Request/Response
 import { TextEncoder, TextDecoder } from 'util';
 
-global.TextEncoder = TextEncoder as any;
-global.TextDecoder = TextDecoder as any;
+global.TextEncoder = TextEncoder as typeof globalThis.TextEncoder;
+global.TextDecoder = TextDecoder as typeof globalThis.TextDecoder;
 
 // Mock Request and Response for Next.js
 if (typeof Request === 'undefined') {
@@ -21,25 +21,25 @@ if (typeof Request === 'undefined') {
       this.method = init?.method || 'GET';
       this.headers = new Headers(init?.headers);
     }
-  } as any;
+  } as unknown as typeof globalThis.Request;
 }
 
 if (typeof Response === 'undefined') {
   global.Response = class Response {
     status: number;
     headers: Headers;
-    body: any;
-    
+    body: BodyInit | null;
+
     constructor(body?: BodyInit | null, init?: ResponseInit) {
-      this.body = body;
+      this.body = body ?? null;
       this.status = init?.status || 200;
       this.headers = new Headers(init?.headers);
     }
-    
+
     json() {
       return Promise.resolve(JSON.parse(this.body as string));
     }
-  } as any;
+  } as unknown as typeof globalThis.Response;
 }
 
 if (typeof Headers === 'undefined') {
@@ -61,5 +61,5 @@ if (typeof Headers === 'undefined') {
     delete(key: string) {
       this.map.delete(key.toLowerCase());
     }
-  } as any;
+  } as unknown as typeof globalThis.Headers;
 }

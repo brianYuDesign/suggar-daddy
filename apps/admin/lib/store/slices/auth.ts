@@ -51,8 +51,8 @@ export const loginUser = createAsyncThunk(
         response.tokens.refreshToken
       );
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Login failed');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Login failed');
     }
   }
 );
@@ -67,8 +67,8 @@ export const registerUser = createAsyncThunk(
         response.tokens.refreshToken
       );
       return response;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Registration failed');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Registration failed');
     }
   }
 );
@@ -92,7 +92,7 @@ export const refreshTokenUser = createAsyncThunk(
   'auth/refresh',
   async (_, { rejectWithValue, getState }) => {
     try {
-      const state = getState() as any;
+      const state = getState() as { auth: AuthState };
       const refreshToken = state.auth.tokens.refreshToken;
 
       if (!refreshToken) {
@@ -102,9 +102,9 @@ export const refreshTokenUser = createAsyncThunk(
       const response = await authApi.refreshToken(refreshToken);
       tokenManager.setTokens(response.accessToken, response.refreshToken);
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       tokenManager.clearTokens();
-      return rejectWithValue(error.message || 'Token refresh failed');
+      return rejectWithValue(error instanceof Error ? error.message : 'Token refresh failed');
     }
   }
 );
@@ -115,8 +115,8 @@ export const getCurrentUser = createAsyncThunk(
     try {
       const user = await authApi.getCurrentUser();
       return user;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to get current user');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to get current user');
     }
   }
 );
@@ -127,8 +127,8 @@ export const updateProfile = createAsyncThunk(
     try {
       const user = await authApi.updateProfile(profile);
       return user;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to update profile');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to update profile');
     }
   }
 );
@@ -139,8 +139,8 @@ export const changePassword = createAsyncThunk(
     try {
       const result = await authApi.changePassword(data);
       return result;
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to change password');
+    } catch (error: unknown) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to change password');
     }
   }
 );
