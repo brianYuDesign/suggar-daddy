@@ -184,8 +184,8 @@ export class ProxyService {
       {
         prefix: '/api/streaming',
         baseUrl: this.config.get<string>(
-          'CONTENT_STREAMING_SERVICE_URL',
-          'http://localhost:3014',
+          'CONTENT_SERVICE_URL',
+          'http://localhost:3006',
         ),
       },
       {

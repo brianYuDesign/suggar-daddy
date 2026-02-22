@@ -26,6 +26,7 @@
       "@suggar-daddy/redis": ["libs/redis/src/index.ts"],
       "@suggar-daddy/auth": ["libs/auth/src/index.ts"],
       "@suggar-daddy/ui": ["libs/ui/src/index.ts"],
+      "@suggar-daddy/entities": ["libs/entities/src/index.ts"],
       "@suggar-daddy/api-client": ["libs/api-client/src/index.ts"],
       "@test/setup": ["test/integration/setup/index.ts"],
       "@test/helpers": ["test/integration/helpers/index.ts"]

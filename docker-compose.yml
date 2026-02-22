@@ -1150,55 +1150,6 @@ services:
       - elk
 
 
-  # Content Streaming Service - 视频流处理
-  content-streaming-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
-      args:
-        APP_NAME: content-streaming-service
-    container_name: suggar-daddy-content-streaming-service
-    ports:
-      - "3014:3014"
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      PORT: 3014
-      # Database
-      DB_HOST: postgres-master
-      DB_PORT: 5432
-      DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      DB_DATABASE: ${POSTGRES_DB:-suggar_daddy}
-      REDIS_HOST: redis-master
-      REDIS_PORT: 6379
-      KAFKA_BROKERS: kafka:9092
-      # JWT
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      # AWS S3
-      AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      S3_BUCKET: ${S3_BUCKET}
-      # OpenTelemetry / Jaeger
-      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
-      OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/dist
-    depends_on:
-      postgres-master:
-        condition: service_healthy
-      redis-master:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    command: npm run serve:content-streaming-service
-    networks:
-      - suggar-daddy-network
-    restart: unless-stopped
-
   # Recommendation Service - 推荐系统
   recommendation-service:
     build:

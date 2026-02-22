@@ -46,7 +46,6 @@
     "serve:admin": "nx serve admin",
     "serve:recommendation-service": "nx serve recommendation-service",
     "serve:skill-service": "nx serve skill-service",
-    "serve:content-streaming-service": "nx serve content-streaming-service",
     "test:unit": "jest --config=test/config/jest/jest.unit.config.ts",
     "test:unit:watch": "jest --config=test/config/jest/jest.unit.config.ts --watch",
     "test:unit:coverage": "jest --config=test/config/jest/jest.unit.config.ts --coverage",

@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [recommendation-service, content-streaming-service]
+        service: [recommendation-service]
     steps:
       - uses: actions/checkout@v4
 

@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, Max, Min } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  Max,
+  Min,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export enum VideoStatusEnum {
@@ -85,7 +92,7 @@ export class InitiateUploadDto {
   @IsNumber()
   @IsOptional()
   @Transform(({ value }) => parseInt(value))
-  chunk_size?: number; // default 5MB
+  chunk_size?: number;
 }
 
 export class CompleteUploadDto {
@@ -116,17 +123,4 @@ export class UploadSessionResponseDto {
   total_chunks: number;
   uploaded_chunks: string[];
   is_completed: boolean;
-}
-
-export class StreamPlaylistDto {
-  video_id: string;
-  qualities: QualityPlaylistDto[];
-  default_quality: string;
-}
-
-export class QualityPlaylistDto {
-  quality_name: string;
-  resolution: string;
-  bitrate: string;
-  cdn_url: string;
 }
