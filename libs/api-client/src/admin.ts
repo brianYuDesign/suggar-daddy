@@ -523,6 +523,60 @@ export interface UpdateUserDto {
   verificationStatus?: string;
 }
 
+// ---- Blog Types ----
+
+export interface BlogRecord {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string | null;
+  coverImage: string | null;
+  category: string;
+  tags: string[] | null;
+  status: string;
+  authorId: string | null;
+  authorName: string | null;
+  viewCount: number;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BlogStats {
+  total: number;
+  published: number;
+  draft: number;
+  archived: number;
+  totalViews: number;
+}
+
+export interface CreateBlogPayload {
+  title: string;
+  content: string;
+  excerpt?: string;
+  coverImage?: string;
+  category?: string;
+  tags?: string[];
+  status?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+}
+
+export interface UpdateBlogPayload {
+  title?: string;
+  content?: string;
+  excerpt?: string;
+  coverImage?: string;
+  category?: string;
+  tags?: string[];
+  status?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+}
+
 // ---- Admin API Client ----
 
 export class AdminApi {
@@ -955,5 +1009,54 @@ export class AdminApi {
       `/api/admin/users/${userId}`,
       data,
     );
+  }
+
+  // -- Blog --
+
+  getBlogStats() {
+    return this.client.get<BlogStats>('/api/blogs/stats');
+  }
+
+  listBlogs(page = 1, limit = 20, category?: string, status?: string, search?: string) {
+    return this.client.get<{ items: BlogRecord[]; total: number; page: number; limit: number }>(
+      '/api/blogs/admin',
+      { params: this.buildParams({ page, limit, category, status, search }) },
+    );
+  }
+
+  getBlog(id: string) {
+    return this.client.get<BlogRecord>(`/api/blogs/by-id/${id}`);
+  }
+
+  createBlog(dto: CreateBlogPayload) {
+    return this.client.post<BlogRecord>('/api/blogs', dto);
+  }
+
+  updateBlog(id: string, dto: UpdateBlogPayload) {
+    return this.client.put<BlogRecord>(`/api/blogs/${id}`, dto);
+  }
+
+  deleteBlog(id: string) {
+    return this.client.delete<{ message: string }>(`/api/blogs/${id}`);
+  }
+
+  publishBlog(id: string) {
+    return this.client.post<BlogRecord>(`/api/blogs/${id}/publish`);
+  }
+
+  archiveBlog(id: string) {
+    return this.client.post<BlogRecord>(`/api/blogs/${id}/archive`);
+  }
+
+  batchPublishBlogs(ids: string[]) {
+    return this.client.post<{ publishedCount: number }>('/api/blogs/batch/publish', { ids });
+  }
+
+  batchArchiveBlogs(ids: string[]) {
+    return this.client.post<{ archivedCount: number }>('/api/blogs/batch/archive', { ids });
+  }
+
+  batchDeleteBlogs(ids: string[]) {
+    return this.client.post<{ deletedCount: number }>('/api/blogs/batch/delete', { ids });
   }
 }

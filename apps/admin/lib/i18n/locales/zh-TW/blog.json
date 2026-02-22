@@ -1,0 +1,87 @@
+{
+  "title": "部落格管理",
+  "subtitle": "管理所有部落格文章",
+  "createNew": "新增文章",
+  "stats": {
+    "total": "總文章數",
+    "published": "已發布",
+    "draft": "草稿",
+    "archived": "已歸檔",
+    "totalViews": "總瀏覽數"
+  },
+  "filters": {
+    "allCategories": "所有分類",
+    "allStatus": "所有狀態",
+    "searchPlaceholder": "搜尋文章標題..."
+  },
+  "category": {
+    "guide": "使用指南",
+    "safety": "安全須知",
+    "tips": "約會技巧",
+    "story": "用戶故事",
+    "news": "平台公告"
+  },
+  "status": {
+    "draft": "草稿",
+    "published": "已發布",
+    "archived": "已歸檔"
+  },
+  "table": {
+    "title": "標題",
+    "category": "分類",
+    "status": "狀態",
+    "views": "瀏覽數",
+    "author": "作者",
+    "publishedAt": "發布日期",
+    "createdAt": "建立日期",
+    "actions": "操作",
+    "noBlogs": "暫無文章",
+    "selectAll": "全選",
+    "blogList": "文章列表"
+  },
+  "batch": {
+    "publishSelected": "批量發布",
+    "archiveSelected": "批量歸檔",
+    "deleteSelected": "批量刪除",
+    "publishSuccess": "已成功發布 {{count}} 篇文章",
+    "archiveSuccess": "已成功歸檔 {{count}} 篇文章",
+    "deleteSuccess": "已成功刪除 {{count}} 篇文章",
+    "confirmDeleteTitle": "確認批量刪除",
+    "confirmDeleteDesc": "確定要刪除選取的 {{count}} 篇文章嗎？此操作無法復原。"
+  },
+  "editor": {
+    "createTitle": "建立新文章",
+    "editTitle": "編輯文章",
+    "backToList": "返回列表",
+    "titleLabel": "文章標題",
+    "titlePlaceholder": "輸入文章標題...",
+    "contentLabel": "文章內容",
+    "excerptLabel": "摘要",
+    "excerptPlaceholder": "輸入文章摘要...",
+    "coverImageLabel": "封面圖片",
+    "uploadCover": "上傳封面圖片",
+    "removeCover": "移除封面",
+    "categoryLabel": "分類",
+    "tagsLabel": "標籤",
+    "tagsPlaceholder": "輸入標籤後按 Enter",
+    "statusLabel": "狀態",
+    "seoSection": "SEO 設定",
+    "metaTitleLabel": "Meta 標題",
+    "metaTitlePlaceholder": "輸入 SEO 標題...",
+    "metaDescLabel": "Meta 描述",
+    "metaDescPlaceholder": "輸入 SEO 描述...",
+    "saveDraft": "儲存草稿",
+    "saveAndPublish": "儲存並發布",
+    "saving": "儲存中...",
+    "saveSuccess": "文章已儲存",
+    "saveFailed": "儲存失敗",
+    "deleteSuccess": "文章已刪除",
+    "confirmDeleteTitle": "確認刪除文章",
+    "confirmDeleteDesc": "確定要刪除這篇文章嗎？此操作無法復原。",
+    "publish": "發布",
+    "archive": "歸檔",
+    "delete": "刪除",
+    "edit": "編輯",
+    "contentPlaceholder": "開始撰寫文章內容..."
+  }
+}

@@ -16,7 +16,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 async function getBlog(slug: string) {
-  const res = await fetch(`${API_BASE}/blogs/${slug}`, {
+  const res = await fetch(`${API_BASE}/api/blogs/${slug}`, {
     next: { revalidate: 300 },
   });
   if (res.status === 404) return null;
@@ -25,7 +25,7 @@ async function getBlog(slug: string) {
 }
 
 async function getRelated(id: string) {
-  const res = await fetch(`${API_BASE}/blogs/${id}/related`, {
+  const res = await fetch(`${API_BASE}/api/blogs/${id}/related`, {
     next: { revalidate: 300 },
   });
   if (!res.ok) return [];
@@ -35,9 +35,10 @@ async function getRelated(id: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const blog = await getBlog(params.slug);
+  const { slug } = await params;
+  const blog = await getBlog(slug);
   if (!blog) return { title: '文章不存在' };
   return {
     title: blog.metaTitle || `${blog.title} | Suggar Daddy 部落格`,
@@ -53,9 +54,10 @@ export async function generateMetadata({
 export default async function BlogDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const blog = await getBlog(params.slug);
+  const { slug } = await params;
+  const blog = await getBlog(slug);
   if (!blog) notFound();
 
   const related = await getRelated(blog.id);
@@ -68,8 +70,25 @@ export default async function BlogDetailPage({
       })
     : '';
 
+  const readingTime = Math.max(1, Math.ceil(blog.content.replace(/<[^>]*>/g, '').length / 200));
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: blog.title,
+    description: blog.excerpt || '',
+    image: blog.coverImage || undefined,
+    datePublished: blog.publishedAt,
+    dateModified: blog.updatedAt,
+    author: blog.authorName ? { '@type': 'Person', name: blog.authorName } : undefined,
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero */}
       <div className="relative h-64 md:h-80 bg-gradient-to-br from-rose-400 to-pink-500">
         {blog.coverImage && (
@@ -78,6 +97,7 @@ export default async function BlogDetailPage({
             alt={blog.title}
             fill
             className="object-cover opacity-40"
+            unoptimized
           />
         )}
         <div className="absolute inset-0 flex items-end">
@@ -104,6 +124,7 @@ export default async function BlogDetailPage({
         <div className="flex items-center gap-4 text-sm text-gray-400 mb-8 pb-6 border-b">
           {blog.authorName && <span>作者:{blog.authorName}</span>}
           {publishedDate && <span>{publishedDate}</span>}
+          <span>{readingTime} 分鐘閱讀</span>
           <span className="flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -117,7 +138,7 @@ export default async function BlogDetailPage({
 
         {/* Body */}
         <article
-          className="prose prose-gray prose-headings:font-bold prose-a:text-rose-500 max-w-none"
+          className="prose prose-gray prose-lg prose-headings:font-bold prose-a:text-rose-500 prose-img:rounded-xl prose-blockquote:border-rose-300 max-w-none"
           dangerouslySetInnerHTML={{ __html: blog.content }}
         />
 
@@ -142,7 +163,7 @@ export default async function BlogDetailPage({
         <div className="max-w-6xl mx-auto px-4 pb-16">
           <h2 className="text-xl font-bold text-gray-800 mb-6">相關文章</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {related.map((b: any) => (
+            {related.map((b: { id: string; title: string; slug: string; excerpt: string; coverImage?: string; category: string; tags?: string[]; viewCount: number; publishedAt: string; authorName?: string }) => (
               <BlogCard key={b.id} blog={b} />
             ))}
           </div>

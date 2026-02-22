@@ -1,355 +1,381 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
-import { getToken } from '@/lib/auth';
-import { format } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
-import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Eye,
-  Archive,
-  Send,
-  MoreHorizontal,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from 'react-i18next';
+import { FileText, Send, FileEdit, Eye, MoreHorizontal, Plus } from 'lucide-react';
+import { adminApi } from '@/lib/api';
+import { useAdminQuery } from '@/lib/hooks';
+import { useSort } from '@/lib/use-sort';
+import { useSelection } from '@/lib/use-selection';
+import { useToast } from '@/components/toast';
+import { BatchActionBar } from '@/components/batch-action-bar';
+import { StatsCard } from '@/components/stats-card';
+import { SortableTableHead } from '@/components/sortable-table-head';
 import { Pagination } from '@/components/pagination';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Badge,
+  Select,
+  Skeleton,
+  Input,
+  Button,
+  ConfirmDialog,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@suggar-daddy/ui';
 
-interface Blog {
+interface BlogItem {
   id: string;
   title: string;
   slug: string;
-  excerpt: string;
+  excerpt: string | null;
   category: string;
-  status: 'draft' | 'published' | 'archived';
-  authorName: string;
+  status: string;
   viewCount: number;
-  publishedAt: string;
+  authorName: string | null;
+  publishedAt: string | null;
   createdAt: string;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  guide: '使用指南',
-  safety: '安全須知',
-  tips: '約會技巧',
-  story: '用戶故事',
-  news: '平台公告',
+const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  published: 'default',
+  draft: 'secondary',
+  archived: 'outline',
 };
 
-const STATUS_LABELS: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' }> = {
-  draft: { label: '草稿', variant: 'secondary' },
-  published: { label: '已發布', variant: 'default' },
-  archived: { label: '已歸檔', variant: 'destructive' },
-};
-
-export default function BlogManagementPage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
+export default function BlogListPage() {
+  const { t } = useTranslation('blog');
+  const toast = useToast();
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const limit = 10;
+  const [category, setCategory] = useState('');
+  const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [actionMenuId, setActionMenuId] = useState<string | null>(null);
+  const limit = 20;
 
-  const fetchBlogs = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(limit),
-        ...(search && { search }),
-        ...(statusFilter && { status: statusFilter }),
-        ...(categoryFilter && { category: categoryFilter }),
-      });
+  const { data: stats, loading: statsLoading } = useAdminQuery(
+    () => adminApi.getBlogStats(),
+    [],
+  );
 
-      const token = getToken();
-      const response = await fetch(`/api/blogs/admin?${params}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!response.ok) throw new Error('Failed to fetch blogs');
+  const { data, loading, refetch } = useAdminQuery(
+    () => adminApi.listBlogs(page, limit, category || undefined, status || undefined, search || undefined),
+    [page, category, status, search],
+  );
 
-      const data = await response.json();
-      setBlogs(data.items || []);
-      setTotal(data.total || 0);
-    } catch (_error) {
-      toast({
-        title: '錯誤',
-        description: '無法載入文章列表',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBlogs();
-  }, [page, statusFilter, categoryFilter]);
+  const { sorted, sort, toggleSort } = useSort(data?.items as BlogItem[] | undefined, 'createdAt');
+  const selection = useSelection(data?.items as BlogItem[] | undefined);
 
   const handleSearch = () => {
+    setSearch(searchInput);
     setPage(1);
-    fetchBlogs();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('確定要刪除這篇文章嗎？此操作無法復原。')) return;
-
+  const handleBatchPublish = async () => {
+    if (selection.selectedCount === 0) return;
+    setBatchLoading(true);
     try {
-      const token = getToken();
-      const response = await fetch(`/api/blogs/${id}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-
-      if (!response.ok) throw new Error('Failed to delete blog');
-
-      toast({
-        title: '成功',
-        description: '文章已刪除',
-      });
-      fetchBlogs();
-    } catch (_error) {
-      toast({
-        title: '錯誤',
-        description: '刪除失敗',
-        variant: 'destructive',
-      });
+      const result = await adminApi.batchPublishBlogs(selection.selectedIds);
+      toast.success(t('batch.publishSuccess', { count: result.publishedCount }));
+      selection.clear();
+      refetch();
+    } catch {
+      toast.error(t('editor.saveFailed'));
+    } finally {
+      setBatchLoading(false);
     }
   };
 
-  const handlePublish = async (id: string) => {
+  const handleBatchArchive = async () => {
+    if (selection.selectedCount === 0) return;
+    setBatchLoading(true);
     try {
-      const token = getToken();
-      const response = await fetch(`/api/blogs/${id}/publish`, {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-
-      if (!response.ok) throw new Error('Failed to publish blog');
-
-      toast({
-        title: '成功',
-        description: '文章已發布',
-      });
-      fetchBlogs();
-    } catch (_error) {
-      toast({
-        title: '錯誤',
-        description: '發布失敗',
-        variant: 'destructive',
-      });
+      const result = await adminApi.batchArchiveBlogs(selection.selectedIds);
+      toast.success(t('batch.archiveSuccess', { count: result.archivedCount }));
+      selection.clear();
+      refetch();
+    } catch {
+      toast.error(t('editor.saveFailed'));
+    } finally {
+      setBatchLoading(false);
     }
   };
 
-  const handleArchive = async (id: string) => {
+  const handleBatchDelete = async () => {
+    setBatchLoading(true);
     try {
-      const token = getToken();
-      const response = await fetch(`/api/blogs/${id}/archive`, {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-
-      if (!response.ok) throw new Error('Failed to archive blog');
-
-      toast({
-        title: '成功',
-        description: '文章已歸檔',
-      });
-      fetchBlogs();
-    } catch (_error) {
-      toast({
-        title: '錯誤',
-        description: '歸檔失敗',
-        variant: 'destructive',
-      });
+      const result = await adminApi.batchDeleteBlogs(selection.selectedIds);
+      toast.success(t('batch.deleteSuccess', { count: result.deletedCount }));
+      selection.clear();
+      refetch();
+    } catch {
+      toast.error(t('editor.saveFailed'));
+    } finally {
+      setBatchLoading(false);
+      setShowDeleteConfirm(false);
     }
   };
+
+  const handleSingleAction = async (id: string, action: 'publish' | 'archive' | 'delete') => {
+    setActionMenuId(null);
+    try {
+      if (action === 'publish') {
+        await adminApi.publishBlog(id);
+        toast.success(t('batch.publishSuccess', { count: 1 }));
+      } else if (action === 'archive') {
+        await adminApi.archiveBlog(id);
+        toast.success(t('batch.archiveSuccess', { count: 1 }));
+      } else if (action === 'delete') {
+        await adminApi.deleteBlog(id);
+        toast.success(t('editor.deleteSuccess'));
+      }
+      refetch();
+    } catch {
+      toast.error(t('editor.saveFailed'));
+    }
+  };
+
+  const totalPages = data ? Math.ceil(data.total / limit) : 0;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">部落格管理</h1>
-          <p className="text-muted-foreground">管理文章、創建內容、查看數據</p>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t('subtitle')}</p>
         </div>
-        <Button onClick={() => router.push('/content/blog/create')}>
-          <Plus className="w-4 h-4 mr-2" />
-          新增文章
-        </Button>
+        <Link href="/content/blog/create">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('createNew')}
+          </Button>
+        </Link>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {statsLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24" />
+          ))
+        ) : (
+          <>
+            <StatsCard title={t('stats.total')} value={stats?.total ?? 0} icon={FileText} />
+            <StatsCard title={t('stats.published')} value={stats?.published ?? 0} icon={Send} />
+            <StatsCard title={t('stats.draft')} value={stats?.draft ?? 0} icon={FileEdit} />
+            <StatsCard title={t('stats.totalViews')} value={(stats?.totalViews ?? 0).toLocaleString()} icon={Eye} />
+          </>
+        )}
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 items-center">
-        <div className="flex-1 flex gap-2">
+      <div className="flex flex-wrap gap-4">
+        <div className="flex gap-2">
           <Input
-            placeholder="搜尋文章標題..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('filters.searchPlaceholder')}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="max-w-sm"
+            className="w-64"
           />
-          <Button variant="outline" onClick={handleSearch}>
-            <Search className="w-4 h-4" />
-          </Button>
         </div>
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border rounded-md px-3 py-2 text-sm"
-        >
-          <option value="">所有狀態</option>
-          <option value="draft">草稿</option>
-          <option value="published">已發布</option>
-          <option value="archived">已歸檔</option>
-        </select>
-
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="border rounded-md px-3 py-2 text-sm"
-        >
-          <option value="">所有分類</option>
-          <option value="guide">使用指南</option>
-          <option value="safety">安全須知</option>
-          <option value="tips">約會技巧</option>
-          <option value="story">用戶故事</option>
-          <option value="news">平台公告</option>
-        </select>
+        <Select value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }} className="w-40">
+          <option value="">{t('filters.allCategories')}</option>
+          <option value="guide">{t('category.guide')}</option>
+          <option value="safety">{t('category.safety')}</option>
+          <option value="tips">{t('category.tips')}</option>
+          <option value="story">{t('category.story')}</option>
+          <option value="news">{t('category.news')}</option>
+        </Select>
+        <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="w-40">
+          <option value="">{t('filters.allStatus')}</option>
+          <option value="draft">{t('status.draft')}</option>
+          <option value="published">{t('status.published')}</option>
+          <option value="archived">{t('status.archived')}</option>
+        </Select>
       </div>
+
+      {/* Batch Action Bar */}
+      <BatchActionBar selectedCount={selection.selectedCount} onClear={selection.clear}>
+        <Button variant="outline" size="sm" onClick={handleBatchPublish} disabled={batchLoading}>
+          {t('batch.publishSelected')}
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleBatchArchive} disabled={batchLoading}>
+          {t('batch.archiveSelected')}
+        </Button>
+        <Button variant="destructive" size="sm" onClick={() => setShowDeleteConfirm(true)} disabled={batchLoading}>
+          {t('batch.deleteSelected')}
+        </Button>
+      </BatchActionBar>
 
       {/* Table */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>文章</TableHead>
-              <TableHead>分類</TableHead>
-              <TableHead>狀態</TableHead>
-              <TableHead>作者</TableHead>
-              <TableHead>瀏覽</TableHead>
-              <TableHead>發布時間</TableHead>
-              <TableHead className="text-right">操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
-                  載入中...
-                </TableCell>
-              </TableRow>
-            ) : blogs.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  暫無文章
-                </TableCell>
-              </TableRow>
-            ) : (
-              blogs.map((blog) => (
-                <TableRow key={blog.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{blog.title}</p>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {blog.excerpt}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {CATEGORY_LABELS[blog.category] || blog.category}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_LABELS[blog.status]?.variant || 'secondary'}>
-                      {STATUS_LABELS[blog.status]?.label || blog.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{blog.authorName || '-'}</TableCell>
-                  <TableCell>{blog.viewCount?.toLocaleString()}</TableCell>
-                  <TableCell>
-                    {blog.publishedAt
-                      ? format(new Date(blog.publishedAt), 'yyyy/MM/dd', { locale: zhTW })
-                      : '-'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/blog/${blog.slug}`} target="_blank">
-                            <Eye className="w-4 h-4 mr-2" />
-                            預覽
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/content/blog/${blog.id}/edit`}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            編輯
-                          </Link>
-                        </DropdownMenuItem>
-                        {blog.status === 'draft' && (
-                          <DropdownMenuItem onClick={() => handlePublish(blog.id)}>
-                            <Send className="w-4 h-4 mr-2" />
-                            發布
-                          </DropdownMenuItem>
-                        )}
-                        {blog.status !== 'archived' && (
-                          <DropdownMenuItem onClick={() => handleArchive(blog.id)}>
-                            <Archive className="w-4 h-4 mr-2" />
-                            歸檔
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(blog.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          刪除
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            {t('table.blogList')} {data && <span className="font-normal text-muted-foreground">({data.total})</span>}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-12" />
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="mb-3">
+                <label className="flex items-center gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={selection.allSelected}
+                    onChange={selection.toggleAll}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <span>{t('table.selectAll')}</span>
+                </label>
+              </div>
 
-      {/* Pagination */}
-      <Pagination
-        page={page}
-        totalPages={Math.ceil(total / limit)}
-        onPageChange={setPage}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-10" />
+                      <SortableTableHead label={t('table.title')} sortKey="title" sort={sort} onToggle={toggleSort} />
+                      <TableHead>{t('table.category')}</TableHead>
+                      <TableHead>{t('table.status')}</TableHead>
+                      <SortableTableHead label={t('table.views')} sortKey="viewCount" sort={sort} onToggle={toggleSort} />
+                      <SortableTableHead label={t('table.publishedAt')} sortKey="publishedAt" sort={sort} onToggle={toggleSort} />
+                      <SortableTableHead label={t('table.createdAt')} sortKey="createdAt" sort={sort} onToggle={toggleSort} />
+                      <TableHead>{t('table.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(sorted || []).length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          {t('table.noBlogs')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      (sorted || []).map((blog: BlogItem) => (
+                        <TableRow key={blog.id}>
+                          <TableCell>
+                            <input
+                              type="checkbox"
+                              checked={selection.isSelected(blog.id)}
+                              onChange={() => selection.toggle(blog.id)}
+                              className="h-4 w-4 rounded border-gray-300"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-xs">
+                              <p className="font-medium truncate">{blog.title}</p>
+                              {blog.excerpt && (
+                                <p className="text-xs text-muted-foreground truncate mt-0.5">{blog.excerpt}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{t(`category.${blog.category}`)}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={STATUS_VARIANT[blog.status] || 'secondary'}>
+                              {t(`status.${blog.status}`)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{blog.viewCount.toLocaleString()}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : '-'}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {new Date(blog.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={() => setActionMenuId(actionMenuId === blog.id ? null : blog.id)}
+                                className="p-1 rounded hover:bg-gray-100"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </button>
+                              {actionMenuId === blog.id && (
+                                <div className="absolute right-0 top-8 z-10 w-36 rounded-md border bg-white shadow-lg py-1">
+                                  <Link
+                                    href={`/content/blog/${blog.id}/edit`}
+                                    className="block px-3 py-1.5 text-sm hover:bg-gray-50"
+                                    onClick={() => setActionMenuId(null)}
+                                  >
+                                    {t('editor.edit')}
+                                  </Link>
+                                  {blog.status !== 'published' && (
+                                    <button
+                                      type="button"
+                                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50"
+                                      onClick={() => handleSingleAction(blog.id, 'publish')}
+                                    >
+                                      {t('editor.publish')}
+                                    </button>
+                                  )}
+                                  {blog.status !== 'archived' && (
+                                    <button
+                                      type="button"
+                                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50"
+                                      onClick={() => handleSingleAction(blog.id, 'archive')}
+                                    >
+                                      {t('editor.archive')}
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+                                    onClick={() => handleSingleAction(blog.id, 'delete')}
+                                  >
+                                    {t('editor.delete')}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="mt-4 flex justify-center">
+                <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title={t('batch.confirmDeleteTitle')}
+        description={t('batch.confirmDeleteDesc', { count: selection.selectedCount })}
+        confirmText={t('batch.deleteSelected')}
+        cancelText={t('common:actions.cancel')}
+        isDestructive={true}
+        isLoading={batchLoading}
+        onConfirm={handleBatchDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        disableOverlayClick={batchLoading}
       />
     </div>
   );

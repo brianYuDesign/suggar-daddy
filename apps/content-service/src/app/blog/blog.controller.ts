@@ -17,6 +17,7 @@ import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { BlogQueryDto } from './dto/blog-query.dto';
+import { BatchBlogDto } from './dto/batch-blog.dto';
 import { BlogCategory } from './entities/blog.entity';
 import { JwtAuthGuard, RolesGuard, Roles, CurrentUser } from '@suggar-daddy/auth';
 import { UserRole } from '@suggar-daddy/common';
@@ -63,6 +64,42 @@ export class BlogController {
       page: result.page,
       limit: result.limit,
     };
+  }
+
+  @Get('stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '取得部落格統計資料' })
+  async getStats() {
+    return this.blogService.getStats();
+  }
+
+  @Post('batch/publish')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '批量發布文章' })
+  async batchPublish(@Body() dto: BatchBlogDto) {
+    return this.blogService.batchPublish(dto.ids);
+  }
+
+  @Post('batch/archive')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '批量歸檔文章' })
+  async batchArchive(@Body() dto: BatchBlogDto) {
+    return this.blogService.batchArchive(dto.ids);
+  }
+
+  @Post('batch/delete')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '批量刪除文章' })
+  async batchDelete(@Body() dto: BatchBlogDto) {
+    return this.blogService.batchDelete(dto.ids);
   }
 
   @Get('by-id/:id')

@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Blog, BlogStatus } from './entities/blog.entity';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
@@ -68,8 +68,10 @@ export class BlogService {
       qb.andWhere(':tag = ANY(string_to_array(blog.tags, \',\'))', { tag });
     }
 
-    qb.orderBy('blog.publishedAt', 'DESC')
-      .addOrderBy('blog.createdAt', 'DESC')
+    const validSortColumns = ['title', 'category', 'status', 'viewCount', 'publishedAt', 'createdAt'];
+    const sortColumn = query.sortBy && validSortColumns.includes(query.sortBy) ? query.sortBy : 'createdAt';
+    const sortDirection = query.sortDir === 'asc' ? 'ASC' : 'DESC';
+    qb.orderBy(`blog.${sortColumn}`, sortDirection)
       .skip((page - 1) * limit)
       .take(limit);
 
@@ -130,6 +132,38 @@ export class BlogService {
 
   async archive(id: string): Promise<Blog> {
     return this.update(id, { status: BlogStatus.ARCHIVED });
+  }
+
+  async getStats(): Promise<{ total: number; published: number; draft: number; archived: number; totalViews: number }> {
+    const [total, published, draft, archived, viewsResult] = await Promise.all([
+      this.blogRepository.count(),
+      this.blogRepository.count({ where: { status: BlogStatus.PUBLISHED } }),
+      this.blogRepository.count({ where: { status: BlogStatus.DRAFT } }),
+      this.blogRepository.count({ where: { status: BlogStatus.ARCHIVED } }),
+      this.blogRepository.createQueryBuilder('blog').select('SUM(blog.viewCount)', 'total').getRawOne(),
+    ]);
+    return { total, published, draft, archived, totalViews: Number(viewsResult?.total) || 0 };
+  }
+
+  async batchPublish(ids: string[]): Promise<{ publishedCount: number }> {
+    const result = await this.blogRepository.update(
+      { id: In(ids) },
+      { status: BlogStatus.PUBLISHED, publishedAt: new Date() },
+    );
+    return { publishedCount: result.affected || 0 };
+  }
+
+  async batchArchive(ids: string[]): Promise<{ archivedCount: number }> {
+    const result = await this.blogRepository.update(
+      { id: In(ids) },
+      { status: BlogStatus.ARCHIVED },
+    );
+    return { archivedCount: result.affected || 0 };
+  }
+
+  async batchDelete(ids: string[]): Promise<{ deletedCount: number }> {
+    const result = await this.blogRepository.delete({ id: In(ids) });
+    return { deletedCount: result.affected || 0 };
   }
 
   async getRelated(id: string, limit = 4): Promise<Blog[]> {

@@ -1,6 +1,9 @@
 // apps/web/app/(main)/blog/components/BlogCard.tsx
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
 
 const CATEGORY_LABEL: Record<string, string> = {
   guide: '使用指南',
@@ -31,17 +34,33 @@ interface Blog {
   authorName?: string;
 }
 
+function estimateReadingTime(text: string): number {
+  const wordCount = text.replace(/<[^>]*>/g, '').length;
+  return Math.max(1, Math.ceil(wordCount / 200));
+}
+
 export function BlogCard({ blog }: { blog: Blog }) {
+  const [imgError, setImgError] = useState(false);
   const publishedDate = blog.publishedAt
     ? new Date(blog.publishedAt).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })
     : '';
+  const readingTime = estimateReadingTime(blog.excerpt || blog.title);
+
+  const showImage = blog.coverImage && !imgError;
 
   return (
     <Link href={`/blog/${blog.slug}`}>
-      <article className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 h-full flex flex-col group">
+      <article className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col group">
         <div className="relative h-48 bg-gradient-to-br from-rose-100 to-pink-100 overflow-hidden">
-          {blog.coverImage ? (
-            <Image src={blog.coverImage} alt={blog.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+          {showImage ? (
+            <Image
+              src={blog.coverImage!}
+              alt={blog.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              unoptimized
+              onError={() => setImgError(true)}
+            />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="text-5xl">💝</span>
@@ -57,7 +76,11 @@ export function BlogCard({ blog }: { blog: Blog }) {
           </h2>
           {blog.excerpt && <p className="text-gray-500 text-sm leading-relaxed line-clamp-3 flex-1">{blog.excerpt}</p>}
           <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
-            <span>{publishedDate}</span>
+            <div className="flex items-center gap-2">
+              <span>{publishedDate}</span>
+              <span className="text-gray-300">|</span>
+              <span>{readingTime} min</span>
+            </div>
             <span className="flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

@@ -1,0 +1,87 @@
+{
+  "title": "Blog Management",
+  "subtitle": "Manage all blog posts",
+  "createNew": "New Post",
+  "stats": {
+    "total": "Total Posts",
+    "published": "Published",
+    "draft": "Draft",
+    "archived": "Archived",
+    "totalViews": "Total Views"
+  },
+  "filters": {
+    "allCategories": "All Categories",
+    "allStatus": "All Status",
+    "searchPlaceholder": "Search blog title..."
+  },
+  "category": {
+    "guide": "Guide",
+    "safety": "Safety",
+    "tips": "Tips",
+    "story": "Story",
+    "news": "News"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published",
+    "archived": "Archived"
+  },
+  "table": {
+    "title": "Title",
+    "category": "Category",
+    "status": "Status",
+    "views": "Views",
+    "author": "Author",
+    "publishedAt": "Published At",
+    "createdAt": "Created At",
+    "actions": "Actions",
+    "noBlogs": "No blog posts",
+    "selectAll": "Select all",
+    "blogList": "Blog Posts"
+  },
+  "batch": {
+    "publishSelected": "Publish Selected",
+    "archiveSelected": "Archive Selected",
+    "deleteSelected": "Delete Selected",
+    "publishSuccess": "Successfully published {{count}} posts",
+    "archiveSuccess": "Successfully archived {{count}} posts",
+    "deleteSuccess": "Successfully deleted {{count}} posts",
+    "confirmDeleteTitle": "Confirm Batch Delete",
+    "confirmDeleteDesc": "Are you sure you want to delete {{count}} selected posts? This action cannot be undone."
+  },
+  "editor": {
+    "createTitle": "Create New Post",
+    "editTitle": "Edit Post",
+    "backToList": "Back to List",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Enter post title...",
+    "contentLabel": "Content",
+    "excerptLabel": "Excerpt",
+    "excerptPlaceholder": "Enter post excerpt...",
+    "coverImageLabel": "Cover Image",
+    "uploadCover": "Upload Cover Image",
+    "removeCover": "Remove Cover",
+    "categoryLabel": "Category",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "Type tag and press Enter",
+    "statusLabel": "Status",
+    "seoSection": "SEO Settings",
+    "metaTitleLabel": "Meta Title",
+    "metaTitlePlaceholder": "Enter SEO title...",
+    "metaDescLabel": "Meta Description",
+    "metaDescPlaceholder": "Enter SEO description...",
+    "saveDraft": "Save Draft",
+    "saveAndPublish": "Save & Publish",
+    "saving": "Saving...",
+    "saveSuccess": "Post saved successfully",
+    "saveFailed": "Failed to save post",
+    "deleteSuccess": "Post deleted successfully",
+    "confirmDeleteTitle": "Confirm Delete Post",
+    "confirmDeleteDesc": "Are you sure you want to delete this post? This action cannot be undone.",
+    "publish": "Publish",
+    "archive": "Archive",
+    "delete": "Delete",
+    "edit": "Edit",
+    "contentPlaceholder": "Start writing your content..."
+  }
+}

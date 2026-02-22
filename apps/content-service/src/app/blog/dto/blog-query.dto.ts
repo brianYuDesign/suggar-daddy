@@ -32,4 +32,12 @@ export class BlogQueryDto {
   @IsOptional()
   @IsString()
   tag?: string;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @IsOptional()
+  @IsString()
+  sortDir?: 'asc' | 'desc';
 }

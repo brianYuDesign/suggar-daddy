@@ -46,7 +46,8 @@ export function BlogList({ page, category, search, tag }: BlogListProps) {
           ...(tag && { tag }),
         });
 
-        const response = await fetch(`/api/blogs?${params}`, {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
+        const response = await fetch(`${apiBase}/api/blogs?${params}`, {
           cache: 'no-store',
         });
 

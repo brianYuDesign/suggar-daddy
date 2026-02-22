@@ -120,5 +120,9 @@ export type {
   AdminRecord,
   PermissionOverview,
   UpdateUserDto,
+  BlogRecord,
+  BlogStats,
+  CreateBlogPayload,
+  UpdateBlogPayload,
 } from './admin';
 

@@ -10,22 +10,35 @@ export const metadata: Metadata = {
 };
 
 interface BlogPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     category?: string;
     search?: string;
     tag?: string;
-  };
+  }>;
 }
 
-export default function BlogPage({ searchParams }: BlogPageProps) {
-  const page = Number(searchParams.page) || 1;
-  const category = searchParams.category;
-  const search = searchParams.search;
-  const tag = searchParams.tag;
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+  const params = await searchParams;
+  const page = Number(params.page) || 1;
+  const category = params.category;
+  const search = params.search;
+  const tag = params.tag;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'Suggar Daddy Blog',
+    description: '探索精彩文章，了解更多關於甜蜜關係的資訊與技巧',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://suggar-daddy.com'}/blog`,
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="bg-gradient-to-br from-rose-500 to-pink-600 text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl font-bold mb-4">探索部落格</h1>
