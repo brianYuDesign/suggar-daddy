@@ -44,14 +44,21 @@ def _build_interaction_matrix() -> tuple[csr_matrix, list[str], list[str]]:
         """, (since,))
         swipe_rows = cur.fetchall()
 
-        # Get behavior events (view, dwell, etc.)
-        cur.execute("""
-            SELECT "userId", "targetUserId", "eventType",
-                   COALESCE((metadata->>'weight')::float, 1.0) as weight
-            FROM user_behavior_events
-            WHERE "createdAt" > %s AND "targetUserId" IS NOT NULL
-        """, (since,))
-        behavior_rows = cur.fetchall()
+        # Get behavior events (view, dwell, etc.) — graceful fallback if table missing
+        behavior_rows = []
+        try:
+            cur.execute("""
+                SELECT "userId", "targetUserId", "eventType",
+                       COALESCE((metadata->>'weight')::float, 1.0) as weight
+                FROM user_behavior_events
+                WHERE "createdAt" > %s AND "targetUserId" IS NOT NULL
+            """, (since,))
+            behavior_rows = cur.fetchall()
+        except Exception as e:
+            logger.warning(f"user_behavior_events query failed (table may not exist): {e}")
+            # Rollback the failed transaction so cursor remains usable
+            cur.execute("ROLLBACK")
+            cur.execute("BEGIN")
 
     # Collect all unique user IDs
     user_set = set()

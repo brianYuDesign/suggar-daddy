@@ -338,6 +338,63 @@ export class DatabaseInserter {
     this.logInsert('部落格文章', blogs.length);
   }
 
+  async insertInterestTags(tags: any[]): Promise<void> {
+    if (tags.length === 0) return;
+
+    console.log('🏷️  插入興趣標籤...');
+
+    const query = `
+      INSERT INTO interest_tags (id, category, name, "nameZh", icon, "sortOrder", "isActive", "createdAt", "updatedAt")
+      VALUES ${tags.map((_, i) => `($${i * 9 + 1}, $${i * 9 + 2}, $${i * 9 + 3}, $${i * 9 + 4}, $${i * 9 + 5}, $${i * 9 + 6}, $${i * 9 + 7}, $${i * 9 + 8}, $${i * 9 + 9})`).join(',')}
+    `;
+    const params = tags.flatMap(t => [
+      t.id, t.category, t.name, t.nameZh, t.icon, t.sortOrder, t.isActive, t.createdAt, t.updatedAt
+    ]);
+
+    await this.dataSource.query(query, params);
+    this.logInsert('興趣標籤', tags.length);
+  }
+
+  async insertUserInterestTags(userTags: any[]): Promise<void> {
+    if (userTags.length === 0) return;
+
+    console.log('🏷️  插入用戶興趣標籤...');
+
+    const batchSize = 500;
+    for (let i = 0; i < userTags.length; i += batchSize) {
+      const batch = userTags.slice(i, i + batchSize);
+      const query = `
+        INSERT INTO user_interest_tags (id, "userId", "tagId", "createdAt")
+        VALUES ${batch.map((_, j) => `($${j * 4 + 1}, $${j * 4 + 2}, $${j * 4 + 3}, $${j * 4 + 4})`).join(',')}
+      `;
+      const params = batch.flatMap(ut => [ut.id, ut.userId, ut.tagId, ut.createdAt]);
+      await this.dataSource.query(query, params);
+    }
+
+    this.logInsert('用戶興趣標籤', userTags.length);
+  }
+
+  async insertUserBehaviorEvents(events: any[]): Promise<void> {
+    if (events.length === 0) return;
+
+    console.log('📊 插入行為事件...');
+
+    const batchSize = 500;
+    for (let i = 0; i < events.length; i += batchSize) {
+      const batch = events.slice(i, i + batchSize);
+      const query = `
+        INSERT INTO user_behavior_events (id, "userId", "targetUserId", "eventType", metadata, "createdAt")
+        VALUES ${batch.map((_, j) => `($${j * 6 + 1}, $${j * 6 + 2}, $${j * 6 + 3}, $${j * 6 + 4}, $${j * 6 + 5}, $${j * 6 + 6})`).join(',')}
+      `;
+      const params = batch.flatMap(e => [
+        e.id, e.userId, e.targetUserId, e.eventType, JSON.stringify(e.metadata), e.createdAt
+      ]);
+      await this.dataSource.query(query, params);
+    }
+
+    this.logInsert('行為事件', events.length);
+  }
+
   async insertStaticPages(pages: any[]): Promise<void> {
     if (pages.length === 0) return;
 
@@ -368,6 +425,9 @@ export class DatabaseInserter {
     console.log(chalk.yellow('\n⚠️  清除現有數據...'));
 
     const tables = [
+      'user_behavior_events',
+      'user_interest_tags',
+      'interest_tags',
       'static_pages',
       'blogs',
       'matches',

@@ -65,11 +65,18 @@ const showSummary = (data: any) => {
     console.log(`  打賞: ${data.tips?.length ?? 0}`);
   }
 
+  if (data.interestTags?.length) {
+    console.log(chalk.cyan('\n🏷️  興趣標籤：'));
+    console.log(`  標籤定義: ${data.interestTags.length}`);
+    console.log(`  用戶標籤: ${data.userInterestTags?.length ?? 0}`);
+  }
+
   if (data.follows?.length) {
     console.log(chalk.cyan('\n💘 社交：'));
     console.log(`  追蹤: ${data.follows.length}`);
     console.log(`  滑動: ${data.swipes?.length ?? 0}`);
     console.log(`  配對: ${data.matches?.length ?? 0}`);
+    console.log(`  行為事件: ${data.behaviorEvents?.length ?? 0}`);
   }
 
   if (data.blogs?.length) {
@@ -127,11 +134,15 @@ const generateAllData = async (options: any) => {
       generatedData.skills = userSeeder.generateSkills();
       generatedData.users = userSeeder.generateUsers();
       generatedData.userSkills = userSeeder.generateUserSkills();
-      
+      generatedData.interestTags = userSeeder.generateInterestTags();
+      generatedData.userInterestTags = userSeeder.generateUserInterestTags();
+
       // 插入數據庫
       await inserter.insertSkills(generatedData.skills);
       await inserter.insertUsers(generatedData.users);
       await inserter.insertUserSkills(generatedData.userSkills);
+      await inserter.insertInterestTags(generatedData.interestTags);
+      await inserter.insertUserInterestTags(generatedData.userInterestTags);
       
       // 保存供其他模組使用
       const creators = userSeeder.getCreators();
@@ -202,6 +213,11 @@ const generateAllData = async (options: any) => {
 
         await inserter.insertSwipes(swipes);
         await inserter.insertMatches(matches);
+
+        // 生成行為事件（給 ML 引擎用）
+        const behaviorEvents = socialSeeder.generateBehaviorEvents(generatedData.users);
+        generatedData.behaviorEvents = behaviorEvents;
+        await inserter.insertUserBehaviorEvents(behaviorEvents);
       }
     }
 

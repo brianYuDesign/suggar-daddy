@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../providers/auth-provider';
 import { usersApi, ApiError } from '../../../../lib/api';
@@ -18,6 +18,8 @@ import {
 } from '@suggar-daddy/ui';
 import { ArrowLeft, Camera, Check, Loader2 } from 'lucide-react';
 import { uploadMedia } from '../../../../lib/upload';
+import { InterestTagPicker } from '../../../../components/InterestTagPicker';
+import { tagsApi } from '../../../../lib/api';
 
 const profileSchema = z.object({
   displayName: z
@@ -46,7 +48,6 @@ const profileSchema = z.object({
     .optional()
     .or(z.literal('')),
   lookingFor: z.string().optional().or(z.literal('')),
-  interests: z.string().optional().or(z.literal('')),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -58,6 +59,8 @@ export default function EditProfilePage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [tagsLoaded, setTagsLoaded] = useState(false);
 
   const {
     register,
@@ -76,6 +79,20 @@ export default function EditProfilePage() {
       city: user?.city || '',
     },
   });
+
+  // Load existing interest tags
+  useEffect(() => {
+    if (!user?.id) return;
+    tagsApi
+      .getUserTags(user.id)
+      .then((tags) => {
+        if (tags && tags.length > 0) {
+          setSelectedTagIds(tags.map((t: { id: string }) => t.id));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setTagsLoaded(true));
+  }, [user?.id]);
 
   if (!user) return null;
 
@@ -111,17 +128,16 @@ export default function EditProfilePage() {
       if (data.lookingFor) {
         preferences.lookingFor = data.lookingFor;
       }
-      if (data.interests) {
-        preferences.interests = data.interests
-          .split(',')
-          .map((s: string) => s.trim())
-          .filter(Boolean);
-      }
       if (Object.keys(preferences).length > 0) {
         payload.preferences = preferences;
       }
 
       await usersApi.updateProfile(payload);
+
+      // Save interest tags
+      if (selectedTagIds.length > 0) {
+        await tagsApi.updateMyTags(selectedTagIds).catch(() => {});
+      }
       await refreshUser();
       setSuccessMessage('個人檔案已更新');
       reset(data);
@@ -170,7 +186,7 @@ export default function EditProfilePage() {
                   className="h-20 w-20 text-xl"
                 />
                 <label
-                  className="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-brand-500 text-white shadow-md hover:bg-brand-600 transition-colors"
+                  className="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-neutral-900 text-white shadow-md hover:bg-neutral-800 transition-colors"
                   aria-label="上傳頭像"
                 >
                   {avatarUploading ? (
@@ -306,18 +322,18 @@ export default function EditProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="interests">興趣標籤</Label>
-                <Input
-                  id="interests"
-                  placeholder="旅遊, 美食, 運動 (以逗號分隔)"
-                  defaultValue={
-                    Array.isArray(user.preferences?.interests)
-                      ? (user.preferences.interests as string[]).join(', ')
-                      : ''
-                  }
-                  {...register('interests')}
-                />
-                <p className="text-xs text-gray-400">多個興趣請以逗號分隔</p>
+                <Label>興趣標籤</Label>
+                {tagsLoaded ? (
+                  <InterestTagPicker
+                    selectedTagIds={selectedTagIds}
+                    onChange={setSelectedTagIds}
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 py-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-900 border-t-transparent" />
+                    <span className="text-sm text-gray-400">載入標籤中...</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -332,7 +348,7 @@ export default function EditProfilePage() {
           <CardFooter className="flex flex-col gap-3">
             <Button
               type="submit"
-              className="w-full bg-brand-500 hover:bg-brand-600"
+              className="w-full bg-neutral-900 hover:bg-neutral-800"
               disabled={isSubmitting || !isDirty}
             >
               {isSubmitting ? (

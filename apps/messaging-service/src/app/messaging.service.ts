@@ -18,6 +18,8 @@ const USER_KEY = (id: string) => `user:${id}`;
 const USER_BLOCKS = (userId: string) => `user:blocks:${userId}`;
 const DM_UNLOCK_KEY = (senderId: string, creatorId: string) =>
   `dm:unlock:${senderId}:${creatorId}`;
+const CHAT_DIAMOND_UNLOCK = (senderId: string, recipientId: string) =>
+  `chat:diamond:unlock:${senderId}:${recipientId}`;
 const BROADCAST_KEY = (id: string) => `broadcast:${id}`;
 const USER_BROADCASTS = (userId: string) => `user:${userId}:broadcasts`;
 const USER_FOLLOWERS = (userId: string) => `user:followers:${userId}`;
@@ -122,6 +124,51 @@ export class MessagingService {
           if (!hasDmAccess) {
             throw new HttpException(
               `This creator requires ${recipient.dmPrice} diamonds to unlock DMs. Purchase DM access first.`,
+              HttpStatus.PAYMENT_REQUIRED,
+            );
+          }
+        }
+      }
+
+      // Diamond chat gate: if recipient has chatDiamondGateEnabled, check message count
+      if (
+        recipient.chatDiamondGateEnabled &&
+        recipient.chatDiamondThreshold > 0
+      ) {
+        // Check if already unlocked
+        const isUnlocked = await this.redis.exists(
+          CHAT_DIAMOND_UNLOCK(senderId, recipientId),
+        );
+
+        if (!isUnlocked) {
+          // Count sender's messages in this conversation
+          const msgIds = await this.redis.lRange(
+            CONV_MESSAGES(conversationId),
+            0,
+            -1,
+          );
+          const msgKeys = msgIds.map((id) => MSG_KEY(id));
+          let senderMsgCount = 0;
+
+          if (msgKeys.length > 0) {
+            const msgValues = await this.redis.mget(...msgKeys);
+            for (const raw of msgValues) {
+              if (raw) {
+                const m = JSON.parse(raw) as StoredMessage;
+                if (m.senderId === senderId) senderMsgCount++;
+              }
+            }
+          }
+
+          if (senderMsgCount >= recipient.chatDiamondThreshold) {
+            throw new HttpException(
+              JSON.stringify({
+                code: 'CHAT_DIAMOND_GATE',
+                message: `已達免費訊息上限 (${recipient.chatDiamondThreshold} 則)，需使用鑽石解鎖繼續聊天`,
+                diamondCost: recipient.chatDiamondCost || 10,
+                threshold: recipient.chatDiamondThreshold,
+                sentCount: senderMsgCount,
+              }),
               HttpStatus.PAYMENT_REQUIRED,
             );
           }
@@ -296,6 +343,104 @@ export class MessagingService {
     if (!raw) return false;
     const conv = JSON.parse(raw);
     return Boolean(conv.participantIds?.includes(userId));
+  }
+
+  /** Unlock diamond chat gate for a conversation */
+  async unlockChatDiamondGate(
+    userId: string,
+    conversationId: string,
+  ): Promise<{ unlocked: boolean; diamondCost: number }> {
+    const convRaw = await this.redis.get(CONV_KEY(conversationId));
+    if (!convRaw) {
+      throw new HttpException('Conversation not found', HttpStatus.NOT_FOUND);
+    }
+    const conv = JSON.parse(convRaw) as {
+      id: string;
+      participantIds: string[];
+    };
+
+    const recipientId = conv.participantIds.find((p) => p !== userId);
+    if (!recipientId) {
+      throw new HttpException(
+        'Cannot determine recipient',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Check if already unlocked
+    const alreadyUnlocked = await this.redis.exists(
+      CHAT_DIAMOND_UNLOCK(userId, recipientId),
+    );
+    if (alreadyUnlocked) {
+      return { unlocked: true, diamondCost: 0 };
+    }
+
+    // Get recipient's diamond cost
+    const recipientRaw = await this.redis.get(USER_KEY(recipientId));
+    if (!recipientRaw) {
+      throw new HttpException('Recipient not found', HttpStatus.NOT_FOUND);
+    }
+    const recipient = JSON.parse(recipientRaw);
+    const diamondCost = recipient.chatDiamondCost || 10;
+
+    // Deduct diamonds from sender (use Lua-style atomic check)
+    const senderDiamondKey = `diamond:${userId}`;
+    const senderDiamondRaw = await this.redis.get(senderDiamondKey);
+    if (!senderDiamondRaw) {
+      throw new HttpException(
+        '鑽石餘額不足，請先購買鑽石',
+        HttpStatus.PAYMENT_REQUIRED,
+      );
+    }
+    const senderDiamond = JSON.parse(senderDiamondRaw);
+    if (senderDiamond.balance < diamondCost) {
+      throw new HttpException(
+        `鑽石餘額不足，需要 ${diamondCost} 顆鑽石（目前餘額: ${senderDiamond.balance}）`,
+        HttpStatus.PAYMENT_REQUIRED,
+      );
+    }
+
+    // Deduct from sender
+    senderDiamond.balance -= diamondCost;
+    senderDiamond.totalSpent += diamondCost;
+    senderDiamond.updatedAt = new Date().toISOString();
+    await this.redis.set(senderDiamondKey, JSON.stringify(senderDiamond));
+
+    // Credit to recipient
+    const recipientDiamondKey = `diamond:${recipientId}`;
+    const recipientDiamondRaw = await this.redis.get(recipientDiamondKey);
+    if (recipientDiamondRaw) {
+      const recipientDiamond = JSON.parse(recipientDiamondRaw);
+      recipientDiamond.balance += diamondCost;
+      recipientDiamond.totalReceived += diamondCost;
+      recipientDiamond.updatedAt = new Date().toISOString();
+      await this.redis.set(
+        recipientDiamondKey,
+        JSON.stringify(recipientDiamond),
+      );
+    }
+
+    // Set permanent unlock key
+    await this.redis.set(CHAT_DIAMOND_UNLOCK(userId, recipientId), '1');
+
+    // Emit Kafka event
+    try {
+      await this.kafkaProducer.sendEvent('chat.diamond.unlocked', {
+        userId,
+        recipientId,
+        conversationId,
+        diamondCost,
+        unlockedAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      this.logger.warn('Kafka chat.diamond.unlocked emit failed', e);
+    }
+
+    this.logger.log(
+      `chat diamond gate unlocked userId=${userId} recipientId=${recipientId} cost=${diamondCost}`,
+    );
+
+    return { unlocked: true, diamondCost };
   }
 
   // ── Broadcast messaging ─────────────────────────────────────

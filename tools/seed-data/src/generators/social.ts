@@ -25,10 +25,20 @@ export interface MatchData {
   isActive: boolean;
 }
 
+export interface BehaviorEventData {
+  id: string;
+  userId: string;
+  targetUserId: string | null;
+  eventType: 'view_card' | 'view_detail' | 'dwell_card' | 'dwell_detail';
+  metadata: Record<string, unknown>;
+  createdAt: Date;
+}
+
 export class SocialSeeder {
   private follows: FollowData[] = [];
   private swipes: SwipeData[] = [];
   private matches: MatchData[] = [];
+  private behaviorEvents: BehaviorEventData[] = [];
 
   generateFollows(users: UserData[]): FollowData[] {
     console.log('👥 生成追蹤關係...');
@@ -189,5 +199,79 @@ export class SocialSeeder {
 
   getMatches(): MatchData[] {
     return this.matches;
+  }
+
+  generateBehaviorEvents(users: UserData[]): BehaviorEventData[] {
+    console.log('📊 生成行為事件...');
+
+    const events: BehaviorEventData[] = [];
+    const sugarDaddies = users.filter(u => u.userType === 'sugar_daddy');
+    const sugarBabies = users.filter(u => u.userType === 'sugar_baby');
+
+    for (const daddy of sugarDaddies) {
+      // Each daddy browses 20-60 cards
+      const numViews = randomInt(20, 60);
+      const viewedBabies = sugarBabies
+        .sort(() => 0.5 - Math.random())
+        .slice(0, Math.min(numViews, sugarBabies.length));
+
+      for (const baby of viewedBabies) {
+        const baseDate = faker.date.recent({ days: 14 });
+
+        // view_card event (always)
+        events.push({
+          id: generateUUID(),
+          userId: daddy.id,
+          targetUserId: baby.id,
+          eventType: 'view_card',
+          metadata: { weight: 1.0 },
+          createdAt: baseDate,
+        });
+
+        // 40% chance of dwell_card (>2s on card)
+        if (Math.random() < 0.4) {
+          events.push({
+            id: generateUUID(),
+            userId: daddy.id,
+            targetUserId: baby.id,
+            eventType: 'dwell_card',
+            metadata: { weight: randomInt(2, 8) / 10, durationMs: randomInt(2000, 8000) },
+            createdAt: new Date(baseDate.getTime() + 1000),
+          });
+        }
+
+        // 25% chance of view_detail (opened profile)
+        if (Math.random() < 0.25) {
+          events.push({
+            id: generateUUID(),
+            userId: daddy.id,
+            targetUserId: baby.id,
+            eventType: 'view_detail',
+            metadata: { weight: 1.0 },
+            createdAt: new Date(baseDate.getTime() + 2000),
+          });
+
+          // 50% of detail views have dwell_detail
+          if (Math.random() < 0.5) {
+            events.push({
+              id: generateUUID(),
+              userId: daddy.id,
+              targetUserId: baby.id,
+              eventType: 'dwell_detail',
+              metadata: { weight: randomInt(3, 10) / 10, durationMs: randomInt(3000, 15000) },
+              createdAt: new Date(baseDate.getTime() + 3000),
+            });
+          }
+        }
+      }
+    }
+
+    this.behaviorEvents = events;
+    console.log(`   ✓ 生成 ${events.length} 個行為事件`);
+    return events;
+  }
+
+  getBehaviorEvents(): BehaviorEventData[] {
+    return this.behaviorEvents;
   }
 }

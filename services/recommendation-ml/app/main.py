@@ -52,6 +52,18 @@ async def lifespan(_app: FastAPI):
     logger.info("Initializing recommendation-ml service...")
     init_schema()
 
+    # Auto-train on startup if no embeddings exist
+    try:
+        count = get_embedding_count()
+        if count == 0:
+            logger.info("No embeddings found — running initial training...")
+            trained, duration = train_embeddings()
+            logger.info(f"Initial training complete: {trained} embeddings in {duration:.1f}s")
+        else:
+            logger.info(f"Found {count} existing embeddings, skipping initial training")
+    except Exception as e:
+        logger.error(f"Auto-train on startup failed: {e}")
+
     # Schedule nightly batch training
     scheduler.add_job(
         _scheduled_train,

@@ -7,8 +7,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Input,
+  Label,
 } from '@suggar-daddy/ui';
-import { Eye } from 'lucide-react';
+import { Eye, Diamond } from 'lucide-react';
 import { Toggle } from './Toggle';
 
 interface PrivacySectionProps {
@@ -20,6 +22,9 @@ export function PrivacySection({ preferences, showToast }: PrivacySectionProps) 
   const [profilePublic, setProfilePublic] = useState(true);
   const [dmPermission, setDmPermission] = useState<'everyone' | 'followers' | 'nobody'>('everyone');
   const [privacySaving, setPrivacySaving] = useState(false);
+  const [chatDiamondGateEnabled, setChatDiamondGateEnabled] = useState(false);
+  const [chatDiamondThreshold, setChatDiamondThreshold] = useState(5);
+  const [chatDiamondCost, setChatDiamondCost] = useState(10);
 
   const handlePrivacyChange = async (
     field: 'profilePublic' | 'dmPermission',
@@ -97,12 +102,87 @@ export function PrivacySection({ preferences, showToast }: PrivacySectionProps) 
                     handlePrivacyChange('dmPermission', option.value)
                   }
                   disabled={privacySaving}
-                  className="h-4 w-4 text-brand-500 focus:ring-brand-500"
+                  className="h-4 w-4 text-neutral-900 focus:ring-neutral-900"
                 />
                 {option.label}
               </label>
             ))}
           </div>
+        </div>
+        {/* Diamond Chat Gate */}
+        <div className="border-t pt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Diamond className="h-4 w-4 text-gray-500" />
+            <p className="text-sm font-medium text-gray-700">鑽石聊天門檻</p>
+          </div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm text-gray-700">啟用鑽石聊天門檻</p>
+              <p className="text-xs text-gray-500">
+                對方達到免費訊息上限後需花鑽石才能繼續聊天
+              </p>
+            </div>
+            <Toggle
+              checked={chatDiamondGateEnabled}
+              onChange={async (v) => {
+                setChatDiamondGateEnabled(v);
+                try {
+                  await usersApi.updateProfile({ chatDiamondGateEnabled: v });
+                  showToast('鑽石聊天門檻設定已更新', 'success');
+                } catch {
+                  setChatDiamondGateEnabled(!v);
+                  showToast('設定更新失敗', 'error');
+                }
+              }}
+              disabled={privacySaving}
+            />
+          </div>
+          {chatDiamondGateEnabled && (
+            <div className="space-y-3 pl-1">
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-600">
+                  免費訊息數量
+                </Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={chatDiamondThreshold}
+                  onChange={(e) => setChatDiamondThreshold(Number(e.target.value))}
+                  onBlur={async () => {
+                    try {
+                      await usersApi.updateProfile({ chatDiamondThreshold });
+                      showToast('已更新', 'success');
+                    } catch {
+                      showToast('更新失敗', 'error');
+                    }
+                  }}
+                  className="h-9 w-24"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-600">
+                  解鎖鑽石費用
+                </Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={500}
+                  value={chatDiamondCost}
+                  onChange={(e) => setChatDiamondCost(Number(e.target.value))}
+                  onBlur={async () => {
+                    try {
+                      await usersApi.updateProfile({ chatDiamondCost });
+                      showToast('已更新', 'success');
+                    } catch {
+                      showToast('更新失敗', 'error');
+                    }
+                  }}
+                  className="h-9 w-24"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

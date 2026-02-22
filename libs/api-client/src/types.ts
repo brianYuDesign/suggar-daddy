@@ -143,6 +143,9 @@ export interface UpdateProfileDto {
   longitude?: number;
   city?: string;
   country?: string;
+  chatDiamondGateEnabled?: boolean;
+  chatDiamondThreshold?: number;
+  chatDiamondCost?: number;
 }
 
 export interface LocationUpdateDto {

@@ -2,9 +2,15 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Diamond } from 'lucide-react';
 import { Button, Input, Skeleton } from '@suggar-daddy/ui';
 import { messagingApi, ApiError } from '../../../../lib/api';
+
+interface DiamondGateInfo {
+  diamondCost: number;
+  threshold: number;
+  sentCount: number;
+}
 import { getMessagingSocket } from '../../../../lib/socket';
 import { useAuth } from '../../../../providers/auth-provider';
 import { timeAgo } from '../../../../lib/utils';
@@ -34,6 +40,8 @@ export default function ChatRoomPage() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
+  const [diamondGate, setDiamondGate] = useState<DiamondGateInfo | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -145,6 +153,26 @@ export default function ChatRoomPage() {
     } catch (err) {
       // 發送失敗：移除樂觀訊息
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
+
+      // Check for diamond gate error
+      if (err instanceof ApiError && err.statusCode === 402) {
+        try {
+          const gateInfo = JSON.parse(err.message);
+          if (gateInfo.code === 'CHAT_DIAMOND_GATE') {
+            setDiamondGate({
+              diamondCost: gateInfo.diamondCost,
+              threshold: gateInfo.threshold,
+              sentCount: gateInfo.sentCount,
+            });
+            setInput(trimmed);
+            setSending(false);
+            return;
+          }
+        } catch {
+          // Not a diamond gate error, fall through
+        }
+      }
+
       const msg = err instanceof ApiError ? err.message : '發送訊息失敗，請稍後再試';
       setError(msg);
       setInput(trimmed); // 恢復輸入
@@ -165,6 +193,23 @@ export default function ChatRoomPage() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  }
+
+  /* ---------- diamond gate unlock ---------- */
+  async function handleUnlockChat() {
+    if (!conversationId || unlocking) return;
+    setUnlocking(true);
+    try {
+      await messagingApi.unlockChat(conversationId);
+      setDiamondGate(null);
+      // Retry sending the message
+      handleSend();
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : '解鎖失敗';
+      setError(msg);
+    } finally {
+      setUnlocking(false);
     }
   }
 
@@ -233,14 +278,14 @@ export default function ChatRoomPage() {
               <div
                 className={`max-w-[75%] rounded-2xl px-4 py-2 ${
                   isOwn
-                    ? 'bg-brand-500 text-white'
+                    ? 'bg-neutral-900 text-white'
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
                 <p className="text-sm leading-relaxed">{msg.content}</p>
                 <p
                   className={`mt-1 text-right text-[10px] ${
-                    isOwn ? 'text-brand-100' : 'text-gray-400'
+                    isOwn ? 'text-neutral-100' : 'text-gray-400'
                   }`}
                 >
                   {timeAgo(msg.createdAt)}
@@ -264,6 +309,46 @@ export default function ChatRoomPage() {
         <div ref={bottomRef} />
       </div>
 
+      {/* ---- Diamond Gate Modal ---- */}
+      {diamondGate && (
+        <div className="border-t bg-amber-50 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+              <Diamond className="h-5 w-5 text-amber-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-amber-900">
+                已達免費訊息上限
+              </p>
+              <p className="text-xs text-amber-700">
+                已發送 {diamondGate.sentCount}/{diamondGate.threshold} 則免費訊息
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleUnlockChat}
+              disabled={unlocking}
+              className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {unlocking ? (
+                '解鎖中...'
+              ) : (
+                <>
+                  <Diamond className="mr-1 h-3 w-3" />
+                  {diamondGate.diamondCost} 鑽石解鎖
+                </>
+              )}
+            </Button>
+          </div>
+          <button
+            onClick={() => setDiamondGate(null)}
+            className="mt-1 text-xs text-amber-600 hover:underline"
+          >
+            稍後再說
+          </button>
+        </div>
+      )}
+
       {/* ---- Input bar ---- */}
       <div className="border-t bg-white px-4 py-3">
         <div className="flex items-center gap-2">
@@ -273,13 +358,13 @@ export default function ChatRoomPage() {
             onKeyDown={handleKeyDown}
             placeholder="輸入訊息..."
             className="flex-1 rounded-full"
-            disabled={sending}
+            disabled={sending || !!diamondGate}
           />
           <Button
             size="icon"
             onClick={handleSend}
-            disabled={!input.trim() || sending}
-            className="shrink-0 rounded-full bg-brand-500 hover:bg-brand-600"
+            disabled={!input.trim() || sending || !!diamondGate}
+            className="shrink-0 rounded-full bg-neutral-900 hover:bg-neutral-800"
             aria-label="傳送訊息"
           >
             <Send className="h-4 w-4" />

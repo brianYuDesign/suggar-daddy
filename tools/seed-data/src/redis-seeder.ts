@@ -143,6 +143,9 @@ async function main() {
       lastActiveAt: toISO(u.updatedAt),
       followerCount: 0,
       followingCount: 0,
+      chatDiamondGateEnabled: false,
+      chatDiamondThreshold: 5,
+      chatDiamondCost: 10,
       createdAt: toISO(u.createdAt),
       updatedAt: toISO(u.updatedAt),
     }));
@@ -156,6 +159,73 @@ async function main() {
 
   await pipeline.exec();
   log('✓', `用戶集合 (users:all=${users.length}, creators=${users.filter((u: any) => u.permissionRole === 'creator').length}, auth-keys=${users.length})`, users.length * 3 + geoCount);
+
+  // ────────────────────────────────────────────────────
+  // 1.5. Interest Tags → user:tags:{userId}, user:age:{userId}, user:type:{userId}
+  // ────────────────────────────────────────────────────
+  log('🏷️', '同步興趣標籤...');
+
+  // Fetch interest tags
+  let interestTags: any[] = [];
+  try {
+    interestTags = await ds.query(`
+      SELECT id, category, name, "nameZh", icon, "sortOrder", "isActive"
+      FROM interest_tags WHERE "isActive" = true ORDER BY "sortOrder"
+    `);
+  } catch { /* table may not exist yet */ }
+
+  // Fetch user interest tags
+  let userInterestTags: any[] = [];
+  try {
+    userInterestTags = await ds.query(`
+      SELECT uit."userId", uit."tagId", it.category, it.name, it."nameZh", it.icon
+      FROM user_interest_tags uit
+      JOIN interest_tags it ON uit."tagId" = it.id
+    `);
+  } catch { /* table may not exist yet */ }
+
+  // Group tags by user
+  const userTagsMap = new Map<string, any[]>();
+  for (const row of userInterestTags) {
+    const list = userTagsMap.get(row.userId) || [];
+    list.push({
+      id: row.tagId,
+      category: row.category,
+      name: row.name,
+      nameZh: row.nameZh,
+      icon: row.icon,
+    });
+    userTagsMap.set(row.userId, list);
+  }
+
+  const pipeTagsRedis = redis.pipeline();
+  let tagKeyCount = 0;
+
+  for (const [userId, tags] of userTagsMap.entries()) {
+    pipeTagsRedis.set(`user:tags:${userId}`, JSON.stringify(tags));
+    tagKeyCount++;
+  }
+
+  // Write user:age:{userId} and user:type:{userId} from users table
+  let userExtras: any[] = [];
+  try {
+    userExtras = await ds.query(`
+      SELECT id, "userType", "birthDate" FROM users
+    `);
+  } catch { /* ignore */ }
+
+  for (const u of userExtras) {
+    if (u.birthDate) {
+      const age = Math.floor((Date.now() - new Date(u.birthDate).getTime()) / (365.25 * 86400000));
+      pipeTagsRedis.set(`user:age:${u.id}`, String(age));
+      tagKeyCount++;
+    }
+    pipeTagsRedis.set(`user:type:${u.id}`, u.userType);
+    tagKeyCount++;
+  }
+
+  await pipeTagsRedis.exec();
+  log('✓', `興趣標籤 (${interestTags.length} tags, ${userTagsMap.size} users, ${userExtras.length} user extras)`, tagKeyCount);
 
   // ────────────────────────────────────────────────────
   // 2. Follows → user:following:{}, user:followers:{}
@@ -647,6 +717,7 @@ async function main() {
 
   console.log(chalk.cyan('\n📋 同步摘要：'));
   console.log(`  👥 用戶: ${users.length} (geo: ${geoCount})`);
+  console.log(`  🏷️  興趣標籤: ${interestTags.length} tags, ${userTagsMap.size} users`);
   console.log(`  🔗 追蹤: ${follows.length}`);
   console.log(`  📝 貼文: ${posts.length}`);
   console.log(`  💝 按讚: ${likes.length}`);

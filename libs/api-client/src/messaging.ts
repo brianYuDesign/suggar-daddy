@@ -42,6 +42,18 @@ export class MessagingApi {
   }
 
   /**
+   * 使用鑽石解鎖聊天門檻
+   * @param conversationId - 對話 ID
+   * @returns 解鎖結果，包含鑽石花費
+   */
+  unlockChat(conversationId: string) {
+    return this.client.post<{ unlocked: boolean; diamondCost: number }>(
+      `/api/messaging/conversations/${conversationId}/unlock-chat`,
+      {}
+    );
+  }
+
+  /**
    * 發送廣播訊息
    * @requires Role: CREATOR
    * @description 發送訊息給所有訂閱者或特定訂閱層級的訂閱者

@@ -4,6 +4,7 @@ import {
   CITIES,
   DM_PRICES,
   SKILLS,
+  INTEREST_TAGS,
   SUGAR_BABY_AVATARS,
   SUGAR_DADDY_AVATARS,
   generateUUID,
@@ -12,6 +13,7 @@ import {
   randomPickMany,
   generateBio,
   hashPassword,
+  weightedPickCity,
   DEFAULT_PASSWORD,
 } from '../config';
 
@@ -55,10 +57,31 @@ export interface UserSkillData {
   createdAt: Date;
 }
 
+export interface InterestTagData {
+  id: string;
+  category: string;
+  name: string;
+  nameZh: string;
+  icon: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UserInterestTagData {
+  id: string;
+  userId: string;
+  tagId: string;
+  createdAt: Date;
+}
+
 export class UserSeeder {
   private users: UserData[] = [];
   private skills: SkillData[] = [];
   private userSkills: UserSkillData[] = [];
+  private interestTags: InterestTagData[] = [];
+  private userInterestTags: UserInterestTagData[] = [];
   private passwordHash: string;
 
   constructor() {
@@ -116,7 +139,7 @@ export class UserSeeder {
     // 生成 Sugar Babies
     for (let i = 0; i < SEED_CONFIG.USERS.SUGAR_BABIES; i++) {
       const isCreator = Math.random() < SEED_CONFIG.CREATORS_RATIO;
-      const location = randomPick(CITIES);
+      const location = weightedPickCity();
       
       users.push({
         id: generateUUID(),
@@ -141,7 +164,7 @@ export class UserSeeder {
     // 生成 Sugar Daddies
     for (let i = 0; i < SEED_CONFIG.USERS.SUGAR_DADDIES; i++) {
       const isCreator = Math.random() < SEED_CONFIG.CREATORS_RATIO;
-      const location = randomPick(CITIES);
+      const location = weightedPickCity();
       
       users.push({
         id: generateUUID(),
@@ -274,6 +297,66 @@ export class UserSeeder {
 
   getUserSkills(): UserSkillData[] {
     return this.userSkills;
+  }
+
+  generateInterestTags(): InterestTagData[] {
+    console.log('🏷️  生成興趣標籤...');
+
+    this.interestTags = INTEREST_TAGS.map((tag, index) => ({
+      id: generateUUID(),
+      category: tag.category,
+      name: tag.name,
+      nameZh: tag.nameZh,
+      icon: tag.icon,
+      sortOrder: index,
+      isActive: true,
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date(),
+    }));
+
+    console.log(`   ✓ 生成 ${this.interestTags.length} 個興趣標籤`);
+    return this.interestTags;
+  }
+
+  generateUserInterestTags(): UserInterestTagData[] {
+    console.log('🏷️  分配用戶興趣標籤...');
+
+    const userInterestTags: UserInterestTagData[] = [];
+
+    // 按類別分組
+    const tagsByCategory = new Map<string, InterestTagData[]>();
+    for (const tag of this.interestTags) {
+      const list = tagsByCategory.get(tag.category) || [];
+      list.push(tag);
+      tagsByCategory.set(tag.category, list);
+    }
+
+    for (const user of this.users) {
+      // Sugar babies 偏好更多興趣標籤 (4-8), daddies 偏少 (3-6)
+      const numTags = user.userType === 'sugar_baby' ? randomInt(4, 8) : randomInt(3, 6);
+      const selectedTags = randomPickMany(this.interestTags, Math.min(numTags, this.interestTags.length));
+
+      for (const tag of selectedTags) {
+        userInterestTags.push({
+          id: generateUUID(),
+          userId: user.id,
+          tagId: tag.id,
+          createdAt: faker.date.past({ years: 1 }),
+        });
+      }
+    }
+
+    this.userInterestTags = userInterestTags;
+    console.log(`   ✓ 分配 ${userInterestTags.length} 個用戶興趣標籤`);
+    return userInterestTags;
+  }
+
+  getInterestTags(): InterestTagData[] {
+    return this.interestTags;
+  }
+
+  getUserInterestTags(): UserInterestTagData[] {
+    return this.userInterestTags;
   }
 }
 

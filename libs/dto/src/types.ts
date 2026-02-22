@@ -116,6 +116,9 @@ export interface UpdateProfileDto {
   preferredAgeMax?: number;
   preferredDistance?: number;
   preferredUserType?: 'sugar_daddy' | 'sugar_baby' | 'both';
+  chatDiamondGateEnabled?: boolean;
+  chatDiamondThreshold?: number;
+  chatDiamondCost?: number;
 }
 
 // Interest Tag Types

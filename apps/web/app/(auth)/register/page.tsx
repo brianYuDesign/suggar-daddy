@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -55,6 +56,7 @@ const roles = [
 export default function RegisterPage() {
   const { register: registerUser } = useAuth();
   const toast = useToast();
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
@@ -75,6 +77,7 @@ export default function RegisterPage() {
     try {
       await registerUser(data);
       toast.success('註冊成功！即將跳轉...');
+      router.push('/onboarding/interests');
     } catch (err) {
       const errorMessage = ApiError.getMessage(err, '註冊失敗，請稍後再試');
       setError(errorMessage);
@@ -113,19 +116,19 @@ export default function RegisterPage() {
                   aria-pressed={isSelected}
                   className={`flex flex-col items-center rounded-xl border-2 p-4 transition-all ${
                     isSelected
-                      ? 'border-brand-500 bg-brand-50'
+                      ? 'border-neutral-900 bg-neutral-50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
                   <r.icon
                     className={`mb-2 h-6 w-6 ${
-                      isSelected ? 'text-brand-600' : 'text-gray-400'
+                      isSelected ? 'text-neutral-900' : 'text-gray-400'
                     }`}
                     aria-hidden="true"
                   />
                   <span
                     className={`text-sm font-semibold ${
-                      isSelected ? 'text-brand-700' : 'text-gray-700'
+                      isSelected ? 'text-neutral-900' : 'text-gray-700'
                     }`}
                   >
                     {r.label}
@@ -245,7 +248,7 @@ export default function RegisterPage() {
           type="submit"
           loading={isSubmitting}
           loadingText="建立中..."
-          className="w-full bg-brand-500 py-2.5 font-semibold text-white hover:bg-brand-600"
+          className="w-full bg-neutral-900 py-2.5 font-semibold text-white hover:bg-neutral-800"
         >
           建立帳號
         </Button>
@@ -255,7 +258,7 @@ export default function RegisterPage() {
         已經有帳號？{' '}
         <Link
           href="/login"
-          className="font-medium text-brand-600 hover:text-brand-700"
+          className="font-medium text-neutral-700 hover:text-neutral-900"
         >
           登入
         </Link>

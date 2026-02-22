@@ -78,6 +78,22 @@ export class MessagingController {
     );
   }
 
+  /** 使用鑽石解鎖聊天門檻 */
+  @Post('conversations/:conversationId/unlock-chat')
+  @UseGuards(JwtAuthGuard)
+  async unlockChat(
+    @CurrentUser() user: CurrentUserData,
+    @Param('conversationId') conversationId: string,
+  ) {
+    this.logger.log(
+      `unlockChat userId=${user.userId} conversationId=${conversationId}`,
+    );
+    return this.messagingService.unlockChatDiamondGate(
+      user.userId,
+      conversationId,
+    );
+  }
+
   /** 發送廣播訊息（創作者專用） */
   @Post('broadcast')
   @UseGuards(JwtAuthGuard)

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../providers/auth-provider';
-import { usersApi } from '../../../lib/api';
+import { usersApi, tagsApi } from '../../../lib/api';
+import type { InterestTagDto } from '@suggar-daddy/dto';
 import {
   Avatar,
   Badge,
@@ -52,11 +53,13 @@ export default function ProfilePage() {
   const router = useRouter();
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [userTags, setUserTags] = useState<InterestTagDto[]>([]);
 
   useEffect(() => {
     if (!user?.id) return;
     usersApi.getFollowers(user.id).then((res) => setFollowerCount(res.total ?? res.data.length)).catch(() => {});
     usersApi.getFollowing(user.id).then((res) => setFollowingCount(res.total ?? res.data.length)).catch(() => {});
+    tagsApi.getUserTags(user.id).then((tags) => setUserTags(tags || [])).catch(() => {});
   }, [user?.id]);
 
   if (!user) return null;
@@ -111,6 +114,22 @@ export default function ProfilePage() {
                 {user.bio || '尚未填寫自我介紹'}
               </p>
             </div>
+            {userTags.length > 0 && (
+              <div className="px-2 pb-4">
+                <h3 className="text-sm font-medium text-gray-500 mb-2">興趣標籤</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {userTags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-sm font-medium text-gray-600"
+                    >
+                      {tag.icon && <span className="text-xs">{tag.icon}</span>}
+                      {tag.nameZh || tag.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             <Separator />
           </div>
 
@@ -118,7 +137,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-6 mt-4">
             <Link
               href="/profile/followers"
-              className="flex flex-col items-center hover:text-brand-600 transition-colors"
+              className="flex flex-col items-center hover:text-neutral-900 transition-colors"
             >
               <span className="text-lg font-bold text-gray-900">
                 {followerCount}
@@ -127,7 +146,7 @@ export default function ProfilePage() {
             </Link>
             <Link
               href="/profile/following"
-              className="flex flex-col items-center hover:text-brand-600 transition-colors"
+              className="flex flex-col items-center hover:text-neutral-900 transition-colors"
             >
               <span className="text-lg font-bold text-gray-900">
                 {followingCount}
@@ -152,7 +171,7 @@ export default function ProfilePage() {
           onClick={() => router.push('/profile/edit')}
         >
           <span className="flex items-center gap-3">
-            <Pencil className="h-4 w-4 text-brand-500" />
+            <Pencil className="h-4 w-4 text-neutral-700" />
             編輯個人檔案
           </span>
           <ChevronRight className="h-4 w-4 text-gray-400" />
@@ -164,7 +183,7 @@ export default function ProfilePage() {
           onClick={() => router.push('/profile/settings')}
         >
           <span className="flex items-center gap-3">
-            <Settings className="h-4 w-4 text-brand-500" />
+            <Settings className="h-4 w-4 text-neutral-700" />
             設定
           </span>
           <ChevronRight className="h-4 w-4 text-gray-400" />
