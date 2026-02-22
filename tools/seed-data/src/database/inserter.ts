@@ -307,10 +307,42 @@ export class DatabaseInserter {
     await this.dataSource.query(query, params);
   }
 
+  async insertBlogs(blogs: any[]): Promise<void> {
+    if (blogs.length === 0) return;
+
+    console.log('📰 插入部落格文章...');
+
+    const query = `
+      INSERT INTO blogs (
+        id, title, slug, content, excerpt, "coverImage",
+        category, tags, status,
+        "authorId", "authorName", "viewCount",
+        "metaTitle", "metaDescription",
+        "publishedAt", "createdAt", "updatedAt"
+      ) VALUES ${blogs.map((_, i) => `(
+        $${i * 17 + 1}, $${i * 17 + 2}, $${i * 17 + 3}, $${i * 17 + 4}, $${i * 17 + 5},
+        $${i * 17 + 6}, $${i * 17 + 7}, $${i * 17 + 8}, $${i * 17 + 9}, $${i * 17 + 10},
+        $${i * 17 + 11}, $${i * 17 + 12}, $${i * 17 + 13}, $${i * 17 + 14}, $${i * 17 + 15},
+        $${i * 17 + 16}, $${i * 17 + 17}
+      )`).join(',')}
+    `;
+    const params = blogs.flatMap(b => [
+      b.id, b.title, b.slug, b.content, b.excerpt, b.coverImage,
+      b.category, b.tags, b.status,
+      b.authorId, b.authorName, b.viewCount,
+      b.metaTitle, b.metaDescription,
+      b.publishedAt, b.createdAt, b.updatedAt
+    ]);
+
+    await this.dataSource.query(query, params);
+    this.logInsert('部落格文章', blogs.length);
+  }
+
   async clearAllData(): Promise<void> {
     console.log(chalk.yellow('\n⚠️  清除現有數據...'));
-    
+
     const tables = [
+      'blogs',
       'matches',
       'swipes',
       'follows',

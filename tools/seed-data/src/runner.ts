@@ -7,6 +7,7 @@ import { UserSeeder } from './generators/users';
 import { ContentSeeder } from './generators/content';
 import { PaymentSeeder } from './generators/payments';
 import { SocialSeeder } from './generators/social';
+import { BlogSeeder } from './generators/blogs';
 import { DatabaseInserter } from './database/inserter';
 
 const program = new Command();
@@ -40,36 +41,51 @@ const showSummary = (data: any) => {
   console.log(chalk.yellow('📊 數據統計：'));
   console.log(chalk.gray('─'.repeat(40)));
   
-  console.log(chalk.cyan('\n👥 用戶：'));
-  console.log(`  總用戶: ${data.users.length}`);
-  console.log(`  Sugar Babies: ${data.users.filter((u: any) => u.userType === 'sugar_baby').length}`);
-  console.log(`  Sugar Daddies: ${data.users.filter((u: any) => u.userType === 'sugar_daddy').length}`);
-  console.log(`  創作者: ${data.users.filter((u: any) => u.permissionRole === 'creator').length}`);
-  
-  console.log(chalk.cyan('\n📝 內容：'));
-  console.log(`  貼文: ${data.posts.length}`);
-  console.log(`  限時動態: ${data.stories.length}`);
-  console.log(`  讚: ${data.postLikes.length}`);
-  console.log(`  評論: ${data.postComments.length}`);
-  
-  console.log(chalk.cyan('\n💰 支付：'));
-  console.log(`  訂閱: ${data.subscriptions.length}`);
-  console.log(`  交易: ${data.transactions.length}`);
-  console.log(`  打賞: ${data.tips.length}`);
-  
-  console.log(chalk.cyan('\n💘 社交：'));
-  console.log(`  追蹤: ${data.follows.length}`);
-  console.log(`  滑動: ${data.swipes.length}`);
-  console.log(`  配對: ${data.matches.length}`);
-  
+  if (data.users?.length) {
+    console.log(chalk.cyan('\n👥 用戶：'));
+    console.log(`  總用戶: ${data.users.length}`);
+    console.log(`  Sugar Babies: ${data.users.filter((u: any) => u.userType === 'sugar_baby').length}`);
+    console.log(`  Sugar Daddies: ${data.users.filter((u: any) => u.userType === 'sugar_daddy').length}`);
+    console.log(`  創作者: ${data.users.filter((u: any) => u.permissionRole === 'creator').length}`);
+  }
+
+  if (data.posts?.length) {
+    console.log(chalk.cyan('\n📝 內容：'));
+    console.log(`  貼文: ${data.posts.length}`);
+    console.log(`  限時動態: ${data.stories?.length ?? 0}`);
+    console.log(`  讚: ${data.postLikes?.length ?? 0}`);
+    console.log(`  評論: ${data.postComments?.length ?? 0}`);
+  }
+
+  if (data.subscriptions?.length) {
+    console.log(chalk.cyan('\n💰 支付：'));
+    console.log(`  訂閱: ${data.subscriptions.length}`);
+    console.log(`  交易: ${data.transactions?.length ?? 0}`);
+    console.log(`  打賞: ${data.tips?.length ?? 0}`);
+  }
+
+  if (data.follows?.length) {
+    console.log(chalk.cyan('\n💘 社交：'));
+    console.log(`  追蹤: ${data.follows.length}`);
+    console.log(`  滑動: ${data.swipes?.length ?? 0}`);
+    console.log(`  配對: ${data.matches?.length ?? 0}`);
+  }
+
+  if (data.blogs?.length) {
+    console.log(chalk.cyan('\n📰 部落格：'));
+    console.log(`  文章: ${data.blogs.length}`);
+  }
+
   console.log(chalk.gray('─'.repeat(40)));
-  
-  console.log(chalk.yellow('\n🔑 測試帳號：'));
-  console.log('  管理員: admin@suggar-daddy.com / Test1234!');
-  console.log('  創作者: creator1@test.com / Test1234!');
-  console.log('  訂閱者: subscriber1@test.com / Test1234!');
-  console.log(`  其他: baby1-${data.users.filter((u: any) => u.userType === 'sugar_baby').length}@test.com / Test1234!`);
-  console.log(`        daddy1-${data.users.filter((u: any) => u.userType === 'sugar_daddy').length}@test.com / Test1234!`);
+
+  if (data.users?.length) {
+    console.log(chalk.yellow('\n🔑 測試帳號：'));
+    console.log('  管理員: admin@suggar-daddy.com / Test1234!');
+    console.log('  創作者: creator1@test.com / Test1234!');
+    console.log('  訂閱者: subscriber1@test.com / Test1234!');
+    console.log(`  其他: baby1-${data.users.filter((u: any) => u.userType === 'sugar_baby').length}@test.com / Test1234!`);
+    console.log(`        daddy1-${data.users.filter((u: any) => u.userType === 'sugar_daddy').length}@test.com / Test1234!`);
+  }
   
   console.log(chalk.green('\n🎉 所有數據已插入數據庫！\n'));
 };
@@ -169,20 +185,29 @@ const generateAllData = async (options: any) => {
       // 4. 生成社交數據
       if (options.module === 'all' || options.module === 'social' || !options.module) {
         console.log(chalk.blue('\n🚀 開始生成社交數據...\n'));
-        
+
         const socialSeeder = new SocialSeeder();
         generatedData.follows = socialSeeder.generateFollows(generatedData.users);
         await inserter.insertFollows(generatedData.follows);
-        
+
         const { swipes, matches } = socialSeeder.generateSwipesAndMatches(generatedData.users);
         generatedData.swipes = swipes;
         generatedData.matches = matches;
-        
+
         await inserter.insertSwipes(swipes);
         await inserter.insertMatches(matches);
       }
     }
-    
+
+    // 5. 生成部落格文章（不依賴用戶模組）
+    if (!options.module || options.module === 'all' || options.module === 'blogs') {
+      console.log(chalk.blue('\n🚀 開始生成部落格文章...\n'));
+
+      const blogSeeder = new BlogSeeder();
+      generatedData.blogs = blogSeeder.generateBlogs();
+      await inserter.insertBlogs(generatedData.blogs);
+    }
+
     // 顯示摘要
     showSummary(generatedData);
     
