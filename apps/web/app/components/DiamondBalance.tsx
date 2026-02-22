@@ -1,40 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { paymentsApi } from '../../lib/api';
+import { useDiamondBalance } from '../../providers/diamond-balance-provider';
 
-/* ------------------------------------------------------------------ */
-/*  DiamondBalance — compact widget for header / nav                   */
-/* ------------------------------------------------------------------ */
 export default function DiamondBalance() {
-  const [balance, setBalance] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { balance, loading } = useDiamondBalance();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const data = await paymentsApi.getDiamondBalance();
-        if (!cancelled) {
-          setBalance(data.balance ?? 0);
-        }
-      } catch {
-        // Silently fail — widget should not block UI
-        if (!cancelled) setBalance(null);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  /* ---------- loading shimmer ---------- */
   if (loading) {
     return (
       <div className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5">
@@ -44,7 +15,6 @@ export default function DiamondBalance() {
     );
   }
 
-  /* ---------- error / no data — still show link ---------- */
   if (balance === null) {
     return (
       <Link
@@ -57,7 +27,6 @@ export default function DiamondBalance() {
     );
   }
 
-  /* ---------- normal display ---------- */
   return (
     <Link
       href="/diamonds"

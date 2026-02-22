@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { paymentsApi } from '../../lib/api';
 import type { DiamondBalance, DiamondConfig } from '@suggar-daddy/api-client';
+import { useDiamondBalance } from '../../providers/diamond-balance-provider';
 
 interface Props {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function DiamondConvertModal({ isOpen, onClose, onSuccess }: Props) {
+  const { refresh: refreshBalance } = useDiamondBalance();
   const [balance, setBalance] = useState<DiamondBalance | null>(null);
   const [config, setConfig] = useState<DiamondConfig | null>(null);
   const [amount, setAmount] = useState('');
@@ -52,6 +54,7 @@ export function DiamondConvertModal({ isOpen, onClose, onSuccess }: Props) {
     try {
       const res = await paymentsApi.convertDiamondsToCash(diamondAmount);
       setResult(res);
+      refreshBalance();
       onSuccess?.();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Conversion failed';

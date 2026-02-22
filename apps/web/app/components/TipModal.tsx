@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { paymentsApi, ApiError } from '../../lib/api';
 import { useToast } from '../../providers/toast-provider';
+import { useDiamondBalance } from '../../providers/diamond-balance-provider';
 import { Button, Card, CardContent } from '@suggar-daddy/ui';
 import { Loader2, X } from 'lucide-react';
 import { DiamondPurchaseModal } from './DiamondPurchaseModal';
@@ -25,15 +26,11 @@ export function TipModal({
   onSuccess,
 }: TipModalProps) {
   const toast = useToast();
+  const { balance, refresh: refreshBalance } = useDiamondBalance();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [isTipping, setIsTipping] = useState(false);
-  const [balance, setBalance] = useState<number | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-
-  useEffect(() => {
-    paymentsApi.getDiamondBalance().then(b => setBalance(b.balance)).catch(() => {});
-  }, []);
 
   const finalAmount = customAmount ? Number(customAmount) : selectedAmount;
 
@@ -59,6 +56,7 @@ export function TipModal({
     setIsTipping(true);
     try {
       await paymentsApi.sendTip(recipientId, finalAmount, postId);
+      refreshBalance();
       toast.success(`已成功打賞 💎${finalAmount}${recipientName ? ` 給 ${recipientName}` : ''}`);
       onSuccess?.();
       onClose();

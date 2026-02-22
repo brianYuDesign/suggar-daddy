@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { MobileNav } from '../../components/layout/mobile-nav';
 import { DesktopSidebar } from '../../components/layout/desktop-sidebar';
 import { NotificationProvider } from '../../providers/notification-provider';
+import { DiamondBalanceProvider } from '../../providers/diamond-balance-provider';
 import DiamondBalance from '../components/DiamondBalance';
 
 export default function MainLayout({
@@ -33,6 +34,7 @@ export default function MainLayout({
   if (!isAuthenticated) return null;
 
   return (
+    <DiamondBalanceProvider>
     <NotificationProvider>
       <div className="min-h-screen bg-gray-50">
         <DesktopSidebar />
@@ -51,5 +53,6 @@ export default function MainLayout({
         <MobileNav />
       </div>
     </NotificationProvider>
+    </DiamondBalanceProvider>
   );
 }
