@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany, Index } from 'typeorm';
 import { ModerationLog } from './moderation-log.entity';
 import { ContentTag } from '../recommendation/content-tag.entity';
 import { UserInteraction } from '../recommendation/user-interaction.entity';
@@ -11,6 +11,8 @@ export enum ModerationStatus {
 }
 
 @Entity('contents')
+@Index('idx_content_creator', ['creator_id'])
+@Index('idx_content_moderation', ['moderation_status'])
 export class Content {
   @PrimaryGeneratedColumn('uuid')
   id: string;

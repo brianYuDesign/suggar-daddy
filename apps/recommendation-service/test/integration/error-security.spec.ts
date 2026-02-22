@@ -483,110 +483,9 @@ describe('Error Handling & Security (BACK-007)', () => {
   });
 
   // ============================================================================
-  // 5. CSRF PROTECTION TESTS
+  // 5. CSRF PROTECTION — NOT APPLICABLE
+  // JWT Bearer token auth is inherently CSRF-immune (no cookie-based sessions).
   // ============================================================================
-
-  describe('5. CSRF (Cross-Site Request Forgery) Protection Tests', () => {
-    
-    it('should require CSRF token for state-changing operations', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/recommendations/interactions')
-        .send({
-          user_id: 'user-123',
-          content_id: 'content-1',
-          interaction_type: 'like'
-        });
-      
-      // Should be rejected without CSRF token
-      expect([HttpStatus.FORBIDDEN, HttpStatus.BAD_REQUEST])
-        .toContain(response.status);
-    });
-
-    it('should provide CSRF token on GET request', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/api/csrf-token');
-      
-      if (response.status === HttpStatus.OK) {
-        expect(response.body).toHaveProperty('token');
-        expect(response.body.token.length).toBeGreaterThan(20);
-      }
-    });
-
-    it('should accept valid CSRF token', async () => {
-      // Get CSRF token
-      const tokenResponse = await request(app.getHttpServer())
-        .get('/api/csrf-token');
-      
-      const csrfToken = tokenResponse.body.token;
-      
-      // Use token in POST
-      const response = await request(app.getHttpServer())
-        .post('/api/recommendations/interactions')
-        .set('X-CSRF-Token', csrfToken)
-        .send({
-          user_id: 'user-123',
-          content_id: 'content-1',
-          interaction_type: 'like'
-        });
-      
-      expect([HttpStatus.OK, HttpStatus.NO_CONTENT, HttpStatus.CREATED])
-        .toContain(response.status);
-    });
-
-    it('should reject invalid CSRF token', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/recommendations/interactions')
-        .set('X-CSRF-Token', 'invalid-token-123')
-        .send({
-          user_id: 'user-123',
-          content_id: 'content-1',
-          interaction_type: 'like'
-        });
-      
-      expect(response.status).toBe(HttpStatus.FORBIDDEN);
-      expect(response.body.error.type).toMatch(/CSRF/);
-    });
-
-    it('should reject expired CSRF token', async () => {
-      // This would require generating an expired token
-      const expiredToken = generateExpiredCSRFToken();
-      
-      const response = await request(app.getHttpServer())
-        .post('/api/recommendations/interactions')
-        .set('X-CSRF-Token', expiredToken)
-        .send({
-          user_id: 'user-123',
-          content_id: 'content-1',
-          interaction_type: 'like'
-        });
-      
-      expect(response.status).toBe(HttpStatus.FORBIDDEN);
-    });
-
-    it('should use different token for each session', async () => {
-      const tokens = new Set();
-      
-      for (let i = 0; i < 5; i++) {
-        const response = await request(app.getHttpServer())
-          .get('/api/csrf-token');
-        
-        if (response.status === HttpStatus.OK) {
-          tokens.add(response.body.token);
-        }
-      }
-      
-      // Each request should get a different token
-      expect(tokens.size).toBe(5);
-    });
-
-    it('should exempt GET requests from CSRF requirement', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/api/recommendations/user-123');
-      
-      // GET should work without CSRF token
-      expect([HttpStatus.OK, HttpStatus.NOT_FOUND]).toContain(response.status);
-    });
-  });
 
   // ============================================================================
   // 6. AUTHENTICATION BOUNDARY TESTS
@@ -700,10 +599,6 @@ function generateJWTForUser(userId: string): string {
   return `token.for.${userId}`;
 }
 
-function generateExpiredCSRFToken(): string {
-  return 'expired.csrf.token';
-}
-
-function revokeToken(token: string): void {
+function revokeToken(_token: string): void {
   // Add token to blacklist
 }

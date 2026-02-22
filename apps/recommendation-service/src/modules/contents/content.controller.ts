@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Put, Delete, Param, Query, Body, HttpCode, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Query, Body, HttpCode, Logger, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard, OptionalJwtGuard } from '@suggar-daddy/auth';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Content, ContentTag } from '../../database/entities';
@@ -19,6 +20,7 @@ export class ContentController {
    * GET /api/contents - 獲取所有內容
    */
   @Get()
+  @UseGuards(OptionalJwtGuard)
   async getAllContents(@Query('limit') limit: string = '50'): Promise<ContentResponseDto[]> {
     const contents = await this.contentRepository.find({
       relations: ['tags'],
@@ -33,6 +35,7 @@ export class ContentController {
    * GET /api/contents/:id - 獲取單個內容
    */
   @Get(':id')
+  @UseGuards(OptionalJwtGuard)
   async getContent(@Param('id') id: string): Promise<ContentResponseDto> {
     const content = await this.contentRepository.findOne({
       where: { id },
@@ -50,6 +53,7 @@ export class ContentController {
    * POST /api/contents - 創建內容
    */
   @Post()
+  @UseGuards(JwtAuthGuard)
   @HttpCode(201)
   async createContent(@Body() dto: CreateContentDto): Promise<ContentResponseDto> {
     const content = this.contentRepository.create({
@@ -85,6 +89,7 @@ export class ContentController {
    * PUT /api/contents/:id - 更新內容
    */
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   async updateContent(
     @Param('id') id: string,
     @Body() dto: UpdateContentDto,
@@ -110,6 +115,7 @@ export class ContentController {
    * POST /api/contents/:id/view - 記錄觀看
    */
   @Post(':id/view')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async recordView(@Param('id') id: string): Promise<void> {
     const content = await this.contentRepository.findOne({ where: { id } });
@@ -123,6 +129,7 @@ export class ContentController {
    * POST /api/contents/:id/like - 記錄點讚
    */
   @Post(':id/like')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async recordLike(@Param('id') id: string): Promise<void> {
     const content = await this.contentRepository.findOne({ where: { id } });
@@ -136,6 +143,7 @@ export class ContentController {
    * DELETE /api/contents/:id - 刪除內容
    */
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async deleteContent(@Param('id') id: string): Promise<void> {
     await this.contentRepository.delete(id);

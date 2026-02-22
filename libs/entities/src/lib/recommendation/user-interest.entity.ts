@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 import { User } from '../user/user.entity';
 import { ContentTag } from './content-tag.entity';
 
 @Entity('user_interests')
+@Index('idx_user_interest_user_tag', ['user_id', 'tag_id'])
 export class UserInterest {
   @PrimaryGeneratedColumn('uuid')
   id: string;

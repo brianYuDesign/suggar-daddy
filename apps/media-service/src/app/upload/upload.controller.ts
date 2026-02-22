@@ -19,6 +19,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { MediaService } from '../media.service';
 import { VideoProcessorService } from '../video/video-processor';
 import { LocalStorageService } from '../storage/local-storage.service';
+import { imageFileFilter } from './file-filter';
 
 @Controller('upload')
 export class UploadController {
@@ -34,7 +35,7 @@ export class UploadController {
   @Post('single')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }),
+    FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 }, fileFilter: imageFileFilter }),
   )
   async uploadSingle(
     @CurrentUser() user: CurrentUserData,
@@ -77,7 +78,7 @@ export class UploadController {
   @Post('multiple')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FilesInterceptor('files', 10, { limits: { fileSize: 50 * 1024 * 1024 } }),
+    FilesInterceptor('files', 10, { limits: { fileSize: 50 * 1024 * 1024 }, fileFilter: imageFileFilter }),
   )
   async uploadMultiple(
     @CurrentUser() user: CurrentUserData,

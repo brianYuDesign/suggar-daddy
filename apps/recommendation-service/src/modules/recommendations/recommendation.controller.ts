@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Param, Query, Body, HttpCode, Logger, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, Body, HttpCode, Logger, BadRequestException, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
 import { RecommendationService } from '../../services/recommendation.service';
 import { RecommendationsListDto } from '../../dtos/recommendation.dto';
 import { RecordInteractionDto } from '../../dtos/interaction.dto';
@@ -20,14 +21,13 @@ export class RecommendationController {
    * GET /api/recommendations/:userId - 獲取用戶推薦
    * 快速響應 (<500ms)，基於 Redis 緩存
    */
-  @Get(':userId')
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
   async getRecommendations(
-    @Param('userId') userId: string,
+    @CurrentUser() user: CurrentUserData,
     @Query('limit') limit?: string,
   ): Promise<RecommendationsListDto> {
-    if (!userId) {
-      throw new BadRequestException('userId is required');
-    }
+    const userId = user.userId;
 
     const limitNum = limit ? parseInt(limit) : 20;
     if (limitNum < 1 || limitNum > 100) {
@@ -57,6 +57,7 @@ export class RecommendationController {
    * 用於更新推薦模型
    */
   @Post('interactions')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async recordInteraction(@Body() dto: RecordInteractionDto): Promise<void> {
     if (!dto.user_id || !dto.content_id || !dto.interaction_type) {
@@ -87,12 +88,11 @@ export class RecommendationController {
   /**
    * POST /api/recommendations/refresh - 手動刷新推薦
    */
-  @Post('refresh/:userId')
+  @Post('refresh')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  async refreshRecommendations(@Param('userId') userId: string): Promise<RecommendationsListDto> {
-    if (!userId) {
-      throw new BadRequestException('userId is required');
-    }
+  async refreshRecommendations(@CurrentUser() user: CurrentUserData): Promise<RecommendationsListDto> {
+    const userId = user.userId;
 
     // 清空快取後重新生成
     await this.invalidateUserCache(userId);
@@ -112,6 +112,7 @@ export class RecommendationController {
    * POST /api/recommendations/update-scores - 更新內容分數 (定期任務)
    */
   @Post('update-scores')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   async updateEngagementScores(): Promise<{ message: string; timestamp: Date }> {
     try {
@@ -130,6 +131,7 @@ export class RecommendationController {
    * POST /api/recommendations/clear-cache - 清空所有推薦快取
    */
   @Post('clear-cache')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   async clearAllCache(): Promise<{ message: string; timestamp: Date }> {
     try {

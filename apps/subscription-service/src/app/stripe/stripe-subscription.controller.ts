@@ -1,6 +1,6 @@
-import { Controller, Post, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Post, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { CurrentUser } from '@suggar-daddy/auth';
+import { JwtAuthGuard, CurrentUser } from '@suggar-daddy/auth';
 import { StripeSubscriptionService } from './stripe-subscription.service';
 
 class CreateSubscriptionDto {
@@ -10,6 +10,7 @@ class CreateSubscriptionDto {
 
 @ApiTags('Stripe Subscriptions')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('stripe/subscriptions')
 export class StripeSubscriptionController {
   constructor(private stripeSubscriptionService: StripeSubscriptionService) {}

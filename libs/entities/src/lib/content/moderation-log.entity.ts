@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Content } from './content.entity';
 
 export enum ModerationAction {
@@ -9,6 +9,7 @@ export enum ModerationAction {
 }
 
 @Entity('moderation_logs')
+@Index('idx_modlog_content', ['content_id'])
 export class ModerationLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -8,7 +8,10 @@ import {
   Logger,
   HttpException,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { DlqService } from './dlq.service';
 
 /**
@@ -16,6 +19,8 @@ import { DlqService } from './dlq.service';
  * 提供 DLQ 訊息的查詢、重試、刪除等管理功能
  */
 @Controller('dlq')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN)
 export class DlqController {
   private readonly logger = new Logger(DlqController.name);
 

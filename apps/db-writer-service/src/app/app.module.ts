@@ -6,6 +6,7 @@ import {
   EnvConfigModule,
   AppConfigService,
 } from "@suggar-daddy/common";
+import { AuthModule } from "@suggar-daddy/auth";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import {
@@ -74,6 +75,7 @@ const ALL_ENTITIES = [
     EnvConfigModule,
     TypeOrmModule.forRoot(getDatabaseConfig(ALL_ENTITIES)),
     TypeOrmModule.forFeature(ALL_ENTITIES),
+    AuthModule,
     RedisModule.forRoot(),
     KafkaModule.forRootAsync({
       useFactory: (config: AppConfigService) => ({

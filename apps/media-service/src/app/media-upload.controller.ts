@@ -12,9 +12,10 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
+import { JwtAuthGuard, OptionalJwtGuard, CurrentUser, type CurrentUserData } from '@suggar-daddy/auth';
 import { LocalStorageService } from './storage/local-storage.service';
 import { MediaService } from './media.service';
+import { imageFileFilter } from './upload/file-filter';
 
 @Controller('media')
 export class MediaUploadController {
@@ -26,7 +27,7 @@ export class MediaUploadController {
   @Post('upload')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 } }),
+    FileInterceptor('file', { limits: { fileSize: 50 * 1024 * 1024 }, fileFilter: imageFileFilter }),
   )
   async upload(
     @CurrentUser() user: CurrentUserData,
@@ -63,6 +64,7 @@ export class MediaUploadController {
   }
 
   @Get()
+  @UseGuards(OptionalJwtGuard)
   findAll(
     @Query('userId') userId?: string,
     @Query('page') page = 1,
@@ -75,6 +77,7 @@ export class MediaUploadController {
   }
 
   @Get(':id')
+  @UseGuards(OptionalJwtGuard)
   findOne(@Param('id') id: string) {
     return this.mediaService.findOne(id);
   }

@@ -1,4 +1,6 @@
-import { Controller, Post, Get, Logger } from '@nestjs/common';
+import { Controller, Post, Get, Logger, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '@suggar-daddy/auth';
+import { UserRole } from '@suggar-daddy/common';
 import { ConsistencyService } from './consistency.service';
 
 /**
@@ -12,6 +14,8 @@ import { ConsistencyService } from './consistency.service';
  * - 查看監控指標
  */
 @Controller('consistency')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN)
 export class ConsistencyController {
   private readonly logger = new Logger(ConsistencyController.name);
 
