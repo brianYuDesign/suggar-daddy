@@ -102,3 +102,13 @@ pids/
 # TypeScript incremental build
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Claude Code generated
+.claude-code/
+ai-docs/
+*-cc-decisions.json
+*-cc-decisions.jsonl
