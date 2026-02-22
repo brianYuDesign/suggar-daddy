@@ -25,6 +25,8 @@ import {
   UserBehaviorEventEntity,
   SwipeEntity,
   MatchEntity,
+  ProfileViewEntity,
+  VerificationRequestEntity,
 } from "@suggar-daddy/database";
 
 const USER_KEY = (id: string) => `user:${id}`;
@@ -82,6 +84,10 @@ export class DbWriterService {
     private readonly swipeRepo: Repository<SwipeEntity>,
     @InjectRepository(MatchEntity)
     private readonly matchRepo: Repository<MatchEntity>,
+    @InjectRepository(ProfileViewEntity)
+    private readonly profileViewRepo: Repository<ProfileViewEntity>,
+    @InjectRepository(VerificationRequestEntity)
+    private readonly verificationRequestRepo: Repository<VerificationRequestEntity>,
     private readonly redis: RedisService,
   ) {}
 
@@ -728,5 +734,67 @@ export class DbWriterService {
       { status: 'unmatched' },
     );
     this.logger.log(`matching.unmatched persisted userA=${first} userB=${second}`);
+  }
+
+  // ── Profile View Handlers ────────────────────────────────────
+
+  async handleProfileViewed(payload: Record<string, unknown>): Promise<void> {
+    const { viewedUserId, viewerId, viewedAt } = payload;
+    if (!viewedUserId || !viewerId) return;
+
+    await this.profileViewRepo.insert({
+      viewedUserId: viewedUserId as string,
+      viewerId: viewerId as string,
+      viewedAt: viewedAt ? new Date(viewedAt as string) : new Date(),
+    });
+    this.logger.log(`user.profile.viewed persisted viewed=${viewedUserId} viewer=${viewerId}`);
+  }
+
+  // ── Verification Handlers ────────────────────────────────────
+
+  async handleVerificationSubmitted(payload: Record<string, unknown>): Promise<void> {
+    const { requestId, userId, selfieUrl, submittedAt } = payload;
+    if (!requestId || !userId || !selfieUrl) return;
+
+    await this.verificationRequestRepo.insert({
+      id: requestId as string,
+      userId: userId as string,
+      selfieUrl: selfieUrl as string,
+      status: 'pending',
+      createdAt: submittedAt ? new Date(submittedAt as string) : new Date(),
+    });
+
+    // Update user verificationStatus in DB
+    await this.userRepo.update(
+      { id: userId as string },
+      { verificationStatus: 'pending' },
+    );
+
+    this.logger.log(`user.verification.submitted persisted requestId=${requestId}`);
+  }
+
+  async handleVerificationReviewed(payload: Record<string, unknown>): Promise<void> {
+    const { requestId, userId, action, reason, reviewedBy, reviewedAt } = payload;
+    if (!requestId || !userId || !action) return;
+
+    const newStatus = action === 'approve' ? 'approved' : 'rejected';
+
+    await this.verificationRequestRepo.update(
+      { id: requestId as string },
+      {
+        status: newStatus,
+        rejectionReason: (reason as string) || null,
+        reviewedBy: (reviewedBy as string) || null,
+        reviewedAt: reviewedAt ? new Date(reviewedAt as string) : new Date(),
+      },
+    );
+
+    // Update user verificationStatus in DB
+    await this.userRepo.update(
+      { id: userId as string },
+      { verificationStatus: newStatus },
+    );
+
+    this.logger.log(`user.verification.${action} persisted requestId=${requestId} userId=${userId}`);
   }
 }

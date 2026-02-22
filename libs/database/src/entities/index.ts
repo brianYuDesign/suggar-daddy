@@ -26,3 +26,5 @@ export * from './diamond-purchase.entity';
 export * from './interest-tag.entity';
 export * from './user-interest-tag.entity';
 export * from './user-behavior-event.entity';
+export * from './profile-view.entity';
+export * from './verification-request.entity';

@@ -10,12 +10,14 @@
     "withdrawals": "Withdrawals",
     "chatRooms": "Chat Rooms",
     "blog": "Blog",
+    "pages": "Pages",
     "analytics": "Analytics",
     "auditLog": "Audit Log",
     "superAdmin": "Super Admin",
     "system": "System",
     "settings": "Settings",
-    "finance": "Finance"
+    "finance": "Finance",
+    "verifications": "Verifications"
   },
   "actions": {
     "cancel": "Cancel",

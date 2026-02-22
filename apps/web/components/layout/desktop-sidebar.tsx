@@ -14,6 +14,7 @@ import {
   Heart,
   Crown,
   BookOpen,
+  Eye,
   LogOut,
 } from 'lucide-react';
 import { cn } from '@suggar-daddy/ui';
@@ -31,6 +32,7 @@ const mainNav = [
 ];
 
 const secondaryNav = [
+  { href: '/profile/viewers', icon: Eye, label: '誰看過我' },
   { href: '/subscription', icon: Crown, label: '訂閱方案' },
   { href: '/wallet', icon: Wallet, label: '錢包' },
   { href: '/blog', icon: BookOpen, label: '部落格' },
@@ -121,6 +123,12 @@ export function DesktopSidebar() {
             >
               <LogOut className="h-4 w-4" />
             </button>
+          </div>
+          {/* Legal links */}
+          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1">
+            <Link href="/terms" className="text-[10px] text-gray-400 hover:text-gray-600">服務條款</Link>
+            <Link href="/privacy" className="text-[10px] text-gray-400 hover:text-gray-600">隱私權</Link>
+            <Link href="/faq" className="text-[10px] text-gray-400 hover:text-gray-600">FAQ</Link>
           </div>
         </div>
       )}

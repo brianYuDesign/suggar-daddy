@@ -10,12 +10,14 @@
     "withdrawals": "提款管理",
     "chatRooms": "聊天室管理",
     "blog": "部落格管理",
+    "pages": "頁面管理",
     "analytics": "數據分析",
     "auditLog": "稽核日誌",
     "superAdmin": "超級管理",
     "system": "系統監控",
     "settings": "設定",
-    "finance": "財務管理"
+    "finance": "財務管理",
+    "verifications": "身份認證"
   },
   "actions": {
     "cancel": "取消",

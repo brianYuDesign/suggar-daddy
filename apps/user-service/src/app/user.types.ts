@@ -54,3 +54,12 @@ export const BLOCKED_BY_SET = (userId: string): string => `user:blocked-by:${use
 export const REPORT_KEY = (id: string): string => `report:${id}`;
 export const REPORTS_PENDING = 'reports:pending';
 export const REPORTS_BY_USER = (userId: string): string => `reports:by:${userId}`;
+
+// Profile views
+export const PROFILE_VIEWERS = (userId: string): string => `profile:viewers:${userId}`;
+export const PROFILE_VIEW_DEDUP = (viewedId: string, viewerId: string): string =>
+  `profile:view:dedup:${viewedId}:${viewerId}`;
+export const PROFILE_VIEW_COUNT = (userId: string): string => `profile:view:count:${userId}`;
+
+// Verification
+export const VERIFICATION_KEY = (userId: string): string => `verification:${userId}`;

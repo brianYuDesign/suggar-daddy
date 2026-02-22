@@ -89,6 +89,73 @@ export class UserController {
     return this.userService.setDmPrice(user.userId, body.price);
   }
 
+  // ── Profile Views (literal routes BEFORE parameterized :userId routes) ──
+
+  @Get('profile-views')
+  async getProfileViewers(
+    @CurrentUser() user: CurrentUserData,
+    @Query('page') page?: string,
+    @Query('limit') limitStr?: string,
+  ): Promise<{ viewers: unknown[]; total: number; isVip: boolean }> {
+    const p = Math.max(1, parseInt(page || '1', 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(limitStr || '20', 10) || 20));
+    const result = await this.userService.getProfileViewers(user.userId, p, limit);
+    // TODO: Check subscription status from subscription-service for VIP check
+    // For now, return all data and let frontend handle VIP gating
+    return { ...result, isVip: true };
+  }
+
+  @Get('profile-views/count')
+  async getProfileViewCount(
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ count: number }> {
+    const count = await this.userService.getProfileViewCount(user.userId);
+    return { count };
+  }
+
+  // ── Verification ────────────────────────────────────────────────
+
+  @Post('verification/submit')
+  async submitVerification(
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: { selfieUrl: string },
+  ): Promise<{ requestId: string; status: string }> {
+    return this.userService.submitVerification(user.userId, body.selfieUrl);
+  }
+
+  @Get('verification/status')
+  async getVerificationStatus(
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<{ status: string; rejectionReason?: string }> {
+    return this.userService.getVerificationStatus(user.userId);
+  }
+
+  // ── Admin: Verification Review ──────────────────────────────────
+
+  @Get('admin/verifications')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getPendingVerifications(
+    @Query('page') page?: string,
+    @Query('limit') limitStr?: string,
+  ): Promise<{ data: Record<string, unknown>[]; total: number }> {
+    const p = Math.max(1, parseInt(page || '1', 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(limitStr || '20', 10) || 20));
+    return this.userService.getPendingVerifications(p, limit);
+  }
+
+  @Put('admin/verifications/:userId/review')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async reviewVerification(
+    @CurrentUser() adminUser: CurrentUserData,
+    @Param('userId') userId: string,
+    @Body() body: { action: 'approve' | 'reject'; reason?: string },
+  ): Promise<{ success: boolean }> {
+    await this.userService.reviewVerification(userId, body.action, adminUser.userId, body.reason);
+    return { success: true };
+  }
+
   // ── Discovery ──────────────────────────────────────────────────
 
   @Get('recommended')
@@ -119,6 +186,54 @@ export class UserController {
       throw new NotFoundException('User not found');
     }
     return profile;
+  }
+
+  /** 更新當前用戶資料（從 JWT 取 userId） */
+  @Put('profile')
+  async updateProfile(
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: UpdateProfileDto
+  ): Promise<UserProfileDto> {
+    const uid = user.userId;
+    this.logger.log(`updateProfile request userId=${uid}`);
+    return this.userService.updateProfile(uid, body);
+  }
+
+  /** 更新用戶位置（專用端點，供前端定期 GPS 更新） */
+  @Put('location')
+  async updateLocation(
+    @CurrentUser() user: CurrentUserData,
+    @Body() body: LocationUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const uid = user.userId;
+    this.logger.log(`updateLocation request userId=${uid} lat=${body.latitude} lng=${body.longitude}`);
+    return this.userService.updateLocation(uid, body);
+  }
+
+  /** 取得指定 userId 列表的卡片（供 matching-service 內部呼叫） */
+  @Public()
+  @Post('cards/by-ids')
+  async getCardsByIds(@Body() body: { userIds: string[] }): Promise<UserCardDto[]> {
+    return this.userService.getCardsByIds(body.userIds);
+  }
+
+  /** 創建用戶（註冊用；允許未登入，由 auth 或 gateway 呼叫） */
+  @Public()
+  @Post()
+  async create(@Body() body: CreateUserDto): Promise<UserProfileDto> {
+    this.logger.log(`create user request userType=${body.userType} displayName=${body.displayName}`);
+    const user = await this.userService.create(body);
+    this.logger.log(`create user result id=${user.id}`);
+    return user;
+  }
+
+  @Post('profile/:userId/view')
+  async recordProfileView(
+    @CurrentUser() user: CurrentUserData,
+    @Param('userId') userId: string,
+  ): Promise<{ success: boolean }> {
+    await this.userService.recordProfileView(userId, user.userId);
+    return { success: true };
   }
 
   // ── Followers / Following (parameterized routes must come after specific routes) ──
@@ -169,45 +284,6 @@ export class UserController {
       throw new NotFoundException('User not found');
     }
     return profile;
-  }
-
-  /** 更新當前用戶資料（從 JWT 取 userId） */
-  @Put('profile')
-  async updateProfile(
-    @CurrentUser() user: CurrentUserData,
-    @Body() body: UpdateProfileDto
-  ): Promise<UserProfileDto> {
-    const uid = user.userId;
-    this.logger.log(`updateProfile request userId=${uid}`);
-    return this.userService.updateProfile(uid, body);
-  }
-
-  /** 更新用戶位置（專用端點，供前端定期 GPS 更新） */
-  @Put('location')
-  async updateLocation(
-    @CurrentUser() user: CurrentUserData,
-    @Body() body: LocationUpdateDto,
-  ): Promise<{ success: boolean }> {
-    const uid = user.userId;
-    this.logger.log(`updateLocation request userId=${uid} lat=${body.latitude} lng=${body.longitude}`);
-    return this.userService.updateLocation(uid, body);
-  }
-
-  /** 取得指定 userId 列表的卡片（供 matching-service 內部呼叫） */
-  @Public()
-  @Post('cards/by-ids')
-  async getCardsByIds(@Body() body: { userIds: string[] }): Promise<UserCardDto[]> {
-    return this.userService.getCardsByIds(body.userIds);
-  }
-
-  /** 創建用戶（註冊用；允許未登入，由 auth 或 gateway 呼叫） */
-  @Public()
-  @Post()
-  async create(@Body() body: CreateUserDto): Promise<UserProfileDto> {
-    this.logger.log(`create user request userType=${body.userType} displayName=${body.displayName}`);
-    const user = await this.userService.create(body);
-    this.logger.log(`create user result id=${user.id}`);
-    return user;
   }
 
   // ── Block / Unblock ──────────────────────────────────────────────

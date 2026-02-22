@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { MessageCircle } from 'lucide-react';
-import { Card, Avatar, Skeleton } from '@suggar-daddy/ui';
+import { MessageCircle, Radio } from 'lucide-react';
+import { Card, Avatar, Skeleton, Button } from '@suggar-daddy/ui';
 import { messagingApi, usersApi, ApiError } from '../../../lib/api';
 import { getMessagingSocket } from '../../../lib/socket';
 import { useAuth } from '../../../providers/auth-provider';
@@ -166,9 +166,24 @@ export default function MessagesPage() {
     );
   }
 
+  const isCreator = user?.permissionRole === 'creator' || user?.userType === 'sugar_baby';
+
   return (
     <div className="space-y-3">
-      <h1 className="text-xl font-bold text-gray-900">訊息</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-gray-900">訊息</h1>
+        {isCreator && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/messages/broadcast')}
+            className="gap-1.5"
+          >
+            <Radio className="h-4 w-4" />
+            廣播
+          </Button>
+        )}
+      </div>
 
       {conversations.length === 0 ? (
         /* Empty state */

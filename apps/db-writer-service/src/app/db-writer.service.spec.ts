@@ -24,6 +24,8 @@ import {
   UserBehaviorEventEntity,
   SwipeEntity,
   MatchEntity,
+  ProfileViewEntity,
+  VerificationRequestEntity,
 } from '@suggar-daddy/database';
 
 const mockRepo = () => ({
@@ -70,6 +72,8 @@ describe('DbWriterService', () => {
         { provide: getRepositoryToken(UserBehaviorEventEntity), useFactory: mockRepo },
         { provide: getRepositoryToken(SwipeEntity), useFactory: mockRepo },
         { provide: getRepositoryToken(MatchEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(ProfileViewEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(VerificationRequestEntity), useFactory: mockRepo },
         { provide: RedisService, useValue: redis },
       ],
     }).compile();

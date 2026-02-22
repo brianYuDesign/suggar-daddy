@@ -77,15 +77,6 @@ jest.mock('../../../lib/socket', () => ({
   disconnectAll: jest.fn(),
 }));
 
-// Mock StoriesBar and StoryViewer components
-jest.mock('../../../components/stories/stories-bar', () => ({
-  StoriesBar: () => <div>Stories Bar</div>,
-}));
-
-jest.mock('../../../components/stories/story-viewer', () => ({
-  StoryViewer: () => <div>Story Viewer</div>,
-}));
-
 const { contentApi, usersApi } = require('../../../lib/api');
 
 // Test fixtures

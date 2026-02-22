@@ -57,6 +57,10 @@ export class DbWriterConsumer implements OnModuleInit {
       { topic: MATCHING_EVENTS.SWIPE, handler: (p) => this.dbWriter.handleSwipeEvent(p) },
       { topic: MATCHING_EVENTS.MATCHED, handler: (p) => this.dbWriter.handleMatchEvent(p) },
       { topic: MATCHING_EVENTS.UNMATCHED, handler: (p) => this.dbWriter.handleUnmatchEvent(p) },
+      { topic: USER_EVENTS.PROFILE_VIEWED, handler: (p) => this.dbWriter.handleProfileViewed(p) },
+      { topic: USER_EVENTS.VERIFICATION_SUBMITTED, handler: (p) => this.dbWriter.handleVerificationSubmitted(p) },
+      { topic: USER_EVENTS.VERIFICATION_APPROVED, handler: (p) => this.dbWriter.handleVerificationReviewed(p) },
+      { topic: USER_EVENTS.VERIFICATION_REJECTED, handler: (p) => this.dbWriter.handleVerificationReviewed(p) },
     ];
 
     const maxRetries = 3;

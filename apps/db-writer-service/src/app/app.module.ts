@@ -30,6 +30,8 @@ import {
   DiamondTransactionEntity,
   DiamondPurchaseEntity,
   UserBehaviorEventEntity,
+  ProfileViewEntity,
+  VerificationRequestEntity,
 } from "@suggar-daddy/database";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -62,6 +64,8 @@ const ALL_ENTITIES = [
   DiamondTransactionEntity,
   DiamondPurchaseEntity,
   UserBehaviorEventEntity,
+  ProfileViewEntity,
+  VerificationRequestEntity,
 ];
 
 @Module({

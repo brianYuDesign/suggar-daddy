@@ -30,10 +30,6 @@ import {
   RefreshCw,
   AlertCircle,
 } from 'lucide-react';
-import { StoriesBar } from '../../../components/stories/stories-bar';
-import { StoryViewer } from '../../../components/stories/story-viewer';
-import type { StoryGroup } from '@suggar-daddy/api-client';
-
 interface Post {
   id: string;
   authorId: string;
@@ -230,15 +226,7 @@ export default function FeedPage() {
   });
   const { likedPosts, toggleLike } = useLikedPosts();
   const [authorNames, setAuthorNames] = useState<Record<string, string>>({});
-  const [storyViewerData, setStoryViewerData] = useState<{
-    groups: StoryGroup[];
-    startIndex: number;
-  } | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-
-  const handleStoryClick = (groups: StoryGroup[], startIndex: number) => {
-    setStoryViewerData({ groups, startIndex });
-  };
 
   const fetchPosts = useCallback(async (cursor?: string) => {
     try {
@@ -320,18 +308,6 @@ export default function FeedPage() {
 
   return (
     <div className="space-y-4">
-      {/* Story viewer overlay */}
-      {storyViewerData && (
-        <StoryViewer
-          groups={storyViewerData.groups}
-          startGroupIndex={storyViewerData.startIndex}
-          onClose={() => setStoryViewerData(null)}
-        />
-      )}
-
-      {/* Stories bar */}
-      <StoriesBar onStoryClick={handleStoryClick} />
-
       {/* Welcome card */}
       <div className="rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 p-5 text-white">
         <h1 className="text-xl font-bold">

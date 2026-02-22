@@ -54,6 +54,19 @@ export interface ReportDetail extends ReportRecord {
   } | null;
 }
 
+export interface VerificationRecord {
+  id: string;
+  userId: string;
+  selfieUrl: string;
+  status: string;
+  rejectionReason?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  createdAt: string;
+  userDisplayName?: string;
+  userAvatarUrl?: string;
+}
+
 export interface ContentStats {
   totalPosts: number;
   pendingReports: number;
@@ -524,6 +537,48 @@ export interface UpdateUserDto {
 }
 
 // ---- Blog Types ----
+
+export interface StaticPageRecord {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  pageType: string;
+  status: string;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  lastEditedBy: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StaticPageStats {
+  total: number;
+  published: number;
+  draft: number;
+  archived: number;
+}
+
+export interface CreatePagePayload {
+  title: string;
+  content: string;
+  slug?: string;
+  pageType?: string;
+  status?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+}
+
+export interface UpdatePagePayload {
+  title?: string;
+  content?: string;
+  slug?: string;
+  pageType?: string;
+  status?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+}
 
 export interface BlogRecord {
   id: string;
@@ -1058,5 +1113,56 @@ export class AdminApi {
 
   batchDeleteBlogs(ids: string[]) {
     return this.client.post<{ deletedCount: number }>('/api/blogs/batch/delete', { ids });
+  }
+
+  // -- Static Pages --
+
+  getPageStats() {
+    return this.client.get<StaticPageStats>('/api/pages/stats');
+  }
+
+  listPages(page = 1, limit = 20, pageType?: string, status?: string, search?: string) {
+    return this.client.get<{ items: StaticPageRecord[]; total: number; page: number; limit: number }>(
+      '/api/pages/admin',
+      { params: this.buildParams({ page, limit, pageType, status, search }) },
+    );
+  }
+
+  getPage(id: string) {
+    return this.client.get<StaticPageRecord>(`/api/pages/${id}`);
+  }
+
+  createPage(dto: CreatePagePayload) {
+    return this.client.post<StaticPageRecord>('/api/pages', dto);
+  }
+
+  updatePage(id: string, dto: UpdatePagePayload) {
+    return this.client.put<StaticPageRecord>(`/api/pages/${id}`, dto);
+  }
+
+  deletePage(id: string) {
+    return this.client.delete<{ message: string }>(`/api/pages/${id}`);
+  }
+
+  publishPage(id: string) {
+    return this.client.post<StaticPageRecord>(`/api/pages/${id}/publish`);
+  }
+
+  archivePage(id: string) {
+    return this.client.post<StaticPageRecord>(`/api/pages/${id}/archive`);
+  }
+
+  // ==================== Verification Management ====================
+
+  getPendingVerifications(page = 1, limit = 20): Promise<{ data: VerificationRecord[]; total: number }> {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    return this.client.get<{ data: VerificationRecord[]; total: number }>(`/api/users/admin/verifications?${params}`);
+  }
+
+  reviewVerification(userId: string, action: 'approve' | 'reject', reason?: string): Promise<{ success: boolean }> {
+    return this.client.put<{ success: boolean }>(`/api/users/admin/verifications/${userId}/review`, {
+      action,
+      reason,
+    });
   }
 }

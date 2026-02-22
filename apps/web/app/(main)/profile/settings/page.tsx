@@ -26,9 +26,17 @@ import {
   ChevronRight,
   LogOut,
   ShieldBan,
+  ShieldCheck,
   Info,
   Lock,
   Loader2,
+  FileText,
+  HelpCircle,
+  Mail,
+  ScrollText,
+  Shield,
+  Cookie,
+  Users2,
 } from 'lucide-react';
 import { Toast } from './components/Toast';
 import { NotificationSection } from './components/NotificationSection';
@@ -231,6 +239,27 @@ export default function SettingsPage() {
       {/* Creator settings - only for CREATOR role */}
       {isCreator && <CreatorSection showToast={showToast} />}
 
+      {/* Identity verification */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-base">身份認證</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          <button
+            type="button"
+            onClick={() => router.push('/profile/verification')}
+            className="flex w-full items-center gap-3 rounded-lg px-2 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <ShieldCheck className="h-4 w-4 text-gray-500" />
+            <span className="flex-1 text-left">真人認證</span>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </button>
+        </CardContent>
+      </Card>
+
       {/* Privacy & security links */}
       <Card>
         <CardHeader className="pb-3">
@@ -246,6 +275,38 @@ export default function SettingsPage() {
             <span className="flex-1 text-left">封鎖名單</span>
             <ChevronRight className="h-4 w-4 text-gray-400" />
           </button>
+        </CardContent>
+      </Card>
+
+      {/* About & Legal */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-base">關於與法律</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {[
+            { href: '/about', icon: Info, label: '關於我們' },
+            { href: '/faq', icon: HelpCircle, label: '常見問題' },
+            { href: '/contact', icon: Mail, label: '聯絡我們' },
+            { href: '/terms', icon: ScrollText, label: '服務條款' },
+            { href: '/privacy', icon: Shield, label: '隱私權政策' },
+            { href: '/cookie-policy', icon: Cookie, label: 'Cookie 政策' },
+            { href: '/community-guidelines', icon: Users2, label: '社群守則' },
+          ].map((item) => (
+            <button
+              key={item.href}
+              type="button"
+              onClick={() => router.push(item.href)}
+              className="flex w-full items-center gap-3 rounded-lg px-2 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <item.icon className="h-4 w-4 text-gray-500" />
+              <span className="flex-1 text-left">{item.label}</span>
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            </button>
+          ))}
         </CardContent>
       </Card>
 

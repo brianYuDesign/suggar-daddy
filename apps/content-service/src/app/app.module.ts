@@ -29,6 +29,7 @@ import { StoryService } from "./story.service";
 import { FeedConsumer } from "./consumers/feed.consumer";
 import { TrendingConsumer } from "./consumers/trending.consumer";
 import { BlogModule } from "./blog/blog.module";
+import { StaticPageModule } from "./static-page/static-page.module";
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { BlogModule } from "./blog/blog.module";
     CloudFrontModule.forRoot(),
     DatabaseModule.forRoot(),
     BlogModule,
+    StaticPageModule,
   ],
   controllers: [
     AppController,

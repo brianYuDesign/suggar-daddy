@@ -21,6 +21,7 @@ import settingsZhTW from './locales/zh-TW/settings.json';
 import loginZhTW from './locales/zh-TW/login.json';
 import financeZhTW from './locales/zh-TW/finance.json';
 import blogZhTW from './locales/zh-TW/blog.json';
+import pagesZhTW from './locales/zh-TW/pages.json';
 
 // en
 import commonEn from './locales/en/common.json';
@@ -41,6 +42,7 @@ import settingsEn from './locales/en/settings.json';
 import loginEn from './locales/en/login.json';
 import financeEn from './locales/en/finance.json';
 import blogEn from './locales/en/blog.json';
+import pagesEn from './locales/en/pages.json';
 
 i18n
   .use(LanguageDetector)
@@ -66,6 +68,7 @@ i18n
         login: loginZhTW,
         finance: financeZhTW,
         blog: blogZhTW,
+        pages: pagesZhTW,
       },
       en: {
         common: commonEn,
@@ -86,6 +89,7 @@ i18n
         login: loginEn,
         finance: financeEn,
         blog: blogEn,
+        pages: pagesEn,
       },
     },
     lng: 'zh-TW',

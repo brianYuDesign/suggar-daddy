@@ -42,8 +42,9 @@ export interface StoryViewer {
  * 創建限時動態 DTO
  */
 export interface CreateStoryDto {
-  mediaId: string;
-  duration?: number;
+  contentType: string;
+  mediaUrl: string;
+  caption?: string;
 }
 
 /**
@@ -54,13 +55,14 @@ export class StoriesApi {
 
   /**
    * 創建限時動態
-   * @param mediaId 媒體檔案 ID
-   * @param duration 顯示時長（秒），預設圖片 5 秒、影片 15 秒
+   * @param contentType 媒體類型 (IMAGE / VIDEO)
+   * @param mediaUrl 媒體 URL
+   * @param caption 選填文字說明
    */
-  createStory(mediaId: string, duration?: number) {
-    const data: CreateStoryDto = { mediaId };
-    if (duration !== undefined) {
-      data.duration = duration;
+  createStory(contentType: string, mediaUrl: string, caption?: string) {
+    const data: CreateStoryDto = { contentType, mediaUrl };
+    if (caption !== undefined) {
+      data.caption = caption;
     }
     return this.client.post<Story>('/api/stories', data);
   }

@@ -65,7 +65,7 @@ export type { Tip, Transaction, TransactionDetail, TransactionStatus, Transactio
 export type { GetCardsQuery, EnhancedUserCardDto, CardDetailResponseDto, LikesMeResponseDto, LikesMeCardDto, RevealLikeResponseDto, UndoResponseDto, BehaviorEventDto, BehaviorBatchResponseDto, PostPreviewDto, ScoreBreakdownDto, InterestTagCategory, BehaviorEventType } from './matching';
 export type { CardsResponseDto } from './matching';
 export type { InterestTagDto, TagsListResponseDto } from './tags';
-export type { ReportDto, UserCard, CreateUserDto, FollowStatus } from './users';
+export type { ReportDto, UserCard, CreateUserDto, FollowStatus, ProfileViewer, VerificationStatus } from './users';
 export type {
   PaginatedResponse as AdminPaginatedResponse,
   AdminUser,
@@ -124,5 +124,6 @@ export type {
   BlogStats,
   CreateBlogPayload,
   UpdateBlogPayload,
+  VerificationRecord,
 } from './admin';
 

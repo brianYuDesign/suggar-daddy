@@ -76,6 +76,25 @@ export interface CreateUserDto {
 }
 
 /**
+ * 訪客資訊
+ */
+export interface ProfileViewer {
+  id: string;
+  displayName: string;
+  avatarUrl?: string;
+  userType: string;
+  viewedAt: number;
+}
+
+/**
+ * 驗證狀態
+ */
+export interface VerificationStatus {
+  status: string;
+  rejectionReason?: string;
+}
+
+/**
  * 追蹤狀態
  */
 export interface FollowStatus {
@@ -267,6 +286,60 @@ export class UsersApi {
   createUser(dto: CreateUserDto): Promise<UserProfileDto> {
     return this.client.post<UserProfileDto>('/api/users', dto);
   }
+
+  // ==================== Profile Views ====================
+
+  /**
+   * 記錄瀏覽他人檔案
+   * @param userId - 被瀏覽者的 ID
+   */
+  recordProfileView(userId: string): Promise<{ success: boolean }> {
+    return this.client.post<{ success: boolean }>(`/api/users/profile/${userId}/view`);
+  }
+
+  /**
+   * 取得誰看過我的訪客列表（VIP 才可見完整資料）
+   * @param page - 頁數
+   * @param limit - 每頁數量
+   */
+  getProfileViewers(page = 1, limit = 20): Promise<{
+    viewers: ProfileViewer[];
+    total: number;
+    isVip: boolean;
+  }> {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    return this.client.get<{
+      viewers: ProfileViewer[];
+      total: number;
+      isVip: boolean;
+    }>(`/api/users/profile-views?${params}`);
+  }
+
+  /**
+   * 取得瀏覽次數
+   */
+  getProfileViewCount(): Promise<{ count: number }> {
+    return this.client.get<{ count: number }>('/api/users/profile-views/count');
+  }
+
+  // ==================== Verification ====================
+
+  /**
+   * 提交真人認證
+   * @param selfieUrl - 自拍照 URL
+   */
+  submitVerification(selfieUrl: string): Promise<{ requestId: string; status: string }> {
+    return this.client.post<{ requestId: string; status: string }>('/api/users/verification/submit', { selfieUrl });
+  }
+
+  /**
+   * 取得驗證狀態
+   */
+  getVerificationStatus(): Promise<VerificationStatus> {
+    return this.client.get<VerificationStatus>('/api/users/verification/status');
+  }
+
+  // ==================== P1 進階功能 ====================
 
   /**
    * 設定 DM 價格（僅限創作者）

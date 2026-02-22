@@ -9,6 +9,10 @@ export const USER_EVENTS = {
   USER_BLOCKED: 'user.blocked',
   USER_UNBLOCKED: 'user.unblocked',
   USER_REPORTED: 'user.reported',
+  PROFILE_VIEWED: 'user.profile.viewed',
+  VERIFICATION_SUBMITTED: 'user.verification.submitted',
+  VERIFICATION_APPROVED: 'user.verification.approved',
+  VERIFICATION_REJECTED: 'user.verification.rejected',
 } as const;
 
 // Matching Events (matching-service → notification / messaging / analytics)
@@ -275,6 +279,30 @@ export interface LikesMeRevealedEvent {
   likerId: string;
   diamondCost: number;
   revealedAt: string;
+}
+
+// Profile view event payloads
+export interface ProfileViewedEvent {
+  viewedUserId: string;
+  viewerId: string;
+  viewedAt: string;
+}
+
+// Verification event payloads
+export interface VerificationSubmittedEvent {
+  requestId: string;
+  userId: string;
+  selfieUrl: string;
+  submittedAt: string;
+}
+
+export interface VerificationReviewedEvent {
+  requestId: string;
+  userId: string;
+  action: 'approve' | 'reject';
+  reason?: string;
+  reviewedBy: string;
+  reviewedAt: string;
 }
 
 // Behavior event payloads

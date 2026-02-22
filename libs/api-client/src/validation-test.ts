@@ -61,9 +61,9 @@ async function validateStoriesApis() {
   console.log('✅ 驗證 Stories 系統 API...');
 
   // 6. createStory
-  const story = await storiesApi.createStory('media123');
-  const storyWithDuration = await storiesApi.createStory('media123', 10);
-  console.log('  ✓ createStory(mediaId, duration?)');
+  const story = await storiesApi.createStory('IMAGE', 'https://example.com/photo.jpg');
+  const storyWithCaption = await storiesApi.createStory('VIDEO', 'https://example.com/video.mp4', '我的動態');
+  console.log('  ✓ createStory(contentType, mediaUrl, caption?)');
 
   // 7. getStoriesFeed
   const feed = await storiesApi.getStoriesFeed();

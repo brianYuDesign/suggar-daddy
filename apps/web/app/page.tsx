@@ -60,8 +60,43 @@ export default async function LandingPage() {
       )}
 
       {/* Footer */}
-      <footer className="border-t px-6 py-8 text-center text-sm text-gray-400">
-        &copy; {new Date().getFullYear()} Suggar Daddy. All rights reserved.
+      <footer className="border-t bg-gray-50 px-6 py-12">
+        <div className="mx-auto max-w-5xl">
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">關於</p>
+              <nav className="mt-3 flex flex-col gap-2">
+                <Link href="/about" className="text-sm text-gray-500 hover:text-gray-700">關於我們</Link>
+                <Link href="/blog" className="text-sm text-gray-500 hover:text-gray-700">部落格</Link>
+                <Link href="/contact" className="text-sm text-gray-500 hover:text-gray-700">聯絡我們</Link>
+              </nav>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">支援</p>
+              <nav className="mt-3 flex flex-col gap-2">
+                <Link href="/faq" className="text-sm text-gray-500 hover:text-gray-700">常見問題</Link>
+                <Link href="/community-guidelines" className="text-sm text-gray-500 hover:text-gray-700">社群守則</Link>
+              </nav>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">法律</p>
+              <nav className="mt-3 flex flex-col gap-2">
+                <Link href="/terms" className="text-sm text-gray-500 hover:text-gray-700">服務條款</Link>
+                <Link href="/privacy" className="text-sm text-gray-500 hover:text-gray-700">隱私權政策</Link>
+                <Link href="/cookie-policy" className="text-sm text-gray-500 hover:text-gray-700">Cookie 政策</Link>
+              </nav>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Suggar Daddy</p>
+              <p className="mt-3 text-sm text-gray-500">
+                致力於建立真誠連結的社交平台
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 border-t pt-6 text-center text-sm text-gray-400">
+            &copy; {new Date().getFullYear()} Suggar Daddy. All rights reserved.
+          </div>
+        </div>
       </footer>
     </main>
   );

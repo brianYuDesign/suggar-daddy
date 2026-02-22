@@ -40,6 +40,14 @@ export default function AuthLayout({
       <main className="flex flex-1 flex-col items-center px-6 pb-10 pt-4">
         {children}
       </main>
+      {/* Footer */}
+      <footer className="flex items-center justify-center gap-4 px-6 py-4 text-xs text-gray-400">
+        <a href="/privacy" className="hover:text-gray-600">隱私權政策</a>
+        <span>|</span>
+        <a href="/terms" className="hover:text-gray-600">服務條款</a>
+        <span>|</span>
+        <a href="/community-guidelines" className="hover:text-gray-600">社群守則</a>
+      </footer>
     </div>
   );
 }

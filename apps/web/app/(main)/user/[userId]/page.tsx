@@ -26,6 +26,7 @@ import {
   Calendar,
   Gift,
   ShieldBan,
+  ShieldCheck,
   Flag,
   MessageCircle,
   Loader2,
@@ -85,6 +86,13 @@ export default function UserProfilePage() {
       usersApi.getFollowStatus(userId).then((status) => {
         setIsFollowing(status.isFollowing);
       }).catch(() => {});
+    }
+  }, [userId, currentUser?.id]);
+
+  // Record profile view (only when viewing someone else's profile)
+  useEffect(() => {
+    if (userId && currentUser?.id && currentUser.id !== userId) {
+      usersApi.recordProfileView(userId).catch(() => {});
     }
   }, [userId, currentUser?.id]);
 
@@ -260,11 +268,12 @@ export default function UserProfilePage() {
             {getRoleLabel(profile.userType)}
           </Badge>
 
-          {/* Verification status */}
-          {profile.verificationStatus === 'verified' && (
-            <span className="mt-2 text-xs text-green-600 font-medium">
-              已驗證
-            </span>
+          {/* Verification badge */}
+          {(profile.verificationStatus === 'verified' || profile.verificationStatus === 'approved') && (
+            <div className="mt-2 flex items-center gap-1 text-xs text-green-600 font-medium">
+              <ShieldCheck className="h-4 w-4" />
+              已認證
+            </div>
           )}
 
           {/* Follow button */}

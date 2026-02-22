@@ -19,6 +19,8 @@ import {
   BLOCK_SET, BLOCKED_BY_SET,
   USERS_ALL_SET, CREATORS_SET,
   USERNAME_KEY,
+  PROFILE_VIEWERS, PROFILE_VIEW_DEDUP,
+  VERIFICATION_KEY,
 } from './user.types';
 
 @Injectable()
@@ -618,6 +620,234 @@ export class UserService {
   async isBlocked(blockerId: string, targetId: string): Promise<boolean> {
     const blockedIds = await this.redisService.sMembers(BLOCK_SET(blockerId));
     return blockedIds.includes(targetId);
+  }
+
+  // ── Profile Views ──────────────────────────────────────────────
+
+  async recordProfileView(viewedUserId: string, viewerId: string): Promise<void> {
+    if (viewedUserId === viewerId) return;
+
+    // Dedup: same viewer within 1 hour
+    const dedupKey = PROFILE_VIEW_DEDUP(viewedUserId, viewerId);
+    const already = await this.redisService.get(dedupKey);
+    if (already) return;
+
+    // Set dedup key with 1h TTL
+    await this.redisService.set(dedupKey, '1', 3600);
+
+    // Add to sorted set (score = timestamp)
+    const now = Date.now();
+    const client = this.redisService.getClient();
+    await client.zadd(PROFILE_VIEWERS(viewedUserId), now, viewerId);
+
+    this.logger.log(`profile view recorded viewed=${viewedUserId} viewer=${viewerId}`);
+
+    // Emit Kafka event
+    await this.kafkaProducer.sendEvent(USER_EVENTS.PROFILE_VIEWED, {
+      viewedUserId,
+      viewerId,
+      viewedAt: new Date(now).toISOString(),
+    });
+  }
+
+  async getProfileViewers(
+    userId: string,
+    page = 1,
+    limit = 20,
+  ): Promise<{ viewers: { id: string; displayName: string; avatarUrl?: string; userType: string; viewedAt: number }[]; total: number }> {
+    const client = this.redisService.getClient();
+    const total = await client.zcard(PROFILE_VIEWERS(userId));
+
+    const start = (page - 1) * limit;
+    const stop = start + limit - 1;
+    // Get viewer IDs with scores (timestamps), newest first
+    const results = await client.zrevrange(PROFILE_VIEWERS(userId), start, stop, 'WITHSCORES');
+
+    const viewers: { id: string; displayName: string; avatarUrl?: string; userType: string; viewedAt: number }[] = [];
+    // results is [id, score, id, score, ...]
+    for (let i = 0; i < results.length; i += 2) {
+      const viewerId = results[i];
+      const viewedAt = parseInt(results[i + 1], 10);
+      const user = await this.getUserFromRedis(viewerId);
+      if (user) {
+        viewers.push({
+          id: user.id,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+          userType: user.userType,
+          viewedAt,
+        });
+      }
+    }
+
+    return { viewers, total };
+  }
+
+  async getProfileViewCount(userId: string): Promise<number> {
+    const client = this.redisService.getClient();
+    return client.zcard(PROFILE_VIEWERS(userId));
+  }
+
+  // ── Verification ──────────────────────────────────────────────
+
+  async submitVerification(userId: string, selfieUrl: string): Promise<{ requestId: string; status: string }> {
+    const user = await this.getUserFromRedis(userId);
+    if (!user) {
+      throw new NotFoundException(`User not found: ${userId}`);
+    }
+
+    if (user.verificationStatus === 'pending') {
+      throw new BadRequestException('A verification request is already pending');
+    }
+    if (user.verificationStatus === 'approved') {
+      throw new BadRequestException('User is already verified');
+    }
+
+    const requestId = `vr-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const now = new Date();
+
+    // Store in Redis
+    const verificationRecord = {
+      id: requestId,
+      userId,
+      selfieUrl,
+      status: 'pending',
+      rejectionReason: null,
+      reviewedBy: null,
+      reviewedAt: null,
+      createdAt: now.toISOString(),
+    };
+    await this.redisService.set(VERIFICATION_KEY(userId), JSON.stringify(verificationRecord));
+
+    // Update user verification status
+    user.verificationStatus = 'pending';
+    user.updatedAt = now;
+    await this.saveUserToRedis(user);
+
+    this.logger.log(`verification submitted userId=${userId} requestId=${requestId}`);
+
+    // Emit Kafka event
+    await this.kafkaProducer.sendEvent(USER_EVENTS.VERIFICATION_SUBMITTED, {
+      requestId,
+      userId,
+      selfieUrl,
+      submittedAt: now.toISOString(),
+    });
+
+    return { requestId, status: 'pending' };
+  }
+
+  async getVerificationStatus(userId: string): Promise<{ status: string; rejectionReason?: string }> {
+    const user = await this.getUserFromRedis(userId);
+    if (!user) {
+      throw new NotFoundException(`User not found: ${userId}`);
+    }
+
+    const raw = await this.redisService.get(VERIFICATION_KEY(userId));
+    if (raw) {
+      const record = JSON.parse(raw);
+      return {
+        status: record.status || user.verificationStatus,
+        rejectionReason: record.rejectionReason || undefined,
+      };
+    }
+
+    return { status: user.verificationStatus };
+  }
+
+  // ── Admin: Verification Review ──────────────────────────────────
+
+  async getPendingVerifications(page = 1, limit = 20): Promise<{ data: Record<string, unknown>[]; total: number }> {
+    // Scan for all verification keys
+    const client = this.redisService.getClient();
+    const results: Record<string, unknown>[] = [];
+    let cursor = 0;
+
+    do {
+      const scanResult = await client.scan(cursor, 'MATCH', 'verification:*', 'COUNT', 100);
+      cursor = parseInt(scanResult[0], 10);
+      const keys = scanResult[1];
+
+      if (keys.length > 0) {
+        const values = await this.redisService.mget(...keys);
+        for (const val of values) {
+          if (!val) continue;
+          const record = JSON.parse(val);
+          results.push(record);
+        }
+      }
+    } while (cursor !== 0);
+
+    // Filter by status if needed, sort by createdAt desc
+    const filtered = results.sort((a, b) =>
+      new Date(b.createdAt as string).getTime() - new Date(a.createdAt as string).getTime()
+    );
+
+    const total = filtered.length;
+    const start = (page - 1) * limit;
+    const paged = filtered.slice(start, start + limit);
+
+    // Enrich with user info
+    const enriched = await Promise.all(
+      paged.map(async (record) => {
+        const user = await this.getUserFromRedis(record.userId as string);
+        return {
+          ...record,
+          userDisplayName: user?.displayName,
+          userAvatarUrl: user?.avatarUrl,
+        };
+      })
+    );
+
+    return { data: enriched, total };
+  }
+
+  async reviewVerification(
+    userId: string,
+    action: 'approve' | 'reject',
+    reviewedBy: string,
+    reason?: string,
+  ): Promise<void> {
+    const raw = await this.redisService.get(VERIFICATION_KEY(userId));
+    if (!raw) {
+      throw new NotFoundException('Verification request not found');
+    }
+
+    const record = JSON.parse(raw);
+    const now = new Date();
+
+    record.status = action === 'approve' ? 'approved' : 'rejected';
+    record.reviewedBy = reviewedBy;
+    record.reviewedAt = now.toISOString();
+    if (action === 'reject' && reason) {
+      record.rejectionReason = reason;
+    }
+
+    await this.redisService.set(VERIFICATION_KEY(userId), JSON.stringify(record));
+
+    // Update user verification status
+    const user = await this.getUserFromRedis(userId);
+    if (user) {
+      user.verificationStatus = action === 'approve' ? 'approved' : 'rejected';
+      user.updatedAt = now;
+      await this.saveUserToRedis(user);
+    }
+
+    this.logger.log(`verification ${action} userId=${userId} by=${reviewedBy}`);
+
+    // Emit Kafka event
+    const eventTopic = action === 'approve'
+      ? USER_EVENTS.VERIFICATION_APPROVED
+      : USER_EVENTS.VERIFICATION_REJECTED;
+
+    await this.kafkaProducer.sendEvent(eventTopic, {
+      requestId: record.id,
+      userId,
+      action,
+      reason: reason || null,
+      reviewedBy,
+      reviewedAt: now.toISOString(),
+    });
   }
 
   /** 從 Redis 取得用戶 */
