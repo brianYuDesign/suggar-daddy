@@ -1,4 +1,5 @@
-import { Module } from "@nestjs/common";
+import { Module, OnApplicationBootstrap, Logger } from "@nestjs/common";
+import { KafkaConsumerService } from "@suggar-daddy/kafka";
 import { ConfigModule } from "@nestjs/config";
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
@@ -73,4 +74,17 @@ import { BlogModule } from "./blog/blog.module";
     TrendingConsumer,
   ],
 })
-export class AppModule {}
+export class AppModule implements OnApplicationBootstrap {
+  private readonly logger = new Logger(AppModule.name);
+
+  constructor(private readonly kafkaConsumer: KafkaConsumerService) {}
+
+  async onApplicationBootstrap() {
+    try {
+      await this.kafkaConsumer.startConsuming();
+      this.logger.log('Kafka consumer started (all topics subscribed)');
+    } catch (error) {
+      this.logger.error('Failed to start Kafka consumer:', error);
+    }
+  }
+}

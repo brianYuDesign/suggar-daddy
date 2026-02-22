@@ -64,10 +64,9 @@ export class FeedConsumer implements OnModuleInit {
         );
       });
 
-      await this.kafkaConsumer.startConsuming();
-      this.logger.log('Feed consumer started');
+      this.logger.log('Feed consumer subscribed');
     } catch (error) {
-      this.logger.error('Failed to start feed consumer (graceful degradation):', error);
+      this.logger.error('Failed to subscribe feed consumer (graceful degradation):', error);
     }
   }
 }

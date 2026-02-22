@@ -52,10 +52,9 @@ export class TrendingConsumer implements OnModuleInit {
         });
       }
 
-      await this.kafkaConsumer.startConsuming();
-      this.logger.log('Trending consumer started');
+      this.logger.log('Trending consumer subscribed');
     } catch (error) {
-      this.logger.error('Failed to start trending consumer (graceful degradation):', error);
+      this.logger.error('Failed to subscribe trending consumer (graceful degradation):', error);
     }
   }
 }

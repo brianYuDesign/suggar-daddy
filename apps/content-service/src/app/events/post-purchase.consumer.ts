@@ -28,10 +28,9 @@ export class PostPurchaseConsumer implements OnModuleInit {
         await this.redis.setex(key, UNLOCK_TTL_SEC, '1');
         this.logger.log(`Post unlock recorded postId=${postId} userId=${userId}`);
       });
-      await this.kafkaConsumer.startConsuming();
-      this.logger.log('Post purchase consumer started');
+      this.logger.log('Post purchase consumer subscribed');
     } catch (error) {
-      this.logger.error('Failed to start post purchase consumer (graceful degradation):', error);
+      this.logger.error('Failed to subscribe post purchase consumer (graceful degradation):', error);
     }
   }
 }

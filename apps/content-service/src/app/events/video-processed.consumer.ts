@@ -54,10 +54,9 @@ export class VideoProcessedConsumer implements OnModuleInit {
         }
       });
 
-      await this.kafkaConsumer.startConsuming();
-      this.logger.log('Video processed consumer started');
+      this.logger.log('Video processed consumer subscribed');
     } catch (error) {
-      this.logger.error('Failed to start video processed consumer (graceful degradation):', error);
+      this.logger.error('Failed to subscribe video processed consumer (graceful degradation):', error);
     }
   }
 }
