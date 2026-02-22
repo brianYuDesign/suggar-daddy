@@ -1,4 +1,4 @@
-// apps/web/app/(main)/blog/page.tsx
+// apps/web/app/(public)/blog/page.tsx
 import { Suspense } from 'react';
 import { BlogList } from './components/BlogList';
 import { BlogCategoryFilter } from './components/BlogCategoryFilter';

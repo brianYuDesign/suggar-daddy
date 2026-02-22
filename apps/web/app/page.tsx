@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { LandingHero } from './components/landing-hero';
-import { BlogCard } from './(main)/blog/components/BlogCard';
+import { BlogCard } from './(public)/blog/components/BlogCard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 

@@ -1,4 +1,4 @@
-// apps/web/app/(main)/blog/components/BlogCategoryFilter.tsx
+// apps/web/app/(public)/blog/components/BlogCategoryFilter.tsx
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
 

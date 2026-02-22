@@ -1,4 +1,4 @@
-// apps/web/app/(main)/blog/components/BlogCard.tsx
+// apps/web/app/(public)/blog/components/BlogCard.tsx
 'use client';
 
 import Link from 'next/link';
