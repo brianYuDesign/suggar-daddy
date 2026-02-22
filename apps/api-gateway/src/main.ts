@@ -2,8 +2,8 @@
  * API Gateway - 統一入口，代理至各微服務
  */
 
-import { Logger, ValidationPipe } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
+import { ClassSerializerInterceptor, Logger, ValidationPipe } from "@nestjs/common";
+import { NestFactory, Reflector } from "@nestjs/core";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const helmet = require("helmet");
@@ -32,6 +32,9 @@ async function bootstrap() {
 
   // Global error handling
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Serialization — makes @Exclude() on entities (e.g. passwordHash) effective
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   // Input validation
   app.useGlobalPipes(

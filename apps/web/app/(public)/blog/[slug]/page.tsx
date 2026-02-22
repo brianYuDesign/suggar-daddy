@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Metadata } from 'next';
 import { BlogCard } from '../components/BlogCard';
+import { sanitizeHtml } from '../../../../lib/sanitize';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
@@ -139,7 +140,7 @@ export default async function BlogDetailPage({
         {/* Body */}
         <article
           className="prose prose-gray prose-lg prose-headings:font-bold prose-a:text-rose-500 prose-img:rounded-xl prose-blockquote:border-rose-300 max-w-none"
-          dangerouslySetInnerHTML={{ __html: blog.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(blog.content) }}
         />
 
         {/* Tags */}

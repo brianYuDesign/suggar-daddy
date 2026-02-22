@@ -8,6 +8,7 @@ import {
   Index,
   OneToMany,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { UserInterest } from '../recommendation/user-interest.entity';
 import { UserInteraction } from '../recommendation/user-interaction.entity';
 
@@ -24,6 +25,7 @@ export class User {
   @Column('varchar', { length: 20, unique: true, nullable: true })
   username!: string | null;
 
+  @Exclude()
   @Column('varchar', { length: 255 })
   passwordHash!: string;
 
