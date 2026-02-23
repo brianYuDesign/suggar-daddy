@@ -16,8 +16,8 @@ export class User {
   @Column('varchar', { length: 255 })
   email!: string;
 
-  @Column('varchar', { length: 255 })
-  passwordHash!: string;
+  @Column('varchar', { length: 255, nullable: true })
+  passwordHash!: string | null;
 
   @Column('varchar', { length: 100 })
   displayName!: string;

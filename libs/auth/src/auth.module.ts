@@ -1,6 +1,7 @@
 import { Module, Global } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
+import { RedisModule } from "@suggar-daddy/redis";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { TokenRevocationService } from "./services/token-revocation.service";
 
@@ -15,6 +16,7 @@ import { TokenRevocationService } from "./services/token-revocation.service";
           "15m") as `${number}${"s" | "m" | "h" | "d" | "y"}`,
       },
     }),
+    RedisModule.forRoot(),
   ],
   providers: [JwtStrategy, TokenRevocationService],
   exports: [JwtModule, PassportModule, JwtStrategy, TokenRevocationService],

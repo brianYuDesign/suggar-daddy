@@ -1,0 +1,21 @@
+[
+  { "pattern": "fuck", "severity": "medium", "category": "profanity" },
+  { "pattern": "shit", "severity": "low", "category": "profanity" },
+  { "pattern": "bitch", "severity": "medium", "category": "profanity" },
+  { "pattern": "asshole", "severity": "medium", "category": "profanity" },
+  { "pattern": "bastard", "severity": "low", "category": "profanity" },
+  { "pattern": "damn", "severity": "low", "category": "profanity" },
+  { "pattern": "dick", "severity": "medium", "category": "profanity" },
+  { "pattern": "pussy", "severity": "medium", "category": "profanity" },
+  { "pattern": "cock", "severity": "medium", "category": "profanity" },
+  { "pattern": "cunt", "severity": "high", "category": "profanity" },
+  { "pattern": "nigger", "severity": "high", "category": "profanity" },
+  { "pattern": "nigga", "severity": "high", "category": "profanity" },
+  { "pattern": "faggot", "severity": "high", "category": "profanity" },
+  { "pattern": "retard", "severity": "high", "category": "profanity" },
+  { "pattern": "whore", "severity": "high", "category": "profanity" },
+  { "pattern": "slut", "severity": "medium", "category": "profanity" },
+  { "pattern": "motherfucker", "severity": "high", "category": "profanity" },
+  { "pattern": "wtf", "severity": "low", "category": "profanity" },
+  { "pattern": "stfu", "severity": "medium", "category": "profanity" }
+]

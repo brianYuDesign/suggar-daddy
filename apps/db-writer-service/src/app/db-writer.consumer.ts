@@ -11,6 +11,7 @@ import {
   DIAMOND_EVENTS,
   BEHAVIOR_EVENTS,
   MATCHING_EVENTS,
+  MODERATION_EVENTS,
 } from '@suggar-daddy/common';
 import { DbWriterService } from './db-writer.service';
 import { DlqService } from './dlq.service';
@@ -61,6 +62,18 @@ export class DbWriterConsumer implements OnModuleInit {
       { topic: USER_EVENTS.VERIFICATION_SUBMITTED, handler: (p) => this.dbWriter.handleVerificationSubmitted(p) },
       { topic: USER_EVENTS.VERIFICATION_APPROVED, handler: (p) => this.dbWriter.handleVerificationReviewed(p) },
       { topic: USER_EVENTS.VERIFICATION_REJECTED, handler: (p) => this.dbWriter.handleVerificationReviewed(p) },
+      // Messaging events (message.created uses legacy topic name for backward compatibility)
+      { topic: MESSAGING_EVENTS.CONVERSATION_CREATED, handler: (p) => this.dbWriter.handleConversationCreated(p) },
+      { topic: 'message.created', handler: (p) => this.dbWriter.handleMessageCreated(p) },
+      { topic: MESSAGING_EVENTS.MESSAGE_READ, handler: (p) => this.dbWriter.handleMessageRead(p) },
+      // User block events
+      { topic: USER_EVENTS.USER_BLOCKED, handler: (p) => this.dbWriter.handleUserBlocked(p) },
+      { topic: USER_EVENTS.USER_UNBLOCKED, handler: (p) => this.dbWriter.handleUserUnblocked(p) },
+      // Moderation events
+      { topic: MODERATION_EVENTS.CONTENT_MODERATED, handler: (p) => this.dbWriter.handleContentModerated(p) },
+      { topic: MODERATION_EVENTS.CONTENT_AUTO_HIDDEN, handler: (p) => this.dbWriter.handleContentAutoHidden(p) },
+      { topic: MODERATION_EVENTS.APPEAL_SUBMITTED, handler: (p) => this.dbWriter.handleAppealSubmitted(p) },
+      { topic: MODERATION_EVENTS.APPEAL_RESOLVED, handler: (p) => this.dbWriter.handleAppealResolved(p) },
     ];
 
     const maxRetries = 3;

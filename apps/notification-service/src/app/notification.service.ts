@@ -42,7 +42,8 @@ export class NotificationService {
     const TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
     await this.redis.setex(NOTIF_KEY(id), TTL_SECONDS, JSON.stringify(item));
     await this.redis.lPush(USER_NOTIFS(dto.userId), id);
-    
+    await this.redis.lTrim(USER_NOTIFS(dto.userId), 0, 199);
+
     this.logger.log(`notification sent id=${id} userId=${dto.userId} type=${dto.type}`);
     try {
       await this.kafkaProducer.sendEvent('notification.created', {
@@ -72,8 +73,9 @@ export class NotificationService {
     limit: number,
     unreadOnly: boolean
   ): Promise<NotificationItemDto[]> {
-    const ids = await this.redis.lRange(USER_NOTIFS(userId), 0, limit - 1);
-    
+    const fetchCount = Math.min(limit * 2, 200);
+    const ids = await this.redis.lRange(USER_NOTIFS(userId), 0, fetchCount - 1);
+
     if (ids.length === 0) return [];
 
     // ✅ 使用 MGET 批量查詢，避免 N+1 問題
@@ -81,18 +83,30 @@ export class NotificationService {
     const values = await this.redis.mget(...keys);
 
     const list: StoredNotification[] = [];
-    for (const raw of values) {
-      if (!raw) continue;
-      
+    const expiredIds: string[] = [];
+
+    for (let i = 0; i < values.length; i++) {
+      const raw = values[i];
+      if (!raw) {
+        expiredIds.push(ids[i]);
+        continue;
+      }
+
       const n = JSON.parse(raw) as StoredNotification;
       if (unreadOnly && n.read) continue;
       list.push(n);
     }
-    
+
+    // Fire-and-forget: clean up expired notification IDs
+    if (expiredIds.length > 0) {
+      const listKey = USER_NOTIFS(userId);
+      Promise.all(expiredIds.map(id => this.redis.lRem(listKey, 1, id))).catch(() => {});
+    }
+
     if (unreadOnly) {
       list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-    
+
     const slice = list.slice(0, limit);
     return slice.map((n) => ({
       id: n.id,
@@ -103,6 +117,73 @@ export class NotificationService {
       read: n.read,
       createdAt: new Date(n.createdAt),
     }));
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    const ids = await this.redis.lRange(USER_NOTIFS(userId), 0, 199);
+    if (ids.length === 0) return 0;
+
+    const keys = ids.map(id => NOTIF_KEY(id));
+    const values = await this.redis.mget(...keys);
+
+    let count = 0;
+    const expiredIds: string[] = [];
+    for (let i = 0; i < values.length; i++) {
+      const raw = values[i];
+      if (!raw) {
+        expiredIds.push(ids[i]);
+        continue;
+      }
+      const n = JSON.parse(raw) as StoredNotification;
+      if (!n.read) count++;
+    }
+
+    if (expiredIds.length > 0) {
+      const listKey = USER_NOTIFS(userId);
+      Promise.all(expiredIds.map(id => this.redis.lRem(listKey, 1, id))).catch(() => {});
+    }
+
+    return count;
+  }
+
+  async markAllRead(userId: string): Promise<{ count: number }> {
+    const ids = await this.redis.lRange(USER_NOTIFS(userId), 0, 199);
+    if (ids.length === 0) return { count: 0 };
+
+    const keys = ids.map(id => NOTIF_KEY(id));
+    const values = await this.redis.mget(...keys);
+
+    const TTL_SECONDS = 7 * 24 * 60 * 60;
+    const expiredIds: string[] = [];
+    const updates: Array<{ cmd: string; args: (string | number)[] }> = [];
+
+    for (let i = 0; i < values.length; i++) {
+      const raw = values[i];
+      if (!raw) {
+        expiredIds.push(ids[i]);
+        continue;
+      }
+      const n = JSON.parse(raw) as StoredNotification;
+      if (!n.read) {
+        n.read = true;
+        updates.push({
+          cmd: 'setex',
+          args: [NOTIF_KEY(n.id), TTL_SECONDS, JSON.stringify(n)],
+        });
+      }
+    }
+
+    if (updates.length > 0) {
+      await this.redis.pipeline(updates);
+    }
+
+    if (expiredIds.length > 0) {
+      const listKey = USER_NOTIFS(userId);
+      Promise.all(expiredIds.map(id => this.redis.lRem(listKey, 1, id))).catch(() => {});
+    }
+
+    this.logger.log(`markAllRead userId=${userId} count=${updates.length}`);
+    return { count: updates.length };
   }
 
   async markRead(userId: string, id: string): Promise<{ success: boolean }> {

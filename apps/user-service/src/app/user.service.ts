@@ -1,7 +1,8 @@
 import { Injectable, Logger, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
-import { USER_EVENTS, SOCIAL_EVENTS, PermissionRole, InjectLogger } from '@suggar-daddy/common';
+import { USER_EVENTS, SOCIAL_EVENTS, MODERATION_EVENTS, PermissionRole, InjectLogger } from '@suggar-daddy/common';
+import { TextFilterService } from '@suggar-daddy/moderation';
 import type {
   UserProfileDto,
   CreateUserDto,
@@ -32,6 +33,7 @@ export class UserService {
   constructor(
     private readonly redisService: RedisService,
     private readonly kafkaProducer: KafkaProducerService,
+    private readonly textFilter: TextFilterService,
   ) {}
 
   /** 取得用戶完整資料（自己看自己） */
@@ -206,6 +208,30 @@ export class UserService {
     if (!user) {
       this.logger.warn(`updateProfile user not found userId=${userId}`);
       throw new NotFoundException(`User not found: ${userId}`);
+    }
+
+    // Bio moderation: block HIGH severity, async flag MEDIUM
+    if (dto.bio !== undefined && dto.bio.trim().length > 0) {
+      const bioFilter = this.textFilter.check(dto.bio);
+      if (bioFilter.severity === 'high') {
+        throw new BadRequestException(
+          'Your bio contains prohibited content and cannot be saved.',
+        );
+      }
+      if (bioFilter.severity === 'medium') {
+        // Allow update but async flag for review
+        this.kafkaProducer.sendEvent(MODERATION_EVENTS.CONTENT_FLAGGED, {
+          contentType: 'bio',
+          contentId: userId,
+          creatorId: userId,
+          overallSeverity: 'medium',
+          textCategory: bioFilter.category,
+          flaggedWords: bioFilter.flaggedWords,
+          processedAt: new Date().toISOString(),
+        }).catch((err) => {
+          this.logger.warn('Failed to emit bio moderation flag event', err);
+        });
+      }
     }
 
     if (dto.displayName !== undefined) user.displayName = dto.displayName;

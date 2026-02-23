@@ -21,9 +21,16 @@ let notificationSocket: Socket | null = null;
 
 /**
  * 取得 messaging-service WebSocket 連線（單例）
+ *
+ * 連線時自動附帶 JWT token 做身份驗證。
+ * 若 token 不存在，仍建立連線但伺服器端會拒絕。
  */
 export function getMessagingSocket(): Socket {
   if (!messagingSocket) {
+    const token = typeof window !== 'undefined'
+      ? localStorage.getItem('sd_access_token')
+      : null;
+
     messagingSocket = io(MESSAGING_URL, {
       autoConnect: false,
       transports: ['websocket', 'polling'],
@@ -31,6 +38,7 @@ export function getMessagingSocket(): Socket {
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      auth: { token: token || '' },
     });
   }
   return messagingSocket;
@@ -41,6 +49,10 @@ export function getMessagingSocket(): Socket {
  */
 export function getNotificationSocket(): Socket {
   if (!notificationSocket) {
+    const token = typeof window !== 'undefined'
+      ? localStorage.getItem('sd_access_token')
+      : null;
+
     notificationSocket = io(NOTIFICATION_URL, {
       autoConnect: false,
       transports: ['websocket', 'polling'],
@@ -48,6 +60,7 @@ export function getNotificationSocket(): Socket {
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      auth: { token: token || '' },
     });
   }
   return notificationSocket;

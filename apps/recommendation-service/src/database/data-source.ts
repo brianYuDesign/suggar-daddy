@@ -10,6 +10,6 @@ export const AppDataSource = new DataSource({
   database: process.env.DATABASE_NAME || process.env.DB_DATABASE || 'recommendation_db',
   entities: [User, Content, ContentTag, UserInterest, UserInteraction],
   migrations: ['src/database/migrations/**/*.ts'],
-  synchronize: process.env.NODE_ENV === 'development',
+  synchronize: false,
   logging: process.env.NODE_ENV === 'development',
 });

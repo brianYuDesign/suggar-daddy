@@ -8,6 +8,7 @@ import { DatabaseModule, InterestTagEntity, UserInterestTagEntity } from "@sugga
 import { RedisModule } from "@suggar-daddy/redis";
 import { KafkaModule } from "@suggar-daddy/kafka";
 import { AuthModule } from "@suggar-daddy/auth";
+import { ModerationModule } from "@suggar-daddy/moderation";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { UserController } from "./user.controller";
@@ -35,6 +36,7 @@ import { TagService } from "./tag.service";
       }),
       inject: [AppConfigService],
     }),
+    ModerationModule.forRoot(),
   ],
   controllers: [AppController, UserController, TagController],
   providers: [

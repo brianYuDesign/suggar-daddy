@@ -170,7 +170,7 @@ export class MessagingController {
   @UseGuards(JwtAuthGuard)
   async getOnlineStatus(@Query('userIds') userIds: string) {
     const ids = userIds ? userIds.split(',').filter(Boolean) : [];
-    const onlineSet = new Set(this.messagingGateway.getOnlineUsers());
+    const onlineSet = new Set(await this.messagingGateway.getOnlineUsers());
     const result: Record<string, boolean> = {};
     for (const id of ids) {
       result[id] = onlineSet.has(id);

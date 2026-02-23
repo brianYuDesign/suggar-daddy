@@ -33,6 +33,11 @@ import {
   UserBehaviorEventEntity,
   ProfileViewEntity,
   VerificationRequestEntity,
+  ConversationEntity,
+  MessageEntity,
+  UserBlockEntity,
+  ContentReportEntity,
+  ContentAppealEntity,
 } from "@suggar-daddy/database";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -67,6 +72,11 @@ const ALL_ENTITIES = [
   UserBehaviorEventEntity,
   ProfileViewEntity,
   VerificationRequestEntity,
+  ConversationEntity,
+  MessageEntity,
+  UserBlockEntity,
+  ContentReportEntity,
+  ContentAppealEntity,
 ];
 
 @Module({

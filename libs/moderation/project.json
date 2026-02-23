@@ -1,0 +1,17 @@
+{
+  "name": "moderation",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/moderation/src",
+  "projectType": "library",
+  "tags": ["scope:shared"],
+  "targets": {
+    "lint": {},
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "libs/moderation/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  }
+}

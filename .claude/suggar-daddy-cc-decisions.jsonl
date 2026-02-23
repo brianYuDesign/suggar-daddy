@@ -1,2 +1,1 @@
-{"timestamp":"2026-02-21T18:00:00+08:00","event":"QUEUE_CHECK","result":"EMPTY","action":"NOOP","details":"No entries in cc-push-queue.jsonl","next_check":"2026-02-21T18:30:00+08:00"}
-{"timestamp":"2026-02-21T16:35:00+08:00","event":"QUEUE_CHECK","result":"EMPTY","action":"NOOP","details":"No entries in cc-push-queue.jsonl","next_check":"2026-02-21T17:35:00+08:00"}
+{"timestamp":"2026-02-23T16:45:00+08:00","session_id":"46378939-d89f-43c6-8e98-0788a99ce731","event":"cc-push-queue-check","queueStatus":"empty","entriesFound":0,"action":"none","notification":false,"note":"Monday 4:45 PM check - queue empty, no entries to process"}

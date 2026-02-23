@@ -40,6 +40,15 @@ export enum ErrorCode {
   RATE_LIMIT_EXCEEDED = 'ERR_6001',
   TOO_MANY_REQUESTS = 'ERR_6002',
 
+  // Content Moderation (7xxx)
+  CONTENT_PROHIBITED = 'ERR_7001',
+  CONTENT_FLAGGED = 'ERR_7002',
+  NSFW_CONTENT_DETECTED = 'ERR_7003',
+  MESSAGE_BLOCKED = 'ERR_7004',
+  BIO_PROHIBITED = 'ERR_7005',
+  APPEAL_NOT_FOUND = 'ERR_7006',
+  APPEAL_ALREADY_EXISTS = 'ERR_7007',
+
   // Unknown/Generic
   UNKNOWN_ERROR = 'ERR_9999',
 }
@@ -85,6 +94,15 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   // Rate Limiting
   [ErrorCode.RATE_LIMIT_EXCEEDED]: 429,
   [ErrorCode.TOO_MANY_REQUESTS]: 429,
+
+  // Content Moderation
+  [ErrorCode.CONTENT_PROHIBITED]: 403,
+  [ErrorCode.CONTENT_FLAGGED]: 200,
+  [ErrorCode.NSFW_CONTENT_DETECTED]: 403,
+  [ErrorCode.MESSAGE_BLOCKED]: 403,
+  [ErrorCode.BIO_PROHIBITED]: 400,
+  [ErrorCode.APPEAL_NOT_FOUND]: 404,
+  [ErrorCode.APPEAL_ALREADY_EXISTS]: 409,
 
   // Unknown/Generic
   [ErrorCode.UNKNOWN_ERROR]: 500,

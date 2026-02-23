@@ -86,6 +86,8 @@ export class NotificationGateway
         }
       });
 
+      // Ensure consumer is started (idempotent — safe if already started by another consumer)
+      await this.kafkaConsumer.startConsuming();
       this.logger.log('已訂閱 Kafka notification.created 主題');
     } catch (error) {
       this.logger.error('訂閱 Kafka notification.created 失敗（優雅降級）:', error);
@@ -156,17 +158,12 @@ export class NotificationGateway
   @SubscribeMessage('mark_all_read')
   async handleMarkAllRead(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: MarkAllReadPayload,
+    @MessageBody() _data: MarkAllReadPayload,
   ) {
     const userId = this.socketToUser.get(client.id);
     if (!userId) return;
 
-    // 取得所有未讀通知並逐一標記
-    const notifications = await this.notificationService.list(userId, 200, true);
-    for (const n of notifications) {
-      await this.notificationService.markRead(userId, n.id);
-    }
-
-    return { event: 'all_marked_read', data: { count: notifications.length } };
+    const result = await this.notificationService.markAllRead(userId);
+    return { event: 'all_marked_read', data: { count: result.count } };
   }
 }

@@ -3,6 +3,7 @@ import { NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
+import { TextFilterService } from '@suggar-daddy/moderation';
 
 describe('UserService', () => {
   let service: UserService;
@@ -29,11 +30,16 @@ describe('UserService', () => {
     redis = { get: jest.fn(), set: jest.fn() };
     kafka = { sendEvent: jest.fn() };
 
+    const textFilter = {
+      check: jest.fn().mockReturnValue({ passed: true, flaggedWords: [], severity: null, category: 'clean' }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
         { provide: RedisService, useValue: redis },
         { provide: KafkaProducerService, useValue: kafka },
+        { provide: TextFilterService, useValue: textFilter },
       ],
     }).compile();
 

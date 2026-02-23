@@ -26,17 +26,18 @@ export class NotificationsApi {
   }
 
   /**
-   * 標記所有通知為已讀
-   * Note: backend has no bulk endpoint, so we fetch all and mark individually
+   * 取得未讀通知數量
+   * @returns 未讀數量
+   */
+  getUnreadCount() {
+    return this.client.get<{ count: number }>('/api/notifications/unread-count');
+  }
+
+  /**
+   * 標記所有通知為已讀（批量端點）
    */
   async markAllAsRead(): Promise<void> {
-    try {
-      const notifications = await this.getAll();
-      const unread = (notifications || []).filter(n => !n.read);
-      await Promise.all(unread.map(n => this.markAsRead(n.id)));
-    } catch {
-      // Silently ignore — best-effort
-    }
+    await this.client.post<{ count: number }>('/api/notifications/read-all');
   }
 
   /**

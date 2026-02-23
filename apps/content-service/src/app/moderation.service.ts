@@ -10,19 +10,22 @@ const REPORTS_BY_POST = (postId: string) => `content:reports:post:${postId}`;
 const REPORTS_BY_USER = (userId: string) => `content:reports:reporter:${userId}`;
 const TAKEN_DOWN_SET = 'content:taken-down';
 
-// Auto-takedown threshold
+// Escalation and auto-takedown thresholds
+const ESCALATION_REPORT_COUNT = 3;
 const AUTO_TAKEDOWN_REPORT_COUNT = 5;
 
 interface ContentReport {
   id: string;
   reporterId: string;
   postId: string;
-  reason: 'spam' | 'nudity' | 'harassment' | 'violence' | 'copyright' | 'other';
+  reason: 'spam' | 'nudity' | 'harassment' | 'violence' | 'scam' | 'underage' | 'impersonation' | 'copyright' | 'other';
   description?: string;
-  status: 'pending' | 'reviewed' | 'actioned' | 'dismissed';
+  status: 'pending' | 'reviewed' | 'actioned' | 'dismissed' | 'escalated';
+  severity?: 'low' | 'medium' | 'high';
   createdAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
+  resolutionNote?: string;
 }
 
 @Injectable()
@@ -80,11 +83,21 @@ export class ModerationService {
       createdAt: report.createdAt,
     });
 
-    // Auto-takedown if report threshold reached
+    // Escalation and auto-takedown based on report count
     const reportCount = await this.getReportCountForPost(postId);
     if (reportCount >= AUTO_TAKEDOWN_REPORT_COUNT) {
       await this.takeDownPost(postId, 'system');
       this.logger.warn(`auto-takedown triggered postId=${postId} reportCount=${reportCount}`);
+    } else if (reportCount >= ESCALATION_REPORT_COUNT) {
+      // Escalate all pending reports for this post
+      const reports = await this.getReportsForPost(postId);
+      for (const r of reports) {
+        if (r.status === 'pending') {
+          r.status = 'escalated';
+          await this.redis.set(REPORT_KEY(r.id), JSON.stringify(r));
+        }
+      }
+      this.logger.warn(`reports escalated postId=${postId} reportCount=${reportCount}`);
     }
 
     return report;

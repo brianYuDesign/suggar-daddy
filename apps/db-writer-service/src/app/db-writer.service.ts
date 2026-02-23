@@ -27,6 +27,11 @@ import {
   MatchEntity,
   ProfileViewEntity,
   VerificationRequestEntity,
+  ConversationEntity,
+  MessageEntity,
+  UserBlockEntity,
+  ContentReportEntity,
+  ContentAppealEntity,
 } from "@suggar-daddy/database";
 
 const USER_KEY = (id: string) => `user:${id}`;
@@ -88,6 +93,16 @@ export class DbWriterService {
     private readonly profileViewRepo: Repository<ProfileViewEntity>,
     @InjectRepository(VerificationRequestEntity)
     private readonly verificationRequestRepo: Repository<VerificationRequestEntity>,
+    @InjectRepository(ConversationEntity)
+    private readonly conversationRepo: Repository<ConversationEntity>,
+    @InjectRepository(MessageEntity)
+    private readonly messageRepo: Repository<MessageEntity>,
+    @InjectRepository(UserBlockEntity)
+    private readonly userBlockRepo: Repository<UserBlockEntity>,
+    @InjectRepository(ContentReportEntity)
+    private readonly contentReportRepo: Repository<ContentReportEntity>,
+    @InjectRepository(ContentAppealEntity)
+    private readonly contentAppealRepo: Repository<ContentAppealEntity>,
     private readonly redis: RedisService,
   ) {}
 
@@ -796,5 +811,169 @@ export class DbWriterService {
     );
 
     this.logger.log(`user.verification.${action} persisted requestId=${requestId} userId=${userId}`);
+  }
+
+  // ── Messaging Event Handlers ────────────────────────────────────
+
+  async handleConversationCreated(payload: Record<string, unknown>): Promise<void> {
+    const { conversationId, participantAId, participantBId, createdAt } = payload;
+    if (!conversationId || !participantAId || !participantBId) return;
+
+    await this.conversationRepo.upsert(
+      {
+        id: conversationId as string,
+        participantAId: participantAId as string,
+        participantBId: participantBId as string,
+        createdAt: createdAt ? new Date(createdAt as string) : new Date(),
+      },
+      ['id'],
+    );
+    this.logger.log(`messaging.conversation.created persisted id=${conversationId}`);
+  }
+
+  async handleMessageCreated(payload: Record<string, unknown>): Promise<void> {
+    const { messageId, conversationId, senderId, content, attachments, createdAt } = payload;
+    if (!messageId || !conversationId || !senderId) return;
+
+    const msgCreatedAt = createdAt ? new Date(createdAt as string) : new Date();
+
+    await this.messageRepo.insert({
+      id: messageId as string,
+      conversationId: conversationId as string,
+      senderId: senderId as string,
+      content: (content as string) || '',
+      attachments: Array.isArray(attachments) ? attachments : null,
+      createdAt: msgCreatedAt,
+    });
+
+    // Update conversation lastMessageAt
+    await this.conversationRepo.update(
+      { id: conversationId as string },
+      { lastMessageAt: msgCreatedAt },
+    );
+
+    this.logger.log(`messaging.message.created persisted messageId=${messageId}`);
+  }
+
+  async handleMessageRead(payload: Record<string, unknown>): Promise<void> {
+    const { conversationId, userId, messageId, readAt } = payload;
+    if (!conversationId || !messageId) return;
+
+    await this.messageRepo.update(
+      { id: messageId as string },
+      { readAt: readAt ? new Date(readAt as string) : new Date() },
+    );
+
+    this.logger.log(`messaging.message.read persisted messageId=${messageId} userId=${userId}`);
+  }
+
+  async handleUserBlocked(payload: Record<string, unknown>): Promise<void> {
+    const { blockerId, blockedId } = payload;
+    if (!blockerId || !blockedId) return;
+
+    await this.userBlockRepo.upsert(
+      {
+        blockerId: blockerId as string,
+        blockedId: blockedId as string,
+        createdAt: new Date(),
+      },
+      ['blockerId', 'blockedId'],
+    );
+
+    this.logger.log(`user.blocked persisted blocker=${blockerId} blocked=${blockedId}`);
+  }
+
+  async handleUserUnblocked(payload: Record<string, unknown>): Promise<void> {
+    const { blockerId, blockedId } = payload;
+    if (!blockerId || !blockedId) return;
+
+    await this.userBlockRepo.delete({
+      blockerId: blockerId as string,
+      blockedId: blockedId as string,
+    });
+
+    this.logger.log(`user.unblocked persisted blocker=${blockerId} blocked=${blockedId}`);
+  }
+
+  // ── Content Moderation Handlers ─────────────────────────────────
+
+  async handleContentModerated(payload: Record<string, unknown>): Promise<void> {
+    const { contentType, contentId, action, overallSeverity, textCategory, flaggedWords, nsfwScore } = payload;
+    if (!contentId || !contentType) return;
+
+    // Update post's auto_moderation_status if it's a post
+    if (contentType === 'post') {
+      const moderationMetadata = {
+        textCategory,
+        flaggedWords,
+        nsfwScore,
+        processedAt: new Date().toISOString(),
+      };
+
+      const status = action === 'auto_hide' ? 'auto_hidden'
+        : action === 'flag' ? 'flagged'
+        : 'passed';
+
+      await this.postRepo.update(
+        { id: contentId as string },
+        {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(status ? { moderationStatus: status } as any : {}),
+        },
+      );
+
+      // Update Redis post data with moderation metadata
+      const postRaw = await this.redis.get(POST_KEY(contentId as string));
+      if (postRaw) {
+        const post = JSON.parse(postRaw);
+        post.autoModerationStatus = status;
+        post.moderationMetadata = moderationMetadata;
+        await this.redis.set(POST_KEY(contentId as string), JSON.stringify(post));
+      }
+    }
+
+    this.logger.log(
+      `moderation.content.moderated persisted type=${contentType} id=${contentId} action=${action} severity=${overallSeverity}`,
+    );
+  }
+
+  async handleContentAutoHidden(payload: Record<string, unknown>): Promise<void> {
+    // Content auto-hidden is a subset of moderated — already handled by takedown in content-service
+    const { contentType, contentId } = payload;
+    this.logger.log(`moderation.content.auto_hidden persisted type=${contentType} id=${contentId}`);
+  }
+
+  async handleAppealSubmitted(payload: Record<string, unknown>): Promise<void> {
+    const { appealId, contentId, contentType, userId, reason, submittedAt } = payload;
+    if (!appealId || !contentId || !userId) return;
+
+    await this.contentAppealRepo.insert({
+      id: appealId as string,
+      content_id: contentId as string,
+      content_type: (contentType as string) || 'post',
+      user_id: userId as string,
+      reason: (reason as string) || '',
+      status: 'pending',
+      created_at: submittedAt ? new Date(submittedAt as string) : new Date(),
+    });
+
+    this.logger.log(`moderation.appeal.submitted persisted appealId=${appealId}`);
+  }
+
+  async handleAppealResolved(payload: Record<string, unknown>): Promise<void> {
+    const { appealId, action, reviewedBy, resolvedAt } = payload;
+    if (!appealId) return;
+
+    const status = action === 'grant' ? 'granted' : 'denied';
+    await this.contentAppealRepo.update(
+      { id: appealId as string },
+      {
+        status,
+        reviewed_by: (reviewedBy as string) || null,
+        reviewed_at: resolvedAt ? new Date(resolvedAt as string) : new Date(),
+      },
+    );
+
+    this.logger.log(`moderation.appeal.resolved persisted appealId=${appealId} action=${action}`);
   }
 }

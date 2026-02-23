@@ -240,4 +240,137 @@ export class ContentModerationService {
       return 0;
     }
   }
+
+  // ── Auto-moderation queue ─────────────────────────────────────
+
+  async getModerationQueue(source?: string, status?: string, limit = 50) {
+    const client = this.redisService.getClient();
+    // Get flagged items from the sorted set
+    const items = await client.zrevrange('moderation:queue:flagged', 0, limit - 1, 'WITHSCORES');
+
+    const results: Array<{
+      contentType: string;
+      contentId: string;
+      flaggedAt: number;
+      moderationResult: Record<string, unknown> | null;
+    }> = [];
+
+    for (let i = 0; i < items.length; i += 2) {
+      const key = items[i]; // format: "post:contentId"
+      const score = parseInt(items[i + 1], 10);
+      const [contentType, contentId] = key.split(':');
+
+      // Get moderation result
+      const resultRaw = await this.redisService.get(`moderation:result:${contentType}:${contentId}`);
+      const moderationResult = resultRaw ? safeJsonParse(resultRaw, 'moderation:result') : null;
+
+      // Apply filters
+      if (source && moderationResult) {
+        const mr = moderationResult as Record<string, unknown>;
+        if (source === 'auto' && !mr.textResult && !mr.imageResults) continue;
+        if (source === 'reported' && (mr.textResult || mr.imageResults)) continue;
+      }
+
+      results.push({
+        contentType,
+        contentId,
+        flaggedAt: score,
+        moderationResult: moderationResult as Record<string, unknown>,
+      });
+    }
+
+    return { data: results, total: results.length };
+  }
+
+  async bulkModerationAction(contentIds: string[], action: 'approve' | 'takedown') {
+    let processedCount = 0;
+    for (const contentId of contentIds) {
+      try {
+        if (action === 'takedown') {
+          await this.takeDownPost(contentId, 'Bulk moderation takedown');
+        } else {
+          // Remove from flagged queue
+          const client = this.redisService.getClient();
+          await client.zrem('moderation:queue:flagged', `post:${contentId}`);
+        }
+        processedCount++;
+      } catch (err) {
+        this.logger.warn(`Bulk action failed for ${contentId}: ${err}`);
+      }
+    }
+    return { success: true, processedCount, total: contentIds.length };
+  }
+
+  async getModerationStats() {
+    const client = this.redisService.getClient();
+
+    const [flaggedCount, totalPosts, pendingReports, takenDownCount] = await Promise.all([
+      client.zcard('moderation:queue:flagged'),
+      this.postRepo.count(),
+      this.getAllReports().then(r => r.filter(rep => rep.status === 'pending').length),
+      this.countTakenDownPosts(),
+    ]);
+
+    return {
+      flaggedCount,
+      totalPosts,
+      pendingReports,
+      takenDownCount,
+      autoModeratedToday: 0, // placeholder for future stats
+    };
+  }
+
+  // ── Appeals ───────────────────────────────────────────────────
+
+  async getAppeals(page: number, limit: number, status?: string) {
+    const client = this.redisService.getClient();
+    const appealIds = await client.lrange('moderation:appeals:queue', 0, -1);
+
+    if (appealIds.length === 0) return { data: [], total: 0, page, limit };
+
+    const keys = appealIds.map(id => `moderation:appeal:${id}`);
+    const values = await this.redisService.mget(...keys);
+
+    let appeals = values
+      .filter((v): v is string => v !== null)
+      .map(v => safeJsonParse(v, 'appeal'))
+      .filter((v): v is Record<string, unknown> => v !== null);
+
+    if (status) {
+      appeals = appeals.filter(a => a.status === status);
+    }
+
+    const total = appeals.length;
+    const start = (page - 1) * limit;
+    const data = appeals.slice(start, start + limit);
+
+    return { data, total, page, limit };
+  }
+
+  async resolveAppeal(appealId: string, action: 'grant' | 'deny', resolutionNote?: string) {
+    const raw = await this.redisService.get(`moderation:appeal:${appealId}`);
+    if (!raw) {
+      throw new NotFoundException('Appeal not found: ' + appealId);
+    }
+    const appeal = safeJsonParse(raw, 'appeal:' + appealId) as Record<string, unknown>;
+    if (!appeal) {
+      throw new NotFoundException('Appeal data corrupted: ' + appealId);
+    }
+
+    appeal.status = action === 'grant' ? 'granted' : 'denied';
+    appeal.reviewedAt = new Date().toISOString();
+    if (resolutionNote) {
+      appeal.resolutionNote = resolutionNote;
+    }
+
+    await this.redisService.set(`moderation:appeal:${appealId}`, JSON.stringify(appeal));
+
+    // If granted and is a post, reinstate it
+    if (action === 'grant' && appeal.contentType === 'post') {
+      await this.reinstatePost(appeal.contentId as string);
+    }
+
+    this.logger.log(`appeal resolved id=${appealId} action=${action}`);
+    return { success: true, appeal };
+  }
 }

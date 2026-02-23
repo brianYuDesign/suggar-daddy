@@ -28,3 +28,12 @@ export * from './user-interest-tag.entity';
 export * from './user-behavior-event.entity';
 export * from './profile-view.entity';
 export * from './verification-request.entity';
+
+// Messaging entities (from libs/entities)
+export { ConversationEntity } from '@suggar-daddy/entities';
+export { MessageEntity } from '@suggar-daddy/entities';
+export { UserBlockEntity } from '@suggar-daddy/entities';
+
+// Content moderation entities (from libs/entities)
+export { ContentReport as ContentReportEntity } from '@suggar-daddy/entities';
+export { ContentAppeal as ContentAppealEntity } from '@suggar-daddy/entities';

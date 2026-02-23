@@ -10,6 +10,7 @@ import {
   UserPlus,
   Star,
   CheckCheck,
+  Radio,
 } from 'lucide-react';
 import { Button, Card, Skeleton, cn } from '@suggar-daddy/ui';
 import { notificationsApi, ApiError } from '../../../lib/api';
@@ -37,6 +38,8 @@ function getNotificationIcon(type: string) {
       return Heart;
     case 'message':
       return MessageCircle;
+    case 'broadcast':
+      return Radio;
     case 'payment':
     case 'tip':
     case 'subscription':
@@ -58,11 +61,13 @@ function getNotificationColor(type: string) {
       return 'text-pink-500 bg-pink-50';
     case 'message':
       return 'text-neutral-700 bg-neutral-50';
+    case 'broadcast':
+      return 'text-blue-500 bg-blue-50';
     case 'payment':
     case 'tip':
       return 'text-green-500 bg-green-50';
     case 'subscription':
-      return 'text-blue-500 bg-blue-50';
+      return 'text-indigo-500 bg-indigo-50';
     case 'match':
     case 'follow':
       return 'text-purple-500 bg-purple-50';
@@ -79,6 +84,8 @@ function getNotificationHref(n: NotificationItem): string | null {
   switch (n.type) {
     case 'message':
       return data.conversationId ? `/messages/${data.conversationId}` : '/messages';
+    case 'broadcast':
+      return '/messages';
     case 'match':
     case 'follow':
       return data.userId ? `/user/${data.userId}` : '/matches';

@@ -1,4 +1,4 @@
-import { ApiClient, AuthApi, UsersApi, MatchingApi, ContentApi, PaymentsApi, SubscriptionsApi, MessagingApi, NotificationsApi, TagsApi } from '@suggar-daddy/api-client';
+import { ApiClient, AuthApi, UsersApi, MatchingApi, ContentApi, PaymentsApi, SubscriptionsApi, MessagingApi, NotificationsApi, TagsApi, MediaApi } from '@suggar-daddy/api-client';
 
 const apiClient = new ApiClient({
   baseURL: typeof window !== 'undefined' ? '' : 'http://localhost:3000',
@@ -13,6 +13,7 @@ export const subscriptionsApi = new SubscriptionsApi(apiClient);
 export const messagingApi = new MessagingApi(apiClient);
 export const notificationsApi = new NotificationsApi(apiClient);
 export const tagsApi = new TagsApi(apiClient);
+export const mediaApi = new MediaApi(apiClient);
 
 export { apiClient };
 export { ApiError, type UserCard } from '@suggar-daddy/api-client';

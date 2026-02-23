@@ -15,7 +15,7 @@ export class ModerationController {
     @CurrentUser() user: CurrentUserData,
     @Body() body: {
       postId: string;
-      reason: 'spam' | 'nudity' | 'harassment' | 'violence' | 'copyright' | 'other';
+      reason: 'spam' | 'nudity' | 'harassment' | 'violence' | 'scam' | 'underage' | 'impersonation' | 'copyright' | 'other';
       description?: string;
     },
   ) {

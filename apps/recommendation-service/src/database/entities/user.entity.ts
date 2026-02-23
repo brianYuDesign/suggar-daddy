@@ -7,14 +7,14 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
-  username: string;
+  @Column({ unique: true, nullable: true })
+  username: string | null;
 
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  password_hash: string;
+  @Column({ nullable: true })
+  password_hash: string | null;
 
   @Column({ default: true })
   is_active: boolean;

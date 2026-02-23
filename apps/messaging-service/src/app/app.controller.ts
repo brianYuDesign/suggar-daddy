@@ -8,9 +8,9 @@ export class AppController {
 
   constructor(private readonly appService: AppService) {}
 
+  /** [N-002] 深度健康檢查（Redis、Kafka、WebSocket） */
   @Get('health')
-  getHealth() {
-    this.logger.log('health check');
+  async getHealth() {
     return this.appService.getHealth();
   }
 }

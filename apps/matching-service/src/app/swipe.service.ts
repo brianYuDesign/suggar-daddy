@@ -159,6 +159,11 @@ export class SwipeService {
             };
 
             await this.redisService.set(matchKey1, JSON.stringify(match));
+            // Also store at match:{matchId} for getMatches() lookup
+            await this.redisService.set(
+              `${this.MATCH_PREFIX}${match.id}`,
+              JSON.stringify(match),
+            );
 
             await this.redisService.sAdd(
               `${this.USER_MATCHES_PREFIX}${swiperId}`,

@@ -26,6 +26,11 @@ import {
   MatchEntity,
   ProfileViewEntity,
   VerificationRequestEntity,
+  ConversationEntity,
+  MessageEntity,
+  UserBlockEntity,
+  ContentReportEntity,
+  ContentAppealEntity,
 } from '@suggar-daddy/database';
 
 const mockRepo = () => ({
@@ -74,6 +79,11 @@ describe('DbWriterService', () => {
         { provide: getRepositoryToken(MatchEntity), useFactory: mockRepo },
         { provide: getRepositoryToken(ProfileViewEntity), useFactory: mockRepo },
         { provide: getRepositoryToken(VerificationRequestEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(ConversationEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(MessageEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(UserBlockEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(ContentReportEntity), useFactory: mockRepo },
+        { provide: getRepositoryToken(ContentAppealEntity), useFactory: mockRepo },
         { provide: RedisService, useValue: redis },
       ],
     }).compile();

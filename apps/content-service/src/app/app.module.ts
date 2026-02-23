@@ -10,12 +10,15 @@ import {
 } from "@suggar-daddy/common";
 import { AuthModule } from "@suggar-daddy/auth";
 import { DatabaseModule } from "@suggar-daddy/database";
+import { ModerationModule } from "@suggar-daddy/moderation";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { PostController } from "./post.controller";
 import { PostService } from "./post.service";
 import { ModerationController } from "./moderation.controller";
 import { ModerationService } from "./moderation.service";
+import { AppealController } from "./appeal.controller";
+import { AppealService } from "./appeal.service";
 import { SubscriptionServiceClient } from "./subscription-service.client";
 import { PostPurchaseConsumer } from "./events/post-purchase.consumer";
 import { VideoController } from "./video.controller";
@@ -28,6 +31,8 @@ import { StoryController } from "./story.controller";
 import { StoryService } from "./story.service";
 import { FeedConsumer } from "./consumers/feed.consumer";
 import { TrendingConsumer } from "./consumers/trending.consumer";
+import { ModerationPipelineConsumer } from "./consumers/moderation-pipeline.consumer";
+import { NsfwClientService } from "./nsfw-client.service";
 import { BlogModule } from "./blog/blog.module";
 import { StaticPageModule } from "./static-page/static-page.module";
 
@@ -50,6 +55,7 @@ import { StaticPageModule } from "./static-page/static-page.module";
     }),
     CloudFrontModule.forRoot(),
     DatabaseModule.forRoot(),
+    ModerationModule.forRoot(),
     BlogModule,
     StaticPageModule,
   ],
@@ -59,6 +65,7 @@ import { StaticPageModule } from "./static-page/static-page.module";
     DiscoveryController,
     PostController,
     ModerationController,
+    AppealController,
     VideoController,
     StoryController,
   ],
@@ -66,6 +73,8 @@ import { StaticPageModule } from "./static-page/static-page.module";
     AppService,
     PostService,
     ModerationService,
+    AppealService,
+    NsfwClientService,
     SubscriptionServiceClient,
     PostPurchaseConsumer,
     VideoProcessedConsumer,
@@ -74,6 +83,7 @@ import { StaticPageModule } from "./static-page/static-page.module";
     StoryService,
     FeedConsumer,
     TrendingConsumer,
+    ModerationPipelineConsumer,
   ],
 })
 export class AppModule implements OnApplicationBootstrap {

@@ -7,7 +7,7 @@ import { KafkaProducerService } from '@suggar-daddy/kafka';
 
 describe('PostService', () => {
   let service: PostService;
-  let redis: jest.Mocked<Pick<RedisService, 'get' | 'set' | 'setex' | 'del' | 'lPush' | 'lRange' | 'mget' | 'sCard'>>;
+  let redis: Record<string, jest.Mock>;
   let kafka: jest.Mocked<Pick<KafkaProducerService, 'sendEvent'>>;
   let subscriptionClient: jest.Mocked<Pick<SubscriptionServiceClient, 'hasActiveSubscription'>>;
 
@@ -21,6 +21,8 @@ describe('PostService', () => {
       lRange: jest.fn(),
       mget: jest.fn().mockResolvedValue([]),
       sCard: jest.fn().mockResolvedValue(0),
+      sRem: jest.fn().mockResolvedValue(1),
+      zRem: jest.fn().mockResolvedValue(1),
     };
     kafka = { sendEvent: jest.fn() };
     subscriptionClient = {
@@ -186,18 +188,12 @@ describe('PostService', () => {
         mediaUrls: [],
         createdAt: new Date().toISOString(),
       };
-      
-      redis.get = jest.fn().mockResolvedValue(JSON.stringify(post));
-      redis.setex = jest.fn().mockResolvedValue('OK');
-      
-      const mockRedis = {
-        sRem: jest.fn().mockResolvedValue(1),
-      };
-      (service as any).redis = { ...redis, sCard: jest.fn().mockResolvedValue(0), ...mockRedis };
+
+      redis.get.mockResolvedValue(JSON.stringify(post));
 
       await service.unlikePost('post-1', 'user-1');
-      
-      const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
+
+      const savedPost = JSON.parse(redis.set.mock.calls[0][1]);
       expect(savedPost.likeCount).toBe(0); // 不應變為負數
     });
 
@@ -205,25 +201,18 @@ describe('PostService', () => {
       const post = {
         id: 'post-2',
         creatorId: 'user-1',
-        likeCount: undefined,
         caption: 'Test',
         contentType: 'text',
         visibility: 'public',
         mediaUrls: [],
         createdAt: new Date().toISOString(),
       };
-      
-      redis.get = jest.fn().mockResolvedValue(JSON.stringify(post));
-      redis.setex = jest.fn().mockResolvedValue('OK');
-      
-      const mockRedis = {
-        sRem: jest.fn().mockResolvedValue(1),
-      };
-      (service as any).redis = { ...redis, sCard: jest.fn().mockResolvedValue(0), ...mockRedis };
+
+      redis.get.mockResolvedValue(JSON.stringify(post));
 
       await service.unlikePost('post-2', 'user-1');
-      
-      const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
+
+      const savedPost = JSON.parse(redis.set.mock.calls[0][1]);
       expect(savedPost.likeCount).toBe(0); // 應該是 0，不是 NaN 或負數
     });
 
@@ -238,18 +227,12 @@ describe('PostService', () => {
         mediaUrls: [],
         createdAt: new Date().toISOString(),
       };
-      
-      redis.get = jest.fn().mockResolvedValue(JSON.stringify(post));
-      redis.setex = jest.fn().mockResolvedValue('OK');
-      
-      const mockRedis = {
-        sRem: jest.fn().mockResolvedValue(1),
-      };
-      (service as any).redis = { ...redis, sCard: jest.fn().mockResolvedValue(0), ...mockRedis };
+
+      redis.get.mockResolvedValue(JSON.stringify(post));
 
       await service.unlikePost('post-3', 'user-1');
-      
-      const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
+
+      const savedPost = JSON.parse(redis.set.mock.calls[0][1]);
       expect(savedPost.likeCount).toBe(4);
     });
   });
@@ -266,18 +249,12 @@ describe('PostService', () => {
         mediaUrls: [],
         createdAt: new Date().toISOString(),
       };
-      
-      redis.get = jest.fn().mockResolvedValue(JSON.stringify(post));
-      redis.setex = jest.fn().mockResolvedValue('OK');
-      
-      const mockRedis = {
-        zRem: jest.fn().mockResolvedValue(1),
-      };
-      (service as any).redis = { ...redis, sCard: jest.fn().mockResolvedValue(0), ...mockRedis };
-      
+
+      redis.get.mockResolvedValue(JSON.stringify(post));
+
       await service.unbookmarkPost('post-1', 'user-1');
-      
-      const savedPost = JSON.parse((redis.setex as jest.Mock).mock.calls[0][2]);
+
+      const savedPost = JSON.parse(redis.set.mock.calls[0][1]);
       expect(savedPost.bookmarkCount).toBe(0);
     });
   });

@@ -76,12 +76,11 @@ export class MatchingService {
       return { matches: [], nextCursor: undefined };
     }
 
-    const matchKeys = matchIds.map((id) => {
-      if (id.includes(':')) {
-        return `${this.MATCH_PREFIX}${id}`;
-      }
-      return id;
-    });
+    const matchKeys = matchIds.map((id) =>
+      id.startsWith(this.MATCH_PREFIX)
+        ? id
+        : `${this.MATCH_PREFIX}${id}`,
+    );
 
     const values = await this.redisService.mget(...matchKeys);
 

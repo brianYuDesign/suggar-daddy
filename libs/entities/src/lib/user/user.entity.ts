@@ -26,8 +26,8 @@ export class User {
   username!: string | null;
 
   @Exclude()
-  @Column('varchar', { length: 255 })
-  passwordHash!: string;
+  @Column('varchar', { length: 255, nullable: true })
+  passwordHash!: string | null;
 
   @Column('varchar', { length: 100 })
   displayName!: string;

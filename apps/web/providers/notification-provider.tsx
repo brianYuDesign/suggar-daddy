@@ -31,12 +31,11 @@ export function NotificationProvider({
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  /** 從 REST API 取得初始未讀數 */
+  /** 從 REST API 取得未讀數量 */
   const fetchCount = useCallback(async () => {
     try {
-      const data = await notificationsApi.getAll();
-      const items = data as unknown as { read: boolean }[];
-      setUnreadCount(items.filter((n) => !n.read).length);
+      const result = await notificationsApi.getUnreadCount();
+      setUnreadCount((result as { count: number }).count);
     } catch {
       /* silent */
     }
@@ -71,14 +70,24 @@ export function NotificationProvider({
       setUnreadCount(0);
     }
 
+    // Reconnect 時重新同步未讀數
+    function handleConnect() {
+      if (user?.id) {
+        socket.emit('join', { userId: user.id });
+      }
+      fetchCount();
+    }
+
     socket.on('notification', handleNotification);
     socket.on('marked_read', handleMarkedRead);
     socket.on('all_marked_read', handleAllMarkedRead);
+    socket.on('connect', handleConnect);
 
     return () => {
       socket.off('notification', handleNotification);
       socket.off('marked_read', handleMarkedRead);
       socket.off('all_marked_read', handleAllMarkedRead);
+      socket.off('connect', handleConnect);
     };
   }, [user?.id, fetchCount]);
 

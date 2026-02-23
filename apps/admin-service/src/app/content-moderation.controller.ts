@@ -83,4 +83,49 @@ export class ContentModerationController {
   ) {
     return this.contentModerationService.listPosts(page, limit, visibility, search);
   }
+
+  /** GET /api/admin/content/moderation-queue — 自動審核標記佇列 */
+  @Get('moderation-queue')
+  getModerationQueue(
+    @Query('source') source?: string,
+    @Query('status') status?: string,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit?: number,
+  ) {
+    return this.contentModerationService.getModerationQueue(source, status, limit);
+  }
+
+  /** POST /api/admin/content/moderation/bulk-action — 批量審核動作 */
+  @Post('moderation/bulk-action')
+  @HttpCode(200)
+  bulkModerationAction(
+    @Body() body: { contentIds: string[]; action: 'approve' | 'takedown' },
+  ) {
+    return this.contentModerationService.bulkModerationAction(body.contentIds, body.action);
+  }
+
+  /** GET /api/admin/content/moderation/stats — 審核統計 */
+  @Get('moderation/stats')
+  getModerationStats() {
+    return this.contentModerationService.getModerationStats();
+  }
+
+  /** GET /api/admin/content/appeals — 申訴佇列 */
+  @Get('appeals')
+  getAppeals(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('status') status?: string,
+  ) {
+    return this.contentModerationService.getAppeals(page, limit, status);
+  }
+
+  /** Post /api/admin/content/appeals/:appealId/resolve — 處理申訴 */
+  @Post('appeals/:appealId/resolve')
+  @HttpCode(200)
+  resolveAppeal(
+    @Param('appealId') appealId: string,
+    @Body() body: { action: 'grant' | 'deny'; resolutionNote?: string },
+  ) {
+    return this.contentModerationService.resolveAppeal(appealId, body.action, body.resolutionNote);
+  }
 }

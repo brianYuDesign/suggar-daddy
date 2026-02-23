@@ -72,10 +72,23 @@ export interface MessageDto {
   createdAt: Date;
 }
 
+export class MarkReadDto {
+  @IsString()
+  @IsNotEmpty()
+  messageId: string;
+}
+
+export interface ReadReceiptDto {
+  userId: string;
+  messageId: string;
+  readAt: string;
+}
+
 export interface ConversationDto {
   id: string;
   participantIds: string[];
   lastMessageAt?: Date;
+  unreadCount?: number;
 }
 
 export interface BroadcastDto {

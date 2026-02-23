@@ -1,40 +1,18 @@
 {
-  "timestamp": "2026-02-21T14:15:00+08:00",
-  "check_type": "cc-push-queue",
-  "queue_status": "empty",
-  "queue_entries_processed": 0,
-  "findings": {
-    "docker_health": {
-      "status": "critical",
-      "unhealthy_containers": ["suggar-daddy-jaeger"],
-      "details": "Jaeger tracing container down for 16+ hours - UNRESOLVED"
-    },
-    "test_results": {
-      "status": "degraded",
-      "suites": "52 passed, 3 failed, 1 skipped",
-      "tests": "657 passed, 15 failed, 20 skipped",
-      "failures": [
-        "PaymentServiceClient dependency injection errors",
-        "NestJS module resolution failures in test environment"
-      ],
-      "note": "Same failures from 14:00 check - persistent issues"
-    },
-    "git_status": {
-      "modified_files": 23,
-      "uncommitted_changes": true,
-      "note": "Working directory has unstaged changes"
-    },
-    "queue_check": {
-      "entries": 0,
-      "processed": 0,
-      "status": "no_new_tasks"
-    }
+  "timestamp": "2026-02-23T01:20:00+08:00",
+  "event": "cc-push-queue-check",
+  "queueStatus": "empty",
+  "queueFile": "cc-push-queue.jsonl",
+  "queuePath": "/Users/brianyu/Project/suggar-daddy/docs/legacy/suggar-daddy-cc/cc-push-queue.jsonl",
+  "action": "none",
+  "notification": "skipped (queue empty, per rule)",
+  "cronJobId": "46378939-d89f-43c6-8e98-0788a99ce731",
+  "cronType": "suggar-daddy-cc-passive",
+  "checkResult": {
+    "entriesFound": 0,
+    "workflowsExecuted": 0,
+    "errors": 0,
+    "criticalIssues": false
   },
-  "decision": {
-    "action": "wake_main_session",
-    "reason": "Critical Docker health issue persists + 15 test failures remain unresolved from previous check",
-    "priority": "P0",
-    "notify": true,
-    "escalation": "persistent_critical_issues"
-  }
+  "notes": "Monday 1:20 AM check - queue empty, no action needed"
 }

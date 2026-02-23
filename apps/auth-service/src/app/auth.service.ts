@@ -43,7 +43,7 @@ interface StoredUser {
   userId: string;
   email: string;
   username?: string;
-  passwordHash: string;
+  passwordHash?: string | null;
   userType: string; // 業務角色：sugar_baby or sugar_daddy
   permissionRole?: string; // 權限角色：ADMIN, CREATOR, SUBSCRIBER
   displayName: string;
@@ -275,6 +275,12 @@ export class AuthService {
       throw new ForbiddenException('This account is temporarily suspended');
     }
 
+    if (!user.passwordHash) {
+      // OAuth-only user without a password set
+      await this.recordFailedLogin(normalizedEmail);
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
       await this.recordFailedLogin(normalizedEmail);
@@ -412,6 +418,9 @@ export class AuthService {
     }
 
     const user = JSON.parse(userRaw) as StoredUser;
+    if (!user.passwordHash) {
+      throw new UnauthorizedException('No password set for this account. Use OAuth to sign in.');
+    }
     const valid = await bcrypt.compare(oldPassword, user.passwordHash);
     if (!valid) {
       throw new UnauthorizedException('Current password is incorrect');

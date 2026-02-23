@@ -13,5 +13,8 @@ export * from './lib/subscription';
 // Media domain
 export * from './lib/media';
 
+// Messaging domain
+export * from './lib/messaging';
+
 // Recommendation domain
 export * from './lib/recommendation';

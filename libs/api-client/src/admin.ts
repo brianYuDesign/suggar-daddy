@@ -74,6 +74,49 @@ export interface ContentStats {
   takenDownCount: number;
 }
 
+export interface ModerationQueueItem {
+  contentType: string;
+  contentId: string;
+  flaggedAt: number;
+  moderationResult: {
+    textResult?: {
+      passed: boolean;
+      flaggedWords: string[];
+      severity: string | null;
+      category: string;
+    };
+    imageResults?: Array<{
+      nsfwScore: number;
+      category: string;
+      safe: boolean;
+    }>;
+    overallSeverity: string | null;
+    action: string;
+    processedAt: string;
+  } | null;
+}
+
+export interface ModerationStats {
+  flaggedCount: number;
+  totalPosts: number;
+  pendingReports: number;
+  takenDownCount: number;
+  autoModeratedToday: number;
+}
+
+export interface AppealRecord {
+  id: string;
+  contentId: string;
+  contentType: string;
+  userId: string;
+  reason: string;
+  status: string;
+  createdAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  resolutionNote?: string;
+}
+
 export interface RevenueReport {
   startDate: string;
   endDate: string;
@@ -705,6 +748,40 @@ export class AdminApi {
     return this.client.get<PaginatedResponse<PostRecord>>(
       '/api/admin/content/posts',
       { params: this.buildParams({ page, limit, visibility, search }) },
+    );
+  }
+
+  // -- Auto-Moderation --
+
+  getModerationQueue(source?: string, status?: string, limit = 50) {
+    return this.client.get<{ data: ModerationQueueItem[]; total: number }>(
+      '/api/admin/content/moderation-queue',
+      { params: this.buildParams({ source, status, limit }) },
+    );
+  }
+
+  bulkModerationAction(contentIds: string[], action: 'approve' | 'takedown') {
+    return this.client.post<{ success: boolean; processedCount: number }>(
+      '/api/admin/content/moderation/bulk-action',
+      { contentIds, action },
+    );
+  }
+
+  getModerationStats() {
+    return this.client.get<ModerationStats>('/api/admin/content/moderation/stats');
+  }
+
+  getAppeals(page = 1, limit = 20, status?: string) {
+    return this.client.get<PaginatedResponse<AppealRecord>>(
+      '/api/admin/content/appeals',
+      { params: this.buildParams({ page, limit, status }) },
+    );
+  }
+
+  resolveAppeal(appealId: string, action: 'grant' | 'deny', resolutionNote?: string) {
+    return this.client.post<{ success: boolean }>(
+      `/api/admin/content/appeals/${appealId}/resolve`,
+      { action, resolutionNote },
     );
   }
 

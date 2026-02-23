@@ -20,6 +20,7 @@ from .models import (
     RecommendResponse,
     UpdateEmbeddingRequest,
 )
+from .moderation_router import moderation_router
 from .redis_client import (
     cache_recommendations,
     get_cached_recommendations,
@@ -90,6 +91,8 @@ app = FastAPI(
     version=MODEL_VERSION,
     lifespan=lifespan,
 )
+
+app.include_router(moderation_router)
 
 
 # ------------------------------------------------------------------

@@ -77,6 +77,16 @@ export const CONTENT_EVENTS = {
   STORY_VIEWED: 'content.story.viewed',
 } as const;
 
+// Moderation Events (content-service → db-writer / notification / admin)
+export const MODERATION_EVENTS = {
+  CONTENT_MODERATED: 'moderation.content.moderated',
+  CONTENT_AUTO_HIDDEN: 'moderation.content.auto_hidden',
+  CONTENT_FLAGGED: 'moderation.content.flagged',
+  CONTENT_APPROVED: 'moderation.content.approved',
+  APPEAL_SUBMITTED: 'moderation.appeal.submitted',
+  APPEAL_RESOLVED: 'moderation.appeal.resolved',
+} as const;
+
 // Media Events
 export const MEDIA_EVENTS = {
   MEDIA_UPLOADED: 'media.uploaded',
@@ -85,10 +95,13 @@ export const MEDIA_EVENTS = {
   VIDEO_PROCESSED: 'media.video.processed',
 } as const;
 
-// Messaging Events (paid DM, broadcast)
+// Messaging Events (paid DM, broadcast, real-time messaging)
 export const MESSAGING_EVENTS = {
   DM_PURCHASED: 'messaging.dm.purchased',
   BROADCAST_SENT: 'messaging.broadcast.sent',
+  MESSAGE_CREATED: 'messaging.message.created',
+  MESSAGE_READ: 'messaging.message.read',
+  CONVERSATION_CREATED: 'messaging.conversation.created',
 } as const;
 
 // Diamond Events (payment-service → DB Writer)
@@ -315,4 +328,59 @@ export interface BehaviorBatchEvent {
     timestamp: number;
   }[];
   batchTimestamp: string;
+}
+
+// Messaging event payloads (DB Writer persists these)
+export interface ConversationCreatedEvent {
+  conversationId: string;
+  participantAId: string;
+  participantBId: string;
+  createdAt: string;
+}
+
+export interface MessageCreatedEvent {
+  messageId: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  attachments?: { id: string; type: string; url: string; thumbnailUrl?: string }[];
+  createdAt: string;
+}
+
+export interface MessageReadEvent {
+  conversationId: string;
+  userId: string;
+  messageId: string;
+  readAt: string;
+}
+
+// Moderation event payloads
+export interface ContentModeratedEvent {
+  contentType: 'post' | 'comment' | 'story' | 'message' | 'bio';
+  contentId: string;
+  creatorId: string;
+  overallSeverity: 'low' | 'medium' | 'high' | null;
+  action: 'pass' | 'flag' | 'auto_hide';
+  textCategory?: string;
+  flaggedWords?: string[];
+  nsfwScore?: number;
+  processedAt: string;
+}
+
+export interface AppealSubmittedEvent {
+  appealId: string;
+  contentId: string;
+  contentType: string;
+  userId: string;
+  reason: string;
+  submittedAt: string;
+}
+
+export interface AppealResolvedEvent {
+  appealId: string;
+  contentId: string;
+  contentType: string;
+  action: 'grant' | 'deny';
+  reviewedBy: string;
+  resolvedAt: string;
 }

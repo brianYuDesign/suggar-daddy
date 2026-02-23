@@ -227,6 +227,7 @@ export interface ConversationDto {
   id: string;
   participantIds: string[];
   lastMessageAt?: Date;
+  unreadCount?: number;
 }
 
 export interface BroadcastDto {

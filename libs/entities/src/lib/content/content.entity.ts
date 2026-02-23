@@ -51,6 +51,12 @@ export class Content {
   @Column({ default: 0 })
   report_count: number;
 
+  @Column({ nullable: true })
+  auto_moderation_status: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  moderation_metadata: Record<string, unknown>;
+
   @Column({ default: false })
   is_published: boolean;
 

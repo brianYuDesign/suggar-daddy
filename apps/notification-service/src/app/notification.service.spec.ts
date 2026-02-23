@@ -12,7 +12,7 @@ describe('NotificationService', () => {
   const redis = {
     get: jest.fn(async (key: string) => store.get(key) ?? null),
     set: jest.fn(async (key: string, value: string) => { store.set(key, value); }),
-    setex: jest.fn(async (key: string, ttl: number, value: string) => { store.set(key, value); }),
+    setex: jest.fn(async (key: string, _ttl: number, value: string) => { store.set(key, value); }),
     mget: jest.fn(async (...keys: string[]) => keys.map(k => store.get(k) ?? null)),
     lPush: jest.fn(async (key: string, value: string) => {
       const arr = lists.get(key) ?? [];
@@ -23,6 +23,24 @@ describe('NotificationService', () => {
     lRange: jest.fn(async (key: string, start: number, end: number) => {
       const arr = lists.get(key) ?? [];
       return arr.slice(start, end === -1 ? undefined : end + 1);
+    }),
+    lTrim: jest.fn(async (key: string, start: number, stop: number) => {
+      const arr = lists.get(key) ?? [];
+      lists.set(key, arr.slice(start, stop + 1));
+    }),
+    lRem: jest.fn(async (key: string, _count: number, value: string) => {
+      const arr = lists.get(key) ?? [];
+      const idx = arr.indexOf(value);
+      if (idx !== -1) arr.splice(idx, 1);
+      return idx !== -1 ? 1 : 0;
+    }),
+    pipeline: jest.fn(async (commands: Array<{ cmd: string; args: (string | number)[] }>) => {
+      return commands.map((c) => {
+        if (c.cmd === 'setex') {
+          store.set(String(c.args[0]), String(c.args[2]));
+        }
+        return [null, 'OK'];
+      });
     }),
   };
 
