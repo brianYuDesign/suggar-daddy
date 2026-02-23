@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "baseUrl": "../..",
+    "paths": {
+      "@suggar-daddy/common": ["libs/common/src/index.ts"],
+      "@suggar-daddy/dto": ["libs/dto/src/index.ts"],
+      "@suggar-daddy/database": ["libs/database/src/index.ts"],
+      "@suggar-daddy/kafka": ["libs/kafka/src/index.ts"],
+      "@suggar-daddy/redis": ["libs/redis/src/index.ts"],
+      "@suggar-daddy/auth": ["libs/auth/src/index.ts"],
+      "@suggar-daddy/entities": ["libs/entities/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*"]
+}

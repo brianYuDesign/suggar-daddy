@@ -45,8 +45,9 @@ describe('RecommendationController', () => {
   });
 
   describe('getRecommendations', () => {
+    const mockUser = { userId: 'user-123', email: 'test@test.com' } as any;
+
     it('should return recommendations for user', async () => {
-      const userId = 'user-123';
       const mockRecs = [
         {
           content_id: 'content-1',
@@ -59,19 +60,15 @@ describe('RecommendationController', () => {
 
       recommendationService.getRecommendations.mockResolvedValue(mockRecs as any);
 
-      const result = await controller.getRecommendations(userId, '20');
+      const result = await controller.getRecommendations(mockUser, '20');
 
-      expect(result.user_id).toBe(userId);
+      expect(result.user_id).toBe('user-123');
       expect(result.count).toBe(1);
       expect(result.recommendations).toEqual(mockRecs);
     });
 
-    it('should throw error if userId is missing', async () => {
-      await expect(controller.getRecommendations('', '20')).rejects.toThrow(BadRequestException);
-    });
-
     it('should throw error if limit is out of range', async () => {
-      await expect(controller.getRecommendations('user-123', '200')).rejects.toThrow(
+      await expect(controller.getRecommendations(mockUser, '200')).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -115,7 +112,7 @@ describe('RecommendationController', () => {
 
   describe('refreshRecommendations', () => {
     it('should refresh recommendations for user', async () => {
-      const userId = 'user-123';
+      const mockUser = { userId: 'user-123', email: 'test@test.com' } as any;
       const mockRecs = [
         {
           content_id: 'content-1',
@@ -128,9 +125,9 @@ describe('RecommendationController', () => {
 
       recommendationService.getRecommendations.mockResolvedValue(mockRecs as any);
 
-      const result = await controller.refreshRecommendations(userId);
+      const result = await controller.refreshRecommendations(mockUser);
 
-      expect(result.user_id).toBe(userId);
+      expect(result.user_id).toBe('user-123');
       expect(result.cache_hit).toBe(false);
       expect(recommendationService.clearAllCache).toHaveBeenCalled();
     });

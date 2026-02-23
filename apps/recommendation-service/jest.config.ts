@@ -3,7 +3,10 @@ module.exports = {
   rootDir: '.',
   testRegex: '(/__tests__/|\\.(test|spec))\\.ts$',
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    '^.+\\.(t|j)s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
+  },
+  moduleNameMapper: {
+    '^@suggar-daddy/(.*)$': '<rootDir>/../../libs/$1/src/index.ts',
   },
   collectCoverageFrom: [
     'src/**/*.(t|j)s',
