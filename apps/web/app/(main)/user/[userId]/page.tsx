@@ -314,7 +314,7 @@ export default function UserProfilePage() {
           {/* Tip + Message buttons */}
           <div className="grid grid-cols-2 gap-3">
             <Button
-              className="h-12 bg-brand-500 hover:bg-brand-600"
+              className="h-12 bg-neutral-900 hover:bg-neutral-800"
               onClick={() => setShowTipDialog(true)}
             >
               <Gift className="mr-2 h-4 w-4" />
@@ -322,7 +322,7 @@ export default function UserProfilePage() {
             </Button>
             <Button
               variant="outline"
-              className="h-12 border-brand-200 text-brand-600 hover:bg-brand-50"
+              className="h-12 border-neutral-200 text-neutral-900 hover:bg-neutral-50"
               onClick={() => {
                 if (currentUser?.id && profile?.id) {
                   const convId = [currentUser.id, profile.id].sort().join('::');

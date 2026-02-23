@@ -75,7 +75,7 @@ export default function VerifyEmailPage() {
     return (
       <div className="w-full max-w-sm text-center">
         <div className="mb-6 flex justify-center">
-          <Loader2 className="h-12 w-12 animate-spin text-brand-500" />
+          <Loader2 className="h-12 w-12 animate-spin text-neutral-700" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900">驗證中</h1>
         <p className="mt-3 text-sm text-gray-500">
@@ -99,7 +99,7 @@ export default function VerifyEmailPage() {
         </p>
         <Link
           href="/login"
-          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-neutral-900 hover:text-neutral-700"
         >
           <ArrowLeft className="h-4 w-4" />
           立即登入
@@ -122,7 +122,7 @@ export default function VerifyEmailPage() {
         </p>
         <Link
           href="/login"
-          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-neutral-900 hover:text-neutral-700"
         >
           <ArrowLeft className="h-4 w-4" />
           返回登入
@@ -150,14 +150,14 @@ export default function VerifyEmailPage() {
           <Button
             onClick={handleResend}
             disabled={resending}
-            className="w-full bg-brand-500 py-2.5 font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+            className="w-full bg-neutral-900 py-2.5 font-semibold text-white hover:bg-neutral-800 disabled:opacity-50"
           >
             {resending ? '發送中...' : '重新發送驗證信'}
           </Button>
         )}
         <Link
           href="/login"
-          className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+          className="inline-flex items-center gap-1 text-sm font-medium text-neutral-900 hover:text-neutral-700"
         >
           <ArrowLeft className="h-4 w-4" />
           返回登入

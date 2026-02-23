@@ -110,14 +110,14 @@ export default function LikesMePage() {
 
       {/* Subscribe CTA for free users */}
       {cards.some((c) => c.isBlurred) && (
-        <div className="mx-4 mt-4 rounded-xl bg-gradient-to-r from-brand-500 to-amber-500 p-4 text-white">
+        <div className="mx-4 mt-4 rounded-xl bg-gradient-to-r from-neutral-900 to-neutral-800 p-4 text-white">
           <div className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
             <h3 className="font-semibold">升級查看所有喜歡你的人</h3>
           </div>
           <p className="mt-1 text-sm opacity-90">訂閱即可直接查看完整資料並立即配對</p>
           <Button
-            className="mt-3 bg-white text-brand-600 hover:bg-white/90"
+            className="mt-3 bg-white text-neutral-900 hover:bg-white/90"
             onClick={() => router.push('/subscription')}
           >
             查看方案
@@ -162,7 +162,7 @@ export default function LikesMePage() {
               className="relative overflow-hidden rounded-xl bg-white shadow-sm"
             >
               {/* Avatar */}
-              <div className="relative aspect-[3/4] bg-gradient-to-br from-brand-100 to-brand-200">
+              <div className="relative aspect-[3/4] bg-gradient-to-br from-neutral-100 to-neutral-200">
                 {card.avatarUrl ? (
                   <img
                     src={card.avatarUrl}
@@ -179,7 +179,7 @@ export default function LikesMePage() {
                       card.isBlurred && 'blur-xl'
                     )}
                   >
-                    <span className="text-3xl font-bold text-brand-500/40">
+                    <span className="text-3xl font-bold text-neutral-700/40">
                       {card.displayName ? getInitials(card.displayName) : '?'}
                     </span>
                   </div>
@@ -215,7 +215,7 @@ export default function LikesMePage() {
                   <button
                     onClick={() => handleReveal(card.id)}
                     disabled={revealingId === card.id}
-                    className="flex w-full items-center justify-center gap-1 rounded-lg bg-brand-50 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-100 disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-1 rounded-lg bg-neutral-50 py-1.5 text-xs font-medium text-neutral-900 hover:bg-neutral-100 disabled:opacity-50"
                   >
                     {revealingId === card.id ? (
                       '...'
@@ -230,7 +230,7 @@ export default function LikesMePage() {
                   <div className="flex gap-1.5">
                     <button
                       onClick={() => handleLikeBack(card.id)}
-                      className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-brand-500 py-1.5 text-xs font-medium text-white hover:bg-brand-600"
+                      className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-neutral-900 py-1.5 text-xs font-medium text-white hover:bg-neutral-800"
                     >
                       <Heart className="h-3 w-3" />
                       喜歡

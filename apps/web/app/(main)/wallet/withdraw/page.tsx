@@ -332,14 +332,14 @@ export default function WithdrawPage() {
             className="space-y-5"
           >
             {/* Available balance */}
-            <div className="mb-2 rounded-lg bg-brand-50 p-3">
+            <div className="mb-2 rounded-lg bg-neutral-50 p-3">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-500">總餘額</p>
                   {balanceLoading ? (
                     <Skeleton className="mt-1 h-6 w-24" />
                   ) : (
-                    <p className="text-lg font-bold text-brand-600">
+                    <p className="text-lg font-bold text-neutral-900">
                       {formatAmount(balance ?? 0)}
                     </p>
                   )}
@@ -491,7 +491,7 @@ export default function WithdrawPage() {
               </Button>
               <Button
                 type="submit"
-                className="flex-1 bg-brand-500 hover:bg-brand-600"
+                className="flex-1 bg-neutral-900 hover:bg-neutral-800"
                 loading={isSubmitting}
                 loadingText="處理中..."
               >
@@ -544,7 +544,7 @@ export default function WithdrawPage() {
                 取消
               </Button>
               <Button
-                className="flex-1 bg-brand-500 hover:bg-brand-600"
+                className="flex-1 bg-neutral-900 hover:bg-neutral-800"
                 onClick={confirmWithdraw}
                 loading={isSubmitting}
                 loadingText="送出中..."

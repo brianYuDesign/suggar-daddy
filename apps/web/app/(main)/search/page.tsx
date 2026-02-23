@@ -136,7 +136,7 @@ function PostResultCard({ post }: { post: Post }) {
           {post.isPremium && (
             <Badge
               variant="warning"
-              className="bg-brand-100 text-brand-700 border-brand-200"
+              className="bg-neutral-100 text-neutral-700 border-neutral-200"
             >
               <Lock className="mr-1 h-3 w-3" />
               付費
@@ -301,7 +301,7 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜尋用戶或貼文..."
-            className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-10 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-10 text-sm placeholder:text-gray-400 focus:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-800/20"
             autoFocus
           />
           {query && (
@@ -323,7 +323,7 @@ export default function SearchPage() {
           className={cn(
             'flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
             activeTab === 'users'
-              ? 'bg-white text-brand-600 shadow-sm'
+              ? 'bg-white text-neutral-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
           )}
         >
@@ -335,7 +335,7 @@ export default function SearchPage() {
           className={cn(
             'flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors',
             activeTab === 'posts'
-              ? 'bg-white text-brand-600 shadow-sm'
+              ? 'bg-white text-neutral-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
           )}
         >
@@ -390,7 +390,7 @@ export default function SearchPage() {
       {showRecommended && (
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="h-4 w-4 text-brand-500" />
+            <TrendingUp className="h-4 w-4 text-neutral-700" />
             <h2 className="text-sm font-semibold text-gray-700">熱門創作者</h2>
           </div>
 

@@ -34,12 +34,12 @@ export function GridMode({ cards, onSwipe, swiping, onLoadMore, hasMore, onDwell
             className="group relative overflow-hidden rounded-xl bg-white shadow-sm transition-all hover:shadow-md"
           >
             {/* Avatar */}
-            <div className="relative aspect-[3/4] bg-gradient-to-br from-brand-100 to-brand-200">
+            <div className="relative aspect-[3/4] bg-gradient-to-br from-neutral-100 to-neutral-200">
               {card.avatarUrl ? (
                 <img src={card.avatarUrl} alt="" className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full items-center justify-center">
-                  <span className="text-3xl font-bold text-brand-500/40">
+                  <span className="text-3xl font-bold text-neutral-400">
                     {card.displayName.slice(0, 2).toUpperCase()}
                   </span>
                 </div>
@@ -86,7 +86,7 @@ export function GridMode({ cards, onSwipe, swiping, onLoadMore, hasMore, onDwell
 
             {/* Common tags indicator */}
             {card.commonTagCount > 0 && (
-              <div className="px-2 py-1.5 text-[10px] text-brand-600 font-medium">
+              <div className="px-2 py-1.5 text-[10px] text-gold-600 font-medium">
                 {card.commonTagCount} 個共同興趣
               </div>
             )}

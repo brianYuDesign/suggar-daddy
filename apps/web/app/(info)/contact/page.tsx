@@ -45,7 +45,7 @@ export default function ContactPage() {
             setSubmitted(false);
             setForm({ name: '', email: '', subject: '', message: '' });
           }}
-          className="mt-6 text-sm text-brand-600 hover:underline"
+          className="mt-6 text-sm text-neutral-900 hover:underline"
         >
           傳送另一則訊息
         </button>
@@ -65,21 +65,21 @@ export default function ContactPage() {
         <div className="sm:col-span-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="flex items-start gap-3 rounded-lg border p-4">
-              <Mail className="h-5 w-5 text-brand-500 mt-0.5" />
+              <Mail className="h-5 w-5 text-neutral-700 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-gray-900">電子郵件</p>
                 <p className="mt-1 text-sm text-gray-500">support@sugg​ardaddy.com</p>
               </div>
             </div>
             <div className="flex items-start gap-3 rounded-lg border p-4">
-              <MessageSquare className="h-5 w-5 text-brand-500 mt-0.5" />
+              <MessageSquare className="h-5 w-5 text-neutral-700 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-gray-900">即時客服</p>
                 <p className="mt-1 text-sm text-gray-500">平台內訊息功能</p>
               </div>
             </div>
             <div className="flex items-start gap-3 rounded-lg border p-4">
-              <Clock className="h-5 w-5 text-brand-500 mt-0.5" />
+              <Clock className="h-5 w-5 text-neutral-700 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-gray-900">回覆時間</p>
                 <p className="mt-1 text-sm text-gray-500">1-2 個工作天</p>
@@ -102,7 +102,7 @@ export default function ContactPage() {
               required
               value={form.name}
               onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-              className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
               placeholder="您的姓名"
             />
           </div>
@@ -116,7 +116,7 @@ export default function ContactPage() {
               required
               value={form.email}
               onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-              className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
               placeholder="your@email.com"
             />
           </div>
@@ -131,7 +131,7 @@ export default function ContactPage() {
             required
             value={form.subject}
             onChange={(e) => setForm((prev) => ({ ...prev, subject: e.target.value }))}
-            className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
           >
             {subjectOptions.map((opt) => (
               <option key={opt.value} value={opt.value} disabled={opt.value === ''}>
@@ -151,14 +151,14 @@ export default function ContactPage() {
             rows={5}
             value={form.message}
             onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
-            className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 resize-none"
+            className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900 resize-none"
             placeholder="請詳細描述您的問題或建議..."
           />
         </div>
 
         <button
           type="submit"
-          className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 sm:w-auto"
+          className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 sm:w-auto"
         >
           送出訊息
         </button>

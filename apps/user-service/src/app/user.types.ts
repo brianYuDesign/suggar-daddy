@@ -23,6 +23,10 @@ export interface UserRecord {
   followerCount: number;
   followingCount: number;
   dmPrice?: number | null;
+  /** Diamond chat gate: require diamonds to continue chatting */
+  chatDiamondGateEnabled?: boolean;
+  chatDiamondThreshold?: number;
+  chatDiamondCost?: number;
   createdAt: Date;
   updatedAt: Date;
 }

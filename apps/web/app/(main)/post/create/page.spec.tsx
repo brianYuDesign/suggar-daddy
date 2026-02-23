@@ -442,7 +442,7 @@ describe('CreatePostPage', () => {
 
       await waitFor(() => {
         // Premium section should have highlighted styling
-        expect(screen.getByText('付費內容').closest('div')).toHaveClass('border-brand-300');
+        expect(screen.getByText('付費內容').closest('div')).toHaveClass('border-neutral-300');
       });
     });
   });

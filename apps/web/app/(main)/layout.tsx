@@ -26,7 +26,7 @@ export default function MainLayout({
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-900 border-t-transparent" />
       </div>
     );
   }
@@ -36,13 +36,13 @@ export default function MainLayout({
   return (
     <DiamondBalanceProvider>
     <NotificationProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-neutral-50">
         <DesktopSidebar />
 
         {/* Main content area */}
         <div className="md:pl-60">
           {/* Top bar with diamond balance */}
-          <div className="sticky top-0 z-10 flex items-center justify-end bg-gray-50/80 px-4 py-2 backdrop-blur-sm md:px-6">
+          <div className="sticky top-0 z-10 flex items-center justify-end bg-neutral-50/80 px-4 py-2 backdrop-blur-sm md:px-6">
             <DiamondBalance />
           </div>
           <main className="mx-auto max-w-2xl px-4 pb-20 pt-2 md:pb-8 md:pt-4">

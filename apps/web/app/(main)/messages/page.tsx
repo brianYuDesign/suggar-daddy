@@ -188,8 +188,8 @@ export default function MessagesPage() {
       {conversations.length === 0 ? (
         /* Empty state */
         <div className="flex flex-col items-center py-16 text-center">
-          <div className="mb-4 rounded-full bg-brand-50 p-4">
-            <MessageCircle className="h-8 w-8 text-brand-500" />
+          <div className="mb-4 rounded-full bg-neutral-50 p-4">
+            <MessageCircle className="h-8 w-8 text-neutral-700" />
           </div>
           <h2 className="text-lg font-semibold text-gray-900">還沒有任何對話</h2>
           <p className="mt-2 max-w-xs text-sm text-gray-500">

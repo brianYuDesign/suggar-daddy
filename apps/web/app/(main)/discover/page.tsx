@@ -52,8 +52,8 @@ function DiscoverSkeleton() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center px-4 py-20 text-center">
-      <div className="mb-4 rounded-full bg-brand-50 p-4">
-        <Users className="h-8 w-8 text-brand-500" />
+      <div className="mb-4 rounded-full bg-neutral-50 p-4">
+        <Users className="h-8 w-8 text-neutral-700" />
       </div>
       <h2 className="text-lg font-semibold text-gray-900" data-testid="no-more-profiles">
         目前沒有更多推薦
@@ -271,7 +271,7 @@ export default function DiscoverPage() {
           >
             <SlidersHorizontal className="h-4 w-4 text-gray-600" />
             {activeFilterCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-bold text-white">
                 {activeFilterCount}
               </span>
             )}
@@ -352,14 +352,14 @@ export default function DiscoverPage() {
       {/* Match celebration modal */}
       <Dialog open={matchModalOpen} onClose={() => setMatchModalOpen(false)} data-testid="match-modal">
         <div className="flex flex-col items-center py-4 text-center">
-          <div className="mb-4 rounded-full bg-brand-50 p-3">
-            <Sparkles className="h-10 w-10 text-brand-500" />
+          <div className="mb-4 rounded-full bg-gold-50 p-3">
+            <Sparkles className="h-10 w-10 text-gold-500" />
           </div>
           <DialogHeader className="items-center">
             <DialogTitle className="text-center text-2xl">配對成功！</DialogTitle>
             <DialogDescription className="text-center">
               你和{' '}
-              <span className="font-semibold text-brand-600">
+              <span className="font-semibold text-gold-600">
                 {matchedUser?.displayName}
               </span>{' '}
               互相喜歡對方
@@ -368,21 +368,21 @@ export default function DiscoverPage() {
 
           {matchedUser && (
             <div className="mt-4 flex items-center gap-3">
-              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-brand-100 ring-2 ring-brand-500">
+              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-gold-100 ring-2 ring-gold-400">
                 {user?.avatarUrl ? (
                   <img src={user.avatarUrl} alt={user.displayName} className="h-full w-full object-cover" />
                 ) : (
-                  <span className="text-lg font-bold text-brand-600">
+                  <span className="text-lg font-bold text-gold-600">
                     {user?.displayName ? getInitials(user.displayName) : '?'}
                   </span>
                 )}
               </div>
-              <Heart className="h-5 w-5 text-brand-500" />
-              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-brand-100 ring-2 ring-brand-500">
+              <Heart className="h-5 w-5 text-gold-500" />
+              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-gold-100 ring-2 ring-gold-400">
                 {matchedUser.avatarUrl ? (
                   <img src={matchedUser.avatarUrl} alt={matchedUser.displayName} className="h-full w-full object-cover" />
                 ) : (
-                  <span className="text-lg font-bold text-brand-600">
+                  <span className="text-lg font-bold text-gold-600">
                     {getInitials(matchedUser.displayName)}
                   </span>
                 )}
@@ -392,7 +392,7 @@ export default function DiscoverPage() {
 
           <DialogFooter className="mt-6 w-full flex-col gap-2 sm:flex-col">
             <Button
-              className="w-full bg-brand-500 hover:bg-brand-600"
+              className="w-full bg-neutral-900 hover:bg-neutral-800"
               onClick={() => {
                 setMatchModalOpen(false);
                 if (matchedUser && user?.id) {

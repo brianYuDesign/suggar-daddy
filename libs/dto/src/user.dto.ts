@@ -1,7 +1,7 @@
 /**
  * User 相關 DTO
  */
-import { IsString, IsNotEmpty, IsOptional, IsEnum, MaxLength, MinLength, Matches, IsDateString, IsNumber, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, MaxLength, MinLength, Matches, IsDateString, IsNumber, Min, Max, IsBoolean, IsInt } from 'class-validator';
 import { UserType, PermissionRole } from '@suggar-daddy/common';
 
 export interface UserCardDto {
@@ -143,6 +143,22 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   preferredUserType?: 'sugar_daddy' | 'sugar_baby' | 'both';
+
+  @IsOptional()
+  @IsBoolean()
+  chatDiamondGateEnabled?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  chatDiamondThreshold?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(500)
+  chatDiamondCost?: number;
 }
 
 /** 位置更新（專用端點） */

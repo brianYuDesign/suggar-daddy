@@ -22,7 +22,7 @@ export function InterestTags({ tags, maxVisible = 6, size = 'md' }: InterestTags
             'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium',
             size === 'sm' ? 'text-xs' : 'text-sm',
             tag.isCommon
-              ? 'border-brand-300 bg-brand-50 text-brand-700'
+              ? 'border-gold-300 bg-gold-50 text-gold-700'
               : 'border-gray-200 bg-gray-50 text-gray-600'
           )}
         >

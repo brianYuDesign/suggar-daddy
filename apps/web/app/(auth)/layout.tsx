@@ -21,7 +21,7 @@ export default function AuthLayout({
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-900 border-t-transparent" />
       </div>
     );
   }
@@ -32,7 +32,7 @@ export default function AuthLayout({
     <div className="flex min-h-screen flex-col bg-white">
       {/* Top bar */}
       <header className="flex items-center justify-center px-6 py-4">
-        <a href="/" className="text-xl font-bold text-brand-600">
+        <a href="/" className="text-xl font-bold tracking-tight text-neutral-900">
           Suggar Daddy
         </a>
       </header>

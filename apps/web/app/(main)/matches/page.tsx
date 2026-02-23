@@ -70,8 +70,8 @@ function MatchesSkeleton() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center px-4 py-20 text-center">
-      <div className="mb-4 rounded-full bg-brand-50 p-4">
-        <Heart className="h-8 w-8 text-brand-500" />
+      <div className="mb-4 rounded-full bg-neutral-50 p-4">
+        <Heart className="h-8 w-8 text-neutral-700" />
       </div>
       <h2 className="text-lg font-semibold text-gray-900">
         還沒有配對
@@ -80,7 +80,7 @@ function EmptyState() {
         到探索頁面滑動卡片，找到與你互相喜歡的人吧！
       </p>
       <Button
-        className="mt-4 bg-brand-500 hover:bg-brand-600"
+        className="mt-4 bg-neutral-900 hover:bg-neutral-800"
         onClick={() => (window.location.href = '/discover')}
       >
         <Users className="mr-2 h-4 w-4" />
@@ -120,7 +120,7 @@ function MatchCard({ match, onClick }: MatchCardProps) {
       onClick={onClick}
     >
       {/* Avatar area */}
-      <div className="relative h-36 bg-gradient-to-br from-brand-100 to-brand-200 sm:h-44">
+      <div className="relative h-36 bg-gradient-to-br from-neutral-100 to-neutral-200 sm:h-44">
         {avatarUrl ? (
           <img
             src={avatarUrl}
@@ -129,7 +129,7 @@ function MatchCard({ match, onClick }: MatchCardProps) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <span className="text-4xl font-bold text-brand-500/60">
+            <span className="text-4xl font-bold text-neutral-700/60">
               {getInitials(displayName)}
             </span>
           </div>
@@ -275,7 +275,7 @@ export default function MatchesPage() {
         <div className="mt-6 flex justify-center">
           <Button
             variant="outline"
-            className="border-brand-200 text-brand-600 hover:bg-brand-50"
+            className="border-neutral-200 text-neutral-900 hover:bg-neutral-50"
             onClick={() => fetchMatches(nextCursor)}
             disabled={isLoadingMore}
           >

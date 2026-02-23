@@ -73,7 +73,7 @@ describe('FollowButton', () => {
       );
 
       const button = screen.getByRole('button');
-      expect(button.className).toContain('bg-brand-500');
+      expect(button.className).toContain('bg-neutral-900');
       expect(button.className).toContain('text-white');
     });
   });
@@ -96,7 +96,7 @@ describe('FollowButton', () => {
 
       const button = screen.getByRole('button');
       expect(button.className).toContain('variant="outline"');
-      expect(button.className).toContain('border-brand-200');
+      expect(button.className).toContain('border-neutral-200');
     });
   });
 

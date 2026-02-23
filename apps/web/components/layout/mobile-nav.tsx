@@ -36,14 +36,14 @@ export function MobileNav() {
               className={cn(
                 'flex flex-col items-center gap-0.5 px-3 py-2 text-xs transition-colors',
                 isActive
-                  ? 'text-brand-600'
+                  ? 'text-neutral-900'
                   : 'text-gray-400 hover:text-gray-600'
               )}
             >
               <item.icon
                 className={cn(
                   'h-5 w-5',
-                  isActive && 'fill-brand-100 stroke-brand-600'
+                  isActive && 'fill-neutral-200 stroke-neutral-900'
                 )}
               />
               <span>{item.label}</span>

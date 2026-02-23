@@ -37,7 +37,7 @@ export function CardMode({ card, onSwipe, swiping, onDwellTime }: CardModeProps)
       >
         {/* Avatar area */}
         <button
-          className="relative h-72 w-full bg-gradient-to-br from-brand-100 to-brand-200 sm:h-80"
+          className="relative h-72 w-full bg-gradient-to-br from-neutral-100 to-neutral-200 sm:h-80"
           onClick={() => setDetailOpen(true)}
         >
           {card.avatarUrl ? (
@@ -48,7 +48,7 @@ export function CardMode({ card, onSwipe, swiping, onDwellTime }: CardModeProps)
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <span className="text-6xl font-bold text-brand-500/60">
+              <span className="text-6xl font-bold text-neutral-400">
                 {getInitials(card.displayName)}
               </span>
             </div>
@@ -81,7 +81,7 @@ export function CardMode({ card, onSwipe, swiping, onDwellTime }: CardModeProps)
             <div className="mt-1 flex items-center gap-2">
               <Badge
                 variant="warning"
-                className="bg-brand-500/90 text-white border-0 text-xs"
+                className="bg-neutral-800 text-white border-0 text-xs"
               >
                 {roleLabelMap(card.userType)}
               </Badge>
@@ -114,7 +114,7 @@ export function CardMode({ card, onSwipe, swiping, onDwellTime }: CardModeProps)
           {/* Common tags + distance */}
           <div className="flex items-center gap-3 text-xs text-gray-500">
             {card.commonTagCount > 0 && (
-              <span className="text-brand-600 font-medium">
+              <span className="text-gold-600 font-medium">
                 {card.commonTagCount} 個共同興趣
               </span>
             )}

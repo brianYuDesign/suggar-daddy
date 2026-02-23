@@ -144,7 +144,7 @@ function AccordionItem({ item }: { item: FaqItem }) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between py-4 text-left text-sm font-medium text-gray-900 hover:text-brand-600 transition-colors"
+        className="flex w-full items-center justify-between py-4 text-left text-sm font-medium text-gray-900 hover:text-neutral-900 transition-colors"
       >
         <span className="pr-4">{item.question}</span>
         <ChevronDown
@@ -168,7 +168,7 @@ export default function FaqPage() {
       <h1 className="text-2xl font-bold text-gray-900">常見問題</h1>
       <p className="mt-2 text-gray-600">
         找不到您要的答案？歡迎透過{' '}
-        <a href="/contact" className="text-brand-600 hover:underline">
+        <a href="/contact" className="text-neutral-900 hover:underline">
           聯絡我們
         </a>{' '}
         頁面聯繫客服團隊。

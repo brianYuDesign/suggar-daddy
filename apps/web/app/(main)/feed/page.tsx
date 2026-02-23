@@ -79,8 +79,8 @@ function PremiumOverlay({ postId }: { postId: string }) {
 
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-lg bg-white/80 backdrop-blur-sm">
-      <div className="mb-3 rounded-full bg-brand-50 p-3">
-        <Lock className="h-6 w-6 text-brand-500" />
+      <div className="mb-3 rounded-full bg-neutral-50 p-3">
+        <Lock className="h-6 w-6 text-neutral-700" />
       </div>
       <p className="mb-3 text-sm font-medium text-gray-700">
         此為付費內容
@@ -131,7 +131,7 @@ function PostCard({ post, currentUserId, onLikeToggle, likedPosts, authorName }:
               {post.isPremium && (
                 <Badge
                   variant="warning"
-                  className="bg-brand-100 text-brand-700 border-brand-200"
+                  className="bg-gold-100 text-gold-600 border-gold-200"
                 >
                   <Lock className="mr-1 h-3 w-3" />
                   付費
@@ -309,11 +309,11 @@ export default function FeedPage() {
   return (
     <div className="space-y-4">
       {/* Welcome card */}
-      <div className="rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 p-5 text-white">
+      <div className="rounded-2xl bg-gradient-to-r from-neutral-900 to-neutral-800 p-5 text-white">
         <h1 className="text-xl font-bold">
           {user?.displayName ? `嗨，${user.displayName}` : '歡迎'}
         </h1>
-        <p className="mt-1 text-sm text-brand-100">
+        <p className="mt-1 text-sm text-neutral-300">
           {(user as any)?.userType === 'sugar_baby'
             ? '開始分享你的精彩內容吧'
             : '探索你感興趣的創作者'}
@@ -399,7 +399,7 @@ export default function FeedPage() {
           description="目前還沒有人發布內容。成為第一個分享精彩動態的人吧！"
           action={
             <Link href="/post/create">
-              <Button className="bg-brand-500 hover:bg-brand-600 text-white">
+              <Button className="bg-neutral-900 hover:bg-neutral-800 text-white">
                 <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                 發布動態
               </Button>
@@ -411,7 +411,7 @@ export default function FeedPage() {
       {/* FAB - mobile create post button */}
       <Link
         href="/post/create"
-        className="fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-white shadow-lg transition-transform hover:bg-brand-600 hover:scale-105 active:scale-95 md:bottom-8 md:right-8"
+        className="fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-white shadow-lg shadow-neutral-900/20 transition-transform hover:bg-neutral-800 hover:scale-105 active:scale-95 md:bottom-8 md:right-8"
         aria-label="發布新動態"
       >
         <Plus className="h-6 w-6" />

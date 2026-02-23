@@ -9,11 +9,27 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
-_pool = None
+_vector_extension_ready = False
+
+
+def _ensure_vector_extension():
+    """Create pgvector extension if it doesn't exist (raw connection, no register_vector)."""
+    global _vector_extension_ready
+    if _vector_extension_ready:
+        return
+    conn = psycopg2.connect(settings.database_url)
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+        _vector_extension_ready = True
+    finally:
+        conn.close()
 
 
 def get_connection():
     """Get a database connection with pgvector support."""
+    _ensure_vector_extension()
     conn = psycopg2.connect(settings.database_url)
     register_vector(conn)
     return conn
@@ -38,7 +54,6 @@ def init_schema():
     """Initialize pgvector extension and user_embeddings table."""
     dim = settings.embedding_dimensions
     with get_cursor() as cur:
-        cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
         cur.execute(f"""
             CREATE TABLE IF NOT EXISTS user_embeddings (
                 user_id UUID PRIMARY KEY,
@@ -47,13 +62,18 @@ def init_schema():
                 updated_at TIMESTAMP DEFAULT now()
             )
         """)
-        # ivfflat index for fast cosine similarity search
-        cur.execute(f"""
-            CREATE INDEX IF NOT EXISTS idx_embedding_vector
-            ON user_embeddings
-            USING ivfflat (embedding vector_cosine_ops)
-            WITH (lists = 100)
-        """)
+        # IVFFlat index requires data — only create if table has rows
+        cur.execute("SELECT COUNT(*) as cnt FROM user_embeddings")
+        row_count = cur.fetchone()["cnt"]
+        if row_count > 0:
+            cur.execute(f"""
+                CREATE INDEX IF NOT EXISTS idx_embedding_vector
+                ON user_embeddings
+                USING ivfflat (embedding vector_cosine_ops)
+                WITH (lists = 100)
+            """)
+        else:
+            logger.info("Skipping IVFFlat index creation (table is empty, will create after training)")
     logger.info("Database schema initialized (pgvector + user_embeddings)")
 
 

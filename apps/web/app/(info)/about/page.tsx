@@ -79,11 +79,11 @@ export default async function AboutPage() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-lg border p-4 transition-colors hover:border-brand-200 hover:bg-brand-50/30"
+              className="rounded-lg border p-4 transition-colors hover:border-neutral-200 hover:bg-neutral-50/30"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100">
-                  <feature.icon className="h-5 w-5 text-brand-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100">
+                  <feature.icon className="h-5 w-5 text-neutral-900" />
                 </div>
                 <h3 className="font-medium text-gray-900">{feature.title}</h3>
               </div>
@@ -99,7 +99,7 @@ export default async function AboutPage() {
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {stats.map((stat) => (
             <div key={stat.label} className="rounded-lg bg-gray-50 p-4 text-center">
-              <p className="text-xl font-bold text-brand-600">{stat.value}</p>
+              <p className="text-xl font-bold text-neutral-900">{stat.value}</p>
               <p className="mt-1 text-xs text-gray-500">{stat.label}</p>
             </div>
           ))}
@@ -137,15 +137,15 @@ export default async function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="mt-10 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 p-6 text-center text-white">
+      <section className="mt-10 rounded-lg bg-gradient-to-r from-neutral-900 to-neutral-800 p-6 text-center text-white">
         <h2 className="text-lg font-semibold">準備好開始了嗎？</h2>
-        <p className="mt-2 text-sm text-brand-100">
+        <p className="mt-2 text-sm text-neutral-100">
           加入 Suggar Daddy，探索屬於您的真誠連結。
         </p>
         <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Link
             href="/register"
-            className="inline-flex items-center rounded-lg bg-white px-6 py-2.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50"
+            className="inline-flex items-center rounded-lg bg-white px-6 py-2.5 text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-50"
           >
             免費註冊
           </Link>

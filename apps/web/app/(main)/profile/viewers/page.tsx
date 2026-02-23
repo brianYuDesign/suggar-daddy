@@ -252,7 +252,7 @@ export default function ProfileViewersPage() {
             完善你的個人檔案，讓更多人注意到你！
           </p>
           <Link href="/profile/edit">
-            <Button className="mt-4 bg-brand-500 hover:bg-brand-600 text-white">
+            <Button className="mt-4 bg-neutral-900 hover:bg-neutral-800 text-white">
               編輯檔案
             </Button>
           </Link>

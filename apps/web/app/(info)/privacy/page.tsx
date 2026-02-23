@@ -38,7 +38,7 @@ export default async function PrivacyPage() {
         <li>裝置資訊：裝置類型、作業系統、瀏覽器類型</li>
         <li>使用資料：登入時間、瀏覽頁面、功能使用頻率</li>
         <li>位置資訊：IP 位址推算之概略位置，或您授權的精確位置</li>
-        <li>Cookie 與追蹤技術：詳見我們的 <a href="/cookie-policy" className="text-brand-600 hover:underline">Cookie 政策</a></li>
+        <li>Cookie 與追蹤技術：詳見我們的 <a href="/cookie-policy" className="text-neutral-900 hover:underline">Cookie 政策</a></li>
       </ul>
 
       <h2 className="text-lg font-semibold text-gray-900 mt-8">2. 資訊使用目的</h2>
@@ -99,7 +99,7 @@ export default async function PrivacyPage() {
       </ul>
       <p>
         如需行使上述權利，請透過{' '}
-        <a href="/contact" className="text-brand-600 hover:underline">聯絡我們</a> 頁面提出申請。
+        <a href="/contact" className="text-neutral-900 hover:underline">聯絡我們</a> 頁面提出申請。
         我們將在 30 天內回覆您的請求。
       </p>
 
@@ -126,7 +126,7 @@ export default async function PrivacyPage() {
         如果您對本隱私權政策有任何疑問或建議，請透過以下方式聯絡我們：
       </p>
       <ul>
-        <li>線上表單：<a href="/contact" className="text-brand-600 hover:underline">聯絡我們</a></li>
+        <li>線上表單：<a href="/contact" className="text-neutral-900 hover:underline">聯絡我們</a></li>
         <li>電子郵件：privacy@sugg​ardaddy.com</li>
       </ul>
     </article>

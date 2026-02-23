@@ -135,7 +135,7 @@ describe('RegisterPage', () => {
       const sugarDaddyButton = screen.getByText('Sugar Daddy').closest('button');
       await user.click(sugarDaddyButton!);
 
-      expect(sugarDaddyButton).toHaveClass('border-brand-500');
+      expect(sugarDaddyButton).toHaveClass('border-neutral-900');
     });
 
     it('should allow selecting Sugar Baby role', async () => {
@@ -145,7 +145,7 @@ describe('RegisterPage', () => {
       const sugarBabyButton = screen.getByText('Sugar Baby').closest('button');
       await user.click(sugarBabyButton!);
 
-      expect(sugarBabyButton).toHaveClass('border-brand-500');
+      expect(sugarBabyButton).toHaveClass('border-neutral-900');
     });
 
     it('should allow switching between roles', async () => {
@@ -157,12 +157,12 @@ describe('RegisterPage', () => {
 
       // Select Sugar Daddy first
       await user.click(sugarDaddyButton!);
-      expect(sugarDaddyButton).toHaveClass('border-brand-500');
+      expect(sugarDaddyButton).toHaveClass('border-neutral-900');
 
       // Switch to Sugar Baby
       await user.click(sugarBabyButton!);
-      expect(sugarBabyButton).toHaveClass('border-brand-500');
-      expect(sugarDaddyButton).not.toHaveClass('border-brand-500');
+      expect(sugarBabyButton).toHaveClass('border-neutral-900');
+      expect(sugarDaddyButton).not.toHaveClass('border-neutral-900');
     });
   });
 

@@ -53,8 +53,8 @@ export function SwipeActions({ onPass, onLike, onSuperLike, disabled }: SwipeAct
         onClick={onLike}
         disabled={disabled}
         className={cn(
-          'flex h-16 w-16 items-center justify-center rounded-full bg-brand-500 shadow-lg shadow-brand-500/30 transition-all',
-          'hover:scale-105 hover:bg-brand-600 hover:shadow-xl hover:shadow-brand-500/40',
+          'flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 shadow-lg shadow-neutral-900/20 transition-all',
+          'hover:scale-105 hover:bg-neutral-800 hover:shadow-xl hover:shadow-neutral-900/30',
           'active:scale-95',
           'disabled:opacity-50 disabled:hover:scale-100'
         )}

@@ -686,6 +686,11 @@ services:
       # OpenTelemetry / Jaeger
       JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:4318/v1/traces}
       OTEL_SAMPLING_RATE: ${OTEL_SAMPLING_RATE:-1.0}
+      # Inter-service communication
+      USER_SERVICE_URL: http://user-service:3001
+      SUBSCRIPTION_SERVICE_URL: http://subscription-service:3009
+      PAYMENT_SERVICE_URL: http://payment-service:3007
+      CONTENT_SERVICE_URL: http://content-service:3006
       # ML Recommendation Service
       ML_SERVICE_URL: http://recommendation-ml:5000
     volumes:
@@ -1199,7 +1204,7 @@ services:
       dockerfile: Dockerfile
     container_name: suggar-daddy-recommendation-ml
     ports:
-      - "5000:5000"
+      - "5050:5000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-master:5432/${POSTGRES_DB:-suggar_daddy}
       REDIS_URL: redis://redis-master:6379

@@ -35,7 +35,7 @@ function RangeSlider({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-gray-700">{label}</span>
-        <span className="text-sm text-brand-600 font-semibold">
+        <span className="text-sm text-neutral-900 font-semibold">
           {value}{unit}
         </span>
       </div>
@@ -45,7 +45,7 @@ function RangeSlider({
         max={max}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-brand-500"
+        className="w-full accent-neutral-900"
       />
     </div>
   );
@@ -70,7 +70,7 @@ function Toggle({
         onClick={() => onChange(!checked)}
         className={cn(
           'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-          checked ? 'bg-brand-500' : 'bg-gray-200'
+          checked ? 'bg-neutral-900' : 'bg-gray-200'
         )}
       >
         <span
@@ -161,7 +161,7 @@ export function FilterDrawer({
                   const v = Number(e.target.value);
                   if (v <= filters.ageMax) onUpdateFilter('ageMin', v);
                 }}
-                className="w-full accent-brand-500"
+                className="w-full accent-neutral-900"
               />
               <input
                 type="range"
@@ -172,7 +172,7 @@ export function FilterDrawer({
                   const v = Number(e.target.value);
                   if (v >= filters.ageMin) onUpdateFilter('ageMax', v);
                 }}
-                className="w-full accent-brand-500"
+                className="w-full accent-neutral-900"
               />
             </div>
           </div>
@@ -192,7 +192,7 @@ export function FilterDrawer({
                   className={cn(
                     'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
                     filters.userType === opt.value
-                      ? 'bg-brand-500 text-white'
+                      ? 'bg-neutral-900 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   )}
                 >
@@ -236,7 +236,7 @@ export function FilterDrawer({
                         className={cn(
                           'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all',
                           selected
-                            ? 'border-brand-300 bg-brand-50 text-brand-700'
+                            ? 'border-gold-300 bg-gold-50 text-gold-700'
                             : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
                         )}
                       >
@@ -254,7 +254,7 @@ export function FilterDrawer({
         {/* Footer */}
         <div className="sticky bottom-0 border-t bg-white px-4 py-3">
           <Button
-            className="w-full bg-brand-500 hover:bg-brand-600"
+            className="w-full bg-neutral-900 hover:bg-neutral-800"
             onClick={() => {
               onApply();
               onClose();

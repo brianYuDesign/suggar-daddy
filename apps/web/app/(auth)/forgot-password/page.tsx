@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
         </p>
         <Link
           href="/login"
-          className="mt-8 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+          className="mt-8 inline-flex items-center gap-1 text-sm font-medium text-neutral-700 hover:text-neutral-900"
         >
           <ArrowLeft className="h-4 w-4" />
           返回登入
@@ -64,8 +64,8 @@ export default function ForgotPasswordPage() {
     <div className="w-full max-w-sm">
       <div className="mb-8 text-center">
         <div className="mb-4 flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-100">
-            <Mail className="h-7 w-7 text-brand-600" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-100">
+            <Mail className="h-7 w-7 text-neutral-700" />
           </div>
         </div>
         <h1 className="text-2xl font-bold text-gray-900">忘記密碼</h1>
@@ -98,7 +98,7 @@ export default function ForgotPasswordPage() {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-brand-500 py-2.5 font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+          className="w-full bg-neutral-900 py-2.5 font-semibold text-white hover:bg-neutral-800 disabled:opacity-50"
         >
           {isSubmitting ? '發送中...' : '發送重設連結'}
         </Button>
@@ -107,7 +107,7 @@ export default function ForgotPasswordPage() {
       <p className="mt-6 text-center">
         <Link
           href="/login"
-          className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+          className="inline-flex items-center gap-1 text-sm font-medium text-neutral-700 hover:text-neutral-900"
         >
           <ArrowLeft className="h-4 w-4" />
           返回登入

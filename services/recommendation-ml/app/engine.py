@@ -13,11 +13,13 @@ logger = logging.getLogger(__name__)
 
 MODEL_VERSION = "v1.0"
 
-# Interaction signal weights
+# Interaction signal weights (support both DB values and API values)
 SIGNAL_WEIGHTS = {
     "like": 1.0,
+    "right": 1.0,       # DB alias for like
     "super_like": 2.0,
     "pass": -0.3,
+    "left": -0.3,       # DB alias for pass
     "view_detail": 0.3,
     "view_photo": 0.2,
     "dwell_card": 0.1,
@@ -47,6 +49,7 @@ def _build_interaction_matrix() -> tuple[csr_matrix, list[str], list[str]]:
         # Get behavior events (view, dwell, etc.) — graceful fallback if table missing
         behavior_rows = []
         try:
+            cur.execute("SAVEPOINT sp_behavior")
             cur.execute("""
                 SELECT "userId", "targetUserId", "eventType",
                        COALESCE((metadata->>'weight')::float, 1.0) as weight
@@ -56,9 +59,7 @@ def _build_interaction_matrix() -> tuple[csr_matrix, list[str], list[str]]:
             behavior_rows = cur.fetchall()
         except Exception as e:
             logger.warning(f"user_behavior_events query failed (table may not exist): {e}")
-            # Rollback the failed transaction so cursor remains usable
-            cur.execute("ROLLBACK")
-            cur.execute("BEGIN")
+            cur.execute("ROLLBACK TO SAVEPOINT sp_behavior")
 
     # Collect all unique user IDs
     user_set = set()
@@ -117,18 +118,24 @@ def _build_user_features(user_ids: list[str]) -> dict[str, np.ndarray]:
             SELECT id, "userType", "birthDate",
                    "verificationStatus", "createdAt"
             FROM users
-            WHERE id = ANY(%s)
+            WHERE id = ANY(%s::uuid[])
         """, (user_ids,))
         user_rows = {str(r["id"]): r for r in cur.fetchall()}
 
-        # Batch fetch user tags
-        cur.execute("""
-            SELECT uit."userId", it.category, it.name, it.id as tag_id
-            FROM user_interest_tags uit
-            JOIN interest_tags it ON uit."tagId" = it.id
-            WHERE uit."userId" = ANY(%s)
-        """, (user_ids,))
-        tag_rows = cur.fetchall()
+        # Batch fetch user tags — graceful fallback if tables missing
+        tag_rows = []
+        try:
+            cur.execute("SAVEPOINT sp_tags")
+            cur.execute("""
+                SELECT uit."userId", it.category, it.name, it.id as tag_id
+                FROM user_interest_tags uit
+                JOIN interest_tags it ON uit."tagId" = it.id
+                WHERE uit."userId" = ANY(%s::uuid[])
+            """, (user_ids,))
+            tag_rows = cur.fetchall()
+        except Exception as e:
+            logger.warning(f"user_interest_tags query failed (table may not exist): {e}")
+            cur.execute("ROLLBACK TO SAVEPOINT sp_tags")
 
     # Group tags by user
     user_tags: dict[str, list[dict]] = {}
@@ -246,6 +253,14 @@ def train_embeddings() -> tuple[int, float]:
                              model_version = EXCLUDED.model_version,
                              updated_at = now()
             """, (uid, emb.tolist(), MODEL_VERSION))
+
+        # Ensure IVFFlat index exists now that we have data
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_embedding_vector
+            ON user_embeddings
+            USING ivfflat (embedding vector_cosine_ops)
+            WITH (lists = 100)
+        """)
 
     duration = time.time() - start
     logger.info(f"Training complete: {len(embeddings)} embeddings in {duration:.1f}s")

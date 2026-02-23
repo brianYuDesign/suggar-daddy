@@ -26,7 +26,7 @@ export function ModeSwitcher({ mode, onChange }: ModeSwitcherProps) {
           className={cn(
             'flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all',
             mode === value
-              ? 'bg-brand-500 text-white shadow-sm'
+              ? 'bg-neutral-900 text-white shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
           )}
           aria-label={label}

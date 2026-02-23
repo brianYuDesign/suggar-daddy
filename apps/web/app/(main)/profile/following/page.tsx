@@ -169,7 +169,7 @@ export default function FollowingPage() {
             去探索頁面尋找感興趣的創作者吧！
           </p>
           <Link href="/search">
-            <Button className="mt-4 bg-brand-500 hover:bg-brand-600 text-white">
+            <Button className="mt-4 bg-neutral-900 hover:bg-neutral-800 text-white">
               搜尋用戶
             </Button>
           </Link>

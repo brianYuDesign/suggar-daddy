@@ -182,7 +182,7 @@ export default function BroadcastHistoryPage() {
         <Button
           size="sm"
           onClick={() => router.push('/messages/broadcast')}
-          className="bg-brand-500 hover:bg-brand-600"
+          className="bg-neutral-900 hover:bg-neutral-800"
         >
           <Plus className="mr-1 h-4 w-4" />
           新增廣播
@@ -193,8 +193,8 @@ export default function BroadcastHistoryPage() {
       {broadcasts.length === 0 ? (
         /* Empty state */
         <div className="flex flex-col items-center py-16 text-center">
-          <div className="mb-4 rounded-full bg-brand-50 p-4">
-            <Radio className="h-8 w-8 text-brand-500" />
+          <div className="mb-4 rounded-full bg-neutral-50 p-4">
+            <Radio className="h-8 w-8 text-neutral-700" />
           </div>
           <h2 className="text-lg font-semibold text-gray-900">
             尚未發送過廣播訊息
@@ -203,7 +203,7 @@ export default function BroadcastHistoryPage() {
             發送廣播訊息給你的粉絲或訂閱者吧！
           </p>
           <Button
-            className="mt-4 bg-brand-500 hover:bg-brand-600"
+            className="mt-4 bg-neutral-900 hover:bg-neutral-800"
             onClick={() => router.push('/messages/broadcast')}
           >
             <Plus className="mr-1 h-4 w-4" />

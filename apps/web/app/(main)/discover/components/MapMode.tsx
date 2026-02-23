@@ -42,7 +42,7 @@ export function MapMode({ cards, onSwipe, swiping, onDwellTime }: MapModeProps) 
       {/* Map placeholder — visual representation */}
       <div className="relative rounded-2xl bg-gradient-to-br from-blue-50 to-green-50 p-4 border border-gray-200">
         <div className="mb-3 flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-brand-500" />
+          <MapPin className="h-4 w-4 text-neutral-700" />
           <span className="text-sm font-medium text-gray-700">附近的人 ({cardsWithLocation.length})</span>
         </div>
 
@@ -55,12 +55,12 @@ export function MapMode({ cards, onSwipe, swiping, onDwellTime }: MapModeProps) 
               className="flex flex-col items-center gap-1.5 rounded-xl bg-white p-2 shadow-sm transition-all hover:shadow-md"
             >
               {/* Avatar */}
-              <div className="relative h-14 w-14 overflow-hidden rounded-full ring-2 ring-brand-200">
+              <div className="relative h-14 w-14 overflow-hidden rounded-full ring-2 ring-neutral-300">
                 {card.avatarUrl ? (
                   <img src={card.avatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-brand-100">
-                    <span className="text-sm font-bold text-brand-500">
+                  <div className="flex h-full w-full items-center justify-center bg-neutral-100">
+                    <span className="text-sm font-bold text-neutral-600">
                       {card.displayName.slice(0, 1)}
                     </span>
                   </div>

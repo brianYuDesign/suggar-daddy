@@ -114,7 +114,7 @@ export default function LoginPage() {
           <div className="flex justify-end">
             <Link
               href="/forgot-password"
-              className="text-xs text-brand-600 hover:text-brand-700"
+              className="text-xs text-neutral-700 hover:text-neutral-900"
             >
               忘記密碼？
             </Link>
@@ -125,7 +125,7 @@ export default function LoginPage() {
           type="submit"
           loading={isSubmitting}
           loadingText="登入中..."
-          className="w-full bg-brand-500 py-2.5 font-semibold text-white hover:bg-brand-600"
+          className="w-full bg-neutral-900 py-2.5 font-semibold text-white hover:bg-neutral-800"
         >
           登入
         </Button>
@@ -135,7 +135,7 @@ export default function LoginPage() {
         還沒有帳號？{' '}
         <Link
           href="/register"
-          className="font-medium text-brand-600 hover:text-brand-700"
+          className="font-medium text-neutral-700 hover:text-neutral-900"
         >
           免費註冊
         </Link>

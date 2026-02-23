@@ -236,7 +236,7 @@ export default function VerificationPage() {
                   </button>
                 </div>
               ) : (
-                <label className="flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-12 transition-colors hover:border-brand-400 hover:bg-gray-100">
+                <label className="flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-12 transition-colors hover:border-neutral-400 hover:bg-gray-100">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200">
                     <Camera className="h-6 w-6 text-gray-500" />
                   </div>
@@ -268,7 +268,7 @@ export default function VerificationPage() {
               <div className="flex flex-col gap-3">
                 {selectedFile && (
                   <Button
-                    className="w-full bg-brand-500 hover:bg-brand-600"
+                    className="w-full bg-neutral-900 hover:bg-neutral-800"
                     disabled={submitting}
                     onClick={handleSubmit}
                   >
@@ -288,7 +288,7 @@ export default function VerificationPage() {
 
                 {status === 'rejected' && !selectedFile && (
                   <Button
-                    className="w-full bg-brand-500 hover:bg-brand-600"
+                    className="w-full bg-neutral-900 hover:bg-neutral-800"
                     onClick={handleRetry}
                   >
                     重新提交
@@ -306,19 +306,19 @@ export default function VerificationPage() {
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li className="flex items-start gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand-500" />
+                  <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-neutral-900" />
                   確保臉部正對鏡頭，五官清晰可辨
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand-500" />
+                  <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-neutral-900" />
                   選擇光線充足的環境，避免逆光或陰影
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand-500" />
+                  <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-neutral-900" />
                   請勿佩戴帽子、墨鏡等遮擋物品
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand-500" />
+                  <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-neutral-900" />
                   照片不會公開，僅供認證審核使用
                 </li>
               </ul>

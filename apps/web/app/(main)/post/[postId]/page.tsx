@@ -327,7 +327,7 @@ export default function PostDetailPage() {
                     {post.isPremium && (
                       <Badge
                         variant="warning"
-                        className="bg-brand-100 text-brand-700 border-brand-200"
+                        className="bg-neutral-100 text-neutral-700 border-neutral-200"
                       >
                         <Lock className="mr-1 h-3 w-3" />
                         付費
@@ -363,8 +363,8 @@ export default function PostDetailPage() {
                     </p>
                   </div>
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
-                    <div className="mb-3 rounded-full bg-brand-50 p-4">
-                      <Lock className="h-8 w-8 text-brand-500" />
+                    <div className="mb-3 rounded-full bg-neutral-50 p-4">
+                      <Lock className="h-8 w-8 text-neutral-700" />
                     </div>
                     <h3 className="text-base font-semibold text-gray-900 mb-1">
                       此為付費內容
@@ -517,7 +517,7 @@ export default function PostDetailPage() {
                         placeholder="寫下你的留言..."
                         rows={2}
                         maxLength={500}
-                        className="flex w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 pr-12 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white resize-none transition-colors"
+                        className="flex w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 pr-12 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:bg-white resize-none transition-colors"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
@@ -531,7 +531,7 @@ export default function PostDetailPage() {
                         disabled={
                           !newComment.trim() || isSubmittingComment
                         }
-                        className="absolute right-2 bottom-2 p-1.5 rounded-full text-brand-500 hover:bg-brand-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="absolute right-2 bottom-2 p-1.5 rounded-full text-neutral-700 hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         aria-label="送出留言"
                       >
                         {isSubmittingComment ? (
@@ -675,7 +675,7 @@ export default function PostDetailPage() {
                 <select
                   value={reportReason}
                   onChange={(e) => setReportReason(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-800"
                 >
                   <option value="">選擇檢舉原因</option>
                   <option value="spam">垃圾內容</option>
@@ -690,7 +690,7 @@ export default function PostDetailPage() {
                 onChange={(e) => setReportDescription(e.target.value)}
                 placeholder="補充說明（選填）"
                 rows={3}
-                className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+                className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-neutral-800 resize-none"
               />
               <div className="flex gap-3 pt-2">
                 <Button

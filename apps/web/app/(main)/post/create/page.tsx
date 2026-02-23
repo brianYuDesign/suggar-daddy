@@ -139,7 +139,7 @@ export default function CreatePostPage() {
           type="submit"
           form="create-post-form"
           disabled={isSubmitting || uploading || charCount === 0}
-          className="bg-brand-500 hover:bg-brand-600 text-white gap-2"
+          className="bg-neutral-900 hover:bg-neutral-800 text-white gap-2"
         >
           {isSubmitting ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -168,7 +168,7 @@ export default function CreatePostPage() {
           >
             {/* Author preview */}
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-medium text-brand-700">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-medium text-neutral-900">
                 {initials}
               </div>
               <div>
@@ -190,7 +190,7 @@ export default function CreatePostPage() {
                 className={cn(
                   'w-full resize-none rounded-lg border bg-white px-4 py-3 text-sm leading-relaxed',
                   'placeholder:text-gray-400',
-                  'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent',
+                  'focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent',
                   'disabled:cursor-not-allowed disabled:opacity-50',
                   errors.content
                     ? 'border-red-300 focus:ring-red-500'
@@ -242,7 +242,7 @@ export default function CreatePostPage() {
                 </div>
               )}
               {mediaFiles.length < 4 && (
-                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 transition-colors hover:border-brand-400 hover:text-brand-600">
+                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 transition-colors hover:border-neutral-400 hover:text-neutral-900">
                   <Image className="h-5 w-5" />
                   <span>{mediaFiles.length === 0 ? '新增圖片 (最多 4 張)' : `新增更多圖片 (${mediaFiles.length}/4)`}</span>
                   <input
@@ -262,7 +262,7 @@ export default function CreatePostPage() {
               className={cn(
                 'flex items-center justify-between rounded-lg border px-4 py-3 transition-colors',
                 isPremiumValue
-                  ? 'border-brand-300 bg-brand-50'
+                  ? 'border-neutral-300 bg-neutral-50'
                   : 'border-gray-200 bg-white'
               )}
             >
@@ -271,7 +271,7 @@ export default function CreatePostPage() {
                   className={cn(
                     'flex h-8 w-8 items-center justify-center rounded-full',
                     isPremiumValue
-                      ? 'bg-brand-500 text-white'
+                      ? 'bg-neutral-900 text-white'
                       : 'bg-gray-100 text-gray-400'
                   )}
                 >
@@ -295,8 +295,8 @@ export default function CreatePostPage() {
                 aria-label="切換付費內容"
                 className={cn(
                   'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
-                  isPremiumValue ? 'bg-brand-500' : 'bg-gray-200'
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-800 focus-visible:ring-offset-2',
+                  isPremiumValue ? 'bg-neutral-900' : 'bg-gray-200'
                 )}
                 onClick={() => setValue('isPremium', !isPremiumValue)}
                 disabled={isSubmitting}
@@ -312,8 +312,8 @@ export default function CreatePostPage() {
 
             {/* Info note */}
             {isPremiumValue && (
-              <div className="rounded-lg bg-brand-50 px-4 py-3">
-                <p className="text-xs text-brand-700 leading-relaxed">
+              <div className="rounded-lg bg-neutral-50 px-4 py-3">
+                <p className="text-xs text-neutral-900 leading-relaxed">
                   付費內容將會對非訂閱者顯示為鎖定狀態，只有付費解鎖後才能查看完整內容。
                 </p>
               </div>

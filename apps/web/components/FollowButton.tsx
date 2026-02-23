@@ -60,7 +60,7 @@ export function FollowButton({
         size={size}
         onClick={handleToggle}
         disabled={isLoading}
-        className="min-w-[90px] border-brand-200 text-brand-600 hover:border-red-300 hover:text-red-500 hover:bg-red-50 group"
+        className="min-w-[90px] border-neutral-200 text-neutral-900 hover:border-red-300 hover:text-red-500 hover:bg-red-50 group"
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -80,7 +80,7 @@ export function FollowButton({
       size={size}
       onClick={handleToggle}
       disabled={isLoading}
-      className="min-w-[90px] bg-brand-500 hover:bg-brand-600 text-white"
+      className="min-w-[90px] bg-neutral-900 hover:bg-neutral-800 text-white"
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />

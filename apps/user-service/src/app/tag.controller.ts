@@ -26,9 +26,11 @@ export class TagController {
   /** List all active interest tags (no auth required) */
   @Public()
   @Get('tags')
-  async getAllTags(): Promise<InterestTagEntity[]> {
+  async getAllTags() {
     this.logger.log('getAllTags request');
-    return this.tagService.getAllTags();
+    const tags = await this.tagService.getAllTags();
+    const categories = [...new Set(tags.map((t) => t.category))];
+    return { tags, categories };
   }
 
   /** Update current user's interest tags (replace all, requires auth via global JwtAuthGuard) */

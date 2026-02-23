@@ -87,12 +87,12 @@ export function ProfileDetailModal({
         </button>
 
         {/* Photo gallery */}
-        <div className="relative h-80 bg-gradient-to-br from-brand-100 to-brand-200">
+        <div className="relative h-80 bg-gradient-to-br from-neutral-100 to-neutral-200">
           {currentPhoto ? (
             <img src={currentPhoto} alt="" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <span className="text-6xl font-bold text-brand-500/40">
+              <span className="text-6xl font-bold text-neutral-400">
                 {card.displayName.slice(0, 2).toUpperCase()}
               </span>
             </div>
@@ -149,7 +149,7 @@ export function ProfileDetailModal({
                 <span className="text-sm text-gray-500">@{card.username}</span>
               )}
               <div className="mt-1 flex items-center gap-2">
-                <span className="inline-flex items-center rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700">
+                <span className="inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-800">
                   {roleLabelMap(card.userType)}
                 </span>
                 {card.verificationStatus === 'verified' && (
@@ -199,7 +199,7 @@ export function ProfileDetailModal({
                   <span className="w-16 text-xs text-gray-500">{item.label}</span>
                   <div className="flex-1 h-1.5 rounded-full bg-gray-200">
                     <div
-                      className="h-full rounded-full bg-brand-400 transition-all"
+                      className="h-full rounded-full bg-gold-400 transition-all"
                       style={{ width: `${(item.value / item.max) * 100}%` }}
                     />
                   </div>
@@ -217,7 +217,7 @@ export function ProfileDetailModal({
               <h3 className="text-xs font-semibold text-gray-500 uppercase">
                 興趣標籤
                 {detail.commonTagCount > 0 && (
-                  <span className="ml-1 text-brand-500">({detail.commonTagCount} 個共同)</span>
+                  <span className="ml-1 text-gold-500">({detail.commonTagCount} 個共同)</span>
                 )}
               </h3>
               <InterestTags tags={detail.tags} maxVisible={20} />

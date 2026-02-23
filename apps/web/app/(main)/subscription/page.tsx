@@ -233,29 +233,29 @@ export default function SubscriptionPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 p-6 text-white">
+      <div className="rounded-2xl bg-gradient-to-r from-neutral-900 to-neutral-800 p-6 text-white">
         <div className="flex items-center gap-2">
-          <Crown className="h-6 w-6" />
+          <Crown className="h-6 w-6 text-gold-400" />
           <h1 className="text-xl font-bold">訂閱方案</h1>
         </div>
-        <p className="mt-1 text-sm text-brand-100">
+        <p className="mt-1 text-sm text-neutral-300">
           選擇最適合你的方案，解鎖完整體驗
         </p>
       </div>
 
       {/* Current subscription info */}
       {currentSub && (
-        <Card className="border-brand-200 bg-brand-50 p-4">
+        <Card className="border-gold-200 bg-gold-50 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-brand-800">目前方案</p>
-              <p className="text-xs text-brand-600">
+              <p className="text-sm font-medium text-gold-600">目前方案</p>
+              <p className="text-xs text-gold-600">
                 {currentSub.currentPeriodEnd
                   ? `到期日：${new Date(currentSub.currentPeriodEnd).toLocaleDateString('zh-TW')}`
                   : '持續訂閱中'}
               </p>
             </div>
-            <Badge className="bg-brand-500 text-white">
+            <Badge className="bg-gold-500 text-white">
               {currentSub.status === 'active' ? '使用中' : currentSub.status}
             </Badge>
           </div>
@@ -278,17 +278,17 @@ export default function SubscriptionPage() {
               key={tier.id}
               className={cn(
                 'flex flex-col transition-shadow hover:shadow-md',
-                isCurrent && 'border-2 border-brand-500 ring-2 ring-brand-200'
+                isCurrent && 'border-2 border-gold-400 ring-2 ring-gold-200'
               )}
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">{tier.name}</CardTitle>
                   {isCurrent && (
-                    <Badge className="bg-brand-500 text-white">目前方案</Badge>
+                    <Badge className="bg-gold-500 text-white">目前方案</Badge>
                   )}
                 </div>
-                <p className="text-2xl font-bold text-brand-600">
+                <p className="text-2xl font-bold text-neutral-900">
                   {formatCurrency(tier.price, tier.currency)}
                   <span className="text-sm font-normal text-gray-500"> / 月</span>
                 </p>
@@ -298,7 +298,7 @@ export default function SubscriptionPage() {
                 <ul className="space-y-2">
                   {tier.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" />
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold-500" />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -320,7 +320,7 @@ export default function SubscriptionPage() {
                   </Button>
                 ) : (
                   <Button
-                    className="w-full bg-brand-500 hover:bg-brand-600"
+                    className="w-full bg-neutral-900 hover:bg-neutral-800"
                     onClick={() => handleSubscribeClick(tier)}
                     disabled={!!actionLoading}
                   >
@@ -344,8 +344,8 @@ export default function SubscriptionPage() {
             <p className="mt-2 text-sm text-gray-600">
               您即將訂閱 <span className="font-semibold">{showSubscribeConfirm.tier.name}</span>
             </p>
-            <div className="mt-3 rounded-lg bg-brand-50 p-3">
-              <p className="text-2xl font-bold text-brand-600">
+            <div className="mt-3 rounded-lg bg-gold-50 p-3">
+              <p className="text-2xl font-bold text-neutral-900">
                 {formatCurrency(showSubscribeConfirm.tier.price, showSubscribeConfirm.tier.currency)}
                 <span className="text-sm font-normal text-gray-500"> / 月</span>
               </p>
@@ -363,7 +363,7 @@ export default function SubscriptionPage() {
                 取消
               </Button>
               <Button
-                className="flex-1 bg-brand-500 hover:bg-brand-600"
+                className="flex-1 bg-neutral-900 hover:bg-neutral-800"
                 onClick={confirmSubscribe}
                 disabled={!!actionLoading}
               >

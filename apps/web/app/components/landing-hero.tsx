@@ -43,7 +43,7 @@ export function LandingHero() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-900 border-t-transparent" />
       </div>
     );
   }
@@ -53,17 +53,17 @@ export function LandingHero() {
       {/* Hero Section */}
       <section className="relative flex flex-1 flex-col items-center justify-center px-6 py-20 text-center">
         {/* Gradient background */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand-50 via-white to-white" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-neutral-50 via-white to-white" />
 
         <div className="relative z-10 mx-auto max-w-lg">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-brand-100 px-4 py-1.5 text-sm font-medium text-brand-800">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-neutral-100 px-4 py-1.5 text-sm font-medium text-neutral-800">
             <Sparkles className="h-4 w-4" />
             探索理想關係
           </div>
 
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
             在{' '}
-            <span className="bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-neutral-900 to-neutral-700 bg-clip-text text-transparent">
               Suggar Daddy
             </span>
             <br />
@@ -76,7 +76,7 @@ export function LandingHero() {
 
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link href="/register">
-              <Button className="w-full bg-brand-500 px-8 py-3 text-base font-semibold text-white hover:bg-brand-600 sm:w-auto">
+              <Button className="w-full bg-neutral-900 px-8 py-3 text-base font-semibold text-white hover:bg-neutral-800 sm:w-auto">
                 免費加入
               </Button>
             </Link>
@@ -101,8 +101,8 @@ export function LandingHero() {
                 key={f.title}
                 className="rounded-2xl bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
               >
-                <div className="mb-3 inline-flex rounded-xl bg-brand-100 p-2.5">
-                  <f.icon className="h-5 w-5 text-brand-600" />
+                <div className="mb-3 inline-flex rounded-xl bg-neutral-100 p-2.5">
+                  <f.icon className="h-5 w-5 text-neutral-900" />
                 </div>
                 <h3 className="mb-1.5 text-lg font-semibold text-gray-900">
                   {f.title}

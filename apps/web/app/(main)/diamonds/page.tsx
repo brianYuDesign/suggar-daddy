@@ -271,7 +271,7 @@ export default function DiamondStorePage() {
                       'w-full',
                       premium
                         ? 'bg-violet-500 hover:bg-violet-600'
-                        : 'bg-brand-500 hover:bg-brand-600',
+                        : 'bg-neutral-900 hover:bg-neutral-800',
                     )}
                     onClick={() => handlePurchase(pkg)}
                     disabled={!!purchaseLoading}

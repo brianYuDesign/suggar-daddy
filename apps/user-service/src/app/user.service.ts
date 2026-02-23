@@ -231,6 +231,11 @@ export class UserService {
       user.username = normalizedUsername;
     }
 
+    // Diamond chat gate settings
+    if (dto.chatDiamondGateEnabled !== undefined) user.chatDiamondGateEnabled = dto.chatDiamondGateEnabled;
+    if (dto.chatDiamondThreshold !== undefined) user.chatDiamondThreshold = dto.chatDiamondThreshold;
+    if (dto.chatDiamondCost !== undefined) user.chatDiamondCost = dto.chatDiamondCost;
+
     // 位置更新：同步寫入 Redis GEO
     if (dto.latitude !== undefined && dto.longitude !== undefined) {
       user.latitude = dto.latitude;

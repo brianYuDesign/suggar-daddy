@@ -189,7 +189,7 @@ export class MatchingApi {
    * @returns Detailed card information including photos and tags
    */
   getCardDetail(userId: string) {
-    return this.client.get<CardDetailResponseDto>(`/api/matching/cards/${userId}`);
+    return this.client.get<CardDetailResponseDto>(`/api/matching/cards/${userId}/detail`);
   }
 
   /**
@@ -247,7 +247,7 @@ export class MatchingApi {
    * @returns Revealed user card and diamond cost
    */
   revealLike(likerId: string) {
-    return this.client.post<RevealLikeResponseDto>(`/api/matching/likes-me/${likerId}/reveal`, {});
+    return this.client.post<RevealLikeResponseDto>('/api/matching/likes-me/reveal', { likerId });
   }
 
   /**
@@ -264,6 +264,6 @@ export class MatchingApi {
    * @returns Count of received and processed events
    */
   sendBehaviorEvents(events: BehaviorEventDto[]) {
-    return this.client.post<BehaviorBatchResponseDto>('/api/matching/behavior-events', { events });
+    return this.client.post<BehaviorBatchResponseDto>('/api/matching/behavior', { events });
   }
 }

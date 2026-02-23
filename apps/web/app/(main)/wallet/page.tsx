@@ -130,8 +130,8 @@ export default function WalletPage() {
       label: '可用餘額',
       value: wallet?.balance ?? 0,
       icon: WalletIcon,
-      color: 'text-brand-600',
-      bg: 'bg-brand-50',
+      color: 'text-neutral-900',
+      bg: 'bg-neutral-50',
     },
     {
       label: '待入帳',
@@ -159,7 +159,7 @@ export default function WalletPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 p-6 text-white">
+      <div className="rounded-2xl bg-gradient-to-r from-neutral-900 to-neutral-800 p-6 text-white">
         <div className="flex items-center gap-2">
           <WalletIcon className="h-6 w-6" />
           <h1 className="text-xl font-bold">我的錢包</h1>
@@ -167,7 +167,7 @@ export default function WalletPage() {
         <p className="mt-2 text-3xl font-bold">
           {formatAmount(wallet?.balance ?? 0)}
         </p>
-        <p className="text-sm text-brand-100">可用餘額</p>
+        <p className="text-sm text-neutral-300">可用餘額</p>
       </div>
 
       {/* Diamond balance section */}
@@ -240,7 +240,7 @@ export default function WalletPage() {
             className="h-auto flex-col gap-2 py-4"
             onClick={() => router.push('/wallet/withdraw')}
           >
-            <ArrowDownToLine className="h-5 w-5 text-brand-500" />
+            <ArrowDownToLine className="h-5 w-5 text-neutral-700" />
             <span className="text-sm">提款</span>
           </Button>
 
@@ -249,7 +249,7 @@ export default function WalletPage() {
             className="h-auto flex-col gap-2 py-4"
             onClick={() => router.push('/wallet/history')}
           >
-            <History className="h-5 w-5 text-brand-500" />
+            <History className="h-5 w-5 text-neutral-700" />
             <span className="text-sm">交易記錄</span>
           </Button>
         </div>

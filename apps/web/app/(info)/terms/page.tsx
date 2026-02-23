@@ -42,7 +42,7 @@ export default async function TermsPage() {
       <p>使用本平台時，您同意：</p>
       <ul>
         <li>遵守所有適用的法律法規</li>
-        <li>遵守本平台的<a href="/community-guidelines" className="text-brand-600 hover:underline">社群守則</a></li>
+        <li>遵守本平台的<a href="/community-guidelines" className="text-neutral-900 hover:underline">社群守則</a></li>
         <li>尊重其他用戶的權利與隱私</li>
         <li>不從事任何可能損害本平台或其他用戶的行為</li>
         <li>對您帳號下的所有活動負責</li>
@@ -132,7 +132,7 @@ export default async function TermsPage() {
       <h2 className="text-lg font-semibold text-gray-900 mt-8">12. 聯絡我們</h2>
       <p>
         如果您對本服務條款有任何疑問，請透過
-        <a href="/contact" className="text-brand-600 hover:underline">聯絡我們</a>頁面與我們聯繫。
+        <a href="/contact" className="text-neutral-900 hover:underline">聯絡我們</a>頁面與我們聯繫。
       </p>
     </article>
   );

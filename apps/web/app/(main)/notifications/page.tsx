@@ -57,7 +57,7 @@ function getNotificationColor(type: string) {
     case 'like':
       return 'text-pink-500 bg-pink-50';
     case 'message':
-      return 'text-brand-500 bg-brand-50';
+      return 'text-neutral-700 bg-neutral-50';
     case 'payment':
     case 'tip':
       return 'text-green-500 bg-green-50';
@@ -198,7 +198,7 @@ export default function NotificationsPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="gap-1 text-brand-600 hover:text-brand-700"
+            className="gap-1 text-neutral-900 hover:text-neutral-900"
             onClick={handleMarkAllAsRead}
             disabled={markingAll}
           >
@@ -231,7 +231,7 @@ export default function NotificationsPage() {
                 key={notification.id}
                 className={cn(
                   'flex cursor-pointer items-start gap-3 p-4 transition-colors hover:bg-gray-50',
-                  !notification.read && 'bg-brand-50/30'
+                  !notification.read && 'bg-neutral-50/30'
                 )}
                 onClick={() => {
                   if (!notification.read) {

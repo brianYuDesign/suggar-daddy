@@ -1,8 +1,15 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import { AuthProvider } from '../providers/auth-provider';
 import { ToastProvider } from '../providers/toast-provider';
 import { ErrorBoundary } from '@suggar-daddy/ui';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -27,8 +34,8 @@ export default function RootLayout({
   const isDevelopment = process.env.NODE_ENV === 'development';
   
   return (
-    <html lang="zh-Hant">
-      <body>
+    <html lang="zh-Hant" className={inter.variable}>
+      <body className={inter.className}>
         <ErrorBoundary showDetails={isDevelopment}>
           <AuthProvider>
             <ToastProvider>{children}</ToastProvider>

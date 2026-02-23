@@ -10,6 +10,7 @@ import {
   UserInterestTagEntity,
 } from '@suggar-daddy/database';
 import { InjectLogger } from '@suggar-daddy/common';
+import { RedisService } from '@suggar-daddy/redis';
 
 const MAX_TAGS_PER_USER = 20;
 const MAX_TAGS_PER_CATEGORY = 5;
@@ -24,6 +25,7 @@ export class TagService {
     private readonly tagRepo: Repository<InterestTagEntity>,
     @InjectRepository(UserInterestTagEntity)
     private readonly userTagRepo: Repository<UserInterestTagEntity>,
+    private readonly redisService: RedisService,
   ) {}
 
   /** Get all active tags, ordered by category then sortOrder */
@@ -100,7 +102,22 @@ export class TagService {
     );
 
     // Return updated tags
-    return this.getUserTags(userId);
+    const updatedTags = await this.getUserTags(userId);
+
+    // Sync to Redis for matching-service consumption
+    const tagJson = updatedTags.map((t) => ({
+      id: t.id,
+      category: t.category,
+      name: t.name,
+      nameZh: t.nameZh,
+      icon: t.icon,
+    }));
+    await this.redisService.set(
+      `user:tags:${userId}`,
+      JSON.stringify(tagJson),
+    );
+
+    return updatedTags;
   }
 
   /** Get common tags between two users */

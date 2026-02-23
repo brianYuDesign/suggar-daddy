@@ -48,7 +48,7 @@ export function DesktopSidebar() {
     <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 md:left-0 md:border-r md:bg-white">
       {/* Logo */}
       <div className="flex h-16 items-center px-6">
-        <Link href="/feed" className="text-xl font-bold text-brand-600">
+        <Link href="/feed" className="text-xl font-bold tracking-tight text-neutral-900">
           Suggar Daddy
         </Link>
       </div>
@@ -65,7 +65,7 @@ export function DesktopSidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-brand-50 text-brand-700'
+                  ? 'bg-neutral-100 text-neutral-900'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
@@ -92,7 +92,7 @@ export function DesktopSidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-brand-50 text-brand-700'
+                  ? 'bg-neutral-100 text-neutral-900'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
@@ -107,7 +107,7 @@ export function DesktopSidebar() {
       {user && (
         <div className="border-t p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-sm font-semibold text-neutral-900">
               {user.displayName.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 truncate">

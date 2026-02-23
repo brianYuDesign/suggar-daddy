@@ -148,7 +148,7 @@ export default async function CookiePolicyPage() {
       <h2 className="text-lg font-semibold text-gray-900 mt-8">7. 聯絡我們</h2>
       <p>
         如果您對本 Cookie 政策有任何疑問，請透過
-        <a href="/contact" className="text-brand-600 hover:underline">聯絡我們</a>頁面與我們聯繫。
+        <a href="/contact" className="text-neutral-900 hover:underline">聯絡我們</a>頁面與我們聯繫。
       </p>
     </article>
   );

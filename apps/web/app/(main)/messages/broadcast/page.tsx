@@ -130,7 +130,7 @@ export default function BroadcastPage() {
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </button>
         <div className="flex items-center gap-2">
-          <Radio className="h-5 w-5 text-brand-500" />
+          <Radio className="h-5 w-5 text-neutral-700" />
           <h1 className="text-xl font-bold text-gray-900">群發訊息</h1>
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function BroadcastPage() {
             placeholder="輸入你想廣播的訊息..."
             maxLength={MAX_CONTENT_LENGTH}
             rows={6}
-            className="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
           />
           <p
             className={`mt-2 text-right text-xs ${
@@ -178,14 +178,14 @@ export default function BroadcastPage() {
                   onClick={() => setAudience(option.value)}
                   className={`flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-colors ${
                     selected
-                      ? 'border-brand-500 bg-brand-50'
+                      ? 'border-neutral-500 bg-neutral-50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
                   <div
                     className={`mt-0.5 rounded-full p-2 ${
                       selected
-                        ? 'bg-brand-100 text-brand-600'
+                        ? 'bg-neutral-100 text-neutral-900'
                         : 'bg-gray-100 text-gray-500'
                     }`}
                   >
@@ -194,7 +194,7 @@ export default function BroadcastPage() {
                   <div className="flex-1">
                     <p
                       className={`text-sm font-semibold ${
-                        selected ? 'text-brand-700' : 'text-gray-900'
+                        selected ? 'text-neutral-900' : 'text-gray-900'
                       }`}
                     >
                       {option.label}
@@ -207,7 +207,7 @@ export default function BroadcastPage() {
                   <div
                     className={`mt-1 h-4 w-4 shrink-0 rounded-full border-2 ${
                       selected
-                        ? 'border-brand-500 bg-brand-500'
+                        ? 'border-neutral-900 bg-neutral-900'
                         : 'border-gray-300 bg-white'
                     }`}
                   >

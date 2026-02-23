@@ -10,14 +10,14 @@ interface CompatibilityBadgeProps {
 
 function getScoreColor(score: number): string {
   if (score >= 80) return 'text-green-500';
-  if (score >= 60) return 'text-brand-500';
+  if (score >= 60) return 'text-gold-500';
   if (score >= 40) return 'text-yellow-500';
   return 'text-gray-400';
 }
 
 function getStrokeColor(score: number): string {
   if (score >= 80) return 'stroke-green-500';
-  if (score >= 60) return 'stroke-brand-500';
+  if (score >= 60) return 'stroke-gold-500';
   if (score >= 40) return 'stroke-yellow-500';
   return 'stroke-gray-300';
 }

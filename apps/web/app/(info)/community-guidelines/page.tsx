@@ -113,7 +113,7 @@ export default async function CommunityGuidelinesPage() {
         <li>提交後，我們的審核團隊將在 24 小時內處理</li>
       </ol>
       <p>
-        您也可以透過 <a href="/contact" className="text-brand-600 hover:underline">聯絡我們</a> 頁面進行舉報。
+        您也可以透過 <a href="/contact" className="text-neutral-900 hover:underline">聯絡我們</a> 頁面進行舉報。
         所有檢舉都是保密處理的，被檢舉方不會知道檢舉人的身份。
       </p>
 
@@ -151,7 +151,7 @@ export default async function CommunityGuidelinesPage() {
       <h2 className="text-lg font-semibold text-gray-900 mt-8">7. 聯絡我們</h2>
       <p>
         如果您對社群守則有任何疑問或需要協助，請透過
-        <a href="/contact" className="text-brand-600 hover:underline">聯絡我們</a>頁面與我們聯繫。
+        <a href="/contact" className="text-neutral-900 hover:underline">聯絡我們</a>頁面與我們聯繫。
       </p>
     </article>
   );
