@@ -1,8 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { MessagingService } from './messaging.service';
 import { RedisService } from '@suggar-daddy/redis';
 import { KafkaProducerService } from '@suggar-daddy/kafka';
 import { SubscriptionServiceClient } from './subscription-service.client';
+import { TextFilterService } from '@suggar-daddy/moderation';
+import { ConversationEntity, MessageEntity } from '@suggar-daddy/entities';
 
 describe('MessagingService', () => {
   let service: MessagingService;
@@ -11,12 +14,17 @@ describe('MessagingService', () => {
   const lists = new Map<string, string[]>();
   const sets = new Map<string, Set<string>>();
 
+  const mockRedisClient = {
+    eval: jest.fn().mockResolvedValue(0),
+    ping: jest.fn().mockResolvedValue('PONG'),
+  };
+
   const redis = {
     get: jest.fn(async (key: string) => store.get(key) ?? null),
     set: jest.fn(async (key: string, value: string) => { store.set(key, value); }),
     lPush: jest.fn(async (key: string, value: string) => {
       const arr = lists.get(key) ?? [];
-      arr.push(value);
+      arr.unshift(value);
       lists.set(key, arr);
       return arr.length;
     }),
@@ -35,6 +43,8 @@ describe('MessagingService', () => {
     sMembers: jest.fn(async (key: string) => [...(sets.get(key) ?? [])]),
     sIsMember: jest.fn(async (key: string, member: string) => (sets.get(key) ?? new Set()).has(member)),
     mget: jest.fn(async (...keys: string[]) => keys.map((k) => store.get(k) ?? null)),
+    exists: jest.fn(async () => false),
+    getClient: jest.fn(() => mockRedisClient),
   };
 
   const kafka = {
@@ -43,6 +53,26 @@ describe('MessagingService', () => {
 
   const subscriptionServiceClient = {
     checkSubscriptionAccess: jest.fn().mockResolvedValue(true),
+  };
+
+  const textFilter = {
+    check: jest.fn().mockReturnValue({ passed: true, flaggedWords: [], severity: null, category: 'clean' }),
+  };
+
+  const mockConversationRepo = {
+    find: jest.fn().mockResolvedValue([]),
+    findAndCount: jest.fn().mockResolvedValue([[], 0]),
+    findOne: jest.fn().mockResolvedValue(null),
+    save: jest.fn(),
+    create: jest.fn(),
+  };
+
+  const mockMessageRepo = {
+    find: jest.fn().mockResolvedValue([]),
+    findAndCount: jest.fn().mockResolvedValue([[], 0]),
+    findOne: jest.fn().mockResolvedValue(null),
+    save: jest.fn(),
+    create: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -57,6 +87,9 @@ describe('MessagingService', () => {
         { provide: RedisService, useValue: redis },
         { provide: KafkaProducerService, useValue: kafka },
         { provide: SubscriptionServiceClient, useValue: subscriptionServiceClient },
+        { provide: TextFilterService, useValue: textFilter },
+        { provide: getRepositoryToken(ConversationEntity), useValue: mockConversationRepo },
+        { provide: getRepositoryToken(MessageEntity), useValue: mockMessageRepo },
       ],
     }).compile();
 
@@ -102,23 +135,36 @@ describe('MessagingService', () => {
   });
 
   describe('getMessages', () => {
-    it('應在非參與者時回傳空 messages', async () => {
+    it('應在非參與者時回傳空 messages 且 hasMore=false', async () => {
       const convId = await service.ensureConversation('u1', 'u2');
       const result = await service.getMessages('u3', convId, 10);
       expect(result.messages).toEqual([]);
+      expect(result.hasMore).toBe(false);
     });
 
-    it('應回傳該對話的訊息並支援 cursor', async () => {
+    it('應回傳該對話的訊息並支援 cursor 分頁', async () => {
       const convId = await service.ensureConversation('u1', 'u2');
       await service.send('u1', convId, 'First');
       await service.send('u1', convId, 'Second');
 
       const page1 = await service.getMessages('u1', convId, 1);
       expect(page1.messages.length).toBe(1);
+      expect(page1.hasMore).toBe(true);
       expect(page1.nextCursor).toBeDefined();
 
       const page2 = await service.getMessages('u1', convId, 5, page1.nextCursor);
       expect(page2.messages.length).toBe(1);
+      expect(page2.hasMore).toBe(false);
+      expect(page2.nextCursor).toBeUndefined();
+    });
+
+    it('應在只有一頁時回傳 hasMore=false', async () => {
+      const convId = await service.ensureConversation('u1', 'u2');
+      await service.send('u1', convId, 'Only message');
+
+      const result = await service.getMessages('u1', convId, 10);
+      expect(result.messages.length).toBe(1);
+      expect(result.hasMore).toBe(false);
     });
   });
 

@@ -9,6 +9,12 @@ import type {
   CursorPaginatedResponse,
 } from './types';
 
+export interface PaginatedMessagesResponse {
+  messages: MessageDto[];
+  nextCursor?: string;
+  hasMore: boolean;
+}
+
 export class MessagingApi {
   constructor(private readonly client: ApiClient) {}
 
@@ -20,17 +26,21 @@ export class MessagingApi {
   }
 
   /**
-   * 取得對話訊息（支援 cursor-based 分頁）
+   * 取得對話訊息（支援 offset-based 分頁）
    * @param conversationId - 對話 ID
-   * @param cursor - 分頁游標（可選）
+   * @param options - 分頁選項
    */
-  async getMessages(conversationId: string, cursor?: string): Promise<MessageDto[]> {
-    const params = cursor ? { cursor } : undefined;
-    const raw = await this.client.get<{ messages: MessageDto[]; nextCursor?: string }>(
+  async getMessages(
+    conversationId: string,
+    options?: { cursor?: string; limit?: number },
+  ): Promise<PaginatedMessagesResponse> {
+    const params: Record<string, string> = {};
+    if (options?.cursor) params.cursor = options.cursor;
+    if (options?.limit) params.limit = String(options.limit);
+    return this.client.get<PaginatedMessagesResponse>(
       `/api/messaging/conversations/${conversationId}/messages`,
-      { params }
+      { params: Object.keys(params).length > 0 ? params : undefined },
     );
-    return raw.messages || [];
   }
 
   /**
@@ -42,7 +52,7 @@ export class MessagingApi {
   }
 
   /**
-   * 使用鑽石解鎖聊天門檻
+   * 使用鑽石解鎖聊天門檻（免費訊息用完後）
    * @param conversationId - 對話 ID
    * @returns 解鎖結果，包含鑽石花費
    */
@@ -50,6 +60,63 @@ export class MessagingApi {
     return this.client.post<{ unlocked: boolean; diamondCost: number }>(
       `/api/messaging/conversations/${conversationId}/unlock-chat`,
       {}
+    );
+  }
+
+  /**
+   * 使用鑽石解鎖 DM 權限（付費私訊創作者）
+   * @param conversationId - 對話 ID
+   * @returns 解鎖結果，包含鑽石花費
+   */
+  unlockDm(conversationId: string) {
+    return this.client.post<{ unlocked: boolean; diamondCost: number }>(
+      `/api/messaging/conversations/${conversationId}/unlock-dm`,
+      {}
+    );
+  }
+
+  /**
+   * 取得聊天狀態（是否需要鑽石解鎖）
+   */
+  getChatStatus(conversationId: string) {
+    return this.client.get<{
+      canSend: boolean;
+      gate?: {
+        type: 'DM_DIAMOND_GATE' | 'CHAT_DIAMOND_GATE';
+        diamondCost: number;
+        message: string;
+        threshold?: number;
+        sentCount?: number;
+      };
+    }>(`/api/messaging/conversations/${conversationId}/chat-status`);
+  }
+
+  /**
+   * 標記訊息已讀
+   */
+  markAsRead(conversationId: string, messageId: string) {
+    return this.client.post<{ success: boolean }>(
+      `/api/messaging/conversations/${conversationId}/read`,
+      { messageId }
+    );
+  }
+
+  /**
+   * 取得對話已讀回執
+   */
+  getReadReceipts(conversationId: string) {
+    return this.client.get<Record<string, { messageId: string; readAt: string }>>(
+      `/api/messaging/conversations/${conversationId}/read-receipts`
+    );
+  }
+
+  /**
+   * 取得用戶在線狀態
+   */
+  getOnlineStatus(userIds: string[]) {
+    return this.client.get<Record<string, boolean>>(
+      `/api/messaging/online-status`,
+      { params: { userIds: userIds.join(',') } }
     );
   }
 

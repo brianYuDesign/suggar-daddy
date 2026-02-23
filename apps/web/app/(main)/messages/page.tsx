@@ -16,12 +16,14 @@ interface Conversation {
   id: string;
   participantIds: string[];
   lastMessageAt?: Date;
+  unreadCount?: number;
 }
 
 interface ConversationWithName extends Conversation {
   otherName?: string;
   otherUsername?: string;
   lastMessageText?: string;
+  otherId?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -34,6 +36,7 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<ConversationWithName[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [onlineStatus, setOnlineStatus] = useState<Record<string, boolean>>({});
 
   /** 名稱快取，避免重複查詢 */
   const [nameCache, setNameCache] = useState<Record<string, { displayName: string; username?: string }>>({});
@@ -56,17 +59,18 @@ export default function MessagesPage() {
                   setNameCache((prev) => ({ ...prev, [otherId]: info }));
                   return info;
                 }),
-            messagingApi.getMessages(conv.id),
+            messagingApi.getMessages(conv.id, { limit: 1 }),
           ]);
 
           const otherInfo =
             nameResult.status === 'fulfilled' ? nameResult.value : undefined;
-          const messages =
-            messagesResult.status === 'fulfilled' ? messagesResult.value : [];
-          const lastMsg = messages[0];
+          const messagesData =
+            messagesResult.status === 'fulfilled' ? messagesResult.value : { messages: [] };
+          const lastMsg = messagesData.messages[0];
 
           return {
             ...conv,
+            otherId,
             otherName: otherInfo?.displayName,
             otherUsername: otherInfo?.username,
             lastMessageText: lastMsg?.content,
@@ -85,7 +89,25 @@ export default function MessagesPage() {
       try {
         const data = (await messagingApi.getConversations()) as unknown as Conversation[];
         const enriched = await enrichConversations(data);
-        if (!cancelled) setConversations(enriched);
+        if (!cancelled) {
+          // Sort by lastMessageAt descending so most recent conversation is first
+          enriched.sort((a, b) => {
+            const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+            const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+            return tb - ta;
+          });
+          setConversations(enriched);
+          // Batch query online status for all other participants
+          const otherIds = enriched.map((c) => c.otherId).filter(Boolean) as string[];
+          if (otherIds.length > 0) {
+            try {
+              const status = await messagingApi.getOnlineStatus(otherIds);
+              if (!cancelled) setOnlineStatus(status);
+            } catch {
+              /* silent */
+            }
+          }
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof ApiError ? err.message : '無法載入對話');
@@ -114,28 +136,40 @@ export default function MessagesPage() {
     socket.emit('join', { userId: user.id });
 
     async function handleNewMessage() {
-      // 有新訊息 → 重新拉取對話列表以更新排序 / lastMessageAt
       try {
         const data = (await messagingApi.getConversations()) as unknown as Conversation[];
         const enriched = await enrichConversations(data);
+        enriched.sort((a, b) => {
+          const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+          const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+          return tb - ta;
+        });
         setConversations(enriched);
       } catch {
         /* silent */
       }
     }
 
+    function handleUserOnline(data: { userId: string }) {
+      setOnlineStatus((prev) => ({ ...prev, [data.userId]: true }));
+    }
+
+    function handleUserOffline(data: { userId: string }) {
+      setOnlineStatus((prev) => ({ ...prev, [data.userId]: false }));
+    }
+
     socket.on('new_message', handleNewMessage);
+    socket.on('user_online', handleUserOnline);
+    socket.on('user_offline', handleUserOffline);
 
     return () => {
       socket.off('new_message', handleNewMessage);
+      socket.off('user_online', handleUserOnline);
+      socket.off('user_offline', handleUserOffline);
     };
   }, [user?.id]);
 
   /* ---------- helpers ---------- */
-  function getOtherParticipantId(conv: Conversation): string {
-    return conv.participantIds.find((id) => id !== user?.id) ?? conv.participantIds[0] ?? '';
-  }
-
   function getInitials(id: string): string {
     return id.slice(0, 2).toUpperCase();
   }
@@ -199,36 +233,62 @@ export default function MessagesPage() {
       ) : (
         <div className="space-y-2">
           {conversations.map((conv) => {
+            const otherId = conv.otherId || '';
+            const isOnline = onlineStatus[otherId] ?? false;
+            const hasUnread = (conv.unreadCount ?? 0) > 0;
+
             return (
               <Card
                 key={conv.id}
                 className="flex cursor-pointer items-center gap-3 p-4 transition-colors hover:bg-gray-50 active:bg-gray-100"
                 onClick={() => router.push(`/messages/${conv.id}`)}
               >
-                <Avatar fallback={getInitials(conv.otherName || getOtherParticipantId(conv))} size="md" />
+                {/* Avatar with online indicator — click to profile */}
+                <div
+                  className="relative shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (otherId) router.push(`/user/${otherId}`);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`查看 ${conv.otherName || '使用者'} 的個人資訊`}
+                >
+                  <Avatar fallback={getInitials(conv.otherName || otherId)} size="md" />
+                  {isOnline && (
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+                  )}
+                </div>
+
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-gray-900">
+                      <p className={`truncate text-sm ${hasUnread ? 'font-bold text-gray-900' : 'font-medium text-gray-900'}`}>
                         {conv.otherName || '使用者'}
                       </p>
                       {conv.otherUsername && (
                         <span className="text-sm text-gray-500">@{conv.otherUsername}</span>
                       )}
                     </div>
-                    {conv.lastMessageAt && (
-                      <span className="shrink-0 text-xs text-gray-400">
-                        {timeAgo(conv.lastMessageAt)}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {conv.lastMessageAt && (
+                        <span className="text-xs text-gray-400">
+                          {timeAgo(conv.lastMessageAt)}
+                        </span>
+                      )}
+                      {hasUnread && (
+                        <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                          {conv.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {conv.lastMessageText && (
-                    <p className="truncate text-xs text-gray-500 mt-0.5">
+                    <p className={`truncate text-xs mt-0.5 ${hasUnread ? 'font-medium text-gray-700' : 'text-gray-500'}`}>
                       {conv.lastMessageText}
                     </p>
                   )}
                 </div>
-                <MessageCircle className="h-4 w-4 shrink-0 text-gray-400" />
               </Card>
             );
           })}

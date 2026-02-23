@@ -9,12 +9,15 @@ export { UsersApi } from './users';
 export { MatchingApi } from './matching';
 export { TagsApi } from './tags';
 export { MessagingApi } from './messaging';
+export type { PaginatedMessagesResponse } from './messaging';
 export { NotificationsApi } from './notifications';
 export { ContentApi } from './content';
 export { SubscriptionsApi } from './subscriptions';
 export { PaymentsApi } from './payments';
 export { AdminApi } from './admin';
 export { StoriesApi } from './stories';
+export { MediaApi } from './media';
+export type { MediaUploadResult } from './media';
 
 // Re-export shared types
 export type {
